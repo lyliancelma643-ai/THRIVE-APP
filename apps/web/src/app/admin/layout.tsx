@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { href: '/admin/badges', label: 'Badges', icon: '🏅' },
   { href: '/admin/messages', label: 'Messages', icon: '💬' },
   { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
+  { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
   { href: '/admin/content', label: 'Contenu', icon: '📚' },
 ];
 
@@ -57,7 +58,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-colors ${
-                  isActive ? 'bg-white text-black font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  isActive
+                    ? 'bg-white text-black font-semibold'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
               >
                 <span className="text-lg">{item.icon}</span>
