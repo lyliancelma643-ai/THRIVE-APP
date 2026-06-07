@@ -1,3 +1,10 @@
 import { Module } from '@nestjs/common';
-@Module({})
+import { FamiliesController } from './families.controller';
+import { FamiliesService } from './families.service';
+
+@Module({
+  controllers: [FamiliesController],
+  providers: [FamiliesService],
+  exports: [FamiliesService],
+})
 export class FamiliesModule {}

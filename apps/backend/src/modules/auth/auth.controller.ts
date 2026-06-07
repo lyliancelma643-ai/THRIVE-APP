@@ -1,36 +1,40 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { Controller, Get, Put, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
+import { Public } from './decorators/public.decorator';
+import { CurrentUser } from './decorators/current-user.decorator';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Connexion utilisateur' })
+  @ApiOperation({ summary: 'Info: login géré côté client Supabase' })
   async login(@Body() body: { email: string; password: string }) {
     return this.authService.login(body.email, body.password);
   }
 
+  @Public()
   @Post('register')
-  @ApiOperation({ summary: 'Inscription utilisateur' })
+  @ApiOperation({ summary: 'Info: register géré côté client Supabase' })
   async register(@Body() body: any) {
     return this.authService.register(body);
   }
 
-  @Post('refresh')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Rafraîchir le token' })
-  async refresh(@Body() body: { refreshToken: string }) {
-    return this.authService.refreshToken(body.refreshToken);
+  @ApiBearerAuth()
+  @Get('me')
+  @ApiOperation({ summary: 'Profil de l\'utilisateur connecté (validé par JWT Supabase)' })
+  async me(@CurrentUser() user: any) {
+    return this.authService.getProfile(user.id);
   }
 
-  @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Déconnexion' })
-  async logout(@Body() body: { refreshToken: string }) {
-    return this.authService.logout(body.refreshToken);
+  @ApiBearerAuth()
+  @Put('me')
+  @ApiOperation({ summary: 'Mettre à jour son propre profil' })
+  async updateMe(@CurrentUser() user: any, @Body() body: any) {
+    return this.authService.updateProfile(user.id, body);
   }
 }
