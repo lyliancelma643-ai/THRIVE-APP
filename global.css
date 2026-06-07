@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-primary-background: #1b263b;
+    --color-primary-accent: #c5a059;
+    --color-secondary-accent: #8f9779;
+    --color-content-background: #101624;
+    --color-surface-elevated: #151c2b;
+    --color-text-primary: #ffffff;
+    --color-text-muted: #cfd5e5;
+    --color-text-subtle: #8f9779;
+    --color-danger: #ff4b4b;
+    --color-success: #3ddc84;
+  }
+}
+
+body {
+  background-color: var(--color-primary-background);
+  color: var(--color-text-primary);
+}

@@ -1,68 +1,86 @@
-import React from 'react';
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
-
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { Tabs } from "expo-router";
+import { View } from "react-native";
+import { Home, Layers, Flame, BarChart2, UserCircle } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: true,
+        headerStyle: {
+          backgroundColor: '#1b263b', // primary.background
+          borderBottomWidth: 1,
+          borderBottomColor: '#151c2b', // surface.elevated
+          shadowOpacity: 0,
+          elevation: 0,
+        },
+        headerTintColor: '#ffffff', // text.primary
+        headerTitleStyle: {
+          fontFamily: 'Playfair Display',
+          fontSize: 24,
+        },
+        tabBarStyle: {
+          backgroundColor: '#1b263b',
+          borderTopWidth: 1,
+          borderTopColor: '#151c2b',
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+          paddingTop: 8,
+          height: insets.bottom > 0 ? 60 + insets.bottom : 68,
+        },
+        tabBarActiveTintColor: '#c5a059', // primary.accent
+        tabBarInactiveTintColor: '#cfd5e5', // text.muted
+        tabBarLabelStyle: {
+          fontFamily: 'SF Pro',
+          fontSize: 11,
+          marginTop: 4,
+        }
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: "Accueil",
+          tabBarIcon: ({ color, size }) => (
+            <Home color={color} size={size} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="program"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
+          title: "Programme",
+          tabBarIcon: ({ color, size }) => (
+            <Layers color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="workouts"
+        options={{
+          title: "Séances",
+          tabBarIcon: ({ color, size }) => (
+            <Flame color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="progress"
+        options={{
+          title: "Progression",
+          tabBarIcon: ({ color, size }) => (
+            <BarChart2 color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profil",
+          tabBarIcon: ({ color, size }) => (
+            <UserCircle color={color} size={size} />
           ),
         }}
       />
