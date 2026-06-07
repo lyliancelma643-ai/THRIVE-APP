@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: '/admin/programs', label: 'Programmes', icon: '🏆' },
   { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
   { href: '/admin/badges', label: 'Badges', icon: '🏅' },
+  { href: '/admin/messages', label: 'Messages', icon: '💬' },
   { href: '/admin/content', label: 'Contenu', icon: '📚' },
 ];
 

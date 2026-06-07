@@ -14,6 +14,8 @@ export * from './hooks/usePrograms';
 export * from './hooks/useSessions';
 export * from './hooks/useQuestionnaires';
 export * from './hooks/useBadges';
+export * from './hooks/useConversations';
+export * from './hooks/useMessages';
 
 // Lib
 export * from './lib/supabase';
