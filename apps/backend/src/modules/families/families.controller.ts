@@ -14,19 +14,22 @@ export class FamiliesController {
   @Get('mine')
   @Roles(UserRole.PARENT)
   @ApiOperation({ summary: 'Ma famille avec mes enfants' })
-  myFamily(@CurrentUser() user: any) {
-    return this.familiesService.findByParent(user.id);
+  myFamily(@CurrentUser() user: Record<string, string>) {
+    return this.familiesService.findByParent(user['id']);
   }
 
   @Post()
   @Roles(UserRole.PARENT)
   @ApiOperation({ summary: 'Créer une famille' })
-  create(@CurrentUser() user: any, @Body() body: any) {
-    return this.familiesService.create(user.id, body);
+  create(
+    @CurrentUser() user: Record<string, string>,
+    @Body() body: Record<string, string>,
+  ) {
+    return this.familiesService.create(user['id'], body as any);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Détail d\'une famille' })
+  @ApiOperation({ summary: "Détail d'une famille" })
   findOne(@Param('id') id: string) {
     return this.familiesService.findOne(id);
   }

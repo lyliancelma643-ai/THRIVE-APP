@@ -11,7 +11,7 @@ export class ChildrenController {
   constructor(private readonly childrenService: ChildrenService) {}
 
   @Get()
-  @ApiOperation({ summary: 'Enfants d\'une famille' })
+  @ApiOperation({ summary: "Enfants d'une famille" })
   findByFamily(@Query('familyId') familyId: string) {
     return this.childrenService.findByFamily(familyId);
   }
@@ -19,12 +19,12 @@ export class ChildrenController {
   @Post()
   @Roles(UserRole.PARENT, UserRole.ADMIN)
   @ApiOperation({ summary: 'Ajouter un enfant' })
-  create(@Body() body: any) {
-    return this.childrenService.create(body);
+  create(@Body() body: Record<string, string>) {
+    return this.childrenService.create(body as any);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Profil complet d\'un enfant avec badges' })
+  @ApiOperation({ summary: "Profil complet d'un enfant avec badges" })
   findOne(@Param('id') id: string) {
     return this.childrenService.findOne(id);
   }

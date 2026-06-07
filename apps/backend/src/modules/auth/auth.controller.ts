@@ -13,28 +13,31 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Info: login géré côté client Supabase' })
-  async login(@Body() body: { email: string; password: string }) {
-    return this.authService.login(body.email, body.password);
+  async login(@Body() body: Record<string, string>) {
+    return this.authService.login(body['email'], body['password']);
   }
 
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Info: register géré côté client Supabase' })
-  async register(@Body() body: any) {
+  async register(@Body() body: Record<string, unknown>) {
     return this.authService.register(body);
   }
 
   @ApiBearerAuth()
   @Get('me')
-  @ApiOperation({ summary: 'Profil de l\'utilisateur connecté (validé par JWT Supabase)' })
-  async me(@CurrentUser() user: any) {
-    return this.authService.getProfile(user.id);
+  @ApiOperation({ summary: "Profil de l'utilisateur connecté (validé par JWT Supabase)" })
+  async me(@CurrentUser() user: Record<string, string>) {
+    return this.authService.getProfile(user['id']);
   }
 
   @ApiBearerAuth()
   @Put('me')
   @ApiOperation({ summary: 'Mettre à jour son propre profil' })
-  async updateMe(@CurrentUser() user: any, @Body() body: any) {
-    return this.authService.updateProfile(user.id, body);
+  async updateMe(
+    @CurrentUser() user: Record<string, string>,
+    @Body() body: Record<string, unknown>,
+  ) {
+    return this.authService.updateProfile(user['id'], body);
   }
 }
