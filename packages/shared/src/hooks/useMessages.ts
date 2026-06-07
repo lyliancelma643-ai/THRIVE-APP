@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseClient as supabase } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export interface Message {
@@ -63,7 +63,7 @@ export function useMessages(conversationId?: string) {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           setMessages((prev) => [...prev, payload.new as Message]);
         }
       )
@@ -75,7 +75,7 @@ export function useMessages(conversationId?: string) {
           table: 'messages',
           filter: `conversation_id=eq.${conversationId}`,
         },
-        (payload) => {
+        (payload: any) => {
           setMessages((prev) =>
             prev.map((m) => (m.id === payload.new.id ? { ...m, ...payload.new } : m))
           );

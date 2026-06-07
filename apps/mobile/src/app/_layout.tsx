@@ -1,11 +1,15 @@
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '../stores/auth.store';
+import { usePushNotifications } from '../hooks/usePushNotifications';
 
 export default function RootLayout() {
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+  
+  // Initialisation des notifications push
+  usePushNotifications(user?.id);
 
   useEffect(() => { hydrate(); }, []);
 

@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseClient as supabase } from '../lib/supabase';
 
 export interface Badge {
   id: string;
@@ -33,7 +33,7 @@ export function useBadges() {
       .select('*')
       .eq('is_active', true)
       .order('category')
-      .then(({ data }) => {
+      .then(({ data }: any) => {
         setBadges(data ?? []);
         setIsLoading(false);
       });
@@ -87,7 +87,7 @@ export function useChildBadges(childId?: string) {
     const allBadges: Badge[] = badgesRes.data ?? [];
 
     const existingRes = await supabase.from('child_badges').select('badge_id').eq('child_id', childId);
-    const existing = new Set((existingRes.data ?? []).map((b) => b.badge_id));
+    const existing = new Set((existingRes.data ?? []).map((b: any) => b.badge_id));
 
     for (const badge of allBadges) {
       if (existing.has(badge.id)) continue;

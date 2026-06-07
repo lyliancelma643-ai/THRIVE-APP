@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabaseClient as supabase } from '../lib/supabase';
 
 export interface Question {
   id: string;
@@ -39,7 +39,7 @@ export function useQuestionnaires(sessionId?: string, programId?: string) {
     setIsLoading(true);
     let query = supabase
       .from('questionnaires')
-      .select('*, questions(*))
+      .select('*, questions(*)')
       .order('created_at', { ascending: false });
 
     if (sessionId) query = query.eq('session_id', sessionId);

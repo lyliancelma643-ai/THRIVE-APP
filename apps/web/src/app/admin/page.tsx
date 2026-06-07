@@ -45,7 +45,11 @@ export default function AdminDashboardPage() {
     fetchStats();
   }, []);
 
-  if (isLoading) return <div className="text-gray-400">Chargement des statistiques...</div>;
+  if (isLoading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
+  );
   if (!stats) return null;
 
   const completionRate = stats.totalSessions > 0
@@ -53,65 +57,98 @@ export default function AdminDashboardPage() {
     : 0;
 
   const STAT_CARDS = [
-    { label: 'Familles', value: stats.totalFamilies, icon: '👨‍👩‍👧‍👦', href: '/admin/families', color: 'bg-blue-50' },
-    { label: 'Enfants actifs', value: stats.totalChildren, icon: '🧒', href: '/admin/children', color: 'bg-green-50' },
-    { label: 'Coaches', value: stats.totalCoaches, icon: '🎯', href: '/admin/coaches', color: 'bg-purple-50' },
-    { label: 'Programmes', value: stats.totalPrograms, icon: '🏆', href: '/admin/programs', color: 'bg-yellow-50' },
-    { label: 'Programmes actifs', value: stats.activePrograms, icon: '▶️', href: '/admin/programs', color: 'bg-orange-50' },
-    { label: 'Séances totales', value: stats.totalSessions, icon: '📅', href: '#', color: 'bg-gray-50' },
-    { label: 'Séances terminées', value: stats.completedSessions, icon: '✅', href: '#', color: 'bg-emerald-50' },
-    { label: 'Taux completion', value: `${completionRate}%`, icon: '📊', href: '#', color: 'bg-indigo-50' },
+    { label: 'Familles', value: stats.totalFamilies, icon: '👨‍👩‍👧‍👦', href: '/admin/families', gradient: 'from-blue-500 to-cyan-500', shadow: 'shadow-blue-500/20' },
+    { label: 'Enfants actifs', value: stats.totalChildren, icon: '🧒', href: '/admin/children', gradient: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-500/20' },
+    { label: 'Coaches', value: stats.totalCoaches, icon: '🎯', href: '/admin/coaches', gradient: 'from-purple-500 to-fuchsia-500', shadow: 'shadow-purple-500/20' },
+    { label: 'Programmes', value: stats.totalPrograms, icon: '🏆', href: '/admin/programs', gradient: 'from-amber-500 to-orange-500', shadow: 'shadow-amber-500/20' },
+    { label: 'Programmes actifs', value: stats.activePrograms, icon: '▶️', href: '/admin/programs', gradient: 'from-rose-500 to-pink-500', shadow: 'shadow-rose-500/20' },
+    { label: 'Séances totales', value: stats.totalSessions, icon: '📅', href: '#', gradient: 'from-slate-600 to-slate-800', shadow: 'shadow-slate-500/20' },
+    { label: 'Séances terminées', value: stats.completedSessions, icon: '✅', href: '#', gradient: 'from-lime-500 to-green-600', shadow: 'shadow-lime-500/20' },
+    { label: 'Taux completion', value: `${completionRate}%`, icon: '📊', href: '#', gradient: 'from-indigo-500 to-violet-600', shadow: 'shadow-indigo-500/20' },
   ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-1">Dashboard Admin 📊</h1>
-      <p className="text-gray-500 mb-8">Vue globale de la plateforme THRIVE</p>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-10">
+        <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Dashboard</h1>
+        <p className="text-slate-500 font-medium">Vue globale de la plateforme THRIVE</p>
+      </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-5 mb-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
         {STAT_CARDS.map((card) => (
-          <Link key={card.label} href={card.href}>
-            <div className={`${card.color} rounded-2xl p-5 hover:shadow-md transition-shadow cursor-pointer`}>
-              <p className="text-3xl mb-2">{card.icon}</p>
-              <p className="text-3xl font-bold">{card.value}</p>
-              <p className="text-gray-600 text-sm mt-1">{card.label}</p>
+          <Link key={card.label} href={card.href} className="group outline-none">
+            <div className={`relative overflow-hidden bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 hover:border-transparent transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${card.shadow}`}>
+              {/* Decorative gradient background that reveals on hover */}
+              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
+              
+              <div className="flex justify-between items-start mb-4">
+                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-2xl shadow-lg ${card.shadow} transform group-hover:scale-110 transition-transform duration-300`}>
+                  {card.icon}
+                </div>
+              </div>
+              <p className="text-4xl font-black text-slate-900 tracking-tight mb-1">{card.value}</p>
+              <p className="text-slate-500 font-medium text-sm">{card.label}</p>
             </div>
           </Link>
         ))}
       </div>
 
       {/* Inscriptions récentes */}
-      <div className="bg-white rounded-2xl p-6 shadow-sm">
-        <h2 className="text-xl font-bold mb-4">Inscriptions récentes</h2>
-        {stats.recentSignups.length === 0 ? (
-          <p className="text-gray-400">Aucune inscription.</p>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="text-left text-gray-400 text-sm border-b">
-                <th className="pb-3">Email</th>
-                <th className="pb-3">Rôle</th>
-                <th className="pb-3">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {stats.recentSignups.map((user, i) => (
-                <tr key={i} className="border-b last:border-0">
-                  <td className="py-3 text-sm font-medium">{user.email}</td>
-                  <td className="py-3">
-                    <span className="bg-gray-100 text-gray-700 rounded-full px-3 py-1 text-xs font-semibold">
-                      {user.role}
-                    </span>
-                  </td>
-                  <td className="py-3 text-gray-400 text-sm">
-                    {new Date(user.created_at).toLocaleDateString('fr-CA')}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+      <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 relative overflow-hidden">
+        {/* Subtle decorative blob */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60"></div>
+        
+        <div className="relative z-10">
+          <h2 className="text-2xl font-bold text-slate-900 mb-6">Inscriptions récentes</h2>
+          {stats.recentSignups.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-slate-400 font-medium">Aucune inscription pour le moment.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="text-left text-slate-400 text-sm font-semibold border-b border-slate-100">
+                    <th className="pb-4 px-4">Utilisateur</th>
+                    <th className="pb-4 px-4">Rôle</th>
+                    <th className="pb-4 px-4 text-right">Date d'inscription</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.recentSignups.map((user, i) => (
+                    <tr key={i} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
+                      <td className="py-4 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs">
+                            {user.email[0].toUpperCase()}
+                          </div>
+                          <span className="text-sm font-semibold text-slate-900">{user.email}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 px-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
+                          user.role === 'COACH' ? 'bg-purple-100 text-purple-700' :
+                          user.role === 'PARENT' ? 'bg-blue-100 text-blue-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="py-4 px-4 text-right text-slate-500 text-sm font-medium">
+                        {new Date(user.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric'
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
