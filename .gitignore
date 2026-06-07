@@ -1,14 +1,61 @@
+# Dependencies
 node_modules/
-.expo/
+.pnp
+.pnp.js
+
+# Environment files — NE JAMAIS commiter
+.env
+.env.development
+.env.staging
+.env.production
+.env.local
+.env.*.local
+# Exception : garder le template
+!.env.example
+
+# Build outputs
 dist/
-npm-debug.*
+build/
+.next/
+out/
+
+# Expo
+.expo/
+expo-env.d.ts
+
+# Native
+ios/
+android/
+*.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
-*.orig.*
-veda
-.idea/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
 *.swp
+*.swo
+
+# Testing
+coverage/
+.nyc_output
+
+# Misc
+.turbo/
