@@ -7,11 +7,13 @@ export * from './enums/age-group.enum';
 export * from './enums/program-status.enum';
 export * from './enums/session-status.enum';
 
-// Hooks (React/Expo uniquement — ne pas importer côté NestJS)
+// Hooks
 export * from './hooks/useChildren';
 export * from './hooks/useFamily';
 export * from './hooks/usePrograms';
 export * from './hooks/useSessions';
+export * from './hooks/useQuestionnaires';
+export * from './hooks/useBadges';
 
-// Lib Supabase client
+// Lib
 export * from './lib/supabase';

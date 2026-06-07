@@ -11,6 +11,8 @@ const NAV_ITEMS = [
   { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
   { href: '/admin/children', label: 'Enfants', icon: '🧒' },
   { href: '/admin/programs', label: 'Programmes', icon: '🏆' },
+  { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
+  { href: '/admin/badges', label: 'Badges', icon: '🏅' },
   { href: '/admin/content', label: 'Contenu', icon: '📚' },
 ];
 
@@ -39,14 +41,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Sidebar */}
       <aside className="w-64 bg-black text-white flex flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-800">
           <p className="text-xl font-bold">THRIVE</p>
           <p className="text-gray-400 text-xs mt-1">Espace Admin</p>
         </div>
-
-        <nav className="flex-1 p-4">
+        <nav className="flex-1 p-4 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -55,9 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-colors ${
-                  isActive
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  isActive ? 'bg-white text-black font-semibold' : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                 }`}
               >
                 <span className="text-lg">{item.icon}</span>
@@ -66,7 +64,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
-
         <div className="p-4 border-t border-gray-800">
           <div className="px-4 py-3 mb-2">
             <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
@@ -80,11 +77,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
       </aside>
-
-      {/* Contenu principal */}
-      <main className="ml-64 flex-1 p-8">
-        {children}
-      </main>
+      <main className="ml-64 flex-1 p-8">{children}</main>
     </div>
   );
 }
