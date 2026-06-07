@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
-import { supabase } from '@/lib/supabase';
+import { supabaseClient as supabase } from '@thrive/shared';
 
 type AuthStore = IAuthState & {
   hydrate: () => Promise<void>;

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabaseClient as supabase } from '@thrive/shared';
 
 interface Coach {
   id: string;
