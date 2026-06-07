@@ -16,6 +16,10 @@ export * from './hooks/useQuestionnaires';
 export * from './hooks/useBadges';
 export * from './hooks/useConversations';
 export * from './hooks/useMessages';
+export * from './hooks/useNotifications';
+
+// Services
+export * from './services/NotificationService';
 
 // Lib
 export * from './lib/supabase';

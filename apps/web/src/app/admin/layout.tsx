@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
   { href: '/admin/badges', label: 'Badges', icon: '🏅' },
   { href: '/admin/messages', label: 'Messages', icon: '💬' },
+  { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
   { href: '/admin/content', label: 'Contenu', icon: '📚' },
 ];
 
