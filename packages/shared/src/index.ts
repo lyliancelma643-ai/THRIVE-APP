@@ -3,6 +3,7 @@ export * from './types/user.types';
 export * from './types/family.types';
 export * from './types/program.types';
 export * from './types/child.types';
+export * from './types/auth.types';
 
 // Enums
 export * from './enums/roles.enum';

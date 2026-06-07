@@ -1,6 +1,7 @@
 import { Controller, Get, Post, Put, Delete, Param, Body } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
+import { CurrentUser } from '../auth/decorators/current-user.decorator';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -11,6 +12,10 @@ export class UsersController {
   @Get()
   @ApiOperation({ summary: 'Lister tous les utilisateurs' })
   findAll() { return this.usersService.findAll(); }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Retourne le profil du user connecté' })
+  me(@CurrentUser() user: any) { return this.usersService.me(user); }
 
   @Get(':id')
   @ApiOperation({ summary: 'Obtenir un utilisateur par ID' })

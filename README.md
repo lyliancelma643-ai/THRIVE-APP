@@ -17,34 +17,36 @@ thrive-app/
 ## Prérequis
 
 - Node.js >= 20
-- pnpm >= 9
+- pnpm >= 9 (ou `npx pnpm`)
 
 ## Installation
 
 ```bash
-# Installer pnpm si nécessaire
-npm install -g pnpm
-
-# Installer toutes les dépendances
-pnpm install
-
-# Copier les variables d'environnement
-cp .env.example apps/backend/.env.development
-cp .env.example apps/web/.env.local
+npx pnpm install
+cp .env.example .env.development
+cp .env.example .env.staging
+cp .env.example .env.production
 ```
 
 ## Lancer le projet
 
 ```bash
 # Backend
-pnpm dev:backend
+npx pnpm dev:backend
 
 # Web
-pnpm dev:web
+npx pnpm dev:web
 
 # Mobile
-pnpm dev:mobile
+npx pnpm dev:mobile
 ```
+
+## Couche Auth
+
+Architecture retenue :
+- Login / register / logout côté client via **Supabase Auth**
+- Backend NestJS protégé par Bearer token
+- Validation du JWT Supabase à finaliser dans le guard backend
 
 ## Modules Backend
 
