@@ -6,34 +6,36 @@ import { useAuthStore } from '@/stores/auth.store';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
+  const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
+
+  useEffect(() => { hydrate(); }, [hydrate]);
 
   useEffect(() => {
-    hydrate();
-  }, [hydrate]);
+    if (isLoading) return;
+    if (!isAuthenticated) { router.push('/login'); return; }
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
+    // Redirection selon le rôle
+    switch (user?.role) {
+      case 'ADMIN':
+      case 'SUPER_ADMIN':
+        router.replace('/admin');
+        break;
+      case 'COACH':
+        router.replace('/coach/dashboard');
+        break;
+      default:
+        // PARENT reste sur /dashboard
+        break;
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [isLoading, isAuthenticated, user, router]);
 
-  if (isLoading) {
+  if (isLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-500">Chargement...</p>
+        <p className="text-gray-400">Redirection...</p>
       </div>
     );
   }
-
-  if (!user) return null;
-
-  const roleLabel: Record<string, string> = {
-    PARENT: 'Parent',
-    COACH: 'Coach',
-    ADMIN: 'Administrateur',
-    SUPER_ADMIN: 'Super Admin',
-  };
 
   return (
     <main className="min-h-screen bg-gray-50 p-8">
@@ -41,24 +43,9 @@ export default function DashboardPage() {
         <div className="bg-white rounded-2xl shadow p-8">
           <h1 className="text-3xl font-bold mb-2">Bienvenue 👋</h1>
           <p className="text-gray-600 mb-6">
-            {user.firstName} {user.lastName} — {roleLabel[user.role ?? ''] ?? user.role}
+            {user.firstName} {user.lastName} — {user.role}
           </p>
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-sm text-gray-500">Email</p>
-              <p className="font-medium">{user.email}</p>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-4">
-              <p className="text-sm text-gray-500">Rôle</p>
-              <p className="font-medium">{roleLabel[user.role ?? ''] ?? user.role}</p>
-            </div>
-          </div>
-          <button
-            onClick={async () => { await signOut(); router.push('/login'); }}
-            className="bg-black text-white rounded-xl px-6 py-3 font-semibold"
-          >
-            Se déconnecter
-          </button>
+          <p className="text-gray-400 text-sm">Espace parent — tableau de bord en construction.</p>
         </div>
       </div>
     </main>
