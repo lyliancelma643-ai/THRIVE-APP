@@ -6,18 +6,13 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
-  { href: '/admin', label: 'Dashboard', icon: '📊' },
-  { href: '/admin/coaches', label: 'Coaches', icon: '🎯' },
-  { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
-  { href: '/admin/children', label: 'Enfants', icon: '🧒' },
-  { href: '/admin/programs', label: 'Programmes', icon: '🏆' },
-  { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
-  { href: '/admin/badges', label: 'Badges', icon: '🏅' },
-  { href: '/admin/messages', label: 'Messages', icon: '💬' },
-  { href: '/admin/content', label: 'Contenu', icon: '📚' },
+  { href: '/coach/dashboard', label: 'Dashboard', icon: '🎯' },
+  { href: '/coach/programs', label: 'Mes Programmes', icon: '🏆' },
+  { href: '/coach/sessions', label: 'Séances', icon: '📅' },
+  { href: '/coach/messages', label: 'Messages', icon: '💬' },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function CoachLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
@@ -27,7 +22,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
-    if (user?.role && !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    if (user?.role && !['COACH', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -52,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div>
               <p className="text-sm font-bold text-brand-primary tracking-tight">THRIVE</p>
-              <p className="text-gray-500 text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Admin</p>
+              <p className="text-gray-500 text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Coach</p>
             </div>
           </div>
         </div>
@@ -60,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Navigation */}
         <nav className="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/coach/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
@@ -83,10 +78,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 px-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-bold border border-gray-200">
-                {user.firstName[0]}{user.lastName[0]}
+                {user.firstName?.[0] || 'C'}{user.lastName?.[0] || ''}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName || 'Coach'} {user.lastName || ''}</p>
                 <p className="text-xs text-gray-500 truncate">{user.role}</p>
               </div>
             </div>

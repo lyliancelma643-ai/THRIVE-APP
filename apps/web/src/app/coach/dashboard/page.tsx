@@ -6,17 +6,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import { usePrograms, useSessions } from '@thrive/shared';
 
 export default function CoachDashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const { user } = useAuthStore();
   const { programs, isLoading: programsLoading } = usePrograms({ coachId: user?.id });
   const { sessions } = useSessions();
 
-  useEffect(() => { hydrate(); }, [hydrate]);
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.push('/login');
-  }, [isLoading, isAuthenticated, router]);
-
-  if (isLoading) return <div className="p-8">Chargement...</div>;
   if (!user) return null;
 
   const totalChildren = programs.reduce(
@@ -28,49 +21,77 @@ export default function CoachDashboardPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold mb-2">Dashboard Coach 🎯</h1>
-        <p className="text-gray-500 mb-8">{user.firstName} {user.lastName}</p>
+    <div className="max-w-6xl mx-auto pb-12">
+      <div className="mb-10 border-b border-white/20 pb-6">
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-white/70 text-base">Bienvenue, {user.firstName || 'Coach'} {user.lastName || ''}</p>
+      </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-6 mb-10">
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-4xl font-bold">{programs.length}</p>
-            <p className="text-gray-500 mt-1">Programmes</p>
+      {/* Section: Vue Globale */}
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Vue d'ensemble</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Programmes</p>
+            <p className="text-3xl font-bold text-gray-900">{programs.length}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-4xl font-bold">{totalChildren}</p>
-            <p className="text-gray-500 mt-1">Enfants suivis</p>
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Enfants suivis</p>
+            <p className="text-3xl font-bold text-gray-900">{totalChildren}</p>
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
-            <p className="text-4xl font-bold">{todaySessions.length}</p>
-            <p className="text-gray-500 mt-1">Séances aujourd'hui</p>
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Séances aujourd'hui</p>
+            <p className="text-3xl font-bold text-gray-900">{todaySessions.length}</p>
           </div>
         </div>
+      </div>
 
-        {/* Programmes */}
-        <h2 className="text-xl font-bold mb-4">Mes programmes</h2>
+      {/* Section: Programmes */}
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Mes Programmes Actifs</h2>
+        </div>
+        
         {programsLoading ? (
-          <p className="text-gray-400">Chargement...</p>
+          <div className="flex justify-center py-12">
+            <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+          </div>
         ) : programs.length === 0 ? (
-          <p className="text-gray-400">Aucun programme créé.</p>
+          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
+            <p className="text-gray-500 text-sm">Vous n'avez pas encore créé de programme.</p>
+          </div>
         ) : (
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {programs.map((p) => (
-              <div key={p.id} className="bg-white rounded-2xl p-5 shadow-sm">
-                <h3 className="font-bold text-lg">{p.title}</h3>
-                <p className="text-gray-500 text-sm mt-1">
-                  Groupe {p.age_group} · {p.program_enrollments?.length ?? 0} enfants · {p.total_sessions} séances
-                </p>
+              <div key={p.id} className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+                <div className="flex justify-between items-start mb-4">
+                  <h3 className="font-bold text-gray-900 text-lg leading-tight">{p.title}</h3>
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-brand-primary border border-gray-200 whitespace-nowrap">
+                    Groupe {p.age_group}
+                  </span>
+                </div>
                 {p.description && (
-                  <p className="text-gray-400 text-sm mt-2 line-clamp-2">{p.description}</p>
+                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{p.description}</p>
                 )}
+                <div className="flex items-center gap-4 text-xs font-medium text-gray-400 uppercase tracking-wider mt-auto pt-4 border-t border-gray-100">
+                  <div className="flex items-center gap-1">
+                    <span>{p.program_enrollments?.length ?? 0}</span>
+                    <span>Enfant(s)</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span>{p.total_sessions}</span>
+                    <span>Séance(s)</span>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }
