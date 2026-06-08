@@ -1,46 +1,65 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { Stack } from 'expo-router';
+import { router } from 'expo-router';
+import { useAuth, useOnboarding } from '@thrive/shared';
 import * as Notifications from 'expo-notifications';
-import { useRouter } from 'expo-router';
-import { NotificationService } from '@thrive/shared';
-import { useAuthStore } from '../stores/auth.store';
+
+/**
+ * Root layout — responsabilités :
+ * 1. Configure le handler de notifications push.
+ * 2. Redirige vers l'onboarding si l'utilisateur ne l'a pas encore complété.
+ * 3. Redirige vers le login si non authentifié.
+ */
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+  }),
+});
 
 export default function RootLayout() {
-  const router = useRouter();
-  const { isAuthenticated, hydrate } = useAuthStore();
-  const responseListener = useRef<Notifications.Subscription>();
+  const { user, loading: authLoading } = useAuth();
+  const { onboardingCompleted, loading: onboardingLoading } = useOnboarding(user?.id);
 
   useEffect(() => {
-    hydrate();
-  }, []);
+    if (authLoading || onboardingLoading) return;
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
 
-    NotificationService.registerForPushNotifications();
+    // Si l'onboarding n'est pas encore fait → rediriger vers le wizard du rôle
+    if (onboardingCompleted === false) {
+      const role = (user as any)?.user_metadata?.role ?? 'coach';
+      if (role === 'parent') {
+        router.replace('/(parent)/onboarding');
+      } else {
+        router.replace('/(coach)/onboarding');
+      }
+    }
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    // Navigation sur tap de notification
+    const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
-
-      if (data.conversation_id) {
-        router.push(`/chat/${data.conversation_id}`);
-      } else if (data.badge_id) {
-        router.push('/badges');
-      } else if (data.session_id) {
-        router.push('/sessions');
+      if (data?.conversationId) {
+        const role = (user as any)?.user_metadata?.role ?? 'coach';
+        router.push(
+          `/(${role})/chat/${data.conversationId}` as any
+        );
       }
     });
 
-    return () => {
-      responseListener.current?.remove();
-    };
-  }, [isAuthenticated]);
+    return () => sub.remove();
+  }, [user, authLoading, onboardingCompleted, onboardingLoading]);
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" />
       <Stack.Screen name="(coach)" />
       <Stack.Screen name="(parent)" />
+      <Stack.Screen name="login" />
     </Stack>
   );
 }

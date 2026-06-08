@@ -1,24 +1,28 @@
 // Auth
-export { useAuth } from './hooks/useAuth';
-export { AuthProvider } from './providers/AuthProvider';
+export * from './hooks/useAuth';
 
-// Profile
-export { useProfile } from './hooks/useProfile';
-export type { UserProfile, UpdateProfilePayload } from './hooks/useProfile';
+// Profile & Onboarding
+export * from './hooks/useProfile';
+export * from './hooks/useOnboarding';
 
-// Messaging
-export { useMessages } from './hooks/useMessages';
-export { useConversations } from './hooks/useConversations';
+// Data
+export * from './hooks/useChildren';
+export * from './hooks/useFamily';
+export * from './hooks/usePrograms';
+export * from './hooks/useSessions';
 
-// Notifications
-export { useNotifications } from './hooks/useNotifications';
-export { NotificationService } from './services/NotificationService';
+// Communication
+export * from './hooks/useConversations';
+export * from './hooks/useMessages';
 
-// Analytics
-export { useAnalytics } from './hooks/useAnalytics';
+// Features
+export * from './hooks/useQuestionnaires';
+export * from './hooks/useBadges';
+export * from './hooks/useNotifications';
+export * from './hooks/useAnalytics';
 
-// Supabase client
-export { supabase } from './lib/supabase';
+// Lib
+export * from './lib/supabase';
 
 // Types
-export type { Database } from './types/database';
+export * from './types';
