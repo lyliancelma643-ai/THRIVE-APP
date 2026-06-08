@@ -1,13 +1,21 @@
 'use client';
 
+import { useState } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { usePrograms } from '@thrive/shared';
+
+const AGE_GROUPS = ['Tous', '8-11 ans', '12-14 ans', '15-17 ans'];
 
 export default function CoachProgramsPage() {
   const { user } = useAuthStore();
   const { programs, isLoading } = usePrograms({ coachId: user?.id });
+  const [selectedGroup, setSelectedGroup] = useState('Tous');
 
   if (!user) return null;
+
+  const filteredPrograms = selectedGroup === 'Tous'
+    ? programs
+    : programs.filter(p => p.age_group === selectedGroup);
 
   return (
     <div>
@@ -16,18 +24,35 @@ export default function CoachProgramsPage() {
         <p className="text-gray-500">Gérez les programmes d'accompagnement de vos jeunes.</p>
       </div>
 
+      {/* Filtres par tranche d'âge */}
+      <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+        {AGE_GROUPS.map((group) => (
+          <button
+            key={group}
+            onClick={() => setSelectedGroup(group)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${
+              selectedGroup === group
+                ? 'bg-black text-white'
+                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+            }`}
+          >
+            {group}
+          </button>
+        ))}
+      </div>
+
       {isLoading ? (
         <div className="flex justify-center p-10">
           <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
-      ) : programs.length === 0 ? (
+      ) : filteredPrograms.length === 0 ? (
         <div className="bg-white p-10 rounded-2xl border border-gray-200 text-center">
-          <p className="text-gray-500">Aucun programme pour le moment.</p>
+          <p className="text-gray-500">Aucun programme pour cette tranche d'âge.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {programs.map((program) => (
-            <div key={program.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full">
+          {filteredPrograms.map((program) => (
+            <div key={program.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="font-bold text-gray-900 mb-1">{program.title}</h3>
@@ -48,8 +73,8 @@ export default function CoachProgramsPage() {
                 <div className="text-sm font-medium text-gray-900">
                   {program.total_sessions} séances
                 </div>
-                <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-                  Voir détails →
+                <button className="text-sm font-semibold text-black hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+                  Voir détails
                 </button>
               </div>
             </div>
