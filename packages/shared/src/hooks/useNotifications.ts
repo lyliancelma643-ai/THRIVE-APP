@@ -1,117 +1,136 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import * as Notifications from 'expo-notifications';
-import { supabase } from '../lib/supabase';
-import type { RealtimeChannel } from '@supabase/supabase-js';
+import { useState, useEffect, useCallback } from 'react'
+import { supabase } from '../supabaseClient'
 
-export type NotificationType = 'MESSAGE' | 'SESSION' | 'BADGE' | 'PROGRAM' | 'SYSTEM';
-
-export interface AppNotification {
-  id: string;
-  user_id: string;
-  type: NotificationType;
-  title: string;
-  body?: string;
-  data?: Record<string, unknown>;
-  is_read: boolean;
-  read_at?: string;
-  created_at: string;
+export interface NotificationLog {
+  id: string
+  recipient_id: string
+  type: 'message' | 'badge' | 'session' | 'manual'
+  title: string
+  body: string
+  data: Record<string, unknown>
+  status: 'pending' | 'sent' | 'failed'
+  sent_at: string | null
+  created_at: string
 }
 
-export function useNotifications() {
-  const [notifications, setNotifications] = useState<AppNotification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const listenerRef = useRef<Notifications.Subscription | null>(null);
+export interface NotificationPrefs {
+  messages: boolean
+  badges: boolean
+  sessions: boolean
+}
 
-  const fetch = useCallback(async () => {
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    const notifs = data ?? [];
-    setNotifications(notifs);
-    setUnreadCount(notifs.filter((n) => !n.is_read).length);
-    setIsLoading(false);
-  }, []);
+interface UseNotificationsReturn {
+  notifications: NotificationLog[]
+  unreadCount: number
+  prefs: NotificationPrefs
+  loading: boolean
+  error: string | null
+  fetchNotifications: () => Promise<void>
+  updatePrefs: (newPrefs: Partial<NotificationPrefs>) => Promise<void>
+  registerPushToken: (token: string) => Promise<void>
+  sendManualNotification: (recipientId: string, title: string, body: string, data?: Record<string, unknown>) => Promise<void>
+}
+
+const DEFAULT_PREFS: NotificationPrefs = { messages: true, badges: true, sessions: true }
+
+export function useNotifications(userId: string): UseNotificationsReturn {
+  const [notifications, setNotifications] = useState<NotificationLog[]>([])
+  const [prefs, setPrefs] = useState<NotificationPrefs>(DEFAULT_PREFS)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const unreadCount = notifications.filter((n) => !n.sent_at).length
+
+  const fetchNotifications = useCallback(async () => {
+    if (!userId) return
+    setLoading(true)
+    setError(null)
+    try {
+      const [{ data: logs, error: logsErr }, { data: profile, error: profileErr }] =
+        await Promise.all([
+          supabase
+            .from('notification_logs')
+            .select('*')
+            .eq('recipient_id', userId)
+            .order('created_at', { ascending: false })
+            .limit(50),
+          supabase
+            .from('profiles')
+            .select('notification_prefs')
+            .eq('id', userId)
+            .single(),
+        ])
+
+      if (logsErr) throw logsErr
+      if (profileErr) throw profileErr
+
+      setNotifications(logs || [])
+      setPrefs({ ...DEFAULT_PREFS, ...(profile?.notification_prefs || {}) })
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur lors du chargement des notifications')
+    } finally {
+      setLoading(false)
+    }
+  }, [userId])
+
+  const updatePrefs = useCallback(async (newPrefs: Partial<NotificationPrefs>) => {
+    setError(null)
+    try {
+      const merged = { ...prefs, ...newPrefs }
+      const { error: err } = await supabase
+        .from('profiles')
+        .update({ notification_prefs: merged })
+        .eq('id', userId)
+      if (err) throw err
+      setPrefs(merged)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur mise à jour préférences')
+    }
+  }, [userId, prefs])
+
+  const registerPushToken = useCallback(async (token: string) => {
+    try {
+      const { error: err } = await supabase
+        .from('profiles')
+        .update({ expo_push_token: token, notifications_enabled: true })
+        .eq('id', userId)
+      if (err) throw err
+    } catch (e) {
+      console.error('registerPushToken error:', e)
+    }
+  }, [userId])
+
+  const sendManualNotification = useCallback(async (
+    recipientId: string,
+    title: string,
+    body: string,
+    data: Record<string, unknown> = {}
+  ) => {
+    setError(null)
+    try {
+      const { error: err } = await supabase.functions.invoke('send-push-notification', {
+        body: { recipient_id: recipientId, title, body, data, type: 'manual' },
+      })
+      if (err) throw err
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur lors de l\'envoi')
+      throw e
+    }
+  }, [])
 
   useEffect(() => {
-    fetch();
-
-    const setupRealtime = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const channel = supabase
-        .channel(`notifications:${user.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`,
-          },
-          (payload) => {
-            const newNotif = payload.new as AppNotification;
-            setNotifications((prev) => [newNotif, ...prev]);
-            setUnreadCount((prev) => prev + 1);
-          }
-        )
-        .subscribe();
-
-      channelRef.current = channel;
-    };
-
-    setupRealtime();
-
-    listenerRef.current = Notifications.addNotificationResponseReceivedListener((response) => {
-      const data = response.notification.request.content.data as Record<string, unknown>;
-      console.log('[THRIVE] Notification tap:', data);
-    });
-
-    return () => {
-      if (channelRef.current) supabase.removeChannel(channelRef.current);
-      if (listenerRef.current) listenerRef.current.remove();
-    };
-  }, [fetch]);
-
-  const markAsRead = async (notificationId: string) => {
-    await supabase
-      .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('id', notificationId);
-    setNotifications((prev) =>
-      prev.map((n) => n.id === notificationId ? { ...n, is_read: true } : n)
-    );
-    setUnreadCount((prev) => Math.max(0, prev - 1));
-  };
-
-  const markAllAsRead = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    await supabase
-      .from('notifications')
-      .update({ is_read: true, read_at: new Date().toISOString() })
-      .eq('user_id', user.id)
-      .eq('is_read', false);
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
-    setUnreadCount(0);
-  };
-
-  const deleteNotification = async (notificationId: string) => {
-    await supabase.from('notifications').delete().eq('id', notificationId);
-    setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
-  };
+    fetchNotifications()
+  }, [fetchNotifications])
 
   return {
     notifications,
     unreadCount,
-    isLoading,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-    refetch: fetch,
-  };
+    prefs,
+    loading,
+    error,
+    fetchNotifications,
+    updatePrefs,
+    registerPushToken,
+    sendManualNotification,
+  }
 }
