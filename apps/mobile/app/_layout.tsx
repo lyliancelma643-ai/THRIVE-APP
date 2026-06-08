@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import { NotificationService } from '@thrive/shared';
+import { NotificationService } from '@thrive/shared/src/services/NotificationService';
 import { useAuthStore } from '../stores/auth.store';
 
 export default function RootLayout() {

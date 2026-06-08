@@ -1,24 +1,23 @@
-// Auth
-export { useAuth } from './hooks/useAuth';
-export { AuthProvider } from './providers/AuthProvider';
+// Types auth
+export * from './types/auth.types';
 
-// Profile
-export { useProfile } from './hooks/useProfile';
-export type { UserProfile, UpdateProfilePayload } from './hooks/useProfile';
+// Enums
+export * from './enums/roles.enum';
+export * from './enums/age-group.enum';
+export * from './enums/program-status.enum';
+export * from './enums/session-status.enum';
 
-// Messaging
-export { useMessages } from './hooks/useMessages';
-export { useConversations } from './hooks/useConversations';
+// Hooks
+export * from './hooks/useChildren';
+export * from './hooks/useFamily';
+export * from './hooks/usePrograms';
+export * from './hooks/useSessions';
+export * from './hooks/useQuestionnaires';
+export * from './hooks/useBadges';
+export * from './hooks/useConversations';
+export * from './hooks/useMessages';
 
-// Notifications
-export { useNotifications } from './hooks/useNotifications';
-export { NotificationService } from './services/NotificationService';
-
-// Analytics
-export { useAnalytics } from './hooks/useAnalytics';
-
-// Supabase client
-export { supabase } from './lib/supabase';
-
-// Types
-export type { Database } from './types/database';
+// Lib
+export * from './lib/supabase';
+export * from './hooks/useProfile';
+export * from './hooks/useAnalytics';

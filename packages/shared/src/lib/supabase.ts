@@ -11,3 +11,4 @@ const supabaseAnonKey =
   '';
 
 export const supabaseClient = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = supabaseClient;
