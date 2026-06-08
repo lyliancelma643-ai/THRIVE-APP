@@ -39,17 +39,17 @@ export default function ParentDashboardPage() {
               <h2 className="text-lg font-bold text-white">Vue d'ensemble</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
                 <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Enfants Inscrits</p>
-                <p className="text-3xl font-bold text-gray-900">{children.length}</p>
+                <p className="text-3xl font-bold text-[#F7F5F2]">{children.length}</p>
               </div>
-              <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
                 <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Séances aujourd'hui</p>
-                <p className="text-3xl font-bold text-gray-900">{todaySessions.length}</p>
+                <p className="text-3xl font-bold text-[#F7F5F2]">{todaySessions.length}</p>
               </div>
-              <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
                 <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Messages non lus</p>
-                <p className="text-3xl font-bold text-gray-900">0</p>
+                <p className="text-3xl font-bold text-[#F7F5F2]">0</p>
               </div>
             </div>
           </div>
@@ -67,22 +67,22 @@ export default function ParentDashboardPage() {
             </div>
             
             {children.length === 0 ? (
-              <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-                <p className="text-gray-500 text-sm mb-4">Vous n'avez pas encore ajouté d'enfant.</p>
-                <Link href="/parent/children" className="inline-flex bg-brand-primary text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-brand-primary/90 transition-colors">
+              <div className="bg-white/10 backdrop-blur-md rounded-xl border border-[#a7c4bc]/30 p-8 text-center">
+                <p className="text-[#a7c4bc] text-sm mb-4">Vous n'avez pas encore ajouté d'enfant.</p>
+                <Link href="/parent/children" className="inline-flex bg-white/10 backdrop-blur-md/10 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-white/10 backdrop-blur-md/10/90 transition-colors">
                   Ajouter un enfant
                 </Link>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {children.map((child) => (
-                  <div key={child.id} className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all flex items-center gap-4">
+                  <div key={child.id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all flex items-center gap-4">
                     <div className="w-16 h-16 bg-brand-tertiary/20 rounded-full flex items-center justify-center text-brand-primary font-bold text-xl border border-brand-tertiary">
                       {child.first_name?.[0] || ''}{child.last_name?.[0] || ''}
                     </div>
                     <div>
-                      <h3 className="font-bold text-gray-900 text-lg">{child.first_name} {child.last_name}</h3>
-                      <p className="text-sm text-gray-500">{new Date().getFullYear() - new Date(child.date_of_birth).getFullYear()} ans</p>
+                      <h3 className="font-bold text-[#F7F5F2] text-lg">{child.first_name} {child.last_name}</h3>
+                      <p className="text-sm text-[#a7c4bc]">{new Date().getFullYear() - new Date(child.date_of_birth).getFullYear()} ans</p>
                     </div>
                   </div>
                 ))}

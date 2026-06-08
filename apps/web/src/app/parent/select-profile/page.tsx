@@ -72,7 +72,7 @@ export default function SelectProfilePage() {
             </div>
             {/* Hover overlay */}
             <div
-              className="absolute inset-0 bg-black/20 transition-opacity duration-200"
+              className="absolute inset-0 bg-[#a7c4bc]/20 transition-opacity duration-200"
               style={{ opacity: hoveredId === 'parent' ? 0 : 0.15 }}
             />
           </div>
@@ -109,7 +109,7 @@ export default function SelectProfilePage() {
                 </span>
               </div>
               <div
-                className="absolute inset-0 bg-black/20 transition-opacity duration-200"
+                className="absolute inset-0 bg-[#a7c4bc]/20 transition-opacity duration-200"
                 style={{ opacity: hoveredId === child.id ? 0 : 0.15 }}
               />
             </div>

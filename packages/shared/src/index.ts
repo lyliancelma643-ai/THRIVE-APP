@@ -24,4 +24,4 @@ export * from './hooks/useAnalytics';
 export { supabaseClient, supabase } from './lib/supabase';
 
 // Types
-export type { Database } from './types/database';
+// export type { Database } from './types/database';

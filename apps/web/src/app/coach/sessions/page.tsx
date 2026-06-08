@@ -25,14 +25,14 @@ export default function CoachSessionsPage() {
           <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="bg-white p-10 rounded-2xl border border-gray-200 text-center">
-          <p className="text-gray-500">Aucune séance pour le moment.</p>
+        <div className="bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-[#a7c4bc]/30 text-center">
+          <p className="text-[#a7c4bc]">Aucune séance pour le moment.</p>
         </div>
       ) : (
-        <div className="bg-white border border-brand-tertiary/30 shadow-sm rounded-2xl overflow-hidden">
+        <div className="bg-white/10 backdrop-blur-md border border-brand-tertiary/30 shadow-sm rounded-2xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-sm">
-              <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-200">
+              <thead className="bg-white/10 backdrop-blur-md/5 text-[#a7c4bc] font-medium border-b border-[#a7c4bc]/30">
                 <tr>
                   <th className="px-6 py-4 font-semibold">Date</th>
                   <th className="px-6 py-4 font-semibold">Jeune</th>
@@ -41,25 +41,25 @@ export default function CoachSessionsPage() {
                   <th className="px-6 py-4 font-semibold text-right">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-[#a7c4bc]/10">
                 {sessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-900 font-medium">
+                  <tr key={session.id} className="hover:bg-white/10 backdrop-blur-md/5 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap text-[#F7F5F2] font-medium">
                       {session.scheduled_at 
                         ? new Date(session.scheduled_at).toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' })
                         : 'Non planifiée'}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="px-6 py-4 text-[#a7c4bc]">
                       {session.children?.first_name} {session.children?.last_name}
                     </td>
-                    <td className="px-6 py-4 text-gray-600">
+                    <td className="px-6 py-4 text-[#a7c4bc]">
                       Séance {session.session_number} : {session.title}
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
                         session.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
                         session.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' :
-                        'bg-gray-100 text-gray-700'
+                        'bg-white/10 backdrop-blur-md/10 text-[#F7F5F2]'
                       }`}>
                         {session.status === 'COMPLETED' ? 'Terminée' :
                          session.status === 'SCHEDULED' ? 'Planifiée' : 'En attente'}

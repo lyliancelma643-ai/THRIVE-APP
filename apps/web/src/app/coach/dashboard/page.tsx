@@ -34,17 +34,17 @@ export default function CoachDashboardPage() {
           <h2 className="text-lg font-bold text-white">Vue d'ensemble</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
             <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Programmes</p>
-            <p className="text-3xl font-bold text-gray-900">{programs.length}</p>
+            <p className="text-3xl font-bold text-[#F7F5F2]">{programs.length}</p>
           </div>
-          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
             <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Enfants suivis</p>
-            <p className="text-3xl font-bold text-gray-900">{totalChildren}</p>
+            <p className="text-3xl font-bold text-[#F7F5F2]">{totalChildren}</p>
           </div>
-          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+          <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
             <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Séances aujourd'hui</p>
-            <p className="text-3xl font-bold text-gray-900">{todaySessions.length}</p>
+            <p className="text-3xl font-bold text-[#F7F5F2]">{todaySessions.length}</p>
           </div>
         </div>
       </div>
@@ -61,23 +61,23 @@ export default function CoachDashboardPage() {
             <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
           </div>
         ) : programs.length === 0 ? (
-          <div className="bg-white rounded-xl border border-gray-200 p-8 text-center">
-            <p className="text-gray-500 text-sm">Vous n'avez pas encore créé de programme.</p>
+          <div className="bg-white/10 backdrop-blur-md rounded-xl border border-[#a7c4bc]/30 p-8 text-center">
+            <p className="text-[#a7c4bc] text-sm">Vous n'avez pas encore créé de programme.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {programs.map((p) => (
-              <div key={p.id} className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+              <div key={p.id} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="font-bold text-gray-900 text-lg leading-tight">{p.title}</h3>
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-brand-primary border border-gray-200 whitespace-nowrap">
+                  <h3 className="font-bold text-[#F7F5F2] text-lg leading-tight">{p.title}</h3>
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md/10 text-brand-primary border border-[#a7c4bc]/30 whitespace-nowrap">
                     Groupe {p.age_group}
                   </span>
                 </div>
                 {p.description && (
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">{p.description}</p>
+                  <p className="text-[#a7c4bc] text-sm mb-4 line-clamp-2">{p.description}</p>
                 )}
-                <div className="flex items-center gap-4 text-xs font-medium text-gray-400 uppercase tracking-wider mt-auto pt-4 border-t border-gray-100">
+                <div className="flex items-center gap-4 text-xs font-medium text-[#a7c4bc]/70 uppercase tracking-wider mt-auto pt-4 border-t border-[#a7c4bc]/10">
                   <div className="flex items-center gap-1">
                     <span>{p.program_enrollments?.length ?? 0}</span>
                     <span>Enfant(s)</span>

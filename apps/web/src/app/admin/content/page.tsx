@@ -68,15 +68,15 @@ export default function AdminContentPage() {
     <div className="max-w-7xl mx-auto h-[calc(100vh-80px)] flex flex-col">
       <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Contenu pédagogique</h1>
-          <p className="text-gray-500 text-sm">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-semibold text-[#F7F5F2] mb-1">Contenu pédagogique</h1>
+          <p className="text-[#a7c4bc] text-sm">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
           className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border ${
             showForm 
-              ? 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200' 
-              : 'bg-black text-white border-black hover:bg-gray-800'
+              ? 'bg-white/10 backdrop-blur-md/10 text-[#F7F5F2] border-[#a7c4bc]/30 hover:bg-white/10 backdrop-blur-md/20' 
+              : 'bg-[#a7c4bc] text-white border-[#a7c4bc] hover:bg-gray-800'
           }`}
         >
           {showForm ? 'Annuler' : 'Nouvelle ressource'}
@@ -84,46 +84,46 @@ export default function AdminContentPage() {
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-xl p-6 border border-gray-200 mb-6 shrink-0">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Nouvelle ressource</h2>
+        <form onSubmit={handleCreate} className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-[#a7c4bc]/30 mb-6 shrink-0">
+          <h2 className="text-sm font-semibold text-[#F7F5F2] mb-4">Nouvelle ressource</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="col-span-2">
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Titre</label>
-              <input className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
+              <label className="text-xs font-semibold text-[#a7c4bc] mb-1 block uppercase tracking-wider">Titre</label>
+              <input className="w-full bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Type</label>
-              <select className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <label className="text-xs font-semibold text-[#a7c4bc] mb-1 block uppercase tracking-wider">Type</label>
+              <select className="w-full bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Groupe d'âge</label>
-              <select className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>
+              <label className="text-xs font-semibold text-[#a7c4bc] mb-1 block uppercase tracking-wider">Groupe d'âge</label>
+              <select className="w-full bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>
                 {AGE_GROUPS.map((ag) => <option key={ag} value={ag}>{ag || 'Tous'}</option>)}
               </select>
             </div>
             <div className="col-span-2">
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Contenu</label>
-              <textarea className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none custom-scrollbar" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
+              <label className="text-xs font-semibold text-[#a7c4bc] mb-1 block uppercase tracking-wider">Contenu</label>
+              <textarea className="w-full bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none custom-scrollbar" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
             </div>
             <div className="col-span-2">
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Tags (séparés par virgule)</label>
-              <input className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
+              <label className="text-xs font-semibold text-[#a7c4bc] mb-1 block uppercase tracking-wider">Tags (séparés par virgule)</label>
+              <input className="w-full bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
             </div>
           </div>
           <div className="flex justify-end">
-            <button type="submit" disabled={saving} className="bg-black text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-800">
+            <button type="submit" disabled={saving} className="bg-[#a7c4bc] text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-800">
               {saving ? 'Enregistrement...' : 'Enregistrer (brouillon)'}
             </button>
           </div>
         </form>
       )}
 
-      <div className="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col min-h-0">
+      <div className="bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 rounded-xl flex-1 flex flex-col min-h-0">
         <div className="flex-1 overflow-auto custom-scrollbar rounded-xl">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/50 sticky top-0 z-10 border-b border-gray-200">
+            <thead className="text-xs text-[#a7c4bc] uppercase tracking-wider bg-white/10 backdrop-blur-md/5 sticky top-0 z-10 border-b border-[#a7c4bc]/30">
               <tr>
                 <th className="px-6 py-4 font-medium">Titre</th>
                 <th className="px-6 py-4 font-medium">Type</th>
@@ -133,23 +133,23 @@ export default function AdminContentPage() {
                 <th className="px-6 py-4 font-medium">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-[#a7c4bc]/10 bg-white/10 backdrop-blur-md">
               {isLoading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-[#a7c4bc]/70">Chargement...</td></tr>
               ) : items.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Aucune ressource.</td></tr>
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-[#a7c4bc]/70">Aucune ressource.</td></tr>
               ) : (
                 items.map((item) => (
-                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={item.id} className="hover:bg-white/10 backdrop-blur-md/5 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{item.title}</div>
+                      <div className="font-medium text-[#F7F5F2]">{item.title}</div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-semibold bg-gray-50 text-gray-600 border border-gray-200">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-semibold bg-[#a7c4bc]/20 text-[#a7c4bc] border border-[#a7c4bc]/30">
                         {item.type}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">{item.age_group ?? 'Tous'}</td>
+                    <td className="px-6 py-4 text-[#a7c4bc]">{item.age_group ?? 'Tous'}</td>
                     <td className="px-6 py-4">
                       <div className="flex gap-1.5 flex-wrap">
                         {(item.tags ?? []).slice(0, 3).map((tag, i) => (
@@ -161,7 +161,7 @@ export default function AdminContentPage() {
                     </td>
                     <td className="px-6 py-4">
                       <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-semibold border ${
-                        item.is_published ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'
+                        item.is_published ? 'bg-green-50 text-green-700 border-green-200' : 'bg-[#a7c4bc]/20 text-[#a7c4bc] border-[#a7c4bc]/30'
                       }`}>
                         {item.is_published ? 'Publié' : 'Brouillon'}
                       </span>
@@ -170,7 +170,7 @@ export default function AdminContentPage() {
                       <button
                         onClick={() => togglePublish(item.id, item.is_published)}
                         className={`text-sm font-medium transition-colors ${
-                          item.is_published ? 'text-gray-400 hover:text-gray-700' : 'text-gray-400 hover:text-green-600'
+                          item.is_published ? 'text-[#a7c4bc]/70 hover:text-[#F7F5F2]' : 'text-[#a7c4bc]/70 hover:text-green-600'
                         }`}
                       >
                         {item.is_published ? 'Dépublier' : 'Publier'}

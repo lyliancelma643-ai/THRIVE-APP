@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { supabaseClient as supabase } from '@thrive/shared';
 
 interface NotifRow {
   id: string;
@@ -28,7 +28,7 @@ const TYPE_COLORS: Record<string, string> = {
   SESSION: 'bg-green-100 text-green-700',
   BADGE: 'bg-yellow-100 text-yellow-700',
   PROGRAM: 'bg-purple-100 text-purple-700',
-  SYSTEM: 'bg-gray-100 text-gray-700',
+  SYSTEM: 'bg-white/10 text-[#F7F5F2]',
 };
 
 export default function AdminNotificationsPage() {
@@ -42,7 +42,7 @@ export default function AdminNotificationsPage() {
 
   useEffect(() => {
     fetchAll();
-    supabase.from('profiles').select('id, first_name, last_name').then(({ data }) => setProfiles(data ?? []));
+    supabase.from('profiles').select('id, first_name, last_name').then(({ data }: any) => setProfiles(data ?? []));
   }, []);
 
   const fetchAll = async () => {
@@ -88,11 +88,11 @@ export default function AdminNotificationsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-3xl font-bold">🔔 Notifications</h1>
-          <p className="text-gray-500 mt-1">Centre de notifications de l'application</p>
+          <p className="text-[#a7c4bc] mt-1">Centre de notifications de l'application</p>
         </div>
         <button
           onClick={() => setShowSendForm(!showSendForm)}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+          className="bg-[#a7c4bc] text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
         >
           {showSendForm ? 'Annuler' : '✉️ Envoyer une notif'}
         </button>
@@ -104,12 +104,12 @@ export default function AdminNotificationsPage() {
           { label: 'Non lues', value: stats.unread, icon: '🔴' },
           { label: "Aujourd'hui", value: stats.today, icon: '📅' },
         ].map((s) => (
-          <div key={s.label} className="bg-white rounded-2xl p-5 shadow-sm">
+          <div key={s.label} className="bg-white/10 backdrop-blur-md rounded-2xl p-5 shadow-sm">
             <div className="flex items-center gap-3">
               <span className="text-2xl">{s.icon}</span>
               <div>
                 <p className="text-2xl font-bold">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="text-sm text-[#a7c4bc]">{s.label}</p>
               </div>
             </div>
           </div>
@@ -117,13 +117,13 @@ export default function AdminNotificationsPage() {
       </div>
 
       {showSendForm && (
-        <form onSubmit={handleSend} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+        <form onSubmit={handleSend} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-lg font-bold mb-4">Envoyer une notification manuelle</h2>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Destinataire</label>
+              <label className="text-sm text-[#a7c4bc] mb-1 block">Destinataire</label>
               <select
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                className="w-full border border-[#a7c4bc]/30 rounded-xl px-4 py-3 text-sm"
                 value={form.user_id}
                 onChange={(e) => setForm({ ...form, user_id: e.target.value })}
               >
@@ -134,9 +134,9 @@ export default function AdminNotificationsPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Type</label>
+              <label className="text-sm text-[#a7c4bc] mb-1 block">Type</label>
               <select
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                className="w-full border border-[#a7c4bc]/30 rounded-xl px-4 py-3 text-sm"
                 value={form.type}
                 onChange={(e) => setForm({ ...form, type: e.target.value })}
               >
@@ -146,18 +146,18 @@ export default function AdminNotificationsPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Titre</label>
+              <label className="text-sm text-[#a7c4bc] mb-1 block">Titre</label>
               <input
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                className="w-full border border-[#a7c4bc]/30 rounded-xl px-4 py-3 text-sm"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Titre de la notification"
               />
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Message</label>
+              <label className="text-sm text-[#a7c4bc] mb-1 block">Message</label>
               <input
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                className="w-full border border-[#a7c4bc]/30 rounded-xl px-4 py-3 text-sm"
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
                 placeholder="Contenu optionnel"
@@ -167,7 +167,7 @@ export default function AdminNotificationsPage() {
           <button
             type="submit"
             disabled={sending || !form.user_id || !form.title}
-            className="mt-4 bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50"
+            className="mt-4 bg-[#a7c4bc] text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50"
           >
             {sending ? 'Envoi...' : 'Envoyer'}
           </button>
@@ -180,7 +180,7 @@ export default function AdminNotificationsPage() {
             key={f}
             onClick={() => setFilter(f)}
             className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-              filter === f ? 'bg-black text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              filter === f ? 'bg-[#a7c4bc] text-white' : 'bg-white/10 backdrop-blur-md text-[#a7c4bc] hover:bg-[#a7c4bc]/20'
             }`}
           >
             {f === 'all' ? 'Toutes' : f === 'unread' ? 'Non lues' : `${TYPE_ICONS[f]} ${f}`}
@@ -188,23 +188,23 @@ export default function AdminNotificationsPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+      <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <p className="text-gray-400 p-6">Chargement...</p>
+          <p className="text-[#a7c4bc]/70 p-6">Chargement...</p>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-3xl mb-3">🔔</p>
-            <p className="text-gray-500">Aucune notification</p>
+            <p className="text-[#a7c4bc]">Aucune notification</p>
           </div>
         ) : (
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-100">
+            <thead className="bg-[#a7c4bc]/20 border-b border-[#a7c4bc]/10">
               <tr>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Type</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Destinataire</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Contenu</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Statut</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Date</th>
+                <th className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">Type</th>
+                <th className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">Destinataire</th>
+                <th className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">Contenu</th>
+                <th className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">Statut</th>
+                <th className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -214,7 +214,7 @@ export default function AdminNotificationsPage() {
                 }`}>
                   <td className="px-6 py-4">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                      TYPE_COLORS[n.type] ?? 'bg-gray-100 text-gray-700'
+                      TYPE_COLORS[n.type] ?? 'bg-white/10 text-[#F7F5F2]'
                     }`}>
                       {TYPE_ICONS[n.type]} {n.type}
                     </span>
@@ -223,11 +223,11 @@ export default function AdminNotificationsPage() {
                     <p className="text-sm font-medium">
                       {n.profile ? `${n.profile.first_name} ${n.profile.last_name}` : n.user_id.slice(0, 8)}
                     </p>
-                    {n.profile && <p className="text-xs text-gray-400">{n.profile.role}</p>}
+                    {n.profile && <p className="text-xs text-[#a7c4bc]/70">{n.profile.role}</p>}
                   </td>
                   <td className="px-6 py-4 max-w-xs">
                     <p className="text-sm font-medium">{n.title}</p>
-                    {n.body && <p className="text-xs text-gray-500 truncate">{n.body}</p>}
+                    {n.body && <p className="text-xs text-[#a7c4bc] truncate">{n.body}</p>}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -236,7 +236,7 @@ export default function AdminNotificationsPage() {
                       {n.is_read ? '✓ Lue' : '● Non lue'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-gray-400">
+                  <td className="px-6 py-4 text-xs text-[#a7c4bc]/70">
                     {new Date(n.created_at).toLocaleString('fr-CA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
                   </td>
                 </tr>

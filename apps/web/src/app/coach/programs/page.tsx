@@ -33,7 +33,7 @@ export default function CoachProgramsPage() {
             className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
               selectedGroup === group
                 ? 'bg-brand-tertiary text-white shadow-md'
-                : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/20'
+                : 'bg-white/10 backdrop-blur-md/10 text-white/80 hover:bg-white/10 backdrop-blur-md/20 border border-white/20'
             }`}
           >
             {group}
@@ -46,17 +46,17 @@ export default function CoachProgramsPage() {
           <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
         </div>
       ) : filteredPrograms.length === 0 ? (
-        <div className="bg-white p-10 rounded-2xl border border-gray-200 text-center">
-          <p className="text-gray-500">Aucun programme pour cette tranche d'âge.</p>
+        <div className="bg-white/10 backdrop-blur-md p-10 rounded-2xl border border-[#a7c4bc]/30 text-center">
+          <p className="text-[#a7c4bc]">Aucun programme pour cette tranche d'âge.</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPrograms.map((program) => (
-            <div key={program.id} className="bg-white p-6 rounded-2xl shadow-sm border border-brand-tertiary/30 hover:border-brand-primary flex flex-col h-full hover:shadow-md transition-all">
+            <div key={program.id} className="bg-white/10 backdrop-blur-md p-6 rounded-2xl shadow-sm border border-brand-tertiary/30 hover:border-brand-primary flex flex-col h-full hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-bold text-gray-900 text-lg mb-1">{program.title}</h3>
-                  <p className="text-sm text-gray-500">Tranche d'âge : {program.age_group}</p>
+                  <h3 className="font-bold text-[#F7F5F2] text-lg mb-1">{program.title}</h3>
+                  <p className="text-sm text-[#a7c4bc]">Tranche d'âge : {program.age_group}</p>
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
                   program.status === 'PUBLISHED' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'
@@ -65,11 +65,11 @@ export default function CoachProgramsPage() {
                 </span>
               </div>
               
-              <p className="text-sm text-gray-600 mb-6 flex-1 line-clamp-3">
+              <p className="text-sm text-[#a7c4bc] mb-6 flex-1 line-clamp-3">
                 {program.description || 'Aucune description fournie.'}
               </p>
 
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
+              <div className="flex items-center justify-between pt-4 border-t border-[#a7c4bc]/10 mt-auto">
                 <div className="text-sm font-medium text-brand-primary">
                   {program.total_sessions} séances
                 </div>

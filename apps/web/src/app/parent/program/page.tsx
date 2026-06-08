@@ -4,8 +4,8 @@ export default function ParentProgramPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Programme</h1>
-        <p className="text-gray-500 mt-1">Les programmes actifs de vos enfants.</p>
+        <h1 className="text-2xl font-bold text-[#F7F5F2]">Programme</h1>
+        <p className="text-[#a7c4bc] mt-1">Les programmes actifs de vos enfants.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -27,34 +27,34 @@ export default function ParentProgramPage() {
             objectives: ['Développer la force', 'Endurance cardio', 'Agilité'],
           },
         ].map((p) => (
-          <div key={p.child} className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-5">
+          <div key={p.child} className="bg-white/10 backdrop-blur-md rounded-xl border border-[#a7c4bc]/10 shadow-sm p-6 space-y-5">
             <div className="flex items-center justify-between">
               <div>
-                <h2 className="font-bold text-gray-900">{p.program}</h2>
-                <p className="text-sm text-gray-500">{p.child} · Semaine {p.currentWeek}/{p.weeks}</p>
+                <h2 className="font-bold text-[#F7F5F2]">{p.program}</h2>
+                <p className="text-sm text-[#a7c4bc]">{p.child} · Semaine {p.currentWeek}/{p.weeks}</p>
               </div>
               <span className="text-2xl">🏆</span>
             </div>
 
             <div>
-              <div className="flex justify-between text-xs text-gray-500 mb-2">
+              <div className="flex justify-between text-xs text-[#a7c4bc] mb-2">
                 <span>Avancement global</span>
                 <span>{Math.round((p.currentWeek / p.weeks) * 100)}%</span>
               </div>
-              <div className="w-full bg-gray-100 rounded-full h-2">
+              <div className="w-full bg-white/10 backdrop-blur-md/10 rounded-full h-2">
                 <div
-                  className="bg-brand-primary h-2 rounded-full"
+                  className="bg-white/10 backdrop-blur-md/10 h-2 rounded-full"
                   style={{ width: `${(p.currentWeek / p.weeks) * 100}%` }}
                 />
               </div>
             </div>
 
             <div>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Objectifs</p>
+              <p className="text-xs font-semibold text-[#a7c4bc] uppercase tracking-wider mb-2">Objectifs</p>
               <ul className="space-y-1">
                 {p.objectives.map((o) => (
-                  <li key={o} className="flex items-center gap-2 text-sm text-gray-700">
-                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary flex-shrink-0"></span>
+                  <li key={o} className="flex items-center gap-2 text-sm text-[#F7F5F2]">
+                    <span className="w-1.5 h-1.5 rounded-full bg-white/10 backdrop-blur-md/10 flex-shrink-0"></span>
                     {o}
                   </li>
                 ))}
@@ -62,8 +62,8 @@ export default function ParentProgramPage() {
             </div>
 
             <div className="pt-3 border-t border-gray-50">
-              <p className="text-xs text-gray-400">Prochaine séance</p>
-              <p className="text-sm font-semibold text-gray-800 mt-0.5">{p.nextSession}</p>
+              <p className="text-xs text-[#a7c4bc]/70">Prochaine séance</p>
+              <p className="text-sm font-semibold text-[#F7F5F2] mt-0.5">{p.nextSession}</p>
             </div>
           </div>
         ))}

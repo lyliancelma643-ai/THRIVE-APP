@@ -80,74 +80,74 @@ export default function AdminCoachesPage() {
 
   return (
     <div className="max-w-7xl mx-auto h-[calc(100vh-80px)] flex flex-col">
-      <div className="flex justify-between items-end mb-6 shrink-0">
+      <div className="flex justify-between items-end mb-6 shrink-0 border-b border-[#a7c4bc]/20 pb-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Coaches</h1>
-          <p className="text-gray-500 text-sm">{coaches.length} coach{coaches.length > 1 ? 'es' : ''}</p>
+          <h1 className="text-2xl font-extrabold text-[#F7F5F2] mb-1">Coaches</h1>
+          <p className="text-[#a7c4bc] text-sm font-medium">{coaches.length} coach{coaches.length > 1 ? 'es' : ''}</p>
         </div>
         <button
           onClick={() => { setShowForm(!showForm); setError(''); setSuccess(''); }}
-          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border ${
+          className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all border ${
             showForm 
-              ? 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200' 
-              : 'bg-black text-white border-black hover:bg-gray-800'
+              ? 'bg-white/10 text-[#F7F5F2] border-[#a7c4bc]/30 hover:bg-white/20' 
+              : 'bg-[#a7c4bc] text-[#004e7a] border-[#a7c4bc] hover:bg-[#b8d2cb] shadow-lg'
           }`}
         >
-          {showForm ? 'Annuler' : 'Nouveau coach'}
+          {showForm ? 'Annuler' : '+ Nouveau coach'}
         </button>
       </div>
 
       {/* Formulaire création */}
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-xl p-6 border border-gray-200 mb-6 shrink-0">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">Créer un compte coach</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
+        <form onSubmit={handleCreate} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-[#a7c4bc]/30 mb-6 shrink-0 shadow-2xl">
+          <h2 className="text-sm font-bold text-[#F7F5F2] mb-4 uppercase tracking-widest">Créer un compte coach</h2>
+          <div className="grid grid-cols-2 gap-5 mb-5">
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Prénom</label>
+              <label className="text-xs font-bold text-[#a7c4bc] mb-1.5 block uppercase tracking-wider">Prénom</label>
               <input
-                className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
+                className="w-full bg-black/20 border border-[#a7c4bc]/30 focus:border-[#a7c4bc] focus:ring-1 focus:ring-[#a7c4bc] rounded-xl px-4 py-3 text-sm text-[#F7F5F2] placeholder-[#a7c4bc]/50 transition-all outline-none"
                 value={form.firstName}
                 onChange={(e) => setForm({ ...form, firstName: e.target.value })}
                 placeholder="Prénom"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Nom</label>
+              <label className="text-xs font-bold text-[#a7c4bc] mb-1.5 block uppercase tracking-wider">Nom</label>
               <input
-                className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
+                className="w-full bg-black/20 border border-[#a7c4bc]/30 focus:border-[#a7c4bc] focus:ring-1 focus:ring-[#a7c4bc] rounded-xl px-4 py-3 text-sm text-[#F7F5F2] placeholder-[#a7c4bc]/50 transition-all outline-none"
                 value={form.lastName}
                 onChange={(e) => setForm({ ...form, lastName: e.target.value })}
                 placeholder="Nom"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Email</label>
+              <label className="text-xs font-bold text-[#a7c4bc] mb-1.5 block uppercase tracking-wider">Email</label>
               <input
                 type="email"
-                className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
+                className="w-full bg-black/20 border border-[#a7c4bc]/30 focus:border-[#a7c4bc] focus:ring-1 focus:ring-[#a7c4bc] rounded-xl px-4 py-3 text-sm text-[#F7F5F2] placeholder-[#a7c4bc]/50 transition-all outline-none"
                 value={form.email}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 placeholder="coach@thrive.com"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Mot de passe temporaire</label>
+              <label className="text-xs font-bold text-[#a7c4bc] mb-1.5 block uppercase tracking-wider">Mot de passe temporaire</label>
               <input
                 type="password"
-                className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
+                className="w-full bg-black/20 border border-[#a7c4bc]/30 focus:border-[#a7c4bc] focus:ring-1 focus:ring-[#a7c4bc] rounded-xl px-4 py-3 text-sm text-[#F7F5F2] placeholder-[#a7c4bc]/50 transition-all outline-none"
                 value={form.password}
                 onChange={(e) => setForm({ ...form, password: e.target.value })}
                 placeholder="Min. 8 caractères"
               />
             </div>
           </div>
-          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-          {success && <p className="text-green-500 text-sm mb-4">{success}</p>}
+          {error && <div className="bg-red-500/20 border border-red-500/30 p-3 rounded-xl mb-4"><p className="text-red-200 text-sm font-medium">{error}</p></div>}
+          {success && <div className="bg-green-500/20 border border-green-500/30 p-3 rounded-xl mb-4"><p className="text-green-300 text-sm font-medium">{success}</p></div>}
           <div className="flex justify-end">
             <button
               type="submit"
               disabled={saving}
-              className="bg-black text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-800"
+              className="bg-[#a7c4bc] text-[#004e7a] rounded-xl px-6 py-2.5 text-sm font-bold disabled:opacity-50 transition-all hover:bg-white shadow-lg"
             >
               {saving ? 'Création...' : 'Créer le coach'}
             </button>
@@ -156,51 +156,53 @@ export default function AdminCoachesPage() {
       )}
 
       {success && !showForm && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm shrink-0">{success}</div>
+        <div className="bg-green-500/20 border border-green-500/30 rounded-xl p-4 mb-6 text-green-300 font-medium text-sm shrink-0">{success}</div>
       )}
 
       {/* Liste coaches */}
-      <div className="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col min-h-0">
-        <div className="flex-1 overflow-auto custom-scrollbar rounded-xl">
+      <div className="bg-white/10 backdrop-blur-md border border-[#a7c4bc]/30 rounded-2xl flex-1 flex flex-col min-h-0 shadow-2xl overflow-hidden">
+        <div className="flex-1 overflow-auto custom-scrollbar">
           <table className="w-full text-sm text-left">
-            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/50 sticky top-0 z-10 border-b border-gray-200">
+            <thead className="text-[11px] text-[#a7c4bc] font-bold uppercase tracking-widest bg-black/20 sticky top-0 z-10 border-b border-[#a7c4bc]/30">
               <tr>
-                <th className="px-6 py-4 font-medium">Coach</th>
-                <th className="px-6 py-4 font-medium">Email</th>
-                <th className="px-6 py-4 font-medium">Inscription</th>
-                <th className="px-6 py-4 font-medium">Statut</th>
-                <th className="px-6 py-4 font-medium">Actions</th>
+                <th className="px-6 py-5">Coach</th>
+                <th className="px-6 py-5">Email</th>
+                <th className="px-6 py-5">Inscription</th>
+                <th className="px-6 py-5">Statut</th>
+                <th className="px-6 py-5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
+            <tbody className="divide-y divide-[#a7c4bc]/10">
               {isLoading ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-[#a7c4bc]">Chargement...</td></tr>
               ) : coaches.length === 0 ? (
-                <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Aucun coach enregistré.</td></tr>
+                <tr><td colSpan={5} className="px-6 py-8 text-center text-[#a7c4bc]">Aucun coach enregistré.</td></tr>
               ) : (
                 coaches.map((coach) => (
-                  <tr key={coach.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={coach.id} className="hover:bg-white/5 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="font-medium text-gray-900">{coach.first_name} {coach.last_name}</div>
+                      <div className="font-bold text-[#F7F5F2]">{coach.first_name} {coach.last_name}</div>
                     </td>
-                    <td className="px-6 py-4 text-gray-500">{coach.email}</td>
-                    <td className="px-6 py-4 text-gray-500">
+                    <td className="px-6 py-4 text-[#a7c4bc]/90 font-medium">{coach.email}</td>
+                    <td className="px-6 py-4 text-[#a7c4bc]/80 text-xs">
                       {new Date(coach.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-widest border ${
                         coach.is_active
-                          ? 'bg-green-50 text-green-700 border-green-200'
-                          : 'bg-red-50 text-red-700 border-red-200'
+                          ? 'bg-green-500/20 text-green-300 border-green-500/30'
+                          : 'bg-red-500/20 text-red-300 border-red-500/30'
                       }`}>
                         {coach.is_active ? 'Actif' : 'Inactif'}
                       </span>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-6 py-4 text-right">
                       <button
                         onClick={() => toggleActive(coach.id, coach.is_active)}
-                        className={`text-sm font-medium transition-colors ${
-                          coach.is_active ? 'text-gray-400 hover:text-red-600' : 'text-gray-400 hover:text-green-600'
+                        className={`text-[12px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-lg border transition-all ${
+                          coach.is_active 
+                            ? 'text-red-300 border-red-500/30 hover:bg-red-500/20' 
+                            : 'text-green-300 border-green-500/30 hover:bg-green-500/20'
                         }`}
                       >
                         {coach.is_active ? 'Désactiver' : 'Réactiver'}

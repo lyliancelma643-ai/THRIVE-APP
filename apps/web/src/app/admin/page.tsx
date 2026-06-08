@@ -69,27 +69,27 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="mb-10 border-b border-white/20 pb-6">
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-white/70 text-base">Vue globale de la plateforme THRIVE</p>
+      <div className="mb-10 border-b border-[#a7c4bc]/20 pb-6">
+        <h1 className="text-3xl font-extrabold text-[#F7F5F2] mb-2 tracking-tight">Dashboard</h1>
+        <p className="text-[#a7c4bc] text-base font-medium">Vue globale de la plateforme THRIVE</p>
       </div>
 
       {/* Section: Utilisateurs */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
-          <h2 className="text-lg font-bold text-white">Communauté</h2>
+          <div className="w-1.5 h-6 bg-[#a7c4bc] rounded-full shadow-[0_0_8px_rgba(167,196,188,0.5)]"></div>
+          <h2 className="text-lg font-bold text-[#F7F5F2]">Communauté</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           {[
             { label: 'Familles', value: stats.totalFamilies, href: '/admin/families' },
             { label: 'Enfants actifs', value: stats.totalChildren, href: '/admin/children' },
             { label: 'Coaches', value: stats.totalCoaches, href: '/admin/coaches' },
           ].map((card) => (
             <Link key={card.label} href={card.href} className="group outline-none block">
-              <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
-                <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
-                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-[#a7c4bc]/20 hover:border-[#a7c4bc]/50 hover:bg-white/15 shadow-xl transition-all h-full">
+                <p className="text-[#a7c4bc] text-xs font-bold mb-2 uppercase tracking-widest opacity-80">{card.label}</p>
+                <p className="text-4xl font-extrabold text-[#F7F5F2]">{card.value}</p>
               </div>
             </Link>
           ))}
@@ -99,10 +99,10 @@ export default function AdminDashboardPage() {
       {/* Section: Programmes */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
-          <h2 className="text-lg font-bold text-white">Programmes & Séances</h2>
+          <div className="w-1.5 h-6 bg-[#a7c4bc] rounded-full shadow-[0_0_8px_rgba(167,196,188,0.5)]"></div>
+          <h2 className="text-lg font-bold text-[#F7F5F2]">Programmes & Séances</h2>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-5">
           {[
             { label: 'Programmes', value: stats.totalPrograms, href: '/admin/programs' },
             { label: 'Progs. Actifs', value: stats.activePrograms, href: '/admin/programs' },
@@ -111,9 +111,9 @@ export default function AdminDashboardPage() {
             { label: 'Taux Compl.', value: `${completionRate}%`, href: '#' },
           ].map((card) => (
             <Link key={card.label} href={card.href} className="group outline-none block">
-              <div className="bg-white rounded-xl p-5 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all h-full flex flex-col justify-between">
-                <p className="text-brand-primary/80 text-[11px] font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
-                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-[#a7c4bc]/20 hover:border-[#a7c4bc]/50 hover:bg-white/15 shadow-xl transition-all h-full flex flex-col justify-between">
+                <p className="text-[#a7c4bc] text-[11px] font-bold mb-3 uppercase tracking-widest opacity-80">{card.label}</p>
+                <p className="text-3xl font-extrabold text-[#F7F5F2]">{card.value}</p>
               </div>
             </Link>
           ))}
@@ -123,36 +123,36 @@ export default function AdminDashboardPage() {
       {/* Inscriptions récentes */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
-          <h2 className="text-lg font-bold text-white">Inscriptions récentes</h2>
+          <div className="w-1.5 h-6 bg-[#a7c4bc] rounded-full shadow-[0_0_8px_rgba(167,196,188,0.5)]"></div>
+          <h2 className="text-lg font-bold text-[#F7F5F2]">Inscriptions récentes</h2>
         </div>
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-white/10 backdrop-blur-xl rounded-2xl border border-[#a7c4bc]/20 overflow-hidden shadow-2xl">
           {stats.recentSignups.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 text-sm">Aucune inscription pour le moment.</p>
+              <p className="text-[#a7c4bc] text-sm">Aucune inscription pour le moment.</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50/80 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                <thead className="bg-black/20 text-[#a7c4bc] text-xs uppercase tracking-widest border-b border-[#a7c4bc]/20">
                   <tr>
-                    <th className="font-semibold px-6 py-4 text-left">Utilisateur</th>
-                    <th className="font-semibold px-6 py-4 text-left">Rôle</th>
-                    <th className="font-semibold px-6 py-4 text-right">Date</th>
+                    <th className="font-bold px-6 py-5 text-left">Utilisateur</th>
+                    <th className="font-bold px-6 py-5 text-left">Rôle</th>
+                    <th className="font-bold px-6 py-5 text-right">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-[#a7c4bc]/10">
                   {stats.recentSignups.map((user, i) => (
-                    <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">
+                    <tr key={i} className="hover:bg-white/5 transition-colors">
+                      <td className="px-6 py-5 font-semibold text-[#F7F5F2]">
                         {user.email}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200">
+                      <td className="px-6 py-5">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-extrabold uppercase tracking-widest bg-white/10 text-[#a7c4bc] border border-[#a7c4bc]/30">
                           {user.role}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right text-gray-500">
+                      <td className="px-6 py-5 text-right text-[#a7c4bc]/80 font-medium">
                         {new Date(user.created_at).toLocaleDateString('fr-FR', {
                           day: 'numeric',
                           month: 'short',

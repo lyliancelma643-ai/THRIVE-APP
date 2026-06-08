@@ -48,25 +48,25 @@ export default function ParentProgramsPage() {
             </div>
             
             {enrolledPrograms.length === 0 ? (
-              <div className="bg-white/10 rounded-xl p-8 text-center border border-white/20">
+              <div className="bg-white/10 backdrop-blur-md/10 rounded-xl p-8 text-center border border-white/20">
                 <p className="text-white/80 text-sm">Vos enfants ne sont inscrits à aucun programme pour le moment.</p>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {enrolledPrograms.map((program) => (
-                  <div key={program.id} className="bg-white rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all border-l-4 border-l-brand-primary">
+                  <div key={program.id} className="bg-white/10 backdrop-blur-md rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-all border-l-4 border-l-brand-primary">
                     <div className="p-6">
                       <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-gray-900 text-xl">{program.title}</h3>
-                        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-brand-primary/10 text-brand-primary">
+                        <h3 className="font-bold text-[#F7F5F2] text-xl">{program.title}</h3>
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-white/10 backdrop-blur-md/10/10 text-brand-primary">
                           Groupe {program.age_group}
                         </span>
                       </div>
-                      <p className="text-gray-500 text-sm mb-4 line-clamp-2">{program.description}</p>
+                      <p className="text-[#a7c4bc] text-sm mb-4 line-clamp-2">{program.description}</p>
                       
-                      <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                        <p className="text-xs text-gray-500 font-medium mb-1 uppercase tracking-wider">Coach assigné</p>
-                        <p className="text-sm font-bold text-gray-900">
+                      <div className="bg-[#a7c4bc]/20 rounded-lg p-3 mb-4">
+                        <p className="text-xs text-[#a7c4bc] font-medium mb-1 uppercase tracking-wider">Coach assigné</p>
+                        <p className="text-sm font-bold text-[#F7F5F2]">
                           {program.profiles ? `${program.profiles.first_name} ${program.profiles.last_name}` : 'Non assigné'}
                         </p>
                       </div>
@@ -86,7 +86,7 @@ export default function ParentProgramsPage() {
                           })}
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs font-medium text-gray-400 uppercase tracking-wider pt-4 border-t border-gray-100">
+                      <div className="flex items-center gap-4 text-xs font-medium text-[#a7c4bc]/70 uppercase tracking-wider pt-4 border-t border-[#a7c4bc]/10">
                         <div className="flex items-center gap-1">
                           <span>{program.total_sessions}</span>
                           <span>Séance(s) au total</span>
@@ -108,10 +108,10 @@ export default function ParentProgramsPage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {availablePrograms.map((program) => (
-                  <div key={program.id} className="bg-white/90 rounded-xl p-5 border border-white/20 hover:bg-white transition-colors cursor-pointer">
-                    <h3 className="font-bold text-gray-900 text-base mb-1">{program.title}</h3>
+                  <div key={program.id} className="bg-white/10 backdrop-blur-md/90 rounded-xl p-5 border border-white/20 hover:bg-white/10 backdrop-blur-md transition-colors cursor-pointer">
+                    <h3 className="font-bold text-[#F7F5F2] text-base mb-1">{program.title}</h3>
                     <p className="text-brand-primary text-xs font-bold mb-3">Pour les {program.age_group}</p>
-                    <p className="text-gray-500 text-xs line-clamp-2">{program.description}</p>
+                    <p className="text-[#a7c4bc] text-xs line-clamp-2">{program.description}</p>
                   </div>
                 ))}
               </div>

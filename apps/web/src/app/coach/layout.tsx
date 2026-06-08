@@ -30,25 +30,29 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center bg-[#004e7a]">
+        <div className="w-8 h-8 border-2 border-[#F7F5F2] border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-brand-primary">
-      {/* Sidebar Minimaliste */}
-      <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
+    <div className="flex min-h-screen bg-gradient-to-br from-[#004e7a] to-[#002f4a] text-[#F7F5F2] relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#a7c4bc]/10 blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#a7c4bc]/10 blur-[120px] pointer-events-none" />
+
+      {/* Sidebar Minimaliste & Glassmorphism */}
+      <aside className="w-[260px] bg-white/5 backdrop-blur-md border-r border-[#a7c4bc]/20 flex flex-col fixed h-full z-20 shadow-2xl">
         {/* Logo Area */}
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center text-white font-bold text-sm shadow-md">
-              T
+            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+              🎯
             </div>
             <div>
-              <p className="text-sm font-bold text-brand-primary tracking-tight">THRIVE</p>
-              <p className="text-gray-500 text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Coach</p>
+              <p className="text-lg font-bold text-white tracking-tight">THRIVE</p>
+              <p className="text-[#a7c4bc] text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Coach</p>
             </div>
           </div>
         </div>
@@ -61,13 +65,13 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-sm ${
                   isActive 
-                    ? 'bg-brand-primary text-white font-semibold shadow-sm' 
-                    : 'text-gray-600 hover:bg-brand-tertiary/20 hover:text-brand-primary font-medium'
+                    ? 'bg-white/10 border border-white/10 text-white font-semibold shadow-md' 
+                    : 'text-[#F7F5F2]/70 hover:bg-white/5 hover:text-white font-medium'
                 }`}
               >
-                <span className="text-base opacity-80">{item.icon}</span>
+                <span className={`text-lg ${isActive ? 'text-[#a7c4bc]' : 'opacity-70'}`}>{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
@@ -75,29 +79,29 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
         </nav>
 
         {/* User Profile Area */}
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-[#a7c4bc]/20 bg-black/10">
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 px-2">
-              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-bold border border-gray-200">
+              <div className="w-9 h-9 rounded-full bg-[#a7c4bc]/20 flex items-center justify-center text-[#a7c4bc] text-xs font-bold border border-[#a7c4bc]/30 shadow-sm">
                 {user.firstName?.[0] || 'C'}{user.lastName?.[0] || ''}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName || 'Coach'} {user.lastName || ''}</p>
-                <p className="text-xs text-gray-500 truncate">{user.role}</p>
+                <p className="text-sm font-semibold text-white truncate">{user.firstName || 'Coach'} {user.lastName || ''}</p>
+                <p className="text-[11px] text-[#a7c4bc] truncate uppercase tracking-wider">{user.role}</p>
               </div>
             </div>
             <button
               onClick={async () => { await signOut(); router.push('/login'); }}
-              className="w-full py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full py-2.5 rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-[#F7F5F2]/80 hover:text-red-400 text-sm font-medium transition-all flex items-center justify-center gap-2"
             >
-              Déconnexion
+              🚪 Déconnexion
             </button>
           </div>
         </div>
       </aside>
 
       {/* Main Content Area */}
-      <main className="ml-[260px] flex-1 p-10 max-w-[1400px]">
+      <main className="ml-[260px] flex-1 p-10 max-w-[1400px] z-10">
         <div className="animate-in fade-in duration-500">
           {children}
         </div>

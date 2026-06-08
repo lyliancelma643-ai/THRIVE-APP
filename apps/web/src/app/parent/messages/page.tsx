@@ -155,10 +155,10 @@ export default function ParentMessagesPage() {
 
       <div className="flex gap-6 min-h-0 flex-1">
         {/* Liste conversations */}
-        <div className="w-80 flex flex-col bg-white border border-brand-tertiary/30 shadow-sm rounded-xl overflow-hidden shrink-0">
-          <div className="p-4 border-b border-gray-100">
+        <div className="w-80 flex flex-col bg-white/10 backdrop-blur-md border border-brand-tertiary/30 shadow-sm rounded-xl overflow-hidden shrink-0">
+          <div className="p-4 border-b border-[#a7c4bc]/10">
             <input
-              className="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
+              className="w-full bg-[#a7c4bc]/20 border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
               placeholder="Rechercher un coach..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -171,7 +171,7 @@ export default function ParentMessagesPage() {
                 <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : filtered.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center py-10">Aucune conversation trouvée.</p>
+              <p className="text-[#a7c4bc]/70 text-sm text-center py-10">Aucune conversation trouvée.</p>
             ) : filtered.map((conv) => {
               const other = conv.p1?.id === user?.id ? conv.p2 : conv.p1;
               if (!other) return null;
@@ -181,19 +181,19 @@ export default function ParentMessagesPage() {
                   onClick={() => setSelected(conv)}
                   className={`w-full text-left p-4 transition-colors ${
                     selected?.id === conv.id 
-                      ? 'bg-gray-50' 
-                      : 'bg-white hover:bg-gray-50/50'
+                      ? 'bg-[#a7c4bc]/20' 
+                      : 'bg-white/10 backdrop-blur-md hover:bg-white/10 backdrop-blur-md/5'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold bg-gray-100 text-gray-700 border border-gray-200 shrink-0">
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-semibold bg-white/10 backdrop-blur-md/10 text-[#F7F5F2] border border-[#a7c4bc]/30 shrink-0">
                       {getInitials(other.first_name, other.last_name)}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-gray-900 truncate mb-0.5">
+                      <p className="font-semibold text-sm text-[#F7F5F2] truncate mb-0.5">
                         {other.first_name} {other.last_name}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">
+                      <p className="text-xs text-[#a7c4bc] truncate">
                         {conv.last_message ?? 'Nouvelle conversation'}
                       </p>
                     </div>
@@ -205,11 +205,11 @@ export default function ParentMessagesPage() {
         </div>
 
         {/* Fenêtre messages */}
-        <div className="flex-1 bg-white border border-brand-tertiary/30 shadow-sm rounded-xl flex flex-col overflow-hidden relative min-w-0">
+        <div className="flex-1 bg-white/10 backdrop-blur-md border border-brand-tertiary/30 shadow-sm rounded-xl flex flex-col overflow-hidden relative min-w-0">
           {!selected ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50">
+            <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-md/5">
               <div className="text-center">
-                <p className="text-gray-500 text-sm">Sélectionnez une conversation</p>
+                <p className="text-[#a7c4bc] text-sm">Sélectionnez une conversation</p>
               </div>
             </div>
           ) : (() => {
@@ -218,19 +218,19 @@ export default function ParentMessagesPage() {
             return (
             <>
               {/* Header Chat */}
-              <div className="px-6 py-4 border-b border-gray-100 bg-white sticky top-0 z-10 flex items-center justify-between">
+              <div className="px-6 py-4 border-b border-[#a7c4bc]/10 bg-white/10 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
                 <div>
-                  <p className="font-semibold text-gray-900 text-sm">
+                  <p className="font-semibold text-[#F7F5F2] text-sm">
                     {other.first_name} {other.last_name}
                   </p>
-                  <p className="text-xs text-gray-500 mt-0.5">
+                  <p className="text-xs text-[#a7c4bc] mt-0.5">
                     {other.role}
                   </p>
                 </div>
               </div>
 
               {/* Chat History */}
-              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white custom-scrollbar">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-white/10 backdrop-blur-md custom-scrollbar">
                 {msgLoading ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="w-6 h-6 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
@@ -243,18 +243,18 @@ export default function ParentMessagesPage() {
                   return (
                      <div key={msg.id} className={`flex flex-col ${isSenderMe ? 'items-end' : 'items-start'}`}>
                       {showHeader && !isSenderMe && (
-                        <span className="text-xs font-medium text-gray-400 mb-1.5 px-1">
+                        <span className="text-xs font-medium text-[#a7c4bc]/70 mb-1.5 px-1">
                           {other.first_name}
                         </span>
                       )}
                       <div className={`max-w-[70%] px-4 py-2.5 text-sm ${
                         isSenderMe 
-                          ? 'bg-brand-primary text-white rounded-2xl rounded-tr-sm'
-                          : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' 
+                          ? 'bg-white/10 backdrop-blur-md/10 text-white rounded-2xl rounded-tr-sm'
+                          : 'bg-white/10 backdrop-blur-md/10 text-[#F7F5F2] rounded-2xl rounded-tl-sm' 
                       }`}>
                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                         <div className={`flex items-center gap-1 mt-1 text-[10px] ${
-                          isSenderMe ? 'text-gray-400 justify-end' : 'text-gray-500 justify-start'
+                          isSenderMe ? 'text-[#a7c4bc]/70 justify-end' : 'text-[#a7c4bc] justify-start'
                         }`}>
                           <span>{new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
                           {msg.status === 'READ' && isSenderMe && (
@@ -269,19 +269,19 @@ export default function ParentMessagesPage() {
               </div>
               
               {/* Input Area */}
-              <div className="p-4 border-t border-gray-100 bg-white">
+              <div className="p-4 border-t border-[#a7c4bc]/10 bg-white/10 backdrop-blur-md">
                 <form onSubmit={handleSend} className="flex gap-2">
                   <input
                     type="text"
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     placeholder="Écrivez votre message..."
-                    className="flex-1 bg-gray-50 border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-xl px-4 py-2.5 text-sm transition-colors outline-none"
+                    className="flex-1 bg-[#a7c4bc]/20 border border-[#a7c4bc]/30 focus:border-gray-400 focus:ring-0 rounded-xl px-4 py-2.5 text-sm transition-colors outline-none"
                   />
                   <button
                     type="submit"
                     disabled={!newMessage.trim()}
-                    className="bg-brand-primary text-white px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity hover:bg-brand-primary/90"
+                    className="bg-white/10 backdrop-blur-md/10 text-white px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity hover:bg-white/10 backdrop-blur-md/10/90"
                   >
                     Envoyer
                   </button>

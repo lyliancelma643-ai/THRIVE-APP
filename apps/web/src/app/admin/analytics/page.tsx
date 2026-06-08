@@ -26,12 +26,12 @@ function MiniBarChart({ data, color = '#000' }: { data: number[]; color?: string
 
 function KPICard({ icon, label, value, sub }: { icon: string; label: string; value: number | string; sub?: string }) {
   return (
-    <div className="bg-white rounded-2xl p-5 shadow-sm">
+    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{label}</p>
+          <p className="text-sm text-[#a7c4bc] mb-1">{label}</p>
           <p className="text-3xl font-bold">{value}</p>
-          {sub && <p className="text-xs text-gray-400 mt-1">{sub}</p>}
+          {sub && <p className="text-xs text-[#a7c4bc]/70 mt-1">{sub}</p>}
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
@@ -64,7 +64,7 @@ export default function AdminAnalyticsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-3xl mb-3">📊</p>
-          <p className="text-gray-500">Chargement des analytics...</p>
+          <p className="text-[#a7c4bc]">Chargement des analytics...</p>
         </div>
       </div>
     );
@@ -81,12 +81,12 @@ export default function AdminAnalyticsPage() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="text-3xl font-bold">📊 Analytics</h1>
-          <p className="text-gray-500 mt-1">Vue d'ensemble de la plateforme THRIVE</p>
+          <p className="text-[#a7c4bc] mt-1">Vue d'ensemble de la plateforme THRIVE</p>
         </div>
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
+          className="bg-[#a7c4bc] text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
         >
           {exporting ? '⏳ Export...' : '⬇️ Export CSV séances'}
         </button>
@@ -98,7 +98,7 @@ export default function AdminAnalyticsPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
-              activeTab === tab ? 'bg-black text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              activeTab === tab ? 'bg-[#a7c4bc] text-white' : 'bg-white/10 backdrop-blur-md text-[#a7c4bc] hover:bg-[#a7c4bc]/20'
             }`}
           >
             {{ overview: '🏠 Vue globale', coaches: '🎯 Coaches', children: '🧒 Enfants', badges: '🏅 Badges' }[tab]}
@@ -119,11 +119,11 @@ export default function AdminAnalyticsPage() {
             <KPICard icon="✅" label="Taux complétion" value={`${completionRate}%`} sub={`${kpis?.completed_sessions ?? 0} complétées`} />
             <KPICard icon="🏅" label="Badges attribués" value={kpis?.total_badges_awarded ?? 0} />
           </div>
-          <div className="bg-white rounded-2xl p-6 shadow-sm">
+          <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-sm">
             <h2 className="text-lg font-bold mb-4">Activité sur 12 mois</h2>
             <div className="grid grid-cols-2 gap-8">
               <div>
-                <p className="text-sm text-gray-500 mb-2">Séances</p>
+                <p className="text-sm text-[#a7c4bc] mb-2">Séances</p>
                 <MiniBarChart data={sessionTrend} color="#000" />
                 <div className="flex justify-between mt-1">
                   {monthlyActivity.map((m) => (
@@ -134,7 +134,7 @@ export default function AdminAnalyticsPage() {
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-2">Messages</p>
+                <p className="text-sm text-[#a7c4bc] mb-2">Messages</p>
                 <MiniBarChart data={msgTrend} color="#3B82F6" />
                 <div className="flex justify-between mt-1">
                   {monthlyActivity.map((m) => (
@@ -150,18 +150,18 @@ export default function AdminAnalyticsPage() {
       )}
 
       {activeTab === 'coaches' && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-[#a7c4bc]/10">
             <h2 className="text-lg font-bold">Performance des coaches</h2>
           </div>
           {coachPerformance.length === 0 ? (
-            <div className="p-12 text-center text-gray-400">Aucun coach enregistré</div>
+            <div className="p-12 text-center text-[#a7c4bc]/70">Aucun coach enregistré</div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#a7c4bc]/20">
                 <tr>
                   {['Coach', 'Programmes', 'Séances', 'Complétées', 'Taux', 'Messages', 'Badges'].map((h) => (
-                    <th key={h} className="text-left text-xs text-gray-500 font-semibold px-6 py-3">{h}</th>
+                    <th key={h} className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -170,7 +170,7 @@ export default function AdminAnalyticsPage() {
                   <tr key={c.coach_id} className={`border-t border-gray-50 ${ i === 0 ? 'bg-yellow-50/50' : '' }`}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-[#a7c4bc] text-white flex items-center justify-center text-xs font-bold">
                           {c.first_name[0]}{c.last_name[0]}
                         </div>
                         <span className="font-medium">{c.first_name} {c.last_name}</span>
@@ -182,7 +182,7 @@ export default function AdminAnalyticsPage() {
                     <td className="px-6 py-4 text-sm text-green-600 font-medium">{c.completed_sessions}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-100 rounded-full h-2 w-16">
+                        <div className="flex-1 bg-white/10 backdrop-blur-md/10 rounded-full h-2 w-16">
                           <div className="bg-green-500 h-2 rounded-full" style={{ width: `${c.completion_rate ?? 0}%` }} />
                         </div>
                         <span className="text-sm font-medium">{c.completion_rate ?? 0}%</span>
@@ -199,18 +199,18 @@ export default function AdminAnalyticsPage() {
       )}
 
       {activeTab === 'children' && (
-        <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <div className="p-5 border-b border-gray-100">
+        <div className="bg-white/10 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden">
+          <div className="p-5 border-b border-[#a7c4bc]/10">
             <h2 className="text-lg font-bold">Progression des enfants</h2>
           </div>
           {childProgress.length === 0 ? (
-            <div className="p-12 text-center text-gray-400">Aucun enfant enregistré</div>
+            <div className="p-12 text-center text-[#a7c4bc]/70">Aucun enfant enregistré</div>
           ) : (
             <table className="w-full">
-              <thead className="bg-gray-50">
+              <thead className="bg-[#a7c4bc]/20">
                 <tr>
                   {['Enfant', 'Âge', 'Famille', 'Séances', 'Complétées', 'Badges', 'Dernière séance'].map((h) => (
-                    <th key={h} className="text-left text-xs text-gray-500 font-semibold px-6 py-3">{h}</th>
+                    <th key={h} className="text-left text-xs text-[#a7c4bc] font-semibold px-6 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -226,7 +226,7 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">{child.age ? `${child.age} ans` : '—'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{child.family_name}</td>
+                    <td className="px-6 py-4 text-sm text-[#a7c4bc]">{child.family_name}</td>
                     <td className="px-6 py-4 text-sm">{child.total_sessions}</td>
                     <td className="px-6 py-4"><span className="text-sm font-medium text-green-600">{child.completed_sessions}</span></td>
                     <td className="px-6 py-4">
@@ -236,7 +236,7 @@ export default function AdminAnalyticsPage() {
                         <span className="text-gray-300 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-xs text-gray-400">
+                    <td className="px-6 py-4 text-xs text-[#a7c4bc]/70">
                       {child.last_session_at
                         ? new Date(child.last_session_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })
                         : '—'}
@@ -252,15 +252,15 @@ export default function AdminAnalyticsPage() {
       {activeTab === 'badges' && (
         <div className="grid grid-cols-3 gap-4">
           {badgeDistribution.length === 0 ? (
-            <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-400">Aucun badge</div>
+            <div className="col-span-3 bg-white/10 backdrop-blur-md rounded-2xl p-12 text-center text-[#a7c4bc]/70">Aucun badge</div>
           ) : badgeDistribution.map((badge, i) => (
-            <div key={badge.id} className="bg-white rounded-2xl p-5 shadow-sm">
+            <div key={badge.id} className="bg-white/10 backdrop-blur-md rounded-2xl p-5 shadow-sm">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl">{badge.icon ?? '🏅'}</span>
                   <div>
                     <p className="font-bold">{badge.name}</p>
-                    {badge.category && <p className="text-xs text-gray-400 capitalize">{badge.category}</p>}
+                    {badge.category && <p className="text-xs text-[#a7c4bc]/70 capitalize">{badge.category}</p>}
                   </div>
                 </div>
                 {i === 0 && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">Top 🥇</span>}
@@ -268,11 +268,11 @@ export default function AdminAnalyticsPage() {
               <div className="flex gap-4">
                 <div>
                   <p className="text-2xl font-bold">{badge.awarded_count}</p>
-                  <p className="text-xs text-gray-400">attributions</p>
+                  <p className="text-xs text-[#a7c4bc]/70">attributions</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{badge.unique_children}</p>
-                  <p className="text-xs text-gray-400">enfants uniques</p>
+                  <p className="text-xs text-[#a7c4bc]/70">enfants uniques</p>
                 </div>
               </div>
             </div>
