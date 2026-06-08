@@ -22,7 +22,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
-    if (user?.role && !['COACH', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    const role = user?.role?.toUpperCase();
+    if (role && !['COACH', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, user, router]);

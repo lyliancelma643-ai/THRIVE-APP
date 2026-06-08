@@ -6,13 +6,10 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
-  { href: '/parent/dashboard', label: 'Tableau de bord', icon: '🏠' },
-  { href: '/parent/children', label: 'Mes Enfants', icon: '👶' },
-  { href: '/parent/sessions', label: 'Séances 20 min', icon: '⏱️' },
-  { href: '/parent/reports', label: 'Rapports', icon: '📊' },
-  { href: '/parent/program', label: 'Programme', icon: '🏆' },
+  { href: '/parent/dashboard', label: 'Dashboard', icon: '🎯' },
+  { href: '/parent/children', label: 'Mon Enfant', icon: '👦' },
+  { href: '/parent/programs', label: 'Programmes & Séances', icon: '🏆' },
   { href: '/parent/messages', label: 'Messages', icon: '💬' },
-  { href: '/parent/profile', label: 'Mon Profil', icon: '👤' },
 ];
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
@@ -25,7 +22,8 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
-    if (user?.role && !['PARENT'].includes(user.role)) {
+    const role = user?.role?.toUpperCase();
+    if (role && !['PARENT', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, user, router]);
@@ -40,7 +38,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
 
   return (
     <div className="flex min-h-screen bg-brand-primary">
-      {/* Sidebar */}
+      {/* Sidebar Minimaliste */}
       <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
         {/* Logo Area */}
         <div className="px-6 py-8">
@@ -58,16 +56,14 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
         {/* Navigation */}
         <nav className="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              pathname === item.href ||
-              (item.href !== '/parent/dashboard' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/parent/dashboard' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
-                  isActive
-                    ? 'bg-brand-primary text-white font-semibold shadow-sm'
+                  isActive 
+                    ? 'bg-brand-primary text-white font-semibold shadow-sm' 
                     : 'text-gray-600 hover:bg-brand-tertiary/20 hover:text-brand-primary font-medium'
                 }`}
               >
@@ -86,9 +82,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
                 {user.firstName?.[0] || 'P'}{user.lastName?.[0] || ''}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
-                  {user.firstName || 'Parent'} {user.lastName || ''}
-                </p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName || 'Parent'} {user.lastName || ''}</p>
                 <p className="text-xs text-gray-500 truncate">{user.role}</p>
               </div>
             </div>
@@ -102,7 +96,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
         </div>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content Area */}
       <main className="ml-[260px] flex-1 p-10 max-w-[1400px]">
         <div className="animate-in fade-in duration-500">
           {children}

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { supabase } from '../lib/supabase';
+import { supabaseClient as supabase } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type NotificationType = 'MESSAGE' | 'SESSION' | 'BADGE' | 'PROGRAM' | 'SYSTEM';
