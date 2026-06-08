@@ -41,7 +41,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-brand-secondary">
+    <div className="flex min-h-screen bg-brand-primary">
       {/* Sidebar Minimaliste */}
       <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
         {/* Logo Area */}

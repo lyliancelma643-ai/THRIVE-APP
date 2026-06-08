@@ -69,16 +69,16 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="mb-10 border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-brand-primary mb-2">Dashboard</h1>
-        <p className="text-gray-500 text-base">Vue globale de la plateforme THRIVE</p>
+      <div className="mb-10 border-b border-white/20 pb-6">
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-white/70 text-base">Vue globale de la plateforme THRIVE</p>
       </div>
 
       {/* Section: Utilisateurs */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-brand-primary rounded-full"></div>
-          <h2 className="text-lg font-bold text-gray-900">Communauté</h2>
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Communauté</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
@@ -100,7 +100,7 @@ export default function AdminDashboardPage() {
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
           <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
-          <h2 className="text-lg font-bold text-gray-900">Programmes & Séances</h2>
+          <h2 className="text-lg font-bold text-white">Programmes & Séances</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           {[
@@ -123,8 +123,8 @@ export default function AdminDashboardPage() {
       {/* Inscriptions récentes */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-brand-primary/60 rounded-full"></div>
-          <h2 className="text-lg font-bold text-gray-900">Inscriptions récentes</h2>
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Inscriptions récentes</h2>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
           {stats.recentSignups.length === 0 ? (
