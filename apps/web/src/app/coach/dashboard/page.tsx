@@ -22,28 +22,28 @@ export default function CoachDashboardPage() {
 
   return (
     <div className="max-w-6xl mx-auto pb-12">
-      <div className="mb-10 border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-500 text-base">Bienvenue, {user.firstName || 'Coach'} {user.lastName || ''}</p>
+      <div className="mb-10 border-b border-white/20 pb-6">
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-white/70 text-base">Bienvenue, {user.firstName || 'Coach'} {user.lastName || ''}</p>
       </div>
 
       {/* Section: Vue Globale */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-black rounded-full"></div>
-          <h2 className="text-lg font-bold text-gray-900">Vue d'ensemble</h2>
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Vue d'ensemble</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
-            <p className="text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wider">Programmes</p>
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Programmes</p>
             <p className="text-3xl font-bold text-gray-900">{programs.length}</p>
           </div>
-          <div className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
-            <p className="text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wider">Enfants suivis</p>
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Enfants suivis</p>
             <p className="text-3xl font-bold text-gray-900">{totalChildren}</p>
           </div>
-          <div className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
-            <p className="text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wider">Séances aujourd'hui</p>
+          <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+            <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">Séances aujourd'hui</p>
             <p className="text-3xl font-bold text-gray-900">{todaySessions.length}</p>
           </div>
         </div>
@@ -52,8 +52,8 @@ export default function CoachDashboardPage() {
       {/* Section: Programmes */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-black rounded-full"></div>
-          <h2 className="text-lg font-bold text-gray-900">Mes Programmes Actifs</h2>
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
+          <h2 className="text-lg font-bold text-white">Mes Programmes Actifs</h2>
         </div>
         
         {programsLoading ? (
@@ -67,10 +67,10 @@ export default function CoachDashboardPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {programs.map((p) => (
-              <div key={p.id} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
+              <div key={p.id} className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
                 <div className="flex justify-between items-start mb-4">
                   <h3 className="font-bold text-gray-900 text-lg leading-tight">{p.title}</h3>
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200 whitespace-nowrap">
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-brand-primary border border-gray-200 whitespace-nowrap">
                     Groupe {p.age_group}
                   </span>
                 </div>

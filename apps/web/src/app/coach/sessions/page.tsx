@@ -16,8 +16,8 @@ export default function CoachSessionsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">Séances</h1>
-        <p className="text-gray-500">Planifiez et suivez les séances avec vos jeunes.</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Séances</h1>
+        <p className="text-white/70">Planifiez et suivez les séances avec vos jeunes.</p>
       </div>
 
       {isLoading ? (
@@ -29,7 +29,7 @@ export default function CoachSessionsPage() {
           <p className="text-gray-500">Aucune séance pour le moment.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+        <div className="bg-white border border-brand-tertiary/30 shadow-sm rounded-2xl overflow-hidden">
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-50/50 text-gray-500 font-medium border-b border-gray-200">
@@ -66,7 +66,7 @@ export default function CoachSessionsPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button className="text-sm font-semibold text-blue-600 hover:text-blue-800 transition-colors">
+                      <button className="text-sm font-semibold text-brand-primary hover:bg-brand-tertiary/10 px-3 py-1.5 rounded-lg transition-colors">
                         Détails
                       </button>
                     </td>

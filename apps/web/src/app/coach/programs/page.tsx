@@ -20,8 +20,8 @@ export default function CoachProgramsPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-2xl font-bold mb-2">Mes Programmes</h1>
-        <p className="text-gray-500">Gérez les programmes d'accompagnement de vos jeunes.</p>
+        <h1 className="text-2xl font-bold text-white mb-2">Mes Programmes</h1>
+        <p className="text-white/70">Gérez les programmes d'accompagnement de vos jeunes.</p>
       </div>
 
       {/* Filtres par tranche d'âge */}
@@ -30,10 +30,10 @@ export default function CoachProgramsPage() {
           <button
             key={group}
             onClick={() => setSelectedGroup(group)}
-            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors ${
+            className={`px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${
               selectedGroup === group
-                ? 'bg-black text-white'
-                : 'bg-white text-gray-600 hover:bg-gray-100 border border-gray-200'
+                ? 'bg-brand-tertiary text-white shadow-md'
+                : 'bg-white/10 text-white/80 hover:bg-white/20 border border-white/20'
             }`}
           >
             {group}
@@ -52,10 +52,10 @@ export default function CoachProgramsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredPrograms.map((program) => (
-            <div key={program.id} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col h-full hover:shadow-md transition-shadow">
+            <div key={program.id} className="bg-white p-6 rounded-2xl shadow-sm border border-brand-tertiary/30 hover:border-brand-primary flex flex-col h-full hover:shadow-md transition-all">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-1">{program.title}</h3>
+                  <h3 className="font-bold text-gray-900 text-lg mb-1">{program.title}</h3>
                   <p className="text-sm text-gray-500">Tranche d'âge : {program.age_group}</p>
                 </div>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md ${
@@ -70,10 +70,10 @@ export default function CoachProgramsPage() {
               </p>
 
               <div className="flex items-center justify-between pt-4 border-t border-gray-100 mt-auto">
-                <div className="text-sm font-medium text-gray-900">
+                <div className="text-sm font-medium text-brand-primary">
                   {program.total_sessions} séances
                 </div>
-                <button className="text-sm font-semibold text-black hover:bg-gray-100 px-3 py-1.5 rounded-lg transition-colors">
+                <button className="text-sm font-semibold text-brand-primary hover:bg-brand-tertiary/10 px-3 py-1.5 rounded-lg transition-colors">
                   Voir détails
                 </button>
               </div>

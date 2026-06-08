@@ -148,13 +148,13 @@ export default function CoachMessagesPage() {
   return (
     <div className="h-[calc(100vh-80px)] flex flex-col">
       <div className="mb-6 shrink-0">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Messages</h1>
-        <p className="text-gray-500 text-sm">Discutez avec les parents de vos jeunes.</p>
+        <h1 className="text-2xl font-semibold text-white mb-1">Messages</h1>
+        <p className="text-white/70 text-sm">Discutez avec les parents de vos jeunes.</p>
       </div>
 
       <div className="flex gap-6 min-h-0 flex-1">
         {/* Liste conversations */}
-        <div className="w-80 flex flex-col bg-white border border-gray-200 rounded-xl overflow-hidden shrink-0">
+        <div className="w-80 flex flex-col bg-white border border-brand-tertiary/30 shadow-sm rounded-xl overflow-hidden shrink-0">
           <div className="p-4 border-b border-gray-100">
             <input
               className="w-full bg-gray-50 border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none"
@@ -203,7 +203,7 @@ export default function CoachMessagesPage() {
         </div>
 
         {/* Fenêtre messages */}
-        <div className="flex-1 bg-white border border-gray-200 rounded-xl flex flex-col overflow-hidden relative min-w-0">
+        <div className="flex-1 bg-white border border-brand-tertiary/30 shadow-sm rounded-xl flex flex-col overflow-hidden relative min-w-0">
           {!selected ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gray-50/50">
               <div className="text-center">
@@ -246,7 +246,7 @@ export default function CoachMessagesPage() {
                       )}
                       <div className={`max-w-[70%] px-4 py-2.5 text-sm ${
                         isSenderMe 
-                          ? 'bg-black text-white rounded-2xl rounded-tr-sm'
+                          ? 'bg-brand-primary text-white rounded-2xl rounded-tr-sm'
                           : 'bg-gray-100 text-gray-900 rounded-2xl rounded-tl-sm' 
                       }`}>
                         <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
@@ -278,7 +278,7 @@ export default function CoachMessagesPage() {
                   <button
                     type="submit"
                     disabled={!newMessage.trim()}
-                    className="bg-black text-white px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity"
+                    className="bg-brand-primary text-white px-6 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50 transition-opacity hover:bg-brand-primary/90"
                   >
                     Envoyer
                   </button>

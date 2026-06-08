@@ -36,17 +36,17 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50/50">
+    <div className="flex min-h-screen bg-brand-primary">
       {/* Sidebar Minimaliste */}
-      <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20">
+      <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
         {/* Logo Area */}
         <div className="px-6 py-8">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-black flex items-center justify-center text-white font-bold text-sm">
+            <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center text-white font-bold text-sm shadow-md">
               T
             </div>
             <div>
-              <p className="text-sm font-bold text-gray-900 tracking-tight">THRIVE</p>
+              <p className="text-sm font-bold text-brand-primary tracking-tight">THRIVE</p>
               <p className="text-gray-500 text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Coach</p>
             </div>
           </div>
@@ -60,10 +60,10 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-sm ${
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
                   isActive 
-                    ? 'bg-gray-100 text-gray-900 font-semibold' 
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 font-medium'
+                    ? 'bg-brand-primary text-white font-semibold shadow-sm' 
+                    : 'text-gray-600 hover:bg-brand-tertiary/20 hover:text-brand-primary font-medium'
                 }`}
               >
                 <span className="text-base opacity-80">{item.icon}</span>
