@@ -46,70 +46,72 @@ export default function AdminChildrenPage() {
   });
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-80px)] flex flex-col">
+      <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold">Enfants 🧒</h1>
-          <p className="text-gray-500 mt-1">{children.length} enfant{children.length > 1 ? 's' : ''} enregistré{children.length > 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Enfants</h1>
+          <p className="text-gray-500 text-sm">{children.length} enfant{children.length > 1 ? 's' : ''}</p>
         </div>
         <input
-          className="border border-gray-200 rounded-xl px-4 py-3 text-sm w-64"
+          className="bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none w-64"
           placeholder="Rechercher un enfant..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-sm">
-              <th className="px-6 py-4">Enfant</th>
-              <th className="px-6 py-4">Famille</th>
-              <th className="px-6 py-4">Âge</th>
-              <th className="px-6 py-4">Programmes</th>
-              <th className="px-6 py-4">Badges</th>
-              <th className="px-6 py-4">Statut</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">
-                {search ? 'Aucun résultat.' : 'Aucun enfant enregistré.'}
-              </td></tr>
-            ) : (
-              filtered.map((child) => (
-                <tr key={child.id} className="border-t hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <p className="font-semibold">{child.first_name} {child.last_name}</p>
-                    {child.gender && <p className="text-xs text-gray-400">{child.gender}</p>}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">{child.families?.name ?? '—'}</td>
-                  <td className="px-6 py-4 text-sm">{calculateAge(child.date_of_birth)} ans</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs font-semibold">
-                      {child.program_enrollments?.length ?? 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-yellow-100 text-yellow-700 rounded-full px-3 py-1 text-xs font-semibold">
-                      🏅 {child.child_badges?.length ?? 0}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      child.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                    }`}>
-                      {child.is_active ? 'Actif' : 'Inactif'}
-                    </span>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-auto custom-scrollbar rounded-xl">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/50 sticky top-0 z-10 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 font-medium">Enfant</th>
+                <th className="px-6 py-4 font-medium">Famille</th>
+                <th className="px-6 py-4 font-medium">Âge</th>
+                <th className="px-6 py-4 font-medium">Programmes</th>
+                <th className="px-6 py-4 font-medium">Badges</th>
+                <th className="px-6 py-4 font-medium">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {isLoading ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+              ) : filtered.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">
+                  {search ? 'Aucun résultat.' : 'Aucun enfant enregistré.'}
+                </td></tr>
+              ) : (
+                filtered.map((child) => (
+                  <tr key={child.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{child.first_name} {child.last_name}</div>
+                      {child.gender && <div className="text-xs text-gray-500 mt-0.5">{child.gender}</div>}
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">{child.families?.name ?? '—'}</td>
+                    <td className="px-6 py-4 text-gray-500">{calculateAge(child.date_of_birth)} ans</td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                        {child.program_enrollments?.length ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium bg-gray-50 text-gray-700 border border-gray-200">
+                        <span>🏅</span> {child.child_badges?.length ?? 0}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-medium border ${
+                        child.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'
+                      }`}>
+                        {child.is_active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

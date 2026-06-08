@@ -3,7 +3,7 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator,
 } from 'react-native';
-import { useNotifications, type AppNotification } from '@thrive/shared';
+import { useNotifications, type AppNotification } from '@thrive/shared/src/hooks/useNotifications';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
   MESSAGE: { icon: '💬', color: '#3B82F6' },

@@ -14,8 +14,7 @@ const NAV_ITEMS = [
   { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
   { href: '/admin/badges', label: 'Badges', icon: '🏅' },
   { href: '/admin/messages', label: 'Messages', icon: '💬' },
-  { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
-  { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
+  { href: '/admin/content', label: 'Contenu', icon: '📚' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -28,60 +27,86 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (isLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
-    if (user?.role && !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
+    const role = user?.role?.toUpperCase();
+    if (role && !['ADMIN', 'SUPER_ADMIN'].includes(role)) {
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, user, router]);
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-400">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="w-8 h-8 border-2 border-gray-900 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <aside className="w-64 bg-black text-white flex flex-col fixed h-full z-10">
-        <div className="p-6 border-b border-gray-800">
-          <p className="text-xl font-bold">THRIVE</p>
-          <p className="text-gray-400 text-xs mt-1">Espace Admin</p>
+    <div className="flex min-h-screen bg-brand-primary">
+      {/* Sidebar Minimaliste */}
+      <aside className="w-[260px] bg-white border-r border-gray-200 flex flex-col fixed h-full z-20 shadow-sm">
+        {/* Logo Area */}
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-brand-primary flex items-center justify-center text-white font-bold text-sm shadow-md">
+              T
+            </div>
+            <div>
+              <p className="text-sm font-bold text-brand-primary tracking-tight">THRIVE</p>
+              <p className="text-gray-500 text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Admin</p>
+            </div>
+          </div>
         </div>
-        <nav className="flex-1 p-4 overflow-y-auto">
+
+        {/* Navigation */}
+        <nav className="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href ||
-              (item.href !== '/admin' && pathname.startsWith(item.href));
+            const isActive = pathname === item.href || (item.href !== '/admin' && pathname.startsWith(item.href));
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-colors ${
-                  isActive
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all text-sm ${
+                  isActive 
+                    ? 'bg-brand-primary text-white font-semibold shadow-sm' 
+                    : 'text-gray-600 hover:bg-brand-tertiary/20 hover:text-brand-primary font-medium'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <span className="text-base opacity-80">{item.icon}</span>
                 <span>{item.label}</span>
               </Link>
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-800">
-          <div className="px-4 py-3 mb-2">
-            <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
-            <p className="text-xs text-gray-400">{user.role}</p>
+
+        {/* User Profile Area */}
+        <div className="p-4 border-t border-gray-200">
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-bold border border-gray-200">
+                {user.firstName[0]}{user.lastName[0]}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                <p className="text-xs text-gray-500 truncate">{user.role}</p>
+              </div>
+            </div>
+            <button
+              onClick={async () => { await signOut(); router.push('/login'); }}
+              className="w-full py-2 rounded-lg hover:bg-gray-100 text-gray-600 hover:text-gray-900 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+            >
+              Déconnexion
+            </button>
           </div>
-          <button
-            onClick={async () => { await signOut(); router.push('/login'); }}
-            className="w-full text-left px-4 py-2 text-gray-400 hover:text-white text-sm rounded-xl hover:bg-gray-800"
-          >
-            🚪 Se déconnecter
-          </button>
         </div>
       </aside>
-      <main className="ml-64 flex-1 p-8">{children}</main>
+
+      {/* Main Content Area */}
+      <main className="ml-[260px] flex-1 p-10 max-w-[1400px]">
+        <div className="animate-in fade-in duration-500">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

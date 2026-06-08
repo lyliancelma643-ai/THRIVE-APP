@@ -15,7 +15,8 @@ export default function DashboardPage() {
     if (!isAuthenticated) { router.push('/login'); return; }
 
     // Redirection selon le rôle
-    switch (user?.role) {
+    const role = user?.role?.toUpperCase();
+    switch (role) {
       case 'ADMIN':
       case 'SUPER_ADMIN':
         router.replace('/admin');
@@ -23,8 +24,11 @@ export default function DashboardPage() {
       case 'COACH':
         router.replace('/coach/dashboard');
         break;
+      case 'PARENT':
+        router.replace('/parent/dashboard');
+        break;
       default:
-        // PARENT reste sur /dashboard
+        // Au cas où, reste sur /dashboard
         break;
     }
   }, [isLoading, isAuthenticated, user, router]);
