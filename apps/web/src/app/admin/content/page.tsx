@@ -65,109 +65,123 @@ export default function AdminContentPage() {
   const AGE_GROUPS = ['', '8-11', '12-14', '15-17'];
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
+    <div className="max-w-7xl mx-auto h-[calc(100vh-80px)] flex flex-col">
+      <div className="flex justify-between items-end mb-6 shrink-0">
         <div>
-          <h1 className="text-3xl font-bold">Contenu pédagogique 📚</h1>
-          <p className="text-gray-500 mt-1">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
+          <h1 className="text-2xl font-semibold text-gray-900 mb-1">Contenu pédagogique</h1>
+          <p className="text-gray-500 text-sm">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+          className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors border ${
+            showForm 
+              ? 'bg-gray-100 text-gray-700 border-gray-200 hover:bg-gray-200' 
+              : 'bg-black text-white border-black hover:bg-gray-800'
+          }`}
         >
-          {showForm ? 'Annuler' : '+ Nouvelle ressource'}
+          {showForm ? 'Annuler' : 'Nouvelle ressource'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-bold mb-4">Nouvelle ressource</h2>
+        <form onSubmit={handleCreate} className="bg-white rounded-xl p-6 border border-gray-200 mb-6 shrink-0">
+          <h2 className="text-sm font-semibold text-gray-900 mb-4">Nouvelle ressource</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div className="col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Titre</label>
-              <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
+              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Titre</label>
+              <input className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Type</label>
-              <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Type</label>
+              <select className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Groupe d'âge</label>
-              <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>
+              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Groupe d'âge</label>
+              <select className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>
                 {AGE_GROUPS.map((ag) => <option key={ag} value={ag}>{ag || 'Tous'}</option>)}
               </select>
             </div>
             <div className="col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Contenu</label>
-              <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
+              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Contenu</label>
+              <textarea className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none custom-scrollbar" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
             </div>
             <div className="col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Tags (séparés par virgule)</label>
-              <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
+              <label className="text-xs font-semibold text-gray-600 mb-1 block uppercase tracking-wider">Tags (séparés par virgule)</label>
+              <input className="w-full bg-white border border-gray-200 focus:border-gray-400 focus:ring-0 rounded-lg px-3 py-2 text-sm transition-colors outline-none" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
             </div>
           </div>
-          <button type="submit" disabled={saving} className="bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50">
-            {saving ? 'Enregistrement...' : 'Enregistrer (brouillon)'}
-          </button>
+          <div className="flex justify-end">
+            <button type="submit" disabled={saving} className="bg-black text-white rounded-lg px-4 py-2 text-sm font-medium disabled:opacity-50 transition-colors hover:bg-gray-800">
+              {saving ? 'Enregistrement...' : 'Enregistrer (brouillon)'}
+            </button>
+          </div>
         </form>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-sm">
-              <th className="px-6 py-4">Titre</th>
-              <th className="px-6 py-4">Type</th>
-              <th className="px-6 py-4">Groupe</th>
-              <th className="px-6 py-4">Tags</th>
-              <th className="px-6 py-4">Statut</th>
-              <th className="px-6 py-4">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
-            ) : items.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Aucune ressource.</td></tr>
-            ) : (
-              items.map((item) => (
-                <tr key={item.id} className="border-t hover:bg-gray-50">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-sm">{item.title}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="bg-gray-100 rounded-full px-3 py-1 text-xs">{item.type}</span>
-                  </td>
-                  <td className="px-6 py-4 text-gray-400 text-sm">{item.age_group ?? 'Tous'}</td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-1 flex-wrap">
-                      {(item.tags ?? []).slice(0, 3).map((tag, i) => (
-                        <span key={i} className="bg-blue-50 text-blue-700 rounded-full px-2 py-0.5 text-xs">{tag}</span>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      item.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {item.is_published ? 'Publié' : 'Brouillon'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button
-                      onClick={() => togglePublish(item.id, item.is_published)}
-                      className="text-sm text-gray-500 hover:text-black underline"
-                    >
-                      {item.is_published ? 'Dépublier' : 'Publier'}
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="bg-white border border-gray-200 rounded-xl flex-1 flex flex-col min-h-0">
+        <div className="flex-1 overflow-auto custom-scrollbar rounded-xl">
+          <table className="w-full text-sm text-left">
+            <thead className="text-xs text-gray-500 uppercase tracking-wider bg-gray-50/50 sticky top-0 z-10 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-4 font-medium">Titre</th>
+                <th className="px-6 py-4 font-medium">Type</th>
+                <th className="px-6 py-4 font-medium">Groupe</th>
+                <th className="px-6 py-4 font-medium">Tags</th>
+                <th className="px-6 py-4 font-medium">Statut</th>
+                <th className="px-6 py-4 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {isLoading ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+              ) : items.length === 0 ? (
+                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Aucune ressource.</td></tr>
+              ) : (
+                items.map((item) => (
+                  <tr key={item.id} className="hover:bg-gray-50/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <div className="font-medium text-gray-900">{item.title}</div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-semibold bg-gray-50 text-gray-600 border border-gray-200">
+                        {item.type}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-gray-500">{item.age_group ?? 'Tous'}</td>
+                    <td className="px-6 py-4">
+                      <div className="flex gap-1.5 flex-wrap">
+                        {(item.tags ?? []).slice(0, 3).map((tag, i) => (
+                          <span key={i} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`inline-flex items-center px-2 py-1 rounded-md text-[10px] uppercase tracking-wider font-semibold border ${
+                        item.is_published ? 'bg-green-50 text-green-700 border-green-200' : 'bg-gray-50 text-gray-500 border-gray-200'
+                      }`}>
+                        {item.is_published ? 'Publié' : 'Brouillon'}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <button
+                        onClick={() => togglePublish(item.id, item.is_published)}
+                        className={`text-sm font-medium transition-colors ${
+                          item.is_published ? 'text-gray-400 hover:text-gray-700' : 'text-gray-400 hover:text-green-600'
+                        }`}
+                      >
+                        {item.is_published ? 'Dépublier' : 'Publier'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
