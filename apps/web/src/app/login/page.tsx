@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 // Redirige vers le bon espace selon le rôle
 function getRedirectPath(role?: string): string {
   switch (role) {
-    case 'PARENT':      return '/parent/dashboard';
+    case 'PARENT':      return '/parent/select-profile'; // ← page de sélection profil style Netflix
     case 'COACH':       return '/coach/dashboard';
     case 'ADMIN':
     case 'SUPER_ADMIN': return '/admin';
@@ -17,7 +17,7 @@ function getRedirectPath(role?: string): string {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, isLoading, user } = useAuthStore();
+  const { signIn, isLoading } = useAuthStore();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -28,7 +28,6 @@ export default function LoginPage() {
     try {
       setError('');
       await signIn(email, password);
-      // Après signIn, le store est mis à jour — on lit le rôle depuis le store
       const role = useAuthStore.getState().user?.role;
       router.push(getRedirectPath(role));
     } catch (err: any) {
@@ -69,11 +68,6 @@ export default function LoginPage() {
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
-
-        {/* Aide visuelle rôles — à retirer en production */}
-        <p className="text-center text-xs text-gray-300 mt-6">
-          Parent → /parent/dashboard · Coach → /coach/dashboard
-        </p>
       </div>
     </main>
   );
