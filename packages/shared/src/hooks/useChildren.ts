@@ -6,11 +6,22 @@ export interface Child {
   family_id: string;
   first_name: string;
   last_name: string;
-  date_of_birth: string;
+  date_of_birth: string;        // YYYY-MM-DD
   gender?: string;
+  sport?: string;               // sport pratiqué
+  notes?: string;               // infos supplémentaires
   avatar_url?: string;
   is_active: boolean;
   child_badges?: { badges: { name: string; icon_url?: string } }[];
+}
+
+export interface CreateChildDTO {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;        // YYYY-MM-DD
+  gender?: string;
+  sport?: string;
+  notes?: string;
 }
 
 export function useChildren(familyId?: string) {
@@ -34,21 +45,31 @@ export function useChildren(familyId?: string) {
 
   useEffect(() => { fetchChildren(); }, [familyId]);
 
-  const createChild = async (dto: {
-    first_name: string;
-    last_name: string;
-    date_of_birth: string;
-    gender?: string;
-  }) => {
+  /**
+   * Crée un enfant lié à la famille du parent connecté.
+   * Insère dans `children` : family_id, first_name, last_name,
+   * date_of_birth, gender, sport, notes.
+   * Visible immédiatement par les coachs et admins via RLS.
+   */
+  const createChild = async (dto: CreateChildDTO): Promise<Child> => {
     if (!familyId) throw new Error('familyId requis');
     const { data, error } = await supabaseClient
       .from('children')
-      .insert({ ...dto, family_id: familyId })
+      .insert({
+        family_id:     familyId,
+        first_name:    dto.first_name.trim(),
+        last_name:     dto.last_name.trim(),
+        date_of_birth: dto.date_of_birth,
+        gender:        dto.gender ?? null,
+        sport:         dto.sport?.trim() ?? null,
+        notes:         dto.notes?.trim() ?? null,
+        is_active:     true,
+      })
       .select()
       .single();
     if (error) throw new Error(error.message);
-    await fetchChildren();
-    return data;
+    await fetchChildren(); // rafraîchit la liste locale
+    return data as Child;
   };
 
   const deleteChild = async (childId: string) => {

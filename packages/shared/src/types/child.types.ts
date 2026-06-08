@@ -1,3 +1,27 @@
+// Type complet d'un enfant — aligné sur la table `children` Supabase
+export interface IChild {
+  id: string;
+  family_id: string;
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;   // ISO 8601 YYYY-MM-DD
+  gender?: string;
+  sport?: string;          // ex: 'Football', 'Tennis', 'Natation'
+  notes?: string;          // infos libres pour le coach/admin
+  avatar_url?: string;
+  is_active: boolean;
+  created_at?: string;
+}
+
+export interface ICreateChildDTO {
+  first_name: string;
+  last_name: string;
+  date_of_birth: string;
+  gender?: string;
+  sport?: string;
+  notes?: string;
+}
+
 export interface IChildProgress {
   childId: string;
   programId: string;
