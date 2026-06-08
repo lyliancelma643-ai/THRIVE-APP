@@ -6,17 +6,10 @@ import { useAuthStore } from '@/stores/auth.store';
 import { usePrograms, useSessions } from '@thrive/shared';
 
 export default function CoachDashboardPage() {
-  const router = useRouter();
-  const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const { user } = useAuthStore();
   const { programs, isLoading: programsLoading } = usePrograms({ coachId: user?.id });
   const { sessions } = useSessions();
 
-  useEffect(() => { hydrate(); }, [hydrate]);
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) router.push('/login');
-  }, [isLoading, isAuthenticated, router]);
-
-  if (isLoading) return <div className="p-8">Chargement...</div>;
   if (!user) return null;
 
   const totalChildren = programs.reduce(
