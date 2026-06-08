@@ -1,200 +1,317 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 
+// ─── Types ────────────────────────────────────────────────────────────────────
 interface Coach {
   id: string;
   email: string;
   first_name: string;
   last_name: string;
+  phone?: string | null;
+  speciality?: string | null;
+  bio?: string | null;
   is_active: boolean;
   created_at: string;
   program_count?: number;
+  session_count?: number;
+  children_count?: number;
 }
 
+interface CoachForm {
+  email: string;
+  firstName: string;
+  lastName: string;
+  password: string;
+  confirmPassword: string;
+  phone: string;
+  speciality: string;
+  bio: string;
+}
+
+const EMPTY_FORM: CoachForm = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  password: '',
+  confirmPassword: '',
+  phone: '',
+  speciality: '',
+  bio: '',
+};
+
+// ─── Composant principal ───────────────────────────────────────────────────────
 export default function AdminCoachesPage() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', password: '' });
+  const [showModal, setShowModal] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [form, setForm] = useState<CoachForm>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [search, setSearch] = useState('');
+  const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  const [togglingId, setTogglingId] = useState<string | null>(null);
 
-  const fetchCoaches = async () => {
+  // ── Chargement des coaches ─────────────────────────────────────────────────
+  const fetchCoaches = useCallback(async () => {
     setIsLoading(true);
-    const { data } = await supabase
-      .from('profiles')
+    // On essaie la vue enrichie, sinon fallback sur profiles
+    const { data, error: viewError } = await supabase
+      .from('admin_coaches_view')
       .select('*')
-      .eq('role', 'COACH')
       .order('created_at', { ascending: false });
-    setCoaches(data ?? []);
+
+    if (viewError) {
+      // Fallback si la vue n'existe pas encore
+      const { data: fallback } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('role', 'COACH')
+        .order('created_at', { ascending: false });
+      setCoaches(fallback ?? []);
+    } else {
+      setCoaches(data ?? []);
+    }
     setIsLoading(false);
-  };
+  }, []);
 
-  useEffect(() => { fetchCoaches(); }, []);
+  useEffect(() => { fetchCoaches(); }, [fetchCoaches]);
 
+  // ── Filtres ────────────────────────────────────────────────────────────────
+  const filtered = coaches.filter((c) => {
+    const matchSearch =
+      !search ||
+      `${c.first_name} ${c.last_name} ${c.email} ${c.speciality ?? ''}`
+        .toLowerCase()
+        .includes(search.toLowerCase());
+    const matchActive =
+      filterActive === 'all' ||
+      (filterActive === 'active' && c.is_active) ||
+      (filterActive === 'inactive' && !c.is_active);
+    return matchSearch && matchActive;
+  });
+
+  // ── Création coach via Edge Function ──────────────────────────────────────
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    // Validations frontend
     if (!form.email || !form.firstName || !form.lastName || !form.password) {
-      setError('Tous les champs sont requis');
+      setError('Prénom, nom, email et mot de passe sont obligatoires.');
       return;
     }
-    setSaving(true);
-    setError('');
-    try {
-      // Créer le compte Supabase Auth
-      const { data, error: authError } = await supabase.auth.signUp({
-        email: form.email,
-        password: form.password,
-        options: {
-          data: { firstName: form.firstName, lastName: form.lastName, role: 'COACH' },
-        },
-      });
-      if (authError) throw new Error(authError.message);
-
-      // Le trigger Supabase crée automatiquement le profil
-      // On force le rôle COACH au cas où
-      if (data.user) {
-        await supabase
-          .from('profiles')
-          .update({ role: 'COACH' })
-          .eq('id', data.user.id);
-      }
-
-      setSuccess(`Coach ${form.firstName} ${form.lastName} créé avec succès !`);
-      setForm({ email: '', firstName: '', lastName: '', password: '' });
-      setShowForm(false);
-      await fetchCoaches();
-    } catch (e: any) {
-      setError(e.message);
+    if (form.password.length < 8) {
+      setError('Le mot de passe doit comporter au moins 8 caractères.');
+      return;
     }
-    setSaving(false);
+    if (form.password !== form.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError('Adresse email invalide.');
+      return;
+    }
+
+    setSaving(true);
+    try {
+      // Récupérer le token de l'admin connecté
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
+
+      const { data: { supabaseUrl } } = await supabase.functions.getFunctionUrl('admin-create-coach').catch(() => ({ data: { supabaseUrl: '' } }));
+
+      // Appel Edge Function sécurisé
+      const res = await supabase.functions.invoke('admin-create-coach', {
+        body: {
+          email: form.email.trim(),
+          password: form.password,
+          firstName: form.firstName.trim(),
+          lastName: form.lastName.trim(),
+          phone: form.phone.trim() || null,
+          speciality: form.speciality.trim() || null,
+          bio: form.bio.trim() || null,
+        },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      if (res.error) throw new Error(res.error.message ?? 'Erreur lors de la création');
+      const json = res.data as any;
+      if (json?.error) throw new Error(json.error);
+
+      setSuccess(`✅ ${form.firstName} ${form.lastName} a été créé avec succès !`);
+      setForm(EMPTY_FORM);
+      setShowModal(false);
+      await fetchCoaches();
+    } catch (err: any) {
+      setError(err.message ?? 'Une erreur inattendue est survenue.');
+    } finally {
+      setSaving(false);
+    }
   };
 
+  // ── Activer / désactiver ───────────────────────────────────────────────────
   const toggleActive = async (coachId: string, current: boolean) => {
+    setTogglingId(coachId);
     await supabase.from('profiles').update({ is_active: !current }).eq('id', coachId);
     await fetchCoaches();
+    setTogglingId(null);
   };
 
+  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      {/* En-tête */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h1 className="text-3xl font-bold">Coaches 🎯</h1>
-          <p className="text-gray-500 mt-1">{coaches.length} coach{coaches.length > 1 ? 'es' : ''} enregistré{coaches.length > 1 ? 's' : ''}</p>
+          <p className="text-gray-500 mt-1">
+            {coaches.length} coach{coaches.length > 1 ? 'es' : ''} enregistré{coaches.length > 1 ? 's' : ''}
+          </p>
         </div>
         <button
-          onClick={() => { setShowForm(!showForm); setError(''); setSuccess(''); }}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+          onClick={() => { setShowModal(true); setError(''); setSuccess(''); setForm(EMPTY_FORM); }}
+          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap"
         >
-          {showForm ? 'Annuler' : '+ Nouveau coach'}
+          + Nouveau coach
         </button>
       </div>
 
-      {/* Formulaire création */}
-      {showForm && (
-        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
-          <h2 className="text-lg font-bold mb-4">Créer un compte coach</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Prénom</label>
-              <input
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                value={form.firstName}
-                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                placeholder="Prénom"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Nom</label>
-              <input
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                value={form.lastName}
-                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                placeholder="Nom"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Email</label>
-              <input
-                type="email"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="coach@thrive.com"
-              />
-            </div>
-            <div>
-              <label className="text-sm text-gray-500 mb-1 block">Mot de passe temporaire</label>
-              <input
-                type="password"
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Min. 8 caractères"
-              />
-            </div>
-          </div>
-          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-          {success && <p className="text-green-500 text-sm mb-3">{success}</p>}
-          <button
-            type="submit"
-            disabled={saving}
-            className="bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50"
-          >
-            {saving ? 'Création...' : 'Créer le coach'}
-          </button>
-        </form>
+      {/* Banner succès */}
+      {success && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm flex items-center justify-between">
+          <span>{success}</span>
+          <button onClick={() => setSuccess('')} className="text-green-500 hover:text-green-700 text-lg leading-none">×</button>
+        </div>
       )}
 
-      {success && !showForm && (
-        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm">{success}</div>
-      )}
+      {/* Barre de recherche + filtres */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <input
+          type="text"
+          placeholder="Rechercher par nom, email, spécialité…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+        />
+        <div className="flex gap-2">
+          {(['all', 'active', 'inactive'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilterActive(f)}
+              className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
+                filterActive === f
+                  ? 'bg-black text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              }`}
+            >
+              {{ all: 'Tous', active: 'Actifs', inactive: 'Inactifs' }[f]}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      {/* Liste coaches */}
+      {/* Tableau des coaches */}
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table className="w-full">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-sm">
+            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Coach</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Inscription</th>
+              <th className="px-6 py-4 hidden md:table-cell">Email</th>
+              <th className="px-6 py-4 hidden lg:table-cell">Spécialité</th>
+              <th className="px-6 py-4 hidden lg:table-cell">Stats</th>
+              <th className="px-6 py-4 hidden md:table-cell">Inscription</th>
               <th className="px-6 py-4">Statut</th>
               <th className="px-6 py-4">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
-            ) : coaches.length === 0 ? (
-              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Aucun coach enregistré.</td></tr>
+              // Skeleton loader
+              Array.from({ length: 4 }).map((_, i) => (
+                <tr key={i} className="border-t">
+                  {Array.from({ length: 7 }).map((__, j) => (
+                    <td key={j} className="px-6 py-4">
+                      <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: j === 0 ? '60%' : '80%' }} />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : filtered.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="px-6 py-12 text-center">
+                  <div className="text-4xl mb-3">🎯</div>
+                  <p className="text-gray-500 font-medium">
+                    {search || filterActive !== 'all' ? 'Aucun résultat pour cette recherche' : 'Aucun coach enregistré'}
+                  </p>
+                  {!search && filterActive === 'all' && (
+                    <button
+                      onClick={() => { setShowModal(true); }}
+                      className="mt-4 text-sm text-black underline"
+                    >
+                      Créer le premier coach
+                    </button>
+                  )}
+                </td>
+              </tr>
             ) : (
-              coaches.map((coach) => (
-                <tr key={coach.id} className="border-t hover:bg-gray-50">
+              filtered.map((coach) => (
+                <tr key={coach.id} className="border-t hover:bg-gray-50 transition-colors">
+                  {/* Nom */}
                   <td className="px-6 py-4">
-                    <p className="font-semibold">{coach.first_name} {coach.last_name}</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-sm font-bold text-gray-600 flex-shrink-0">
+                        {coach.first_name?.[0]}{coach.last_name?.[0]}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{coach.first_name} {coach.last_name}</p>
+                        {coach.phone && <p className="text-xs text-gray-400">{coach.phone}</p>}
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">{coach.email}</td>
-                  <td className="px-6 py-4 text-gray-400 text-sm">
+                  {/* Email */}
+                  <td className="px-6 py-4 text-gray-500 text-sm hidden md:table-cell">{coach.email}</td>
+                  {/* Spécialité */}
+                  <td className="px-6 py-4 hidden lg:table-cell">
+                    {coach.speciality ? (
+                      <span className="bg-blue-50 text-blue-700 text-xs rounded-full px-3 py-1">{coach.speciality}</span>
+                    ) : (
+                      <span className="text-gray-300 text-xs">—</span>
+                    )}
+                  </td>
+                  {/* Stats */}
+                  <td className="px-6 py-4 hidden lg:table-cell">
+                    <div className="flex gap-3 text-xs text-gray-500">
+                      <span title="Programmes">📋 {coach.program_count ?? 0}</span>
+                      <span title="Séances">🗓️ {coach.session_count ?? 0}</span>
+                      <span title="Enfants suivis">👶 {coach.children_count ?? 0}</span>
+                    </div>
+                  </td>
+                  {/* Date */}
+                  <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
                     {new Date(coach.created_at).toLocaleDateString('fr-CA')}
                   </td>
+                  {/* Statut */}
                   <td className="px-6 py-4">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      coach.is_active
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
+                      coach.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                     }`}>
                       {coach.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
+                  {/* Actions */}
                   <td className="px-6 py-4">
                     <button
                       onClick={() => toggleActive(coach.id, coach.is_active)}
-                      className="text-sm text-gray-500 hover:text-black underline"
+                      disabled={togglingId === coach.id}
+                      className="text-xs text-gray-500 hover:text-black underline disabled:opacity-40 transition-colors"
                     >
-                      {coach.is_active ? 'Désactiver' : 'Réactiver'}
+                      {togglingId === coach.id ? '...' : coach.is_active ? 'Désactiver' : 'Réactiver'}
                     </button>
                   </td>
                 </tr>
@@ -203,6 +320,219 @@ export default function AdminCoachesPage() {
           </tbody>
         </table>
       </div>
+
+      {/* ── Modal création coach ───────────────────────────────────────────── */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
+          />
+
+          {/* Modal */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="flex items-center justify-between p-6 border-b">
+              <div>
+                <h2 className="text-xl font-bold">Créer un coach</h2>
+                <p className="text-gray-500 text-sm mt-0.5">Le coach recevra ses accès par email</p>
+              </div>
+              <button
+                onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl transition-colors"
+                aria-label="Fermer"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Formulaire */}
+            <form onSubmit={handleCreate} className="p-6 space-y-4">
+              {/* Prénom / Nom */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Prénom <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                    placeholder="Marie"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                    Nom <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                    placeholder="Dupont"
+                  />
+                </div>
+              </div>
+
+              {/* Email */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Adresse email <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="email"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  placeholder="marie.dupont@thrive.com"
+                />
+              </div>
+
+              {/* Téléphone */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Téléphone <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                </label>
+                <input
+                  type="tel"
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
+                  value={form.phone}
+                  onChange={(e) => setForm({ ...form, phone: e.target.value })}
+                  placeholder="+33 6 12 34 56 78"
+                />
+              </div>
+
+              {/* Spécialité */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Spécialité <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                </label>
+                <input
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
+                  value={form.speciality}
+                  onChange={(e) => setForm({ ...form, speciality: e.target.value })}
+                  placeholder="Nutrition sportive, comportement enfant…"
+                />
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                  Bio <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                </label>
+                <textarea
+                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 resize-none"
+                  rows={2}
+                  value={form.bio}
+                  onChange={(e) => setForm({ ...form, bio: e.target.value })}
+                  placeholder="Courte description du coach…"
+                />
+              </div>
+
+              {/* Mot de passe */}
+              <div className="pt-1">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Accès</p>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Mot de passe <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 pr-10"
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                        placeholder="Min. 8 caractères"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                      >
+                        {showPassword ? 'Masquer' : 'Voir'}
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-700 block mb-1.5">
+                      Confirmer <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      className={`w-full border rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+                        form.confirmPassword && form.password !== form.confirmPassword
+                          ? 'border-red-300 focus:ring-red-200'
+                          : 'border-gray-200 focus:ring-black/10 focus:border-black/30'
+                      }`}
+                      value={form.confirmPassword}
+                      onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
+                      placeholder="Répéter"
+                    />
+                  </div>
+                </div>
+                {/* Indicateur de force du mot de passe */}
+                {form.password && (
+                  <div className="mt-2 flex gap-1">
+                    {[1,2,3,4].map((lvl) => {
+                      const strength = form.password.length >= 12 ? 4 : form.password.length >= 10 ? 3 : form.password.length >= 8 ? 2 : 1;
+                      return (
+                        <div
+                          key={lvl}
+                          className={`h-1 flex-1 rounded-full transition-colors ${
+                            lvl <= strength
+                              ? strength >= 3 ? 'bg-green-400' : strength === 2 ? 'bg-yellow-400' : 'bg-red-400'
+                              : 'bg-gray-100'
+                          }`}
+                        />
+                      );
+                    })}
+                    <span className="text-xs text-gray-400 ml-1">
+                      {form.password.length >= 12 ? 'Fort' : form.password.length >= 10 ? 'Bien' : form.password.length >= 8 ? 'Moyen' : 'Faible'}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              {/* Erreur */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
+
+              {/* Boutons */}
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => { setShowModal(false); setError(''); }}
+                  disabled={saving}
+                  className="flex-1 border border-gray-200 text-gray-600 rounded-xl py-3 text-sm font-medium hover:bg-gray-50 transition-colors disabled:opacity-40"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 bg-black text-white rounded-xl py-3 text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {saving ? (
+                    <>
+                      <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                      </svg>
+                      Création…
+                    </>
+                  ) : 'Créer le coach'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
