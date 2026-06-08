@@ -11,6 +11,8 @@ export default function RootLayout() {
         <StatusBar style="light" />
         <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: 'transparent' } }}>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(parent)" options={{ headerShown: false }} />
+          <Stack.Screen name="role-select" options={{ headerShown: false }} />
           <Stack.Screen name="session/[id]" options={{ presentation: 'modal' }} />
           <Stack.Screen name="player/[id]" options={{ presentation: 'fullScreenModal' }} />
         </Stack>

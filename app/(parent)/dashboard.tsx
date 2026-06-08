@@ -1,182 +1,245 @@
 import React from 'react';
-import { ScrollView, View, Text, Pressable, ImageBackground } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import {
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, StatusBar,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Bell, ChevronRight, Play, Calendar, MessageCircle, TrendingUp } from 'lucide-react-native';
+import {
+  CalendarClock, ChevronRight, FileText,
+  MessageCircle, Play, Star, TrendingUp,
+} from 'lucide-react-native';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-type Child = {
-  id: string;
-  firstName: string;
-  ageGroup: string;
-  globalScore: number;
-  avatarColor: string;
-};
-
-// ─── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_CHILDREN: Child[] = [
-  { id: '1', firstName: 'Emma', ageGroup: '12-14', globalScore: 72, avatarColor: '#c5a059' },
-  { id: '2', firstName: 'Lucas', ageGroup: '8-11', globalScore: 58, avatarColor: '#6c8ebf' },
+const CHILDREN = [
+  { id: '1', name: 'Emma', age: 12, progress: 7, totalSessions: 13, score: 82, lastSession: 'Lundi' },
+  { id: '2', name: 'Lucas', age: 14, progress: 3, totalSessions: 13, score: 68, lastSession: 'Mercredi' },
 ];
+
+const NEXT_SESSION = {
+  child: 'Emma',
+  date: 'Jeudi 12 juin',
+  time: '16h00',
+  coach: 'Coach Sarah',
+  type: 'Séance 1:1',
+};
 
 export default function ParentDashboard() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
-    <View className="flex-1 bg-primary-background">
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <StatusBar barStyle="light-content" />
+
       {/* Header */}
-      <View
-        style={{ paddingTop: insets.top + 12 }}
-        className="px-6 pb-4 flex-row justify-between items-center border-b border-surface-elevated"
-      >
+      <View style={styles.header}>
         <View>
-          <Text className="text-text-muted text-sm font-body">Bonjour,</Text>
-          <Text className="text-white font-display text-2xl font-bold">Espace Parent</Text>
+          <Text style={styles.greeting}>Bonjour, Marie 👋</Text>
+          <Text style={styles.headerSub}>Espace parent</Text>
         </View>
-        <Pressable
+        <TouchableOpacity
+          style={styles.msgBtn}
           onPress={() => router.push('/(parent)/messages')}
-          className="w-10 h-10 rounded-full bg-surface-elevated items-center justify-center"
         >
-          <Bell color="#c5a059" size={20} />
-        </Pressable>
+          <MessageCircle color="#c5a059" size={22} />
+          <View style={styles.badge}><Text style={styles.badgeText}>2</Text></View>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
-
-        {/* Prochaine séance 1:1 */}
-        <View className="mx-6 mt-6">
-          <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest mb-3">Prochaine séance 1:1</Text>
-          <Pressable
-            onPress={() => router.push('/(parent)/program')}
-            className="bg-surface-elevated rounded-2xl overflow-hidden"
-          >
-            <ImageBackground
-              source={{ uri: 'https://images.unsplash.com/photo-1551958219-acbc595d3a50?auto=format&fit=crop&w=800&q=80' }}
-              className="h-36"
-              resizeMode="cover"
-            >
-              <LinearGradient
-                colors={['transparent', 'rgba(27,38,59,0.95)']}
-                className="flex-1 justify-end p-4"
-              >
-                <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest mb-1">Séance 4 / 13</Text>
-                <Text className="text-white font-display text-lg font-bold">Confiance & Leadership</Text>
-                <Text className="text-text-muted text-sm">Mercredi 11 juin · 16h00 · Coach Sarah</Text>
-              </LinearGradient>
-            </ImageBackground>
-          </Pressable>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={{ paddingBottom: 32 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Prochaine séance */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Prochaine séance 1:1</Text>
+          <View style={styles.nextSessionCard}>
+            <View style={styles.nextSessionLeft}>
+              <CalendarClock color="#c5a059" size={20} />
+              <View style={{ marginLeft: 12 }}>
+                <Text style={styles.nextSessionChild}>{NEXT_SESSION.child}</Text>
+                <Text style={styles.nextSessionDate}>{NEXT_SESSION.date} · {NEXT_SESSION.time}</Text>
+                <Text style={styles.nextSessionCoach}>{NEXT_SESSION.coach}</Text>
+              </View>
+            </View>
+            <View style={styles.nextSessionBadge}>
+              <Text style={styles.nextSessionBadgeText}>{NEXT_SESSION.type}</Text>
+            </View>
+          </View>
         </View>
 
         {/* Mes enfants */}
-        <View className="mx-6 mt-8">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-white font-display text-xl font-bold">Mes enfants</Text>
-            <Pressable onPress={() => router.push('/(parent)/children')}>
-              <Text className="text-primary-accent text-sm font-semibold">Voir tout</Text>
-            </Pressable>
+        <View style={styles.section}>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionTitle}>Mes enfants</Text>
+            <TouchableOpacity onPress={() => router.push('/(parent)/children')}>
+              <Text style={styles.seeAll}>Voir tout</Text>
+            </TouchableOpacity>
           </View>
-          <View className="flex-row gap-x-3">
-            {MOCK_CHILDREN.map((child) => (
-              <Pressable
-                key={child.id}
-                onPress={() => router.push({ pathname: '/(parent)/child-detail', params: { id: child.id } })}
-                className="flex-1 bg-surface-elevated rounded-2xl p-4 items-center"
-              >
-                <View
-                  className="w-14 h-14 rounded-full items-center justify-center mb-3"
-                  style={{ backgroundColor: child.avatarColor + '33' }}
-                >
-                  <Text className="font-display text-2xl font-bold" style={{ color: child.avatarColor }}>
-                    {child.firstName[0]}
+
+          {CHILDREN.map(child => (
+            <TouchableOpacity
+              key={child.id}
+              style={styles.childCard}
+              onPress={() => router.push({ pathname: '/(parent)/child-detail', params: { id: child.id } })}
+              activeOpacity={0.8}
+            >
+              <View style={styles.childAvatar}>
+                <Text style={styles.childAvatarText}>{child.name[0]}</Text>
+              </View>
+              <View style={styles.childInfo}>
+                <View style={styles.childTop}>
+                  <Text style={styles.childName}>{child.name}</Text>
+                  <Text style={styles.childAge}>{child.age} ans</Text>
+                </View>
+                {/* Barre de progression */}
+                <View style={styles.progressRow}>
+                  <View style={styles.progressTrack}>
+                    <View
+                      style={[
+                        styles.progressFill,
+                        { width: `${(child.progress / child.totalSessions) * 100}%` as any },
+                      ]}
+                    />
+                  </View>
+                  <Text style={styles.progressLabel}>
+                    {child.progress}/{child.totalSessions} séances
                   </Text>
                 </View>
-                <Text className="text-white font-semibold text-base">{child.firstName}</Text>
-                <Text className="text-text-muted text-xs mb-3">{child.ageGroup} ans</Text>
-                {/* Jauge globale */}
-                <View className="w-full h-2 bg-surface-highlight rounded-full overflow-hidden">
-                  <View
-                    className="h-full rounded-full"
-                    style={{ width: `${child.globalScore}%`, backgroundColor: child.avatarColor }}
-                  />
+                <View style={styles.childBottom}>
+                  <View style={styles.scorePill}>
+                    <Star color="#c5a059" size={11} />
+                    <Text style={styles.scoreText}>Score {child.score}</Text>
+                  </View>
+                  <Text style={styles.lastSession}>Dernière : {child.lastSession}</Text>
                 </View>
-                <Text className="text-text-muted text-xs mt-1">{child.globalScore} / 100</Text>
-              </Pressable>
-            ))}
-          </View>
+              </View>
+              <ChevronRight color="#cfd5e5" size={18} />
+            </TouchableOpacity>
+          ))}
         </View>
 
-        {/* Dernier bilan */}
-        <View className="mx-6 mt-8">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-white font-display text-xl font-bold">Dernier bilan</Text>
-            <Pressable onPress={() => router.push('/(parent)/reports')}>
-              <Text className="text-primary-accent text-sm font-semibold">Tous les bilans</Text>
-            </Pressable>
-          </View>
-          <Pressable
-            onPress={() => router.push({ pathname: '/(parent)/report-detail', params: { id: 'r1' } })}
-            className="bg-surface-elevated rounded-2xl p-4"
-          >
-            <View className="flex-row justify-between items-center mb-2">
-              <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest">Emma · Séance 3</Text>
-              <Text className="text-text-muted text-xs">05 juin 2026</Text>
-            </View>
-            <Text className="text-white font-semibold text-base mb-1">Régulation émotionnelle</Text>
-            <Text className="text-text-muted text-sm mb-3" numberOfLines={2}>
-              Emma a montré une belle progression dans la gestion du stress avant compétition.
-            </Text>
-            <View className="flex-row items-center">
-              <TrendingUp color="#c5a059" size={16} />
-              <Text className="text-primary-accent text-sm ml-2">Score : 78 / 100</Text>
-              <ChevronRight color="#8f9779" size={16} className="ml-auto" />
-            </View>
-          </Pressable>
-        </View>
-
-        {/* Accès rapide */}
-        <View className="mx-6 mt-8">
-          <Text className="text-white font-display text-xl font-bold mb-3">Accès rapide</Text>
-          <View className="flex-row gap-x-3">
-            <QuickAction
-              icon={Play}
-              label="Séance 20 min"
-              color="#c5a059"
+        {/* Accès rapides */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Accès rapides</Text>
+          <View style={styles.quickGrid}>
+            <TouchableOpacity
+              style={styles.quickCard}
+              onPress={() => router.push('/(parent)/reports')}
+            >
+              <FileText color="#5aa8c5" size={22} />
+              <Text style={styles.quickLabel}>Bilans</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickCard}
               onPress={() => router.push('/(parent)/sessions-20min')}
-            />
-            <QuickAction
-              icon={Calendar}
-              label="Programme"
-              color="#6c8ebf"
+            >
+              <Play color="#5ac57a" size={22} />
+              <Text style={styles.quickLabel}>Séances 20 min</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickCard}
               onPress={() => router.push('/(parent)/program')}
-            />
-            <QuickAction
-              icon={MessageCircle}
-              label="Messages"
-              color="#8f9779"
+            >
+              <TrendingUp color="#c5a059" size={22} />
+              <Text style={styles.quickLabel}>Programme</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.quickCard}
               onPress={() => router.push('/(parent)/messages')}
-            />
+            >
+              <MessageCircle color="#c5997a" size={22} />
+              <Text style={styles.quickLabel}>Messages</Text>
+            </TouchableOpacity>
           </View>
         </View>
-
       </ScrollView>
     </View>
   );
 }
 
-function QuickAction({ icon: Icon, label, color, onPress }: {
-  icon: any; label: string; color: string; onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className="flex-1 bg-surface-elevated rounded-2xl p-4 items-center gap-y-2 active:bg-surface-highlight"
-    >
-      <View className="w-10 h-10 rounded-full items-center justify-center" style={{ backgroundColor: color + '22' }}>
-        <Icon color={color} size={20} />
-      </View>
-      <Text className="text-white text-xs font-semibold text-center">{label}</Text>
-    </Pressable>
-  );
-}
+const C = {
+  bg: '#1b263b',
+  surface: '#151c2b',
+  elevated: '#1f2d42',
+  accent: '#c5a059',
+  blue: '#5aa8c5',
+  green: '#5ac57a',
+  textPrimary: '#ffffff',
+  textMuted: '#cfd5e5',
+  textFaint: '#7a8aaa',
+};
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: C.surface,
+  },
+  greeting: { color: C.textPrimary, fontSize: 20, fontWeight: '700' },
+  headerSub: { color: C.blue, fontSize: 13, marginTop: 2 },
+  msgBtn: { padding: 8, position: 'relative' },
+  badge: {
+    position: 'absolute', top: 4, right: 4,
+    backgroundColor: '#e05252', borderRadius: 8,
+    width: 16, height: 16, alignItems: 'center', justifyContent: 'center',
+  },
+  badgeText: { color: '#fff', fontSize: 10, fontWeight: '700' },
+  scroll: { flex: 1, paddingHorizontal: 20 },
+  section: { marginTop: 24 },
+  sectionRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
+  sectionTitle: { color: C.textPrimary, fontSize: 17, fontWeight: '700', marginBottom: 12 },
+  seeAll: { color: C.accent, fontSize: 13 },
+  // Next session
+  nextSessionCard: {
+    backgroundColor: C.surface, borderRadius: 14, padding: 16,
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    borderWidth: 1, borderColor: C.accent + '33',
+  },
+  nextSessionLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  nextSessionChild: { color: C.textPrimary, fontSize: 15, fontWeight: '700' },
+  nextSessionDate: { color: C.textMuted, fontSize: 13, marginTop: 2 },
+  nextSessionCoach: { color: C.textFaint, fontSize: 12, marginTop: 2 },
+  nextSessionBadge: { backgroundColor: C.accent + '22', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 4 },
+  nextSessionBadgeText: { color: C.accent, fontSize: 12, fontWeight: '600' },
+  // Child card
+  childCard: {
+    backgroundColor: C.surface, borderRadius: 14, padding: 14,
+    flexDirection: 'row', alignItems: 'center', marginBottom: 10,
+    borderWidth: 1, borderColor: C.elevated,
+  },
+  childAvatar: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: C.accent + '33', alignItems: 'center', justifyContent: 'center', marginRight: 12,
+  },
+  childAvatarText: { color: C.accent, fontSize: 18, fontWeight: '800' },
+  childInfo: { flex: 1 },
+  childTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
+  childName: { color: C.textPrimary, fontSize: 15, fontWeight: '700' },
+  childAge: { color: C.textFaint, fontSize: 13 },
+  progressRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
+  progressTrack: { flex: 1, height: 5, backgroundColor: C.elevated, borderRadius: 4, overflow: 'hidden' },
+  progressFill: { height: '100%', backgroundColor: C.accent, borderRadius: 4 },
+  progressLabel: { color: C.textFaint, fontSize: 11 },
+  childBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  scorePill: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: C.accent + '18', borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3,
+  },
+  scoreText: { color: C.accent, fontSize: 11, fontWeight: '600' },
+  lastSession: { color: C.textFaint, fontSize: 11 },
+  // Quick grid
+  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  quickCard: {
+    width: '47%', backgroundColor: C.surface, borderRadius: 14,
+    padding: 18, alignItems: 'center', gap: 10,
+    borderWidth: 1, borderColor: C.elevated,
+  },
+  quickLabel: { color: C.textMuted, fontSize: 13, fontWeight: '600', textAlign: 'center' },
+});

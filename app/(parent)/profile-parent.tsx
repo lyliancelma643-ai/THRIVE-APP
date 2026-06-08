@@ -1,111 +1,138 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import {
+  View, Text, ScrollView, TouchableOpacity,
+  StyleSheet, Alert,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ChevronLeft, ChevronRight, LogOut, Settings, Globe, Shield, CreditCard } from 'lucide-react-native';
+import {
+  User, CreditCard, FileText, Shield, Bell,
+  ChevronRight, LogOut, Award,
+} from 'lucide-react-native';
 
-export default function ProfileParentScreen() {
+const C = {
+  bg: '#1b263b', surface: '#151c2b', elevated: '#1f2d42',
+  accent: '#c5a059', blue: '#5aa8c5', red: '#e05252',
+  textPrimary: '#ffffff', textMuted: '#cfd5e5', textFaint: '#7a8aaa',
+};
+
+const SECTIONS = [
+  {
+    title: 'Mon compte',
+    items: [
+      { icon: User, label: 'Informations personnelles', sub: 'Marie Dubois · marie@email.com' },
+      { icon: Bell, label: 'Notifications', sub: 'Bilans, séances, messages' },
+    ],
+  },
+  {
+    title: 'Abonnement',
+    items: [
+      { icon: Award, label: 'Pack actuel', sub: 'Performance · 2 enfants', accent: true },
+      { icon: CreditCard, label: 'Facturation', sub: 'Prochain prélèvement : 1er juillet' },
+    ],
+  },
+  {
+    title: 'Légal & Confidentialité',
+    items: [
+      { icon: FileText, label: 'Conditions générales', sub: 'CGU · Politique de confidentialité' },
+      { icon: Shield, label: 'Droits RGPD / Loi 25', sub: 'Accès, rectification, suppression' },
+    ],
+  },
+];
+
+export default function ParentProfile() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const handleLogout = () => {
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Déconnecter', style: 'destructive', onPress: () => router.replace('/role-select') },
+    ]);
+  };
+
   return (
-    <View className="flex-1 bg-primary-background">
-      <View style={{ paddingTop: insets.top + 12 }} className="px-6 pb-4 border-b border-surface-elevated">
-        <Pressable onPress={() => router.back()} className="mb-3 flex-row items-center">
-          <ChevronLeft color="#c5a059" size={24} />
-          <Text className="text-primary-accent text-sm ml-1">Accueil</Text>
-        </Pressable>
-        <Text className="text-white font-display text-2xl font-bold">Mon profil</Text>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Mon profil</Text>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 100 }}>
-
-        {/* Avatar + Infos */}
-        <View className="items-center py-8">
-          <View className="w-20 h-20 rounded-full bg-primary-accent/20 border-2 border-primary-accent items-center justify-center mb-4">
-            <Text className="font-display text-4xl font-bold text-primary-accent">L</Text>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 40 }}>
+        {/* Avatar */}
+        <View style={styles.avatarSection}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>M</Text>
           </View>
-          <Text className="text-white font-display text-2xl font-bold">Lylian</Text>
-          <Text className="text-text-muted">lylian@thrivesportpositive.com</Text>
-          <View className="mt-3 bg-primary-accent/10 border border-primary-accent/30 px-4 py-2 rounded-full">
-            <Text className="text-primary-accent text-sm font-bold">Pack AVANCÉ · Emma</Text>
+          <Text style={styles.name}>Marie Dubois</Text>
+          <View style={styles.packBadge}>
+            <Award color={C.accent} size={13} />
+            <Text style={styles.packText}>Pack Performance</Text>
           </View>
         </View>
 
-        <View className="px-6 gap-y-6">
-
-          {/* Infos personnelles */}
-          <View>
-            <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest mb-3">Informations</Text>
-            <View className="bg-surface-elevated rounded-2xl overflow-hidden">
-              <SettingsRow label="Prénom" value="Lylian" />
-              <SettingsRow label="Email" value="lylian@thriveapp.com" />
-              <SettingsRow label="Téléphone" value="+1 514 000 0000" />
-              <SettingsRow label="Langue" value="Français" icon={Globe} isLast />
+        {SECTIONS.map(section => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <View style={styles.sectionCard}>
+              {section.items.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <TouchableOpacity key={item.label} style={[styles.row, i > 0 && styles.rowDivider]}>
+                    <View style={[styles.iconWrap, item.accent && { backgroundColor: C.accent + '22' }]}>
+                      <Icon color={item.accent ? C.accent : C.textMuted} size={18} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.rowLabel}>{item.label}</Text>
+                      <Text style={styles.rowSub}>{item.sub}</Text>
+                    </View>
+                    <ChevronRight color={C.textFaint} size={16} />
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
+        ))}
 
-          {/* Abonnement */}
-          <View>
-            <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest mb-3">Abonnement & Pack</Text>
-            <View className="bg-surface-elevated rounded-2xl overflow-hidden">
-              <SettingsRow label="Pack actuel" value="AVANCÉ" />
-              <SettingsRow label="Accès séances 20 min" value="3 mois (actif)" />
-              <Pressable className="flex-row items-center p-4 active:bg-surface-highlight">
-                <CreditCard color="#c5a059" size={20} />
-                <Text className="text-white font-semibold text-base ml-3 flex-1">Gérer mon abonnement</Text>
-                <ChevronRight color="#8f9779" size={18} />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Légal */}
-          <View>
-            <Text className="text-primary-accent text-xs font-bold uppercase tracking-widest mb-3">Légal & Confidentialité</Text>
-            <View className="bg-surface-elevated rounded-2xl overflow-hidden">
-              <Pressable className="flex-row items-center p-4 border-b border-surface-highlight/50 active:bg-surface-highlight">
-                <Shield color="#8f9779" size={18} />
-                <Text className="text-white font-semibold text-base ml-3 flex-1">Politique de confidentialité</Text>
-                <ChevronRight color="#8f9779" size={18} />
-              </Pressable>
-              <Pressable className="flex-row items-center p-4 border-b border-surface-highlight/50 active:bg-surface-highlight">
-                <Text className="text-text-muted text-base ml-0">CGU</Text>
-                <ChevronRight color="#8f9779" size={18} className="ml-auto" />
-              </Pressable>
-              <Pressable className="flex-row items-center p-4 active:bg-surface-highlight">
-                <Text className="text-text-muted text-base">Consentements (Loi 25 / RGPD)</Text>
-                <ChevronRight color="#8f9779" size={18} className="ml-auto" />
-              </Pressable>
-            </View>
-          </View>
-
-          {/* Déconnexion */}
-          <Pressable className="bg-surface-elevated rounded-2xl p-4 flex-row items-center">
-            <LogOut color="#ff4b4b" size={20} />
-            <Text className="text-danger font-semibold text-base ml-3">Déconnexion</Text>
-          </Pressable>
-
+        {/* Logout */}
+        <View style={{ paddingHorizontal: 20, marginTop: 8 }}>
+          <TouchableOpacity style={styles.logoutBtn} onPress={handleLogout}>
+            <LogOut color={C.red} size={18} />
+            <Text style={styles.logoutText}>Se déconnecter</Text>
+          </TouchableOpacity>
         </View>
+
+        <Text style={styles.versionText}>THRIVE App · v1.0.0 · Espace parent</Text>
       </ScrollView>
     </View>
   );
 }
 
-function SettingsRow({ label, value, icon: Icon, isLast = false }: {
-  label: string; value: string; icon?: any; isLast?: boolean;
-}) {
-  return (
-    <Pressable className={`flex-row justify-between items-center p-4 active:bg-surface-highlight ${
-      isLast ? '' : 'border-b border-surface-highlight/50'
-    }`}>
-      <View className="flex-row items-center">
-        {Icon && <Icon color="#8f9779" size={18} className="mr-3" />}
-        <Text className="text-text-muted text-base">{label}</Text>
-      </View>
-      <View className="flex-row items-center">
-        <Text className="text-white font-semibold text-base mr-2">{value}</Text>
-        <ChevronRight color="#8f9779" size={16} />
-      </View>
-    </Pressable>
-  );
-}
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: C.bg },
+  header: { paddingHorizontal: 20, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: C.surface },
+  title: { color: C.textPrimary, fontSize: 22, fontWeight: '800' },
+  avatarSection: { alignItems: 'center', paddingVertical: 28 },
+  avatar: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: C.accent + '33', alignItems: 'center', justifyContent: 'center', marginBottom: 12,
+  },
+  avatarText: { color: C.accent, fontSize: 30, fontWeight: '800' },
+  name: { color: C.textPrimary, fontSize: 20, fontWeight: '700', marginBottom: 8 },
+  packBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.accent + '18', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 5 },
+  packText: { color: C.accent, fontSize: 13, fontWeight: '600' },
+  section: { paddingHorizontal: 20, marginTop: 20 },
+  sectionTitle: { color: C.textFaint, fontSize: 12, fontWeight: '700', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 8 },
+  sectionCard: { backgroundColor: C.surface, borderRadius: 14, overflow: 'hidden', borderWidth: 1, borderColor: C.elevated },
+  row: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  rowDivider: { borderTopWidth: 1, borderTopColor: C.elevated },
+  iconWrap: { width: 34, height: 34, borderRadius: 9, backgroundColor: C.elevated, alignItems: 'center', justifyContent: 'center' },
+  rowLabel: { color: C.textPrimary, fontSize: 14, fontWeight: '600' },
+  rowSub: { color: C.textFaint, fontSize: 12, marginTop: 2 },
+  logoutBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    gap: 10, backgroundColor: C.red + '18', borderRadius: 14,
+    padding: 16, borderWidth: 1, borderColor: C.red + '44',
+  },
+  logoutText: { color: C.red, fontSize: 15, fontWeight: '700' },
+  versionText: { color: C.textFaint, fontSize: 11, textAlign: 'center', marginTop: 24 },
+});
