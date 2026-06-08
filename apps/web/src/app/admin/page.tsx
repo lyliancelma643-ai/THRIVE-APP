@@ -70,14 +70,14 @@ export default function AdminDashboardPage() {
   return (
     <div className="max-w-6xl mx-auto pb-12">
       <div className="mb-10 border-b border-gray-200 pb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-brand-primary mb-2">Dashboard</h1>
         <p className="text-gray-500 text-base">Vue globale de la plateforme THRIVE</p>
       </div>
 
       {/* Section: Utilisateurs */}
       <div className="mb-10">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <div className="w-1.5 h-6 bg-brand-primary rounded-full"></div>
           <h2 className="text-lg font-bold text-gray-900">Communauté</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -87,8 +87,8 @@ export default function AdminDashboardPage() {
             { label: 'Coaches', value: stats.totalCoaches, href: '/admin/coaches' },
           ].map((card) => (
             <Link key={card.label} href={card.href} className="group outline-none block">
-              <div className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
-                <p className="text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
+              <div className="bg-white rounded-xl p-6 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all">
+                <p className="text-brand-primary/80 text-xs font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
                 <p className="text-3xl font-bold text-gray-900">{card.value}</p>
               </div>
             </Link>
@@ -99,7 +99,7 @@ export default function AdminDashboardPage() {
       {/* Section: Programmes */}
       <div className="mb-12">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <div className="w-1.5 h-6 bg-brand-tertiary rounded-full"></div>
           <h2 className="text-lg font-bold text-gray-900">Programmes & Séances</h2>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -111,8 +111,8 @@ export default function AdminDashboardPage() {
             { label: 'Taux Compl.', value: `${completionRate}%`, href: '#' },
           ].map((card) => (
             <Link key={card.label} href={card.href} className="group outline-none block">
-              <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all h-full flex flex-col justify-between">
-                <p className="text-gray-500 text-[11px] font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
+              <div className="bg-white rounded-xl p-5 border border-brand-tertiary/30 hover:border-brand-primary hover:shadow-md transition-all h-full flex flex-col justify-between">
+                <p className="text-brand-primary/80 text-[11px] font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
                 <p className="text-2xl font-bold text-gray-900">{card.value}</p>
               </div>
             </Link>
@@ -123,7 +123,7 @@ export default function AdminDashboardPage() {
       {/* Inscriptions récentes */}
       <div>
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <div className="w-1.5 h-6 bg-brand-primary/60 rounded-full"></div>
           <h2 className="text-lg font-bold text-gray-900">Inscriptions récentes</h2>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

@@ -7,6 +7,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          primary: '#004e7a',
+          secondary: '#F7F5F2',
+          tertiary: '#a7c4bc',
+        },
         primary: {
           background: '#1b263b',
           accent: '#c5a059',
