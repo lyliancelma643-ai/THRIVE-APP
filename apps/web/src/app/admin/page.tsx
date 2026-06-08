@@ -68,68 +68,104 @@ export default function AdminDashboardPage() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">Dashboard</h1>
-        <p className="text-gray-500 text-sm">Vue globale de la plateforme THRIVE</p>
+    <div className="max-w-6xl mx-auto pb-12">
+      <div className="mb-10 border-b border-gray-200 pb-6">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
+        <p className="text-gray-500 text-base">Vue globale de la plateforme THRIVE</p>
       </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {STAT_CARDS.map((card) => (
-          <Link key={card.label} href={card.href} className="group outline-none block">
-            <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-gray-300 transition-colors">
-              <p className="text-gray-500 text-xs font-medium mb-1 uppercase tracking-wide">{card.label}</p>
-              <p className="text-2xl font-semibold text-gray-900">{card.value}</p>
-            </div>
-          </Link>
-        ))}
+      {/* Section: Utilisateurs */}
+      <div className="mb-10">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <h2 className="text-lg font-bold text-gray-900">Communauté</h2>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'Familles', value: stats.totalFamilies, href: '/admin/families' },
+            { label: 'Enfants actifs', value: stats.totalChildren, href: '/admin/children' },
+            { label: 'Coaches', value: stats.totalCoaches, href: '/admin/coaches' },
+          ].map((card) => (
+            <Link key={card.label} href={card.href} className="group outline-none block">
+              <div className="bg-white rounded-xl p-6 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all">
+                <p className="text-gray-500 text-xs font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
+                <p className="text-3xl font-bold text-gray-900">{card.value}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+
+      {/* Section: Programmes */}
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <h2 className="text-lg font-bold text-gray-900">Programmes & Séances</h2>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          {[
+            { label: 'Programmes', value: stats.totalPrograms, href: '/admin/programs' },
+            { label: 'Progs. Actifs', value: stats.activePrograms, href: '/admin/programs' },
+            { label: 'Séances Tot.', value: stats.totalSessions, href: '#' },
+            { label: 'Séances Term.', value: stats.completedSessions, href: '#' },
+            { label: 'Taux Compl.', value: `${completionRate}%`, href: '#' },
+          ].map((card) => (
+            <Link key={card.label} href={card.href} className="group outline-none block">
+              <div className="bg-white rounded-xl p-5 border border-gray-200 hover:border-gray-900 hover:shadow-sm transition-all h-full flex flex-col justify-between">
+                <p className="text-gray-500 text-[11px] font-semibold mb-2 uppercase tracking-wider">{card.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{card.value}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       {/* Inscriptions récentes */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-5 border-b border-gray-100">
-          <h2 className="text-sm font-semibold text-gray-900">Inscriptions récentes</h2>
+      <div>
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-1.5 h-6 bg-black rounded-full"></div>
+          <h2 className="text-lg font-bold text-gray-900">Inscriptions récentes</h2>
         </div>
-        
-        {stats.recentSignups.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-sm">Aucune inscription pour le moment.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50/50 text-gray-500 text-xs uppercase">
-                <tr>
-                  <th className="font-medium px-6 py-3 text-left">Utilisateur</th>
-                  <th className="font-medium px-6 py-3 text-left">Rôle</th>
-                  <th className="font-medium px-6 py-3 text-right">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {stats.recentSignups.map((user, i) => (
-                  <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-3 text-gray-900">
-                      {user.email}
-                    </td>
-                    <td className="px-6 py-3">
-                      <span className="text-gray-600">
-                        {user.role}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-right text-gray-500">
-                      {new Date(user.created_at).toLocaleDateString('fr-FR', {
-                        day: 'numeric',
-                        month: 'short',
-                        year: 'numeric'
-                      })}
-                    </td>
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+          {stats.recentSignups.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-gray-400 text-sm">Aucune inscription pour le moment.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50/80 text-gray-500 text-xs uppercase tracking-wider border-b border-gray-200">
+                  <tr>
+                    <th className="font-semibold px-6 py-4 text-left">Utilisateur</th>
+                    <th className="font-semibold px-6 py-4 text-left">Rôle</th>
+                    <th className="font-semibold px-6 py-4 text-right">Date</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {stats.recentSignups.map((user, i) => (
+                    <tr key={i} className="hover:bg-gray-50/50 transition-colors">
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        {user.email}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 border border-gray-200">
+                          {user.role}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right text-gray-500">
+                        {new Date(user.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
