@@ -1,0 +1,208 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { supabaseClient as supabase } from '@thrive/shared';
+
+interface Coach {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  is_active: boolean;
+  created_at: string;
+  program_count?: number;
+}
+
+export default function AdminCoachesPage() {
+  const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ email: '', firstName: '', lastName: '', password: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+
+  const fetchCoaches = async () => {
+    setIsLoading(true);
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'COACH')
+      .order('created_at', { ascending: false });
+    setCoaches(data ?? []);
+    setIsLoading(false);
+  };
+
+  useEffect(() => { fetchCoaches(); }, []);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.email || !form.firstName || !form.lastName || !form.password) {
+      setError('Tous les champs sont requis');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    try {
+      // Créer le compte Supabase Auth
+      const { data, error: authError } = await supabase.auth.signUp({
+        email: form.email,
+        password: form.password,
+        options: {
+          data: { firstName: form.firstName, lastName: form.lastName, role: 'COACH' },
+        },
+      });
+      if (authError) throw new Error(authError.message);
+
+      // Le trigger Supabase crée automatiquement le profil
+      // On force le rôle COACH au cas où
+      if (data.user) {
+        await supabase
+          .from('profiles')
+          .update({ role: 'COACH' })
+          .eq('id', data.user.id);
+      }
+
+      setSuccess(`Coach ${form.firstName} ${form.lastName} créé avec succès !`);
+      setForm({ email: '', firstName: '', lastName: '', password: '' });
+      setShowForm(false);
+      await fetchCoaches();
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setSaving(false);
+  };
+
+  const toggleActive = async (coachId: string, current: boolean) => {
+    await supabase.from('profiles').update({ is_active: !current }).eq('id', coachId);
+    await fetchCoaches();
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold">Coaches 🎯</h1>
+          <p className="text-gray-500 mt-1">{coaches.length} coach{coaches.length > 1 ? 'es' : ''} enregistré{coaches.length > 1 ? 's' : ''}</p>
+        </div>
+        <button
+          onClick={() => { setShowForm(!showForm); setError(''); setSuccess(''); }}
+          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+        >
+          {showForm ? 'Annuler' : '+ Nouveau coach'}
+        </button>
+      </div>
+
+      {/* Formulaire création */}
+      {showForm && (
+        <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+          <h2 className="text-lg font-bold mb-4">Créer un compte coach</h2>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-sm text-gray-500 mb-1 block">Prénom</label>
+              <input
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                value={form.firstName}
+                onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                placeholder="Prénom"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 mb-1 block">Nom</label>
+              <input
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                value={form.lastName}
+                onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                placeholder="Nom"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 mb-1 block">Email</label>
+              <input
+                type="email"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="coach@thrive.com"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 mb-1 block">Mot de passe temporaire</label>
+              <input
+                type="password"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                placeholder="Min. 8 caractères"
+              />
+            </div>
+          </div>
+          {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
+          {success && <p className="text-green-500 text-sm mb-3">{success}</p>}
+          <button
+            type="submit"
+            disabled={saving}
+            className="bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50"
+          >
+            {saving ? 'Création...' : 'Créer le coach'}
+          </button>
+        </form>
+      )}
+
+      {success && !showForm && (
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm">{success}</div>
+      )}
+
+      {/* Liste coaches */}
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <table className="w-full">
+          <thead className="bg-gray-50">
+            <tr className="text-left text-gray-400 text-sm">
+              <th className="px-6 py-4">Coach</th>
+              <th className="px-6 py-4">Email</th>
+              <th className="px-6 py-4">Inscription</th>
+              <th className="px-6 py-4">Statut</th>
+              <th className="px-6 py-4">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {isLoading ? (
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+            ) : coaches.length === 0 ? (
+              <tr><td colSpan={5} className="px-6 py-8 text-center text-gray-400">Aucun coach enregistré.</td></tr>
+            ) : (
+              coaches.map((coach) => (
+                <tr key={coach.id} className="border-t hover:bg-gray-50">
+                  <td className="px-6 py-4">
+                    <p className="font-semibold">{coach.first_name} {coach.last_name}</p>
+                  </td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">{coach.email}</td>
+                  <td className="px-6 py-4 text-gray-400 text-sm">
+                    {new Date(coach.created_at).toLocaleDateString('fr-CA')}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      coach.is_active
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {coach.is_active ? 'Actif' : 'Inactif'}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => toggleActive(coach.id, coach.is_active)}
+                      className="text-sm text-gray-500 hover:text-black underline"
+                    >
+                      {coach.is_active ? 'Désactiver' : 'Réactiver'}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
