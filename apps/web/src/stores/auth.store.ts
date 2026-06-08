@@ -11,6 +11,9 @@ type AuthStore = IAuthState & {
 };
 
 function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthTokens } {
+  if (typeof document !== 'undefined') {
+    document.cookie = `sb-access-token=${supabaseSession.access_token}; path=/; max-age=${supabaseSession.expires_in || 3600}; SameSite=Lax; secure`;
+  }
   return {
     user: {
       id: supabaseSession.user.id,
@@ -39,6 +42,7 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true });
         const { data, error } = await supabase.auth.getSession();
         if (error || !data.session) {
+          if (typeof document !== 'undefined') document.cookie = 'sb-access-token=; path=/; max-age=0';
           set({ user: null, session: null, isAuthenticated: false, isLoading: false });
           return;
         }
@@ -70,6 +74,7 @@ export const useAuthStore = create<AuthStore>()(
 
       signOut: async () => {
         await supabase.auth.signOut();
+        if (typeof document !== 'undefined') document.cookie = 'sb-access-token=; path=/; max-age=0';
         set({ user: null, session: null, isAuthenticated: false, isLoading: false });
       },
     }),
