@@ -56,6 +56,30 @@ export default function LoginPage() {
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </button>
         </form>
+
+        <div className="flex flex-row items-center gap-3 my-8">
+          <div className="flex-1 h-px bg-[#E5E3DB]" />
+          <span className="text-[13px] font-medium text-[#A3A19A]">ou</span>
+          <div className="flex-1 h-px bg-[#E5E3DB]" />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => router.push('/parent/self-register')}
+          className="w-full flex flex-row items-center bg-[#F7F6F2] border-[1.5px] border-[#D4D1CA] rounded-[16px] p-4 gap-3 text-left transition-colors hover:bg-[#F0EFEA]"
+        >
+          <span className="text-2xl leading-none">👋</span>
+          <div className="flex-1">
+            <div className="text-[15px] font-bold text-[#28251D]">
+              Nouveau parent ?
+            </div>
+            <div className="text-[12px] font-medium text-[#7A7974] mt-0.5">
+              Créez votre compte en 2 minutes
+            </div>
+          </div>
+          <span className="text-lg text-[#01696F] font-bold">→</span>
+        </button>
+
       </div>
     </main>
   );

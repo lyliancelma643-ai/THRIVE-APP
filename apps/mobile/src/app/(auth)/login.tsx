@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 
@@ -59,11 +59,32 @@ export default function LoginScreen() {
           </Text>
         </Pressable>
 
-        <Pressable onPress={() => router.push('/(auth)/register')}>
-          <Text className="text-center text-gray-500">
-            Pas encore de compte ? <Text className="text-black font-semibold">Créer un compte</Text>
-          </Text>
-        </Pressable>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginVertical: 20 }}>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#D4D1CA' }} />
+          <Text style={{ fontSize: 13, color: '#7A7974' }}>ou</Text>
+          <View style={{ flex: 1, height: 1, backgroundColor: '#D4D1CA' }} />
+        </View>
+
+        <TouchableOpacity
+          style={{
+            flexDirection: 'row', alignItems: 'center',
+            backgroundColor: '#F7F6F2', borderWidth: 1.5,
+            borderColor: '#D4D1CA', borderRadius: 14, padding: 16, gap: 12,
+          }}
+          onPress={() => router.push('/(auth)/register')}
+        >
+          <Text style={{ fontSize: 24 }}>👋</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 15, fontWeight: '700', color: '#28251D' }}>
+              Nouveau parent ?
+            </Text>
+            <Text style={{ fontSize: 12, color: '#7A7974', marginTop: 2 }}>
+              Créez votre compte en 2 minutes
+            </Text>
+          </View>
+          <Text style={{ fontSize: 18, color: '#01696F', fontWeight: '700' }}>→</Text>
+        </TouchableOpacity>
+
       </View>
     </KeyboardAvoidingView>
   );
