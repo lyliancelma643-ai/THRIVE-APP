@@ -9,7 +9,9 @@ interface Coach {
   email: string;
   first_name: string;
   last_name: string;
+  // La vue expose "phone" (alias de phone_number), le fallback profiles expose "phone_number"
   phone?: string | null;
+  phone_number?: string | null;
   speciality?: string | null;
   bio?: string | null;
   is_active: boolean;
@@ -18,6 +20,9 @@ interface Coach {
   session_count?: number;
   children_count?: number;
 }
+
+// Helper : récupère le téléphone quel que soit l'alias
+const getPhone = (c: Coach) => c.phone ?? c.phone_number ?? null;
 
 interface CoachForm {
   email: string;
@@ -41,6 +46,20 @@ const EMPTY_FORM: CoachForm = {
   bio: '',
 };
 
+// Calcul force du mot de passe
+function passwordStrength(pwd: string): 0 | 1 | 2 | 3 | 4 {
+  if (!pwd) return 0;
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (pwd.length >= 12) score++;
+  if (/[A-Z]/.test(pwd) && /[a-z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd) && /[^a-zA-Z0-9]/.test(pwd)) score++;
+  return Math.min(score, 4) as 0 | 1 | 2 | 3 | 4;
+}
+
+const STRENGTH_LABELS: Record<number, string> = { 0: '', 1: 'Faible', 2: 'Moyen', 3: 'Bien', 4: 'Fort' };
+const STRENGTH_COLORS: Record<number, string> = { 0: '', 1: 'bg-red-400', 2: 'bg-yellow-400', 3: 'bg-blue-400', 4: 'bg-green-400' };
+
 // ─── Composant principal ───────────────────────────────────────────────────────
 export default function AdminCoachesPage() {
   const [coaches, setCoaches] = useState<Coach[]>([]);
@@ -58,22 +77,22 @@ export default function AdminCoachesPage() {
   // ── Chargement des coaches ─────────────────────────────────────────────────
   const fetchCoaches = useCallback(async () => {
     setIsLoading(true);
-    // On essaie la vue enrichie, sinon fallback sur profiles
-    const { data, error: viewError } = await supabase
+    // Essai via la vue enrichie
+    const { data: viewData, error: viewError } = await supabase
       .from('admin_coaches_view')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (viewError) {
-      // Fallback si la vue n'existe pas encore
+    if (!viewError && viewData) {
+      setCoaches(viewData);
+    } else {
+      // Fallback direct sur profiles si la vue n'est pas encore dispo
       const { data: fallback } = await supabase
         .from('profiles')
-        .select('*')
+        .select('id, email, first_name, last_name, phone_number, speciality, bio, is_active, created_at')
         .eq('role', 'COACH')
         .order('created_at', { ascending: false });
       setCoaches(fallback ?? []);
-    } else {
-      setCoaches(data ?? []);
     }
     setIsLoading(false);
   }, []);
@@ -84,7 +103,7 @@ export default function AdminCoachesPage() {
   const filtered = coaches.filter((c) => {
     const matchSearch =
       !search ||
-      `${c.first_name} ${c.last_name} ${c.email} ${c.speciality ?? ''}`
+      `${c.first_name ?? ''} ${c.last_name ?? ''} ${c.email} ${c.speciality ?? ''}`
         .toLowerCase()
         .includes(search.toLowerCase());
     const matchActive =
@@ -99,7 +118,6 @@ export default function AdminCoachesPage() {
     e.preventDefault();
     setError('');
 
-    // Validations frontend
     if (!form.email || !form.firstName || !form.lastName || !form.password) {
       setError('Prénom, nom, email et mot de passe sont obligatoires.');
       return;
@@ -112,22 +130,18 @@ export default function AdminCoachesPage() {
       setError('Les mots de passe ne correspondent pas.');
       return;
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(form.email)) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
       setError('Adresse email invalide.');
       return;
     }
 
     setSaving(true);
     try {
-      // Récupérer le token de l'admin connecté
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
 
-      const { data: { supabaseUrl } } = await supabase.functions.getFunctionUrl('admin-create-coach').catch(() => ({ data: { supabaseUrl: '' } }));
-
-      // Appel Edge Function sécurisé
-      const res = await supabase.functions.invoke('admin-create-coach', {
+      // Appel Edge Function sécurisé — pas de getFunctionUrl() qui n'existe pas
+      const { data, error: fnError } = await supabase.functions.invoke('admin-create-coach', {
         body: {
           email: form.email.trim(),
           password: form.password,
@@ -137,16 +151,15 @@ export default function AdminCoachesPage() {
           speciality: form.speciality.trim() || null,
           bio: form.bio.trim() || null,
         },
-        headers: { Authorization: `Bearer ${session.access_token}` },
       });
 
-      if (res.error) throw new Error(res.error.message ?? 'Erreur lors de la création');
-      const json = res.data as any;
-      if (json?.error) throw new Error(json.error);
+      if (fnError) throw new Error(fnError.message ?? 'Erreur lors de la création');
+      if (data?.error) throw new Error(data.error);
 
       setSuccess(`✅ ${form.firstName} ${form.lastName} a été créé avec succès !`);
       setForm(EMPTY_FORM);
       setShowModal(false);
+      // Recharger la liste pour voir le nouveau coach
       await fetchCoaches();
     } catch (err: any) {
       setError(err.message ?? 'Une erreur inattendue est survenue.');
@@ -162,6 +175,8 @@ export default function AdminCoachesPage() {
     await fetchCoaches();
     setTogglingId(null);
   };
+
+  const strength = passwordStrength(form.password);
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -205,9 +220,7 @@ export default function AdminCoachesPage() {
               key={f}
               onClick={() => setFilterActive(f)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                filterActive === f
-                  ? 'bg-black text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filterActive === f ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {{ all: 'Tous', active: 'Actifs', inactive: 'Inactifs' }[f]}
@@ -232,7 +245,6 @@ export default function AdminCoachesPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              // Skeleton loader
               Array.from({ length: 4 }).map((_, i) => (
                 <tr key={i} className="border-t">
                   {Array.from({ length: 7 }).map((__, j) => (
@@ -247,11 +259,13 @@ export default function AdminCoachesPage() {
                 <td colSpan={7} className="px-6 py-12 text-center">
                   <div className="text-4xl mb-3">🎯</div>
                   <p className="text-gray-500 font-medium">
-                    {search || filterActive !== 'all' ? 'Aucun résultat pour cette recherche' : 'Aucun coach enregistré'}
+                    {search || filterActive !== 'all'
+                      ? 'Aucun résultat pour cette recherche'
+                      : 'Aucun coach enregistré'}
                   </p>
                   {!search && filterActive === 'all' && (
                     <button
-                      onClick={() => { setShowModal(true); }}
+                      onClick={() => setShowModal(true)}
                       className="mt-4 text-sm text-black underline"
                     >
                       Créer le premier coach
@@ -262,15 +276,19 @@ export default function AdminCoachesPage() {
             ) : (
               filtered.map((coach) => (
                 <tr key={coach.id} className="border-t hover:bg-gray-50 transition-colors">
-                  {/* Nom */}
+                  {/* Nom + avatar */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-9 h-9 rounded-full bg-gradient-to-br from-gray-200 to-gray-300 flex items-center justify-center text-sm font-bold text-gray-600 flex-shrink-0">
-                        {coach.first_name?.[0]}{coach.last_name?.[0]}
+                        {(coach.first_name?.[0] ?? '?').toUpperCase()}{(coach.last_name?.[0] ?? '').toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-sm">{coach.first_name} {coach.last_name}</p>
-                        {coach.phone && <p className="text-xs text-gray-400">{coach.phone}</p>}
+                        <p className="font-semibold text-sm">
+                          {coach.first_name} {coach.last_name}
+                        </p>
+                        {getPhone(coach) && (
+                          <p className="text-xs text-gray-400">{getPhone(coach)}</p>
+                        )}
                       </div>
                     </div>
                   </td>
@@ -279,7 +297,9 @@ export default function AdminCoachesPage() {
                   {/* Spécialité */}
                   <td className="px-6 py-4 hidden lg:table-cell">
                     {coach.speciality ? (
-                      <span className="bg-blue-50 text-blue-700 text-xs rounded-full px-3 py-1">{coach.speciality}</span>
+                      <span className="bg-blue-50 text-blue-700 text-xs rounded-full px-3 py-1">
+                        {coach.speciality}
+                      </span>
                     ) : (
                       <span className="text-gray-300 text-xs">—</span>
                     )}
@@ -311,7 +331,7 @@ export default function AdminCoachesPage() {
                       disabled={togglingId === coach.id}
                       className="text-xs text-gray-500 hover:text-black underline disabled:opacity-40 transition-colors"
                     >
-                      {togglingId === coach.id ? '...' : coach.is_active ? 'Désactiver' : 'Réactiver'}
+                      {togglingId === coach.id ? '…' : coach.is_active ? 'Désactiver' : 'Réactiver'}
                     </button>
                   </td>
                 </tr>
@@ -324,19 +344,16 @@ export default function AdminCoachesPage() {
       {/* ── Modal création coach ───────────────────────────────────────────── */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
           />
-
-          {/* Modal */}
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <div>
                 <h2 className="text-xl font-bold">Créer un coach</h2>
-                <p className="text-gray-500 text-sm mt-0.5">Le coach recevra ses accès par email</p>
+                <p className="text-gray-500 text-sm mt-0.5">Le coach peut se connecter immédiatement</p>
               </div>
               <button
                 onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
@@ -400,7 +417,7 @@ export default function AdminCoachesPage() {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
-                  placeholder="+33 6 12 34 56 78"
+                  placeholder="+1 514 000 0000"
                 />
               </div>
 
@@ -413,7 +430,7 @@ export default function AdminCoachesPage() {
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
                   value={form.speciality}
                   onChange={(e) => setForm({ ...form, speciality: e.target.value })}
-                  placeholder="Nutrition sportive, comportement enfant…"
+                  placeholder="Nutrition sportive, développement comportemental…"
                 />
               </div>
 
@@ -442,7 +459,7 @@ export default function AdminCoachesPage() {
                     <div className="relative">
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 pr-10"
+                        className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 pr-16"
                         value={form.password}
                         onChange={(e) => setForm({ ...form, password: e.target.value })}
                         placeholder="Min. 8 caractères"
@@ -473,25 +490,19 @@ export default function AdminCoachesPage() {
                     />
                   </div>
                 </div>
-                {/* Indicateur de force du mot de passe */}
+
+                {/* Indicateur de force */}
                 {form.password && (
-                  <div className="mt-2 flex gap-1">
-                    {[1,2,3,4].map((lvl) => {
-                      const strength = form.password.length >= 12 ? 4 : form.password.length >= 10 ? 3 : form.password.length >= 8 ? 2 : 1;
-                      return (
-                        <div
-                          key={lvl}
-                          className={`h-1 flex-1 rounded-full transition-colors ${
-                            lvl <= strength
-                              ? strength >= 3 ? 'bg-green-400' : strength === 2 ? 'bg-yellow-400' : 'bg-red-400'
-                              : 'bg-gray-100'
-                          }`}
-                        />
-                      );
-                    })}
-                    <span className="text-xs text-gray-400 ml-1">
-                      {form.password.length >= 12 ? 'Fort' : form.password.length >= 10 ? 'Bien' : form.password.length >= 8 ? 'Moyen' : 'Faible'}
-                    </span>
+                  <div className="mt-2 flex items-center gap-1">
+                    {[1, 2, 3, 4].map((lvl) => (
+                      <div
+                        key={lvl}
+                        className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                          lvl <= strength ? STRENGTH_COLORS[strength] : 'bg-gray-100'
+                        }`}
+                      />
+                    ))}
+                    <span className="text-xs text-gray-400 ml-1 w-10">{STRENGTH_LABELS[strength]}</span>
                   </div>
                 )}
               </div>
@@ -521,8 +532,8 @@ export default function AdminCoachesPage() {
                   {saving ? (
                     <>
                       <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
                       Création…
                     </>

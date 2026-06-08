@@ -83,7 +83,7 @@ Deno.serve(async (req: Request) => {
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email: email.toLowerCase().trim(),
       password,
-      email_confirm: true,  // email déjà confirmé → pas besoin de vérification
+      email_confirm: true,
       user_metadata: {
         first_name: firstName.trim(),
         last_name: lastName.trim(),
@@ -92,8 +92,10 @@ Deno.serve(async (req: Request) => {
     });
 
     if (createError) {
-      // Gérer le cas où l'email existe déjà
-      if (createError.message.includes("already registered") || createError.message.includes("already been registered")) {
+      if (
+        createError.message.includes("already registered") ||
+        createError.message.includes("already been registered")
+      ) {
         return new Response(
           JSON.stringify({ error: "Un compte avec cet email existe déjà" }),
           { status: 409, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -103,6 +105,7 @@ Deno.serve(async (req: Request) => {
     }
 
     // ── 4. Upsert le profil COACH complet ─────────────────────────────
+    // IMPORTANT : la colonne s'appelle phone_number (pas phone) dans la table profiles
     const { data: coachProfile, error: profileError } = await supabaseAdmin
       .from("profiles")
       .upsert({
@@ -110,7 +113,7 @@ Deno.serve(async (req: Request) => {
         email: email.toLowerCase().trim(),
         first_name: firstName.trim(),
         last_name: lastName.trim(),
-        phone: phone?.trim() ?? null,
+        phone_number: phone?.trim() ?? null,   // ← nom réel de la colonne
         speciality: speciality?.trim() ?? null,
         bio: bio?.trim() ?? null,
         role: "COACH",
