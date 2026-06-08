@@ -31,7 +31,7 @@ export default function CoachDashboardPage() {
     <div className="max-w-6xl mx-auto pb-12">
       <div className="mb-10 border-b border-gray-200 pb-6">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-        <p className="text-gray-500 text-base">Bienvenue, {user.firstName} {user.lastName}</p>
+        <p className="text-gray-500 text-base">Bienvenue, {user.firstName || 'Coach'} {user.lastName || ''}</p>
       </div>
 
       {/* Section: Vue Globale */}

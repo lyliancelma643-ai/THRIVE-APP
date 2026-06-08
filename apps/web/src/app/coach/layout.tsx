@@ -78,10 +78,10 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
           <div className="flex flex-col gap-3">
             <div className="flex items-center gap-3 px-2">
               <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700 text-xs font-bold border border-gray-200">
-                {user.firstName[0]}{user.lastName[0]}
+                {user.firstName?.[0] || 'C'}{user.lastName?.[0] || ''}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                <p className="text-sm font-semibold text-gray-900 truncate">{user.firstName || 'Coach'} {user.lastName || ''}</p>
                 <p className="text-xs text-gray-500 truncate">{user.role}</p>
               </div>
             </div>
