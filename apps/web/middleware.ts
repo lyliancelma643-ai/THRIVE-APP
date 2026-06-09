@@ -14,6 +14,10 @@ export async function middleware(request: NextRequest) {
   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
   if (!isProtected) return NextResponse.next();
 
+  // Pages publiques dans l'espace /parent
+  const PUBLIC_PARENT_PATHS = ['/parent/self-register'];
+  if (PUBLIC_PARENT_PATHS.some((p) => pathname.startsWith(p))) return NextResponse.next();
+
   const accessToken = request.cookies.get('sb-access-token')?.value
     || request.headers.get('authorization')?.replace('Bearer ', '');
 

@@ -15,7 +15,7 @@ const NAV_ITEMS = [
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isSelectProfile = pathname === '/parent/select-profile';
+  const isSelectProfile = pathname === '/parent/select-profile' || pathname.startsWith('/parent/self-register');
   const router = useRouter();
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
 
@@ -23,14 +23,15 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (isLoading) return;
+    if (pathname.startsWith('/parent/self-register')) return; // page publique
     if (!isAuthenticated) { router.push('/login'); return; }
     const role = user?.role?.toUpperCase();
     if (role && !['PARENT', 'ADMIN', 'SUPER_ADMIN'].includes(role)) {
       router.push('/dashboard');
     }
-  }, [isLoading, isAuthenticated, user, router]);
+  }, [isLoading, isAuthenticated, user, router, pathname]);
 
-  if (isLoading || !user) {
+  if ((isLoading || !user) && !pathname.startsWith('/parent/self-register')) {
     return (
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#004e7a' }}>
         <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
