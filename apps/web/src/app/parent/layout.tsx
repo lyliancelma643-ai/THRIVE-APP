@@ -6,14 +6,16 @@ import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
-  { href: '/parent/dashboard', label: 'Dashboard', icon: '🎯' },
-  { href: '/parent/children', label: 'Mon Enfant', icon: '👦' },
-  { href: '/parent/programs', label: 'Programmes & Séances', icon: '🏆' },
-  { href: '/parent/messages', label: 'Messages', icon: '💬' },
+  { href: '/parent/dashboard', label: 'Accueil' },
+  { href: '/parent/children', label: 'Mon Enfant' },
+  { href: '/parent/programs', label: 'Programmes' },
+  { href: '/parent/sessions', label: 'Séances' },
+  { href: '/parent/messages', label: 'Messages' },
 ];
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const isSelectProfile = pathname === '/parent/select-profile';
   const router = useRouter();
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
 
@@ -30,82 +32,90 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#004e7a]">
-        <div className="w-8 h-8 border-2 border-[#F7F5F2] border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#004e7a' }}>
+        <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
+  if (isSelectProfile) {
+    return <>{children}</>;
+  }
+
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#004e7a] to-[#002f4a] text-[#F7F5F2] relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#a7c4bc]/10 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-[#a7c4bc]/10 blur-[120px] pointer-events-none" />
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#04111d' }}>
 
-      {/* Sidebar Minimaliste & Glassmorphism */}
-      <aside className="w-[260px] bg-white/5 backdrop-blur-md border-r border-[#a7c4bc]/20 flex flex-col fixed h-full z-20 shadow-2xl">
-        {/* Logo Area */}
-        <div className="px-6 py-8">
+      {/* ── NAVBAR HORIZONTALE (style Netflix) ── */}
+      <header
+        className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-12 h-16"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(4,17,29,0.95) 0%, rgba(4,17,29,0.0) 100%)',
+        }}
+      >
+        {/* Logo */}
+        <div className="flex items-center gap-10">
+          <Link href="/parent/dashboard">
+            <span className="font-black text-2xl tracking-tight" style={{ color: '#F7F5F2' }}>
+              THRIVE<span style={{ color: '#a7c4bc' }}>.</span>
+            </span>
+          </Link>
+
+          {/* Nav links */}
+          <nav className="hidden md:flex items-center gap-6">
+            {NAV_ITEMS.map((item) => {
+              const isActive = pathname === item.href || (item.href !== '/parent/dashboard' && pathname.startsWith(item.href));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className="text-sm font-medium transition-colors duration-200"
+                  style={{ color: isActive ? '#F7F5F2' : 'rgba(247,245,242,0.55)' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = '#F7F5F2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = isActive ? '#F7F5F2' : 'rgba(247,245,242,0.55)')}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Profil + déconnexion */}
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-white font-bold text-lg shadow-lg">
-              👨‍👩‍👧‍👦
-            </div>
-            <div>
-              <p className="text-lg font-bold text-white tracking-tight">THRIVE</p>
-              <p className="text-[#a7c4bc] text-[10px] uppercase tracking-widest font-medium mt-0.5">Espace Parent</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-2 overflow-y-auto custom-scrollbar space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/parent/dashboard' && pathname.startsWith(item.href));
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-sm ${
-                  isActive 
-                    ? 'bg-white/10 border border-white/10 text-white font-semibold shadow-md' 
-                    : 'text-[#F7F5F2]/70 hover:bg-white/5 hover:text-white font-medium'
-                }`}
-              >
-                <span className={`text-lg ${isActive ? 'text-[#a7c4bc]' : 'opacity-70'}`}>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
-
-        {/* User Profile Area */}
-        <div className="p-4 border-t border-[#a7c4bc]/20 bg-black/10">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-3 px-2">
-              <div className="w-9 h-9 rounded-full bg-[#a7c4bc]/20 flex items-center justify-center text-[#a7c4bc] text-xs font-bold border border-[#a7c4bc]/30 shadow-sm">
-                {user.firstName?.[0] || 'P'}{user.lastName?.[0] || ''}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white truncate">{user.firstName || 'Parent'} {user.lastName || ''}</p>
-                <p className="text-[11px] text-[#a7c4bc] truncate uppercase tracking-wider">{user.role}</p>
-              </div>
-            </div>
-            <button
-              onClick={async () => { await signOut(); router.push('/login'); }}
-              className="w-full py-2.5 rounded-xl hover:bg-red-500/10 border border-transparent hover:border-red-500/20 text-[#F7F5F2]/80 hover:text-red-400 text-sm font-medium transition-all flex items-center justify-center gap-2"
+            <div
+              className="w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold"
+              style={{ backgroundColor: '#1a6fa8', color: '#F7F5F2' }}
             >
-              🚪 Déconnexion
-            </button>
+              {user.firstName?.[0]?.toUpperCase() || 'P'}
+            </div>
+            <span className="text-sm font-medium hidden md:block" style={{ color: 'rgba(247,245,242,0.80)' }}>
+              {user.firstName || 'Parent'}
+            </span>
           </div>
+          <button
+            onClick={async () => { await signOut(); router.push('/login'); }}
+            className="text-xs font-semibold px-3 py-1.5 rounded-md transition-all"
+            style={{ color: 'rgba(247,245,242,0.5)', border: '1px solid rgba(247,245,242,0.15)' }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = '#F7F5F2';
+              e.currentTarget.style.borderColor = 'rgba(247,245,242,0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'rgba(247,245,242,0.5)';
+              e.currentTarget.style.borderColor = 'rgba(247,245,242,0.15)';
+            }}
+          >
+            Déconnexion
+          </button>
         </div>
-      </aside>
+      </header>
 
-      {/* Main Content Area */}
-      <main className="ml-[260px] flex-1 p-10 max-w-[1400px] z-10">
-        <div className="animate-in fade-in duration-500">
-          {children}
-        </div>
+      {/* ── CONTENU PRINCIPAL ── */}
+      <main className="flex-1 pt-16">
+        {children}
       </main>
+
     </div>
   );
 }
