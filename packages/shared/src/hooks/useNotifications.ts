@@ -66,7 +66,7 @@ export function useNotifications() {
 
     setupRealtime();
 
-    listenerRef.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    listenerRef.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
       console.log('[THRIVE] Notification tap:', data);
     });

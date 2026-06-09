@@ -8,7 +8,7 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
-  }),
+  } as any),
 });
 
 export class NotificationService {
