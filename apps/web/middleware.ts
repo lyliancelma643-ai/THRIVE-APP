@@ -4,9 +4,9 @@ import { createClient } from '@supabase/supabase-js';
 
 const PROTECTED_PATHS = ['/dashboard', '/parent', '/coach', '/admin'];
 const ROLE_PATHS: Record<string, string[]> = {
-  '/parent': ['PARENT'],
-  '/coach': ['COACH'],
-  '/admin': ['ADMIN', 'SUPER_ADMIN'],
+  '/parent': ['PARENT', 'parent'],
+  '/coach': ['COACH', 'coach'],
+  '/admin': ['ADMIN', 'SUPER_ADMIN', 'admin', 'super_admin'],
 };
 
 export async function middleware(request: NextRequest) {

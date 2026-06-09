@@ -27,7 +27,17 @@ export default function AdminFamiliesPage() {
       setFamilies(data ?? []);
       setIsLoading(false);
     };
+
     fetchFamilies();
+
+    // Realtime : nouvelle famille ou nouvel enfant → on recharge
+    const channel = supabase
+      .channel('admin-families-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, () => fetchFamilies())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, () => fetchFamilies())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const filtered = families.filter((f) => {

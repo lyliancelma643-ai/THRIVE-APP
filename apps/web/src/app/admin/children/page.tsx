@@ -33,7 +33,16 @@ export default function AdminChildrenPage() {
       setChildren(data ?? []);
       setIsLoading(false);
     };
+
     fetchChildren();
+
+    // Realtime : nouvel enfant ou mise à jour → on recharge
+    const channel = supabase
+      .channel('admin-children-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, () => fetchChildren())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   const filtered = children.filter((c) => {

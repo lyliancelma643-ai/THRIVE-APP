@@ -24,7 +24,8 @@ export default function AdminDashboardPage() {
       const [families, children, coaches, programs, sessions, recent] = await Promise.all([
         supabase.from('families').select('id', { count: 'exact', head: true }),
         supabase.from('children').select('id', { count: 'exact', head: true }).eq('is_active', true),
-        supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'COACH'),
+        // casing flexible : on compte coach ET COACH
+        supabase.from('profiles').select('id', { count: 'exact', head: true }).in('role', ['coach', 'COACH']),
         supabase.from('programs').select('id, status', { count: 'exact' }),
         supabase.from('sessions').select('id, status', { count: 'exact' }),
         supabase.from('profiles').select('email, role, created_at').order('created_at', { ascending: false }).limit(5),
@@ -35,14 +36,25 @@ export default function AdminDashboardPage() {
         totalChildren: children.count ?? 0,
         totalCoaches: coaches.count ?? 0,
         totalPrograms: programs.count ?? 0,
-        activePrograms: (programs.data ?? []).filter((p) => p.status === 'ACTIVE').length,
+        activePrograms: (programs.data ?? []).filter((p) => p.status === 'ACTIVE' || p.status === 'active').length,
         totalSessions: sessions.count ?? 0,
-        completedSessions: (sessions.data ?? []).filter((s) => s.status === 'COMPLETED').length,
+        completedSessions: (sessions.data ?? []).filter((s) => s.status === 'COMPLETED' || s.status === 'completed').length,
         recentSignups: recent.data ?? [],
       });
       setIsLoading(false);
     };
+
     fetchStats();
+
+    // ── Realtime : actualisation automatique quand un nouveau profil ou famille est créé ──
+    const channel = supabase
+      .channel('admin-dashboard-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'profiles' }, () => fetchStats())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'families' }, () => fetchStats())
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'children' }, () => fetchStats())
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   if (isLoading) return (

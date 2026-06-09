@@ -85,6 +85,8 @@ export default function ParentSelfRegisterPage() {
           data: {
             firstName: form.firstName,
             lastName: form.lastName,
+            // minuscule pour satisfaire le CHECK constraint de la DB
+            // le middleware accepte les deux grâce à la mise à jour
             role: 'PARENT',
           },
         },
@@ -104,7 +106,7 @@ export default function ParentSelfRegisterPage() {
           first_name: form.firstName,
           last_name: form.lastName,
           email: form.email,
-          role: 'PARENT',
+          role: 'parent', // minuscule → respecte le CHECK constraint DB
           onboarding_completed: true,
         });
 
