@@ -19,7 +19,9 @@ const SPORT_OPTIONS = [
   'Volleyball', 'Gym', 'Arts martiaux', 'Baseball', 'Autre',
 ];
 
-// Calcul de la date de naissance à partir de l’âge
+const PROVINCES = ['QC','ON','BC','AB','MB','SK','NS','NB','NL','PE','YT','NT','NU'];
+
+// Calcul date de naissance depuis âge
 const ageToDob = (age: number): string => {
   const d = new Date();
   d.setFullYear(d.getFullYear() - age);
@@ -30,62 +32,60 @@ const ageToDob = (age: number): string => {
 export default function SelectProfilePage() {
   const router = useRouter();
 
-  // État global
-  const [step, setStep]               = useState<Step>('choose');
-  const [memberType, setMemberType]   = useState<MemberType | null>(null);
-  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
-  const [familyId, setFamilyId]       = useState<string | null>(null);
+  const [step, setStep]                 = useState<Step>('choose');
+  const [memberType, setMemberType]     = useState<MemberType | null>(null);
+  const [currentUser, setCurrentUser]   = useState<{ id: string; email: string } | null>(null);
+  const [familyId, setFamilyId]         = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError]             = useState<string | null>(null);
-  const [successName, setSuccessName] = useState('');
+  const [error, setError]               = useState<string | null>(null);
+  const [successName, setSuccessName]   = useState('');
+  const [initLoading, setInitLoading]   = useState(true);
 
-  // Formulaire parent
+  // Formulaires
   const [parentForm, setParentForm] = useState({
     first_name: '', last_name: '', email: '', phone: '', city: '', province: '',
   });
-
-  // Formulaire enfant
   const [childForm, setChildForm] = useState({
     first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '',
   });
 
-  // Récupérer l’utilisateur connecté + sa famille
+  // Init : récup session + famille existante
   useEffect(() => {
     const init = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { router.push('/login'); return; }
+      const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (userErr || !user) {
+        router.push('/login');
+        return;
+      }
       setCurrentUser({ id: user.id, email: user.email ?? '' });
 
-      // Chercher ou créer la famille du parent connecté
       const { data: fam } = await supabase
         .from('families')
         .select('id')
         .eq('parent_id', user.id)
         .maybeSingle();
-      if (fam) { setFamilyId(fam.id); }
+
+      if (fam?.id) setFamilyId(fam.id);
+      setInitLoading(false);
     };
     init();
   }, [router]);
 
-  // ── Sélection du type
-  const handleChoose = (type: MemberType) => {
-    setMemberType(type);
+  const resetForms = () => {
+    setStep('choose');
+    setMemberType(null);
     setError(null);
-    setStep('form');
+    setParentForm({ first_name: '', last_name: '', email: '', phone: '', city: '', province: '' });
+    setChildForm({ first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '' });
   };
 
-  // ── Soumission
+  // Soumission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setIsSubmitting(true);
-
     try {
-      if (memberType === 'PARENT') {
-        await submitParent();
-      } else {
-        await submitChild();
-      }
+      memberType === 'PARENT' ? await submitParent() : await submitChild();
       setStep('success');
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
@@ -94,49 +94,44 @@ export default function SelectProfilePage() {
     }
   };
 
-  // ── Créer un profil parent additionnel (membre de la même famille)
+  // Créer parent
   const submitParent = async () => {
-    if (!parentForm.first_name.trim() || !parentForm.last_name.trim() || !parentForm.email.trim()) {
+    const { first_name, last_name, email, phone, city, province } = parentForm;
+    if (!first_name.trim() || !last_name.trim() || !email.trim())
       throw new Error('Prénom, nom et email sont obligatoires.');
-    }
 
-    // Créer le compte auth via signUp (mot de passe temporaire, le parent recevra un lien)
-    const tempPassword = Math.random().toString(36).slice(-10) + 'Aa1!';
+    const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
     const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: parentForm.email.trim(),
-      password: tempPassword,
-      options: {
-        data: {
-          firstName: parentForm.first_name.trim(),
-          lastName:  parentForm.last_name.trim(),
-          role: 'PARENT',
-        },
-      },
+      email: email.trim(),
+      password: tempPwd,
+      options: { data: { firstName: first_name.trim(), lastName: last_name.trim(), role: 'PARENT' } },
     });
-
     if (authErr) throw new Error(authErr.message);
     if (!authData.user) throw new Error('Impossible de créer le compte.');
 
-    // Mettre à jour son profil avec téléphone + ville
-    await supabase.from('profiles').update({
-      phone_number: parentForm.phone || null,
-      updated_at: new Date().toISOString(),
-    }).eq('id', authData.user.id);
+    // Compléter le profil avec tél & ville
+    if (phone || city || province) {
+      await supabase.from('profiles').update({
+        phone_number: phone || null,
+        updated_at: new Date().toISOString(),
+      }).eq('id', authData.user.id);
+    }
 
-    setSuccessName(`${parentForm.first_name} ${parentForm.last_name}`);
+    setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };
 
-  // ── Créer un enfant lié à la famille du parent connecté
+  // Créer enfant
   const submitChild = async () => {
-    if (!childForm.first_name.trim() || !childForm.last_name.trim()) {
+    const { first_name, last_name, age, gender, sport, notes } = childForm;
+    if (!first_name.trim() || !last_name.trim())
       throw new Error('Prénom et nom sont obligatoires.');
-    }
-    if (!childForm.age || isNaN(Number(childForm.age)) || Number(childForm.age) < 1 || Number(childForm.age) > 25) {
+    const ageNum = Number(age);
+    if (!age || isNaN(ageNum) || ageNum < 1 || ageNum > 25)
       throw new Error('L’âge doit être entre 1 et 25 ans.');
-    }
-    if (!currentUser) throw new Error('Session expirée, reconnectez-vous.');
+    if (!currentUser)
+      throw new Error('Session expirée, veuillez vous reconnecter.');
 
-    // 1. Assurer que la famille existe (créer si nécessaire)
+    // Créer famille si inexistante
     let fid = familyId;
     if (!fid) {
       const { data: prof } = await supabase
@@ -148,39 +143,46 @@ export default function SelectProfilePage() {
       const { data: newFam, error: famErr } = await supabase
         .from('families')
         .insert({
-          name: `Famille ${prof?.last_name ?? 'Nouvelle'}`,
+          name: `Famille ${(prof?.last_name ?? 'Nouvelle').trim()}`,
           parent_id: currentUser.id,
         })
         .select('id')
         .single();
 
-      if (famErr) throw new Error('Impossible de créer la famille : ' + famErr.message);
+      if (famErr) throw new Error('Erreur création famille : ' + famErr.message);
       fid = newFam.id;
       setFamilyId(fid);
     }
 
-    // 2. Créer l’enfant
+    // Insérer enfant
     const { error: childErr } = await supabase.from('children').insert({
       family_id:     fid,
-      first_name:    childForm.first_name.trim(),
-      last_name:     childForm.last_name.trim(),
-      date_of_birth: ageToDob(Number(childForm.age)),
-      gender:        childForm.gender || null,
-      sport:         childForm.sport  || null,
-      notes:         childForm.notes  || null,
+      first_name:    first_name.trim(),
+      last_name:     last_name.trim(),
+      date_of_birth: ageToDob(ageNum),
+      gender:        gender || null,
+      sport:         sport  || null,
+      notes:         notes  || null,
       is_active:     true,
     });
-
     if (childErr) throw new Error(childErr.message);
-    setSuccessName(`${childForm.first_name} ${childForm.last_name}`);
+    setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };
 
-  // ── Render ───────────────────────────────────────────────────────────────────
+  // Loading init
+  if (initLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
 
-        {/* Logo / titre */}
+        {/* Header */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-lg mb-4">
             👨‍👩‍👧‍👦
@@ -189,30 +191,16 @@ export default function SelectProfilePage() {
           <p className="text-slate-500 mt-1 text-sm">Choisissez le type de profil à créer</p>
         </div>
 
-        {/* ─── Étape 1 : Choisir le type ─── */}
+        {/* ─── STEP 1 : Choix ─── */}
         {step === 'choose' && (
           <div className="grid grid-cols-2 gap-4">
-            {[
-              {
-                type: 'PARENT' as MemberType,
-                icon: '👨‍👩‍👧',
-                label: 'Parent',
-                desc: 'Ajouter un parent ou tuteur',
-                color: 'from-blue-500 to-cyan-500',
-                border: 'hover:border-blue-300',
-              },
-              {
-                type: 'CHILD' as MemberType,
-                icon: '🧒',
-                label: 'Enfant',
-                desc: 'Ajouter un enfant à la famille',
-                color: 'from-orange-400 to-pink-500',
-                border: 'hover:border-orange-300',
-              },
-            ].map(({ type, icon, label, desc, color, border }) => (
+            {([
+              { type: 'PARENT' as MemberType, icon: '👨‍👩‍👧', label: 'Parent',  desc: 'Ajouter un parent ou tuteur',      color: 'from-blue-500 to-cyan-500',    border: 'hover:border-blue-300' },
+              { type: 'CHILD'  as MemberType, icon: '🧒',         label: 'Enfant',  desc: 'Ajouter un enfant à la famille', color: 'from-orange-400 to-pink-500',  border: 'hover:border-orange-300' },
+            ]).map(({ type, icon, label, desc, color, border }) => (
               <button
                 key={type}
-                onClick={() => handleChoose(type)}
+                onClick={() => { setMemberType(type); setError(null); setStep('form'); }}
                 className={`group bg-white rounded-2xl p-6 border-2 border-transparent ${border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left`}
               >
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-md mb-4 group-hover:scale-110 transition-transform`}>
@@ -225,189 +213,122 @@ export default function SelectProfilePage() {
           </div>
         )}
 
-        {/* ─── Étape 2 : Formulaire ─── */}
+        {/* ─── STEP 2 : Formulaire ─── */}
         {step === 'form' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
-            {/* Header formulaire */}
             <div className="flex items-center gap-3 mb-6">
-              <button
-                onClick={() => { setStep('choose'); setError(null); }}
-                className="text-slate-400 hover:text-slate-700 transition-colors"
-              >
-                ←
-              </button>
+              <button onClick={() => { setStep('choose'); setError(null); }} className="text-slate-400 hover:text-slate-700 text-xl transition-colors">←</button>
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
                   {memberType === 'PARENT' ? '👨‍👩‍👧 Nouveau parent' : '🧒 Nouvel enfant'}
                 </h2>
-                <p className="text-sm text-slate-500">
-                  {memberType === 'PARENT'
-                    ? 'Les champs marqués * sont obligatoires'
-                    : 'L’enfant sera lié à votre famille automatiquement'}
+                <p className="text-xs text-slate-400">
+                  {memberType === 'CHILD' && !familyId ? 'La famille sera créée automatiquement' : 'Les champs * sont obligatoires'}
                 </p>
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
 
-              {/* ── FORMULAIRE PARENT ── */}
+              {/* Prénom + Nom — commun aux deux */}
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Prénom *</label>
+                  <input required type="text" placeholder={memberType === 'PARENT' ? 'Jean' : 'Emma'}
+                    value={memberType === 'PARENT' ? parentForm.first_name : childForm.first_name}
+                    onChange={(e) => memberType === 'PARENT'
+                      ? setParentForm({ ...parentForm, first_name: e.target.value })
+                      : setChildForm({ ...childForm, first_name: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Nom *</label>
+                  <input required type="text" placeholder="Tremblay"
+                    value={memberType === 'PARENT' ? parentForm.last_name : childForm.last_name}
+                    onChange={(e) => memberType === 'PARENT'
+                      ? setParentForm({ ...parentForm, last_name: e.target.value })
+                      : setChildForm({ ...childForm, last_name: e.target.value })}
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                  />
+                </div>
+              </div>
+
+              {/* PARENT — champs spécifiques */}
               {memberType === 'PARENT' && (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Prénom *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="Jean"
-                        value={parentForm.first_name}
-                        onChange={(e) => setParentForm({ ...parentForm, first_name: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Nom *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="Tremblay"
-                        value={parentForm.last_name}
-                        onChange={(e) => setParentForm({ ...parentForm, last_name: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
-                      />
-                    </div>
-                  </div>
-
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Email *</label>
-                    <input
-                      required
-                      type="email"
-                      placeholder="jean@exemple.com"
+                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Email *</label>
+                    <input required type="email" placeholder="jean@exemple.com"
                       value={parentForm.email}
                       onChange={(e) => setParentForm({ ...parentForm, email: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                     />
                   </div>
-
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Téléphone</label>
-                    <input
-                      type="tel"
-                      placeholder="514-555-0123"
+                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Téléphone</label>
+                    <input type="tel" placeholder="514-555-0123"
                       value={parentForm.phone}
                       onChange={(e) => setParentForm({ ...parentForm, phone: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                     />
                   </div>
-
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Ville</label>
-                      <input
-                        type="text"
-                        placeholder="Montréal"
+                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Ville</label>
+                      <input type="text" placeholder="Montréal"
                         value={parentForm.city}
                         onChange={(e) => setParentForm({ ...parentForm, city: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400"
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Province</label>
-                      <select
-                        value={parentForm.province}
-                        onChange={(e) => setParentForm({ ...parentForm, province: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-400 bg-white"
-                      >
+                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Province</label>
+                      <select value={parentForm.province} onChange={(e) => setParentForm({ ...parentForm, province: e.target.value })}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white">
                         <option value="">—</option>
-                        {['QC','ON','BC','AB','MB','SK','NS','NB','NL','PE','YT','NT','NU'].map((p) => (
-                          <option key={p} value={p}>{p}</option>
-                        ))}
+                        {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
                       </select>
                     </div>
                   </div>
                 </>
               )}
 
-              {/* ── FORMULAIRE ENFANT ── */}
+              {/* ENFANT — champs spécifiques */}
               {memberType === 'CHILD' && (
                 <>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Prénom *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="Emma"
-                        value={childForm.first_name}
-                        onChange={(e) => setChildForm({ ...childForm, first_name: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Nom *</label>
-                      <input
-                        required
-                        type="text"
-                        placeholder="Tremblay"
-                        value={childForm.last_name}
-                        onChange={(e) => setChildForm({ ...childForm, last_name: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Âge *</label>
-                      <input
-                        required
-                        type="number"
-                        min={1}
-                        max={25}
-                        placeholder="8"
+                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Âge *</label>
+                      <input required type="number" min={1} max={25} placeholder="8"
                         value={childForm.age}
                         onChange={(e) => setChildForm({ ...childForm, age: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400"
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-1">Genre</label>
-                      <select
-                        value={childForm.gender}
-                        onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 bg-white"
-                      >
+                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Genre</label>
+                      <select value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-white">
                         <option value="">—</option>
-                        {GENDER_OPTIONS.map((g) => (
-                          <option key={g.value} value={g.value}>{g.label}</option>
-                        ))}
+                        {GENDER_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
                       </select>
                     </div>
                   </div>
-
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Sport principal</label>
-                    <select
-                      value={childForm.sport}
-                      onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 bg-white"
-                    >
+                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Sport principal</label>
+                    <select value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-white">
                       <option value="">Choisir un sport...</option>
-                      {SPORT_OPTIONS.map((s) => (
-                        <option key={s} value={s}>{s}</option>
-                      ))}
+                      {SPORT_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
-
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-1">Notes / informations</label>
-                    <textarea
-                      rows={3}
-                      placeholder="Allergies, besoins spéciaux, informations importantes..."
+                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Notes</label>
+                    <textarea rows={3} placeholder="Allergies, besoins spéciaux..."
                       value={childForm.notes}
                       onChange={(e) => setChildForm({ ...childForm, notes: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-400 resize-none"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 resize-none"
                     />
                   </div>
                 </>
@@ -415,21 +336,19 @@ export default function SelectProfilePage() {
 
               {/* Erreur */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-                  ⚠️ {error}
+                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
+                  <span className="shrink-0">⚠️</span>
+                  <span>{error}</span>
                 </div>
               )}
 
-              {/* Bouton soumettre */}
-              <button
-                type="submit"
-                disabled={isSubmitting}
-                className={`w-full py-4 rounded-xl font-bold text-white text-sm transition-all duration-200 ${
+              {/* Submit */}
+              <button type="submit" disabled={isSubmitting}
+                className={`w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${
                   memberType === 'PARENT'
                     ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
                     : 'bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600'
-                } disabled:opacity-60 disabled:cursor-not-allowed shadow-lg`}
-              >
+                }`}>
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
                     <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
@@ -444,39 +363,25 @@ export default function SelectProfilePage() {
           </div>
         )}
 
-        {/* ─── Étape 3 : Succès ─── */}
+        {/* ─── STEP 3 : Succès ─── */}
         {step === 'success' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">
-              ✅
-            </div>
+            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✅</div>
             <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
               {memberType === 'PARENT' ? 'Compte créé !' : 'Enfant ajouté !'}
             </h2>
-            <p className="text-slate-500 mb-2">
-              <span className="font-semibold text-slate-800">{successName}</span> a bien été
-              {memberType === 'PARENT' ? ' enregistré(e) comme parent.' : ' ajouté(e) à votre famille.'}
+            <p className="text-slate-500 mb-1">
+              <span className="font-semibold text-slate-800">{successName}</span>
+              {memberType === 'PARENT' ? ' a bien été enregistré(e) comme parent.' : ' a bien été ajouté(e) à votre famille.'}
             </p>
-            <p className="text-xs text-green-600 font-medium mb-8">
-              🟢 Visible instantanément dans le dashboard admin
-            </p>
+            <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>
             <div className="flex flex-col gap-3">
-              <button
-                onClick={() => {
-                  setStep('choose');
-                  setMemberType(null);
-                  setError(null);
-                  setParentForm({ first_name: '', last_name: '', email: '', phone: '', city: '', province: '' });
-                  setChildForm({ first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '' });
-                }}
-                className="w-full py-3 rounded-xl border-2 border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 transition-colors"
-              >
+              <button onClick={resetForms}
+                className="w-full py-3 rounded-xl border-2 border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
                 + Ajouter un autre membre
               </button>
-              <button
-                onClick={() => router.push('/dashboard')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md"
-              >
+              <button onClick={() => router.push('/dashboard')}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md">
                 Retour au dashboard
               </button>
             </div>
