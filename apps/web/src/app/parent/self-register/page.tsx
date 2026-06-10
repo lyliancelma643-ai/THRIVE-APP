@@ -18,6 +18,36 @@ interface FormData {
   city: string;
 }
 
+// ── Composant Input réutilisable (défini hors du composant parent pour éviter les re-créations) ──
+function Input({
+  label, type = 'text', value, onChange, placeholder, required = false,
+}: {
+  label: string; type?: string; value: string;
+  onChange: (v: string) => void; placeholder?: string; required?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(247,245,242,0.6)' }}>
+        {label}{required && <span style={{ color: '#a7c4bc' }}> *</span>}
+      </label>
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
+        style={{
+          backgroundColor: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(247,245,242,0.15)',
+          color: '#F7F5F2',
+        }}
+        onFocus={(e) => { e.currentTarget.style.borderColor = '#a7c4bc'; }}
+        onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(247,245,242,0.15)'; }}
+      />
+    </div>
+  );
+}
+
 export default function ParentSelfRegisterPage() {
   const router = useRouter();
   const { signIn } = useAuthStore();
@@ -148,33 +178,6 @@ export default function ParentSelfRegisterPage() {
     }
   };
 
-  // ── Composant Input réutilisable ──
-  const Input = ({
-    label, type = 'text', value, onChange, placeholder, required = false,
-  }: {
-    label: string; type?: string; value: string;
-    onChange: (v: string) => void; placeholder?: string; required?: boolean;
-  }) => (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'rgba(247,245,242,0.6)' }}>
-        {label}{required && <span style={{ color: '#a7c4bc' }}> *</span>}
-      </label>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full rounded-xl px-4 py-3 text-sm outline-none transition-all"
-        style={{
-          backgroundColor: 'rgba(255,255,255,0.08)',
-          border: '1px solid rgba(247,245,242,0.15)',
-          color: '#F7F5F2',
-        }}
-        onFocus={(e) => { e.currentTarget.style.borderColor = '#a7c4bc'; }}
-        onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(247,245,242,0.15)'; }}
-      />
-    </div>
-  );
 
   return (
     <div
