@@ -6,6 +6,8 @@ import { useParams } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { childAge, AssignedChild, CoachSession, THRIVE_SESSIONS } from '@/lib/coach';
+import { ageGroupFromBirthDate } from '@/lib/catalog';
+import { SESSION_GUIDES, SessionGuide } from '@/lib/thrive-guides';
 
 type ReportForm = {
   performance_summary: string;
@@ -37,6 +39,8 @@ export default function CoachAthletePage() {
   const [creating, setCreating] = useState(false);
   const [openForm, setOpenForm] = useState<string | null>(null);
   const [form, setForm] = useState<ReportForm>(EMPTY_FORM);
+  // Grille d'observation 1-5 de la méthode THRIVE (indicateur -> note)
+  const [ratings, setRatings] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [rescheduling, setRescheduling] = useState<string | null>(null);
@@ -137,6 +141,10 @@ export default function CoachAthletePage() {
         .eq('id', session.id);
       if (upErr) throw upErr;
 
+      const ratedObservations = Object.fromEntries(
+        Object.entries(ratings).filter(([, v]) => v > 0)
+      );
+
       const { error: repErr } = await supabase.from('reports').insert({
         child_id: child.id,
         program_id: session.program_id,
@@ -152,12 +160,16 @@ export default function CoachAthletePage() {
           'recommandations maison': form.home_recommendations,
           'message du coach': form.coach_message_parent,
           rpe: form.rpe,
+          ...(Object.keys(ratedObservations).length > 0
+            ? { observations: ratedObservations }
+            : {}),
         },
       });
       if (repErr) throw repErr;
 
       setOpenForm(null);
       setForm(EMPTY_FORM);
+      setRatings({});
       await load();
     } catch (e: any) {
       setError(e?.message ?? "Erreur lors de l'enregistrement du bilan");
@@ -188,6 +200,7 @@ export default function CoachAthletePage() {
   }
 
   const completed = sessions.filter((s) => s.status === 'COMPLETED').length;
+  const ageGroup = ageGroupFromBirthDate(child.date_of_birth);
 
   return (
     <div className="max-w-4xl">
@@ -235,6 +248,10 @@ export default function CoachAthletePage() {
         <div className="space-y-3">
           {sessions.map((s) => {
             const isOpen = openForm === s.id;
+            const guide: SessionGuide | null =
+              ageGroup && s.session_number
+                ? SESSION_GUIDES[ageGroup]?.[s.session_number] ?? null
+                : null;
             return (
               <div key={s.id} className="rounded-2xl bg-white shadow-card overflow-hidden">
                 <div className="flex items-center gap-4 p-5">
@@ -276,6 +293,7 @@ export default function CoachAthletePage() {
                           setOpenForm(isOpen ? null : s.id);
                           setRescheduling(null);
                           setForm(EMPTY_FORM);
+                          setRatings({});
                         }}
                         className="px-3 py-1.5 rounded-full text-xs font-bold bg-sun text-navy-900 hover:bg-sun-dark"
                       >
@@ -304,6 +322,63 @@ export default function CoachAthletePage() {
 
                 {isOpen && (
                   <div className="px-5 pb-5 border-t border-navy-50 pt-4 space-y-4">
+                    {/* Guide officiel de la séance (méthode THRIVE, adapté à l'âge) */}
+                    {guide && (
+                      <div className="p-4 rounded-2xl bg-navy-900 text-white space-y-2">
+                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sun">
+                          Guide de séance · {ageGroup} ans
+                        </p>
+                        <p className="text-sm leading-relaxed">
+                          <span className="font-bold">🎯 Objectif :</span> {guide.objectif}
+                        </p>
+                        {guide.verbatim && (
+                          <p className="text-sm text-sage italic">
+                            💬 « {guide.verbatim} »
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Grille d'observation officielle — cote 1 à 5 */}
+                    {guide && guide.indicateurs.length > 0 && (
+                      <div>
+                        <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-2">
+                          Grille d&apos;observation (1 = fragile · 5 = solide)
+                        </span>
+                        <div className="space-y-2">
+                          {guide.indicateurs.map((ind) => (
+                            <div
+                              key={ind}
+                              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-navy-50/60"
+                            >
+                              <span className="text-sm text-navy-900 flex-1">{ind}</span>
+                              <span className="flex gap-1">
+                                {[1, 2, 3, 4, 5].map((n) => (
+                                  <button
+                                    key={n}
+                                    type="button"
+                                    onClick={() =>
+                                      setRatings((r) => ({
+                                        ...r,
+                                        [ind]: r[ind] === n ? 0 : n,
+                                      }))
+                                    }
+                                    className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${
+                                      (ratings[ind] ?? 0) >= n
+                                        ? 'bg-navy-600 text-white'
+                                        : 'bg-white text-navy-400 hover:bg-navy-100'
+                                    }`}
+                                  >
+                                    {n}
+                                  </button>
+                                ))}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <Field
                       label="Résumé de la séance"
                       hint="Ce qui a été travaillé, comment l'enfant a réagi"
