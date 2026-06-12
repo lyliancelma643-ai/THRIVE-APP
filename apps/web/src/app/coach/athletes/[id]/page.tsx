@@ -144,6 +144,28 @@ export default function CoachAthletePage() {
       )}
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
 
+      {/* Prochaine séance à faire — accès direct */}
+      {(() => {
+        const next = sessions.find((s) => s.status !== 'COMPLETED');
+        if (!next) return null;
+        return (
+          <Link
+            href={`/coach/athletes/${child.id}/session/${next.id}`}
+            className="block mb-6 p-6 rounded-2xl bg-navy-900 text-white hover:bg-navy-800 transition-colors"
+          >
+            <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-sun mb-1">
+              Prochaine séance · fiche {ageGroup} ans
+            </p>
+            <p className="font-display text-xl font-semibold mb-3">
+              Séance {next.session_number} — {next.title}
+            </p>
+            <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-sun text-navy-900 text-sm font-bold">
+              ▶ Commencer la séance
+            </span>
+          </Link>
+        );
+      })()}
+
       {sessions.length === 0 ? (
         <div className="p-8 rounded-2xl bg-white shadow-card text-center">
           <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">

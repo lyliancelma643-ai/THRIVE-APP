@@ -45,7 +45,38 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <aside className="w-64 bg-black text-white flex flex-col fixed h-full z-10">
+      {/* Barre mobile : logo + navigation horizontale défilante */}
+      <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-black text-white">
+        <div className="flex items-center justify-between px-4 pt-3 pb-1">
+          <p className="font-bold">THRIVE <span className="text-gray-400 text-xs font-normal">Admin</span></p>
+          <button
+            onClick={async () => { await signOut(); router.push('/login'); }}
+            className="text-xs text-gray-400"
+          >
+            🚪 Quitter
+          </button>
+        </div>
+        <nav className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide">
+          {NAV_ITEMS.map((item) => {
+            const isActive = pathname === item.href ||
+              (item.href !== '/admin' && pathname.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs whitespace-nowrap ${
+                  isActive ? 'bg-white text-black font-semibold' : 'text-gray-300 bg-gray-900'
+                }`}
+              >
+                <span>{item.icon}</span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      <aside className="hidden lg:flex w-64 bg-black text-white flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-800">
           <p className="text-xl font-bold">THRIVE</p>
           <p className="text-gray-400 text-xs mt-1">Espace Admin</p>
@@ -83,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
       </aside>
-      <main className="ml-64 flex-1 p-8">{children}</main>
+      <main className="flex-1 p-4 pt-28 md:p-6 md:pt-28 lg:ml-64 lg:p-8 lg:pt-8 min-w-0">{children}</main>
     </div>
   );
 }
