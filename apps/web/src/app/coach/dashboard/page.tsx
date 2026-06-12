@@ -69,7 +69,7 @@ export default function CoachDashboardPage() {
       <p className="text-navy-600/70 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
 
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+      <div className="grid grid-cols-3 gap-2 md:gap-5 mb-8 md:mb-10">
         <StatCard value={children.length} label="Athlètes assignés" accent="bg-sun" />
         <StatCard value={today.length} label="Séances aujourd'hui" accent="bg-sage" />
         <StatCard value={upcoming.length} label="Séances à venir" accent="bg-navy-100" />
@@ -159,11 +159,11 @@ export default function CoachDashboardPage() {
 
 function StatCard({ value, label, accent }: { value: number; label: string; accent: string }) {
   return (
-    <div className="p-6 rounded-2xl bg-white shadow-card flex items-center gap-4">
-      <span className={`w-12 h-12 rounded-xl ${accent} flex items-center justify-center font-display text-xl font-semibold text-navy-900`}>
+    <div className="p-3 md:p-6 rounded-2xl bg-white shadow-card flex flex-col md:flex-row items-center gap-2 md:gap-4 text-center md:text-left">
+      <span className={`w-11 h-11 md:w-12 md:h-12 rounded-xl ${accent} flex items-center justify-center font-display text-xl font-semibold text-navy-900 shrink-0`}>
         {value}
       </span>
-      <span className="text-sm text-navy-600/80 font-medium">{label}</span>
+      <span className="text-[11px] md:text-sm leading-tight text-navy-600/80 font-medium">{label}</span>
     </div>
   );
 }

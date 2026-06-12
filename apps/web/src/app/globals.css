@@ -13,6 +13,27 @@
   }
 }
 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:active {
+    transform: scale(0.97);
+  }
+  /* iOS zoome automatiquement sur les champs < 16px : on force 16px sur mobile */
+  @media (max-width: 768px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+}
+
 @layer components {
   /* Liquid glass / glassmorphisme — section parent */
   .glass {

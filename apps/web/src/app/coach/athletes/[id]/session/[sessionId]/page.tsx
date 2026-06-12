@@ -139,6 +139,28 @@ export default function CoachLiveSessionPage() {
   const elapsedMin = elapsedSec / 60;
   const timerLabel = `${Math.floor(elapsedSec / 60)}:${String(elapsedSec % 60).padStart(2, '0')}`;
 
+  // Étapes minutées de la séance (pour la navigation rapide)
+  const steps = useMemo(() => {
+    if (!script) return [];
+    return script.blocks
+      .map((b, bi) => {
+        if (b.t !== 'section' || b.level !== 2) return null;
+        const range = parseTimeRange(b.title);
+        if (!range) return null;
+        const label = b.title.split('—')[0].trim();
+        return { bi, range, label };
+      })
+      .filter(Boolean) as { bi: number; range: [number, number]; label: string }[];
+  }, [script]);
+
+  const currentStep = startedAt
+    ? steps.find((s) => elapsedMin >= s.range[0] && elapsedMin < s.range[1]) ?? null
+    : null;
+
+  const jumpTo = (bi: number) => {
+    document.getElementById(`sec-${bi}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const send = useCallback(async () => {
     if (!user?.id || !child || !session) return;
     setSending(true);
@@ -244,10 +266,34 @@ export default function CoachLiveSessionPage() {
       {!isDone && !startedAt && (
         <button
           onClick={() => setStartedAt(Date.now())}
-          className="w-full mb-6 py-4 rounded-2xl bg-navy-600 hover:bg-navy-700 text-white font-bold text-base transition-colors"
+          className="w-full mb-4 py-4 rounded-2xl bg-navy-600 hover:bg-navy-700 text-white font-bold text-base transition-colors"
         >
           ▶ Commencer la séance — le chrono guide le déroulé
         </button>
+      )}
+
+      {/* Navigation rapide entre les étapes minutées */}
+      {steps.length > 1 && (
+        <div className="sticky top-2 lg:top-2 z-30 -mx-1 mb-4">
+          <div className="glass-strong rounded-full px-2 py-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
+            {steps.map((s) => {
+              const isCurrent = currentStep?.bi === s.bi;
+              return (
+                <button
+                  key={s.bi}
+                  onClick={() => jumpTo(s.bi)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                    isCurrent
+                      ? 'bg-sun text-navy-900'
+                      : 'text-navy-700 hover:bg-white/70'
+                  }`}
+                >
+                  {s.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
 
       {/* Déroulé interactif de la séance */}
@@ -261,7 +307,8 @@ export default function CoachLiveSessionPage() {
               return (
                 <h2
                   key={bi}
-                  className={`font-display font-semibold pt-5 flex items-center gap-2 ${
+                  id={`sec-${bi}`}
+                  className={`font-display font-semibold pt-5 scroll-mt-20 flex flex-wrap items-center gap-2 ${
                     b.level === 2 ? 'text-xl' : 'text-base'
                   } ${isCurrent ? 'text-navy-900' : 'text-navy-900/80'}`}
                 >
@@ -355,7 +402,7 @@ export default function CoachLiveSessionPage() {
                               onClick={() =>
                                 setRatings((r) => ({ ...r, [k]: r[k] === n ? 0 : n }))
                               }
-                              className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${
+                              className={`w-9 h-9 md:w-7 md:h-7 rounded-full text-sm md:text-xs font-bold transition-colors ${
                                 (ratings[k] ?? 0) >= n
                                   ? 'bg-navy-600 text-white'
                                   : 'bg-navy-50 text-navy-400 hover:bg-navy-100'
@@ -414,9 +461,14 @@ export default function CoachLiveSessionPage() {
       <div className="fixed bottom-14 lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
         <div className="max-w-3xl flex items-center gap-3">
           {startedAt && !isDone && (
-            <span className="px-3 py-1.5 rounded-full bg-navy-900 text-sun text-sm font-bold tabular-nums shrink-0">
+            <button
+              onClick={() => currentStep && jumpTo(currentStep.bi)}
+              title="Aller à l'étape en cours"
+              className="px-3 py-1.5 rounded-full bg-navy-900 text-sun text-sm font-bold tabular-nums shrink-0"
+            >
               ⏱ {timerLabel}
-            </span>
+              {currentStep && <span className="ml-1.5 text-[10px] text-sage">↓ {currentStep.label}</span>}
+            </button>
           )}
           <span className="hidden sm:inline text-xs text-navy-600/70">
             {ratedCount} indicateur{ratedCount > 1 ? 's' : ''} coté{ratedCount > 1 ? 's' : ''} ·{' '}

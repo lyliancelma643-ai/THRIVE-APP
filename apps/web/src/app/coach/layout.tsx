@@ -57,7 +57,10 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* Barre d'onglets mobile (en bas, comme une app) */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex bg-navy-900/95 backdrop-blur-xl border-t border-navy-800">
+      <nav
+        className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex bg-navy-900/95 backdrop-blur-xl border-t border-navy-800"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
         {NAV_ITEMS.map((item) => {
           const active = pathname.startsWith(item.href);
           return (
