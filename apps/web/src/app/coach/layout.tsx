@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
   { href: '/coach/dashboard', label: 'Tableau de bord', icon: '⌂' },
+  { href: '/coach/sessions', label: 'Séances', icon: '✓' },
   { href: '/coach/athletes', label: 'Mes athlètes', icon: '★' },
 ];
 
