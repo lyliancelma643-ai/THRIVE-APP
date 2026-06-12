@@ -153,7 +153,7 @@ export default function MySessionsPage() {
       ) : (
         <>
           {/* Jauge de progression */}
-          <div className="mb-10 p-6 rounded-2xl bg-navy-900 text-white shadow-card">
+          <div className="mb-10 p-6 rounded-2xl glass-navy text-white">
             <div className="flex items-center justify-between mb-3">
               <span className="font-display text-lg">Progression du programme</span>
               <span className="text-sun font-bold">{completedCount} / 13</span>
@@ -181,7 +181,7 @@ export default function MySessionsPage() {
               const isOpen = openReport === s.id;
 
               return (
-                <div key={s.id} className="rounded-2xl bg-white shadow-card overflow-hidden">
+                <div key={s.id} className="rounded-2xl glass overflow-hidden">
                   <button
                     className="w-full flex items-center gap-4 p-5 text-left"
                     onClick={() => setOpenReport(isOpen ? null : s.id)}

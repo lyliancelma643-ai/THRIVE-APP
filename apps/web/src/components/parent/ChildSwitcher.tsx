@@ -18,14 +18,14 @@ export function ChildSwitcher() {
   const selected = children.find((c) => c.id === selectedChildId) ?? null;
 
   if (isLoading && children.length === 0) {
-    return <div className="h-12 rounded-xl bg-navy-800 animate-pulse" />;
+    return <div className="h-10 w-32 rounded-full glass animate-pulse" />;
   }
 
   if (children.length === 0) {
     return (
       <Link
         href="/parent/select-profile"
-        className="block w-full px-3 py-3 rounded-xl bg-navy-800 hover:bg-navy-700 text-sm text-sage text-center transition-colors"
+        className="px-4 py-2 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
       >
         + Ajouter un enfant
       </Link>
@@ -36,22 +36,19 @@ export function ChildSwitcher() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 transition-colors text-left"
+        className="flex items-center gap-2 pl-1.5 pr-3 py-1.5 rounded-full glass hover:bg-white/80 transition-colors"
       >
-        <span className="w-8 h-8 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold shrink-0">
+        <span className="w-7 h-7 rounded-full bg-navy-600 text-white flex items-center justify-center text-xs font-bold shrink-0">
           {selected?.first_name?.[0] ?? '?'}
         </span>
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium truncate">{selected?.first_name}</span>
-          <span className="block text-[11px] text-sage">
-            {ageGroupFromBirthDate(selected?.date_of_birth ?? null) ?? 'âge inconnu'} ans
-          </span>
+        <span className="text-sm font-medium text-navy-900 max-w-[7rem] truncate">
+          {selected?.first_name}
         </span>
-        <span className="text-navy-200/70 text-xs">▾</span>
+        <span className="text-navy-600/60 text-[10px]">▾</span>
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 rounded-xl bg-navy-800 border border-navy-700 shadow-card overflow-hidden z-50">
+        <div className="absolute top-full right-0 mt-2 w-56 rounded-2xl glass-strong overflow-hidden z-50">
           {children.map((child) => (
             <button
               key={child.id}
@@ -59,19 +56,22 @@ export function ChildSwitcher() {
                 selectChild(child.id);
                 setOpen(false);
               }}
-              className={`w-full flex items-center gap-2 px-3 py-2.5 text-sm text-left hover:bg-navy-700 transition-colors ${
-                child.id === selectedChildId ? 'text-sun' : 'text-white'
+              className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-left hover:bg-white/70 transition-colors ${
+                child.id === selectedChildId ? 'font-bold text-navy-900' : 'text-navy-700'
               }`}
             >
-              <span className="w-6 h-6 rounded-full bg-sage text-navy-900 flex items-center justify-center text-xs font-bold">
+              <span className="w-7 h-7 rounded-full bg-sage text-navy-900 flex items-center justify-center text-xs font-bold">
                 {child.first_name[0]}
               </span>
-              {child.first_name}
+              <span className="flex-1 truncate">{child.first_name}</span>
+              <span className="text-[10px] text-navy-600/60">
+                {ageGroupFromBirthDate(child.date_of_birth) ?? ''} ans
+              </span>
             </button>
           ))}
           <Link
             href="/parent/select-profile"
-            className="block px-3 py-2.5 text-xs text-sage hover:bg-navy-700 transition-colors border-t border-navy-700"
+            className="block px-4 py-2.5 text-xs font-semibold text-navy-600 hover:bg-white/70 transition-colors border-t border-white/50"
             onClick={() => setOpen(false)}
           >
             + Gérer les profils

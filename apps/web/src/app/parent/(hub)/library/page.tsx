@@ -123,7 +123,7 @@ function FilterGroup({
   return (
     <div className="flex items-center gap-2">
       <span className="text-xs font-bold uppercase tracking-wide text-navy-600/60">{label}</span>
-      <div className="flex gap-1 p-1 rounded-full bg-white shadow-card">
+      <div className="flex gap-1 p-1 rounded-full glass">
         {options.map((opt) => (
           <button
             key={opt.value}

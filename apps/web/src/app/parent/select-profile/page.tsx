@@ -94,28 +94,37 @@ export default function SelectProfilePage() {
     }
   };
 
-  // Créer parent
+  // Créer parent — via l'edge function admin-create-user (service role) :
+  // ne touche PAS à la session du parent connecté (signUp basculerait la session).
   const submitParent = async () => {
-    const { first_name, last_name, email, phone, city, province } = parentForm;
+    const { first_name, last_name, email, phone } = parentForm;
     if (!first_name.trim() || !last_name.trim() || !email.trim())
       throw new Error('Prénom, nom et email sont obligatoires.');
 
-    const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
-    const { data: authData, error: authErr } = await supabase.auth.signUp({
-      email: email.trim(),
-      password: tempPwd,
-      options: { data: { firstName: first_name.trim(), lastName: last_name.trim(), role: 'PARENT' } },
-    });
-    if (authErr) throw new Error(authErr.message);
-    if (!authData.user) throw new Error('Impossible de créer le compte.');
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
 
-    // Compléter le profil avec tél & ville
-    if (phone || city || province) {
-      await supabase.from('profiles').update({
-        phone_number: phone || null,
-        updated_at: new Date().toISOString(),
-      }).eq('id', authData.user.id);
-    }
+    const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://ircpewhmmcpghucnywis.supabase.co'}/functions/v1/admin-create-user`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          password: tempPwd,
+          firstName: first_name.trim(),
+          lastName: last_name.trim(),
+          role: 'PARENT',
+          phone: phone || undefined,
+        }),
+      }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.error ?? 'Impossible de créer le compte.');
 
     setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };

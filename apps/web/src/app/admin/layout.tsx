@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth.store';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
+  { href: '/admin/users', label: 'Comptes', icon: '👤' },
   { href: '/admin/coaches', label: 'Coaches', icon: '🎯' },
   { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
   { href: '/admin/children', label: 'Enfants', icon: '🧒' },
