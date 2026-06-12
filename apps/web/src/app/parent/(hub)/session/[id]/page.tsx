@@ -140,7 +140,7 @@ export default function SessionDetailPage() {
           <p className="text-navy-900/75 leading-relaxed">{session.description}</p>
         </div>
 
-        <div className="p-5 rounded-2xl bg-white shadow-card h-fit">
+        <div className="p-5 rounded-2xl glass h-fit">
           <h3 className="text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-4">
             Cette séance
           </h3>

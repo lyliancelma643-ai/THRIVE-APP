@@ -118,7 +118,7 @@ export default function ParentHomePage() {
 
       {/* Progression */}
       {sessions.length > 0 && (
-        <div className="mb-12 p-6 rounded-2xl bg-white shadow-card">
+        <div className="mb-12 p-6 rounded-2xl glass">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-display text-lg font-semibold text-navy-900">
               Parcours 20 minutes{selectedChild ? ` de ${selectedChild.first_name}` : ''}

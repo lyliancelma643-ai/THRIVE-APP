@@ -213,7 +213,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Overlay question A/B/C/D */}
       {stage === 'question' && activeInteraction && (
-        <div className="absolute inset-0 bg-navy-900/95 flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
           <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-4">
             À toi de jouer !
           </p>
@@ -225,7 +225,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
               <button
                 key={a.key}
                 onClick={() => handleAnswer(a)}
-                className="flex items-center gap-3 p-4 rounded-2xl bg-navy-800 hover:bg-navy-600 border border-navy-700 hover:border-sun text-left transition-all group/answer"
+                className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20 hover:border-sun text-left transition-all group/answer"
               >
                 <span className="w-9 h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center font-bold shrink-0">
                   {a.key}
@@ -239,7 +239,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Feedback après réponse */}
       {stage === 'feedback' && chosen && (
-        <div className="absolute inset-0 bg-navy-900/95 flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
           <span className="w-16 h-16 rounded-full bg-sage text-navy-900 flex items-center justify-center text-2xl mb-4">
             ✓
           </span>
@@ -250,7 +250,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* RPE en fin de séance */}
       {stage === 'rpe' && (
-        <div className="absolute inset-0 bg-navy-900/95 flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
           <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-3">
             Dernière question
           </p>
