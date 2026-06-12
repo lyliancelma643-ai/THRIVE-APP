@@ -48,6 +48,16 @@ export default function AdminProgramsPage() {
 
   useEffect(() => { fetchPrograms(); }, []);
 
+  // Realtime : créations/changements de statut visibles instantanément
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-programs-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' }, () => fetchPrograms())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'program_enrollments' }, () => fetchPrograms())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
+
   const updateStatus = async (programId: string, newStatus: string) => {
     await supabase.from('programs').update({ status: newStatus }).eq('id', programId);
     await fetchPrograms();

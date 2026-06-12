@@ -99,6 +99,15 @@ export default function AdminCoachesPage() {
 
   useEffect(() => { fetchCoaches(); }, [fetchCoaches]);
 
+  // Realtime : tout changement de profil coach s'affiche sans recharger
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-coaches-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchCoaches())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [fetchCoaches]);
+
   // ── Filtres ────────────────────────────────────────────────────────────────
   const filtered = coaches.filter((c) => {
     const matchSearch =

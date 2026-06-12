@@ -92,3 +92,23 @@ export const useAuthStore = create<AuthStore>()(
     }
   )
 );
+
+// ── Synchronisation permanente avec Supabase Auth ────────────────────────────
+// Supabase renouvelle le token automatiquement en arrière-plan (~1 h) ; sans
+// cet écouteur, le cookie middleware et le store devenaient obsolètes et
+// l'app « décrochait » de Supabase jusqu'à reconnexion manuelle.
+if (typeof window !== 'undefined') {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+      if (session) {
+        syncAuthCookie(session.access_token);
+        const mapped = mapSession(session);
+        useAuthStore.setState({ ...mapped, isAuthenticated: true, isLoading: false });
+      }
+    }
+    if (event === 'SIGNED_OUT') {
+      syncAuthCookie(null);
+      useAuthStore.setState({ user: null, session: null, isAuthenticated: false, isLoading: false });
+    }
+  });
+}

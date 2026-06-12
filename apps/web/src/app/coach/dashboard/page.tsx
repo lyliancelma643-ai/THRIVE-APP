@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
@@ -12,33 +12,50 @@ export default function CoachDashboardPage() {
   const [upcoming, setUpcoming] = useState<(CoachSession & { childName?: string })[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const load = useCallback(async () => {
+    if (!user?.id) return;
+    const kids = await fetchAssignedChildren(user.id);
+    setChildren(kids);
+
+    if (kids.length > 0) {
+      const { data: sessions } = await supabase
+        .from('sessions')
+        .select('id, program_id, child_id, session_number, title, status, scheduled_at, completed_at, coach_notes')
+        .in('child_id', kids.map((k) => k.id))
+        .eq('status', 'SCHEDULED')
+        .gte('scheduled_at', new Date(Date.now() - 24 * 3600 * 1000).toISOString())
+        .order('scheduled_at')
+        .limit(8);
+
+      const byId = new Map(kids.map((k) => [k.id, k.first_name]));
+      setUpcoming(
+        ((sessions ?? []) as CoachSession[]).map((s) => ({
+          ...s,
+          childName: byId.get(s.child_id),
+        }))
+      );
+    } else {
+      setUpcoming([]);
+    }
+    setLoading(false);
+  }, [user?.id]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Realtime : une assignation faite par l'admin apparaît en direct chez le coach
   useEffect(() => {
     if (!user?.id) return;
-    (async () => {
-      const kids = await fetchAssignedChildren(user.id);
-      setChildren(kids);
-
-      if (kids.length > 0) {
-        const { data: sessions } = await supabase
-          .from('sessions')
-          .select('id, program_id, child_id, session_number, title, status, scheduled_at, completed_at, coach_notes')
-          .in('child_id', kids.map((k) => k.id))
-          .eq('status', 'SCHEDULED')
-          .gte('scheduled_at', new Date(Date.now() - 24 * 3600 * 1000).toISOString())
-          .order('scheduled_at')
-          .limit(8);
-
-        const byId = new Map(kids.map((k) => [k.id, k.first_name]));
-        setUpcoming(
-          ((sessions ?? []) as CoachSession[]).map((s) => ({
-            ...s,
-            childName: byId.get(s.child_id),
-          }))
-        );
-      }
-      setLoading(false);
-    })();
-  }, [user?.id]);
+    const channel = supabase
+      .channel(`coach-dashboard-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coach_assignments' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id, load]);
 
   const today = upcoming.filter(
     (s) => s.scheduled_at && new Date(s.scheduled_at).toDateString() === new Date().toDateString()
