@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
+import { THRIVE_SESSIONS } from '@/lib/coach';
 
 type OneToOneSession = {
   id: string;
@@ -145,112 +146,128 @@ export default function MySessionsPage() {
         . Mise à jour automatique après chaque séance.
       </p>
 
-      {sessions.length === 0 ? (
-        <EmptyState
-          title="Le programme n'a pas encore commencé"
-          body="Dès que votre coach THRIVE planifiera les séances 1:1, elles apparaîtront ici automatiquement, avec un bilan après chaque séance."
-        />
-      ) : (
-        <>
-          {/* Jauge de progression */}
-          <div className="mb-10 p-6 rounded-2xl glass-navy text-white">
-            <div className="flex items-center justify-between mb-3">
-              <span className="font-display text-lg">Progression du programme</span>
-              <span className="text-sun font-bold">{completedCount} / 13</span>
-            </div>
-            <div className="h-2.5 rounded-full bg-navy-700 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all"
-                style={{ width: `${(completedCount / 13) * 100}%` }}
-              />
-            </div>
-          </div>
+      {/* Jauge de progression */}
+      <div className="mb-10 p-6 rounded-2xl glass-navy text-white">
+        <div className="flex items-center justify-between mb-3">
+          <span className="font-display text-lg">Progression du programme</span>
+          <span className="text-sun font-bold">{completedCount} / 13</span>
+        </div>
+        <div className="h-2.5 rounded-full bg-navy-700 overflow-hidden">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all"
+            style={{ width: `${(completedCount / 13) * 100}%` }}
+          />
+        </div>
+        {sessions.length === 0 && (
+          <p className="text-xs text-navy-100/70 mt-3">
+            Les séances s&apos;activeront dès qu&apos;un coach THRIVE sera attribué à{' '}
+            {selectedChild.first_name}.
+          </p>
+        )}
+      </div>
 
-          {/* Timeline des 13 séances */}
-          <div className="space-y-3">
-            {sessions.map((s) => {
-              const status = STATUS_STYLES[s.status] ?? STATUS_STYLES.SCHEDULED;
-              const phase = phaseOfSession(s.session_number);
-              const report = s.status === 'COMPLETED'
-                ? reports.find(
-                    (r) =>
-                      (r.content as any)?.session_id === s.id ||
-                      (r.content as any)?.session_number === s.session_number
-                  ) ?? null
-                : null;
-              const isOpen = openReport === s.id;
+      {/* Les 13 séances : grisées tant que le coach n'a pas validé,
+          éclairées dès la validation (mise à jour en direct) */}
+      <div className="space-y-3">
+        {THRIVE_SESSIONS.map((tpl) => {
+          const s = sessions.find((x) => x.session_number === tpl.num) ?? null;
+          const isDone = s?.status === 'COMPLETED';
+          const phase = phaseOfSession(tpl.num);
+          const report = isDone && s
+            ? reports.find(
+                (r) =>
+                  (r.content as any)?.session_id === s.id ||
+                  (r.content as any)?.session_number === s.session_number
+              ) ?? null
+            : null;
+          const rowId = s?.id ?? `tpl-${tpl.num}`;
+          const isOpen = openReport === rowId;
+          const hasDetails = Boolean(report || (isDone && s?.coach_notes));
 
-              return (
-                <div key={s.id} className="rounded-2xl glass overflow-hidden">
-                  <button
-                    className="w-full flex items-center gap-4 p-5 text-left"
-                    onClick={() => setOpenReport(isOpen ? null : s.id)}
+          return (
+            <div
+              key={rowId}
+              className={`rounded-2xl overflow-hidden transition-all duration-500 ${
+                isDone
+                  ? 'glass ring-1 ring-sage/60'
+                  : 'bg-navy-900/75 backdrop-blur-md opacity-80'
+              }`}
+            >
+              <button
+                className="w-full flex items-center gap-4 p-5 text-left"
+                onClick={() => hasDetails && setOpenReport(isOpen ? null : rowId)}
+              >
+                <span
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
+                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/50'
+                  }`}
+                >
+                  {isDone ? '✓' : tpl.num}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span
+                    className={`block font-semibold truncate ${
+                      isDone ? 'text-navy-900' : 'text-white/55'
+                    }`}
                   >
-                    <span
-                      className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
-                        s.status === 'COMPLETED'
-                          ? 'bg-sage text-navy-900'
-                          : 'bg-navy-50 text-navy-600'
-                      }`}
-                    >
-                      {s.session_number ?? '–'}
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block font-semibold text-navy-900 truncate">
-                        {s.title ?? `Séance ${s.session_number}`}
-                      </span>
-                      <span className="block text-xs text-navy-600/60 mt-0.5">
-                        {PHASE_LABELS[phase]}
-                        {s.scheduled_at &&
-                          ` · ${new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
-                            weekday: 'long',
-                            day: 'numeric',
-                            month: 'long',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}`}
-                      </span>
-                    </span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${status.cls}`}>
-                      {status.label}
-                    </span>
-                    {(report || s.coach_notes) && (
-                      <span className="text-navy-400 text-xs">{isOpen ? '▲' : '▼'}</span>
-                    )}
-                  </button>
+                    {s?.title ?? tpl.title}
+                  </span>
+                  <span
+                    className={`block text-xs mt-0.5 ${
+                      isDone ? 'text-navy-600/60' : 'text-white/35'
+                    }`}
+                  >
+                    {PHASE_LABELS[phase]}
+                    {s?.scheduled_at &&
+                      ` · ${new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
+                        weekday: 'long',
+                        day: 'numeric',
+                        month: 'long',
+                      })}`}
+                  </span>
+                </span>
+                <span
+                  className={`px-3 py-1 rounded-full text-xs font-bold ${
+                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/45'
+                  }`}
+                >
+                  {isDone ? 'Validée par le coach' : 'À venir'}
+                </span>
+                {hasDetails && (
+                  <span className="text-navy-400 text-xs">{isOpen ? '▲' : '▼'}</span>
+                )}
+              </button>
 
-                  {isOpen && (report || s.coach_notes) && (
-                    <div className="px-5 pb-5 pt-1 border-t border-navy-50">
-                      <h4 className="text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-2 mt-3">
-                        Bilan du coach
-                      </h4>
-                      {s.coach_notes && (
-                        <p className="text-sm text-navy-900/80 whitespace-pre-line mb-3">
-                          {s.coach_notes}
-                        </p>
-                      )}
-                      {report?.content && (
-                        <div className="space-y-2">
-                          {Object.entries(report.content)
-                            .filter(([k]) => !['session_id', 'session_number'].includes(k))
-                            .map(([key, value]) => (
-                              <div key={key} className="text-sm">
-                                <span className="font-medium text-navy-900 capitalize">
-                                  {key.replace(/_/g, ' ')} :{' '}
-                                </span>
-                                <span className="text-navy-900/75">{String(value)}</span>
-                              </div>
-                            ))}
-                        </div>
-                      )}
+              {isOpen && hasDetails && s && (
+                <div className="px-5 pb-5 pt-1 border-t border-navy-50">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-2 mt-3">
+                    Bilan du coach
+                  </h4>
+                  {s.coach_notes && (
+                    <p className="text-sm text-navy-900/80 whitespace-pre-line mb-3">
+                      {s.coach_notes}
+                    </p>
+                  )}
+                  {report?.content && (
+                    <div className="space-y-2">
+                      {Object.entries(report.content)
+                        .filter(([k]) => !['session_id', 'session_number'].includes(k))
+                        .map(([key, value]) => (
+                          <div key={key} className="text-sm">
+                            <span className="font-medium text-navy-900 capitalize">
+                              {key.replace(/_/g, ' ')} :{' '}
+                            </span>
+                            <span className="text-navy-900/75">{String(value)}</span>
+                          </div>
+                        ))}
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
