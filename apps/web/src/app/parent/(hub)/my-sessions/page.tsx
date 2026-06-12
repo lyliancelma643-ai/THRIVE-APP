@@ -251,15 +251,52 @@ export default function MySessionsPage() {
                   {report?.content && (
                     <div className="space-y-2">
                       {Object.entries(report.content)
-                        .filter(([k]) => !['session_id', 'session_number'].includes(k))
-                        .map(([key, value]) => (
-                          <div key={key} className="text-sm">
-                            <span className="font-medium text-navy-900 capitalize">
-                              {key.replace(/_/g, ' ')} :{' '}
-                            </span>
-                            <span className="text-navy-900/75">{String(value)}</span>
-                          </div>
-                        ))}
+                        .filter(
+                          ([k, v]) =>
+                            !['session_id', 'session_number'].includes(k) &&
+                            v !== '' &&
+                            v !== null
+                        )
+                        .map(([key, value]) =>
+                          key === 'observations' && value && typeof value === 'object' ? (
+                            <div key={key} className="pt-2">
+                              <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-2">
+                                Observations du coach
+                              </span>
+                              <div className="space-y-1.5">
+                                {Object.entries(value as Record<string, number>).map(
+                                  ([ind, note]) => (
+                                    <div
+                                      key={ind}
+                                      className="flex items-center justify-between gap-3 text-sm"
+                                    >
+                                      <span className="text-navy-900/80">{ind}</span>
+                                      <span className="flex gap-1 shrink-0">
+                                        {[1, 2, 3, 4, 5].map((n) => (
+                                          <span
+                                            key={n}
+                                            className={`w-2.5 h-2.5 rounded-full ${
+                                              n <= Number(note)
+                                                ? 'bg-navy-600'
+                                                : 'bg-navy-100'
+                                            }`}
+                                          />
+                                        ))}
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <div key={key} className="text-sm">
+                              <span className="font-medium text-navy-900 capitalize">
+                                {key.replace(/_/g, ' ')} :{' '}
+                              </span>
+                              <span className="text-navy-900/75">{String(value)}</span>
+                            </div>
+                          )
+                        )}
                     </div>
                   )}
                 </div>
