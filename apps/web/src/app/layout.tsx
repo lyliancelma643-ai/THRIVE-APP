@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Fraunces } from 'next/font/google';
 import './globals.css';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display' });
 
 export const metadata: Metadata = {
   title: 'THRIVE — Plateforme psychoéducative',
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${inter.variable} font-sans`}>
-      <body className="bg-slate-50 text-slate-900 antialiased selection:bg-blue-500 selection:text-white">
+    <html lang="fr" className={`${inter.variable} ${fraunces.variable} font-sans`}>
+      <body className="bg-cream text-navy-900 antialiased selection:bg-navy-600 selection:text-white">
         {children}
       </body>
     </html>

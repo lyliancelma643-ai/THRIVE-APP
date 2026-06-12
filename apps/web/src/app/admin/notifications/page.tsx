@@ -42,7 +42,7 @@ export default function AdminNotificationsPage() {
 
   useEffect(() => {
     fetchAll();
-    supabase.from('profiles').select('id, first_name, last_name').then(({ data }) => setProfiles(data ?? []));
+    supabase.from('profiles').select('id, first_name, last_name').then(({ data }: { data: any }) => setProfiles(data ?? []));
   }, []);
 
   const fetchAll = async () => {

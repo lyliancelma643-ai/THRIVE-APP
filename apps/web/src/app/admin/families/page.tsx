@@ -62,7 +62,7 @@ export default function AdminFamiliesPage() {
       .select('id, family_id');
 
     // 3. Merge côté client
-    const familyMap = new Map<string, typeof familiesData[0]>();
+    const familyMap = new Map<string, NonNullable<typeof familiesData>[number]>();
     familiesData?.forEach((f) => familyMap.set(f.parent_id, f));
 
     const childCountMap = new Map<string, number>();

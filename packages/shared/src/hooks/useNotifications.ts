@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import * as Notifications from 'expo-notifications';
-import { supabase } from '../lib/supabase';
+import { supabaseClient as supabase } from '../lib/supabase';
 import type { RealtimeChannel } from '@supabase/supabase-js';
 
 export type NotificationType = 'MESSAGE' | 'SESSION' | 'BADGE' | 'PROGRAM' | 'SYSTEM';
@@ -22,7 +22,7 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const listenerRef = useRef<Notifications.Subscription | null>(null);
+  const listenerRef = useRef<{ remove: () => void } | null>(null);
 
   const fetch = useCallback(async () => {
     const { data } = await supabase
@@ -66,7 +66,7 @@ export function useNotifications() {
 
     setupRealtime();
 
-    listenerRef.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    listenerRef.current = Notifications.addNotificationResponseReceivedListener((response: any) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
       console.log('[THRIVE] Notification tap:', data);
     });

@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/admin/coaches', label: 'Coaches', icon: '🎯' },
   { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
   { href: '/admin/children', label: 'Enfants', icon: '🧒' },
+  { href: '/admin/assignments', label: 'Assignations', icon: '🤝' },
   { href: '/admin/programs', label: 'Programmes', icon: '🏆' },
   { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
   { href: '/admin/badges', label: 'Badges', icon: '🏅' },

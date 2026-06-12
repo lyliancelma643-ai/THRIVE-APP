@@ -24,7 +24,7 @@ export default function DashboardPage() {
         router.replace('/coach/dashboard');
         break;
       default:
-        // PARENT reste sur /dashboard
+        router.replace('/parent');
         break;
     }
   }, [isLoading, isAuthenticated, user, router]);
