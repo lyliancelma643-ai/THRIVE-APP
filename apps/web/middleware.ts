@@ -4,8 +4,8 @@ import { createClient } from '@supabase/supabase-js';
 
 const PROTECTED_PATHS = ['/dashboard', '/parent', '/coach', '/admin'];
 const ROLE_PATHS: Record<string, string[]> = {
-  '/parent': ['PARENT'],
-  '/coach': ['COACH'],
+  '/parent': ['PARENT', 'ADMIN', 'SUPER_ADMIN'],
+  '/coach': ['COACH', 'ADMIN', 'SUPER_ADMIN'],
   '/admin': ['ADMIN', 'SUPER_ADMIN'],
 };
 

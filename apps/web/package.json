@@ -10,8 +10,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@thrive/shared": "workspace:*",
     "@hookform/resolvers": "^3.0.0",
+    "@supabase/supabase-js": "^2.107.0",
+    "@thrive/shared": "workspace:*",
     "next": "14.2.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
