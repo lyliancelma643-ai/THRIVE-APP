@@ -26,10 +26,10 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Barre de navigation horizontale (liquid glass) */}
-      <header className="sticky top-0 z-50 px-4 pt-4">
-        <div className="glass-strong rounded-2xl max-w-7xl mx-auto px-5 py-3 flex items-center gap-2">
-          <Link href="/parent" className="flex items-baseline gap-2 mr-4 shrink-0">
-            <span className="font-display text-xl font-semibold tracking-wide text-navy-900">
+      <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4">
+        <div className="glass-strong rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
+          <Link href="/parent" className="flex items-baseline gap-2 mr-1 md:mr-4 shrink-0">
+            <span className="font-display text-lg md:text-xl font-semibold tracking-wide text-navy-900">
               THRIVE<span className="text-navy-600">↑</span>
             </span>
             <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-navy-600/60">
@@ -44,25 +44,32 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                     active
                       ? 'bg-navy-600 text-white shadow-card'
                       : 'text-navy-700 hover:bg-white/70'
                   }`}
                 >
                   <span className="text-base leading-none">{item.icon}</span>
-                  {item.label}
+                  <span className="hidden sm:inline">{item.label}</span>
                 </Link>
               );
             })}
           </nav>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <Link
               href="/parent/select-profile"
               className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
             >
               + Ajouter un enfant
+            </Link>
+            <Link
+              href="/parent/select-profile"
+              aria-label="Ajouter un enfant"
+              className="md:hidden w-9 h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center text-lg font-bold"
+            >
+              +
             </Link>
             <ChildSwitcher />
             <button
@@ -71,7 +78,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 router.push('/login');
               }}
               title={user?.email}
-              className="px-3 py-2 rounded-full text-xs text-navy-600/70 hover:bg-white/70 hover:text-navy-900 transition-colors"
+              className="hidden sm:block px-3 py-2 rounded-full text-xs text-navy-600/70 hover:bg-white/70 hover:text-navy-900 transition-colors"
             >
               Quitter
             </button>
@@ -79,7 +86,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <main className="relative max-w-7xl mx-auto px-6 py-8">{children}</main>
+      <main className="relative max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">{children}</main>
     </div>
   );
 }

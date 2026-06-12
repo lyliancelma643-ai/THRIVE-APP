@@ -94,6 +94,17 @@ export function ChildSwitcher() {
           >
             + Gérer les profils
           </Link>
+          <button
+            onClick={async () => {
+              setOpen(false);
+              const { supabaseClient } = await import('@thrive/shared');
+              await supabaseClient.auth.signOut();
+              window.location.href = '/login';
+            }}
+            className="sm:hidden block w-full text-left px-4 py-2.5 text-xs text-navy-600/70 hover:bg-white/70 transition-colors border-t border-white/50"
+          >
+            Se déconnecter
+          </button>
         </div>
       )}
     </div>

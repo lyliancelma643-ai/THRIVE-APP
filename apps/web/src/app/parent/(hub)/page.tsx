@@ -92,15 +92,15 @@ export default function ParentHomePage() {
           <div
             className={`relative rounded-3xl overflow-hidden bg-gradient-to-br ${themeAccent(nextSession.theme).glow} shadow-card group-hover:shadow-card-hover transition-all`}
           >
-            <span className="absolute -right-4 -bottom-16 font-display text-[16rem] leading-none text-white/10 select-none">
+            <span className="absolute -right-4 -bottom-16 font-display text-[9rem] md:text-[16rem] leading-none text-white/10 select-none">
               {nextSession.session_number}
             </span>
-            <div className="relative px-10 py-14 max-w-2xl">
+            <div className="relative px-6 py-10 md:px-10 md:py-14 max-w-2xl">
               <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-3">
                 {completedIds.size > 0 ? 'Continuer le parcours' : 'Commencer le parcours'}
                 {selectedChild ? ` · ${selectedChild.first_name}` : ''}
               </p>
-              <h1 className="font-display text-4xl text-white font-semibold mb-3">
+              <h1 className="font-display text-2xl md:text-4xl text-white font-semibold mb-3">
                 {nextSession.title}
               </h1>
               <p className="text-navy-100/90 mb-2">{nextSession.subtitle}</p>

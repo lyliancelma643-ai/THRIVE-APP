@@ -39,7 +39,43 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="min-h-screen bg-cream">
-      <aside className="fixed inset-y-0 left-0 w-64 bg-navy-900 text-white flex flex-col z-40">
+      {/* Mini-barre mobile */}
+      <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white">
+        <span className="font-display text-lg font-semibold">
+          THRIVE<span className="text-sun">↑</span>{' '}
+          <span className="text-[10px] uppercase tracking-[0.2em] text-sage">Coach</span>
+        </span>
+        <button
+          onClick={async () => {
+            await signOut();
+            router.push('/login');
+          }}
+          className="text-xs text-navy-200/80"
+        >
+          Quitter
+        </button>
+      </div>
+
+      {/* Barre d'onglets mobile (en bas, comme une app) */}
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex bg-navy-900/95 backdrop-blur-xl border-t border-navy-800">
+        {NAV_ITEMS.map((item) => {
+          const active = pathname.startsWith(item.href);
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
+                active ? 'text-sun' : 'text-navy-100/70'
+              }`}
+            >
+              <span className="text-lg leading-none">{item.icon}</span>
+              {item.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-navy-900 text-white flex-col z-40">
         <div className="px-6 pt-8 pb-6">
           <Link href="/coach/dashboard" className="block">
             <span className="font-display text-2xl font-semibold tracking-wide">
@@ -88,7 +124,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="ml-64 px-10 py-8">{children}</main>
+      <main className="px-4 py-5 pb-24 md:px-8 lg:ml-64 lg:px-10 lg:py-8 lg:pb-8">{children}</main>
     </div>
   );
 }

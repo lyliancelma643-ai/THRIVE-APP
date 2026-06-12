@@ -212,7 +212,7 @@ export default function CoachLiveSessionPage() {
   const isDone = session.status === 'COMPLETED';
 
   return (
-    <div className="max-w-3xl pb-28">
+    <div className="max-w-3xl pb-44 lg:pb-28">
       {/* En-tête */}
       <Link
         href={`/coach/athletes/${child.id}`}
@@ -411,28 +411,27 @@ export default function CoachLiveSessionPage() {
       </div>
 
       {/* Barre d'envoi */}
-      <div className="fixed bottom-0 left-64 right-0 z-40 px-10 py-4 bg-cream/80 backdrop-blur-xl border-t border-navy-100">
-        <div className="max-w-3xl flex items-center gap-4">
+      <div className="fixed bottom-14 lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
+        <div className="max-w-3xl flex items-center gap-3">
           {startedAt && !isDone && (
-            <span className="px-3 py-1.5 rounded-full bg-navy-900 text-sun text-sm font-bold tabular-nums">
+            <span className="px-3 py-1.5 rounded-full bg-navy-900 text-sun text-sm font-bold tabular-nums shrink-0">
               ⏱ {timerLabel}
             </span>
           )}
-          <span className="text-xs text-navy-600/70">
+          <span className="hidden sm:inline text-xs text-navy-600/70">
             {ratedCount} indicateur{ratedCount > 1 ? 's' : ''} coté{ratedCount > 1 ? 's' : ''} ·{' '}
-            {Object.values(fields).filter((v) => v.trim()).length} notes · brouillon
-            sauvegardé automatiquement
+            {Object.values(fields).filter((v) => v.trim()).length} notes · brouillon auto
           </span>
           <button
             onClick={send}
             disabled={sending || !parentMsg.trim()}
-            className="ml-auto px-6 py-3 rounded-full bg-navy-600 hover:bg-navy-700 text-white text-sm font-bold disabled:opacity-50"
+            className="ml-auto px-4 py-3 lg:px-6 rounded-full bg-navy-600 hover:bg-navy-700 text-white text-sm font-bold disabled:opacity-50 whitespace-nowrap"
           >
             {sending
               ? 'Envoi…'
               : isDone
-                ? 'Renvoyer un bilan mis à jour'
-                : 'Terminer la séance et envoyer le bilan'}
+                ? 'Renvoyer le bilan'
+                : 'Terminer & envoyer le bilan'}
           </button>
         </div>
       </div>
