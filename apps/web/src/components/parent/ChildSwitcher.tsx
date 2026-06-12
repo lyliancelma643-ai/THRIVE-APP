@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
@@ -13,6 +14,23 @@ export function ChildSwitcher() {
 
   useEffect(() => {
     if (user?.id) loadChildren(user.id);
+  }, [user?.id, loadChildren]);
+
+  // Realtime : un enfant ajouté (par le parent ou par l'admin) apparaît sans recharger
+  useEffect(() => {
+    if (!user?.id) return;
+    const channel = supabase
+      .channel(`parent-children-${user.id}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, () =>
+        loadChildren(user.id)
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, () =>
+        loadChildren(user.id)
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user?.id, loadChildren]);
 
   const selected = children.find((c) => c.id === selectedChildId) ?? null;

@@ -60,6 +60,19 @@ export default function AdminAssignmentsPage() {
     load();
   }, [load]);
 
+  // Realtime : nouveaux enfants / coaches / assignations visibles sans recharger
+  useEffect(() => {
+    const channel = supabase
+      .channel('admin-assignments-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coach_assignments' }, () => load())
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [load]);
+
   const assign = async (child: ChildRow, coachId: string) => {
     setSavingId(child.id);
     setError('');
