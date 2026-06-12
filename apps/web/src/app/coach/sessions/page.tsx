@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { fetchAssignedChildren, AssignedChild, CoachSession } from '@/lib/coach';
@@ -127,8 +128,11 @@ export default function CoachSessionsPage() {
                       >
                         {s.session_number}
                       </span>
-                      <span className="flex-1 min-w-0">
-                        <span className="block font-semibold text-navy-900 truncate">
+                      <Link
+                        href={`/coach/athletes/${child.id}/session/${s.id}`}
+                        className="flex-1 min-w-0 group"
+                      >
+                        <span className="block font-semibold text-navy-900 truncate group-hover:underline">
                           {s.title}
                         </span>
                         <span className="block text-xs text-navy-600/60">
@@ -136,8 +140,9 @@ export default function CoachSessionsPage() {
                             new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                               weekday: 'long', day: 'numeric', month: 'long',
                             })}
+                          {' · '}Ouvrir la fiche complète
                         </span>
-                      </span>
+                      </Link>
 
                       {isDone ? (
                         <button

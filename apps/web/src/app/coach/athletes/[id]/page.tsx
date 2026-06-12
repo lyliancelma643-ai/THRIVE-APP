@@ -2,46 +2,22 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { childAge, AssignedChild, CoachSession, THRIVE_SESSIONS } from '@/lib/coach';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
-import { SESSION_GUIDES, SessionGuide } from '@/lib/thrive-guides';
-
-type ReportForm = {
-  performance_summary: string;
-  success_count: string;
-  forces_via: string;
-  transfer_notes: string;
-  home_recommendations: string;
-  coach_message_parent: string;
-  rpe: string;
-};
-
-const EMPTY_FORM: ReportForm = {
-  performance_summary: '',
-  success_count: '',
-  forces_via: '',
-  transfer_notes: '',
-  home_recommendations: '',
-  coach_message_parent: '',
-  rpe: '5',
-};
 
 export default function CoachAthletePage() {
   const params = useParams<{ id: string }>();
+  const searchParams = useSearchParams();
   const { user } = useAuthStore();
+  const justSent = searchParams?.get('sent') === '1';
 
   const [child, setChild] = useState<AssignedChild | null>(null);
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
-  const [openForm, setOpenForm] = useState<string | null>(null);
-  const [form, setForm] = useState<ReportForm>(EMPTY_FORM);
-  // Grille d'observation 1-5 de la méthode THRIVE (indicateur -> note)
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [rescheduling, setRescheduling] = useState<string | null>(null);
   const [newDate, setNewDate] = useState('');
@@ -70,15 +46,13 @@ export default function CoachAthletePage() {
     load();
   }, [load]);
 
-  // Créer le programme complet de 13 séances (1 par semaine)
+  // Filet de sécurité : crée le programme si l'automatisation n'a pas joué
   const createProgram = async () => {
     if (!user?.id || !child) return;
     setCreating(true);
     setError('');
     try {
-      const group = (childAge(child.date_of_birth) ?? 10) <= 11 ? '8-11'
-        : (childAge(child.date_of_birth) ?? 10) <= 14 ? '12-14' : '15-17';
-
+      const group = ageGroupFromBirthDate(child.date_of_birth) ?? '8-11';
       const { data: program, error: progErr } = await supabase
         .from('programs')
         .insert({
@@ -110,71 +84,11 @@ export default function CoachAthletePage() {
       }));
       const { error: sessErr } = await supabase.from('sessions').insert(rows);
       if (sessErr) throw sessErr;
-
       await load();
     } catch (e: any) {
       setError(e?.message ?? 'Erreur lors de la création du programme');
     } finally {
       setCreating(false);
-    }
-  };
-
-  // Compléter une séance : bilan structuré -> session + report
-  const submitReport = async (session: CoachSession) => {
-    if (!user?.id || !child) return;
-    setSaving(true);
-    setError('');
-    try {
-      const { error: upErr } = await supabase
-        .from('sessions')
-        .update({
-          status: 'COMPLETED',
-          completed_at: new Date().toISOString(),
-          coach_notes: [
-            form.performance_summary && `Résumé : ${form.performance_summary}`,
-            form.coach_message_parent && `Message aux parents : ${form.coach_message_parent}`,
-            form.home_recommendations && `À la maison : ${form.home_recommendations}`,
-          ]
-            .filter(Boolean)
-            .join('\n\n'),
-        })
-        .eq('id', session.id);
-      if (upErr) throw upErr;
-
-      const ratedObservations = Object.fromEntries(
-        Object.entries(ratings).filter(([, v]) => v > 0)
-      );
-
-      const { error: repErr } = await supabase.from('reports').insert({
-        child_id: child.id,
-        program_id: session.program_id,
-        generated_by: user.id,
-        content: {
-          session_id: session.id,
-          session_number: session.session_number,
-          titre: session.title,
-          résumé: form.performance_summary,
-          réussites: form.success_count,
-          'forces observées': form.forces_via,
-          'transfert hors sport': form.transfer_notes,
-          'recommandations maison': form.home_recommendations,
-          'message du coach': form.coach_message_parent,
-          rpe: form.rpe,
-          ...(Object.keys(ratedObservations).length > 0
-            ? { observations: ratedObservations }
-            : {}),
-        },
-      });
-      if (repErr) throw repErr;
-
-      setOpenForm(null);
-      setForm(EMPTY_FORM);
-      setRatings({});
-      await load();
-    } catch (e: any) {
-      setError(e?.message ?? "Erreur lors de l'enregistrement du bilan");
-    } finally {
-      setSaving(false);
     }
   };
 
@@ -208,7 +122,7 @@ export default function CoachAthletePage() {
         ← Mes athlètes
       </Link>
 
-      <div className="flex items-center gap-4 mt-4 mb-8">
+      <div className="flex items-center gap-4 mt-4 mb-6">
         <span className="w-14 h-14 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl font-bold">
           {child.first_name[0]}
         </span>
@@ -217,15 +131,18 @@ export default function CoachAthletePage() {
             {child.first_name} {child.last_name ?? ''}
           </h1>
           <p className="text-sm text-navy-600/70">
-            {childAge(child.date_of_birth) ?? '–'} ans · {child.sport ?? 'Hockey'} ·{' '}
-            {completed}/13 séances complétées
+            {childAge(child.date_of_birth) ?? '–'} ans (groupe {ageGroup}) · {child.sport ?? 'Hockey'} ·{' '}
+            {completed}/13 séances validées
           </p>
         </div>
       </div>
 
-      {error && (
-        <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>
+      {justSent && (
+        <p className="mb-4 p-3 rounded-xl bg-sage/40 text-navy-900 text-sm font-medium">
+          ✓ Bilan envoyé — il est déjà visible sur le compte parent.
+        </p>
       )}
+      {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
 
       {sessions.length === 0 ? (
         <div className="p-8 rounded-2xl bg-white shadow-card text-center">
@@ -233,8 +150,7 @@ export default function CoachAthletePage() {
             Aucun programme en cours
           </h2>
           <p className="text-sm text-navy-600/70 mb-6">
-            Créez le programme complet : 13 séances hebdomadaires selon le protocole THRIVE
-            (Ancrer → Développer → Intégrer), que vous pourrez replanifier librement.
+            Créez le programme complet : 13 séances hebdomadaires selon le protocole THRIVE.
           </p>
           <button
             onClick={createProgram}
@@ -246,262 +162,71 @@ export default function CoachAthletePage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {sessions.map((s) => {
-            const isOpen = openForm === s.id;
-            const guide: SessionGuide | null =
-              ageGroup && s.session_number
-                ? SESSION_GUIDES[ageGroup]?.[s.session_number] ?? null
-                : null;
-            return (
-              <div key={s.id} className="rounded-2xl bg-white shadow-card overflow-hidden">
-                <div className="flex items-center gap-4 p-5">
-                  <span
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
-                      s.status === 'COMPLETED' ? 'bg-sage text-navy-900' : 'bg-navy-50 text-navy-600'
-                    }`}
-                  >
-                    {s.session_number}
+          {sessions.map((s) => (
+            <div key={s.id} className="rounded-2xl bg-white shadow-card overflow-hidden">
+              <div className="flex items-center gap-4 p-5">
+                <span
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
+                    s.status === 'COMPLETED' ? 'bg-sage text-navy-900' : 'bg-navy-50 text-navy-600'
+                  }`}
+                >
+                  {s.status === 'COMPLETED' ? '✓' : s.session_number}
+                </span>
+                <Link
+                  href={`/coach/athletes/${child.id}/session/${s.id}`}
+                  className="flex-1 min-w-0 group"
+                >
+                  <span className="block font-semibold text-navy-900 truncate group-hover:underline">
+                    {s.title}
                   </span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block font-semibold text-navy-900 truncate">{s.title}</span>
-                    <span className="block text-xs text-navy-600/60">
-                      {s.scheduled_at &&
-                        new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
-                          weekday: 'long', day: 'numeric', month: 'long',
-                          hour: '2-digit', minute: '2-digit',
-                        })}
-                    </span>
+                  <span className="block text-xs text-navy-600/60">
+                    {s.scheduled_at &&
+                      new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
+                        weekday: 'long', day: 'numeric', month: 'long',
+                        hour: '2-digit', minute: '2-digit',
+                      })}
+                    {' · '}Fiche complète {ageGroup} ans
                   </span>
+                </Link>
 
-                  {s.status === 'COMPLETED' ? (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-sage text-navy-900">
-                      Bilan envoyé ✓
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <button
-                        onClick={() => {
-                          setRescheduling(rescheduling === s.id ? null : s.id);
-                          setOpenForm(null);
-                        }}
-                        className="px-3 py-1.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700 hover:bg-navy-100"
-                      >
-                        Replanifier
-                      </button>
-                      <button
-                        onClick={() => {
-                          setOpenForm(isOpen ? null : s.id);
-                          setRescheduling(null);
-                          setForm(EMPTY_FORM);
-                          setRatings({});
-                        }}
-                        className="px-3 py-1.5 rounded-full text-xs font-bold bg-sun text-navy-900 hover:bg-sun-dark"
-                      >
-                        {isOpen ? 'Fermer' : 'Compléter le bilan'}
-                      </button>
-                    </span>
-                  )}
-                </div>
-
-                {rescheduling === s.id && (
-                  <div className="px-5 pb-5 flex items-center gap-3 border-t border-navy-50 pt-4">
-                    <input
-                      type="datetime-local"
-                      value={newDate}
-                      onChange={(e) => setNewDate(e.target.value)}
-                      className="border border-navy-100 rounded-xl px-3 py-2 text-sm"
-                    />
-                    <button
-                      onClick={() => reschedule(s.id)}
-                      className="px-4 py-2 rounded-full bg-navy-600 text-white text-xs font-bold"
-                    >
-                      Enregistrer la date
-                    </button>
-                  </div>
-                )}
-
-                {isOpen && (
-                  <div className="px-5 pb-5 border-t border-navy-50 pt-4 space-y-4">
-                    {/* Guide officiel de la séance (méthode THRIVE, adapté à l'âge) */}
-                    {guide && (
-                      <div className="p-4 rounded-2xl bg-navy-900 text-white space-y-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-sun">
-                          Guide de séance · {ageGroup} ans
-                        </p>
-                        <p className="text-sm leading-relaxed">
-                          <span className="font-bold">🎯 Objectif :</span> {guide.objectif}
-                        </p>
-                        {guide.verbatim && (
-                          <p className="text-sm text-sage italic">
-                            💬 « {guide.verbatim} »
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Grille d'observation officielle — cote 1 à 5 */}
-                    {guide && guide.indicateurs.length > 0 && (
-                      <div>
-                        <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-2">
-                          Grille d&apos;observation (1 = fragile · 5 = solide)
-                        </span>
-                        <div className="space-y-2">
-                          {guide.indicateurs.map((ind) => (
-                            <div
-                              key={ind}
-                              className="flex items-center justify-between gap-3 p-2.5 rounded-xl bg-navy-50/60"
-                            >
-                              <span className="text-sm text-navy-900 flex-1">{ind}</span>
-                              <span className="flex gap-1">
-                                {[1, 2, 3, 4, 5].map((n) => (
-                                  <button
-                                    key={n}
-                                    type="button"
-                                    onClick={() =>
-                                      setRatings((r) => ({
-                                        ...r,
-                                        [ind]: r[ind] === n ? 0 : n,
-                                      }))
-                                    }
-                                    className={`w-7 h-7 rounded-full text-xs font-bold transition-colors ${
-                                      (ratings[ind] ?? 0) >= n
-                                        ? 'bg-navy-600 text-white'
-                                        : 'bg-white text-navy-400 hover:bg-navy-100'
-                                    }`}
-                                  >
-                                    {n}
-                                  </button>
-                                ))}
-                              </span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    <Field
-                      label="Résumé de la séance"
-                      hint="Ce qui a été travaillé, comment l'enfant a réagi"
-                    >
-                      <textarea
-                        rows={3}
-                        className="input-coach"
-                        value={form.performance_summary}
-                        onChange={(e) => setForm({ ...form, performance_summary: e.target.value })}
-                      />
-                    </Field>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <Field label="Réussites (post-its verts)" hint="Nombre approximatif">
-                        <input
-                          type="number"
-                          min={0}
-                          className="input-coach"
-                          value={form.success_count}
-                          onChange={(e) => setForm({ ...form, success_count: e.target.value })}
-                        />
-                      </Field>
-                      <Field label="RPE de l'enfant (0–10)">
-                        <input
-                          type="number"
-                          min={0}
-                          max={10}
-                          className="input-coach"
-                          value={form.rpe}
-                          onChange={(e) => setForm({ ...form, rpe: e.target.value })}
-                        />
-                      </Field>
-                    </div>
-                    <Field label="Forces VIA observées" hint="Ex. : persévérance, curiosité, humour">
-                      <input
-                        className="input-coach"
-                        value={form.forces_via}
-                        onChange={(e) => setForm({ ...form, forces_via: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Transfert hors sport" hint="Liens faits avec l'école, la maison…">
-                      <textarea
-                        rows={2}
-                        className="input-coach"
-                        value={form.transfer_notes}
-                        onChange={(e) => setForm({ ...form, transfer_notes: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Recommandations à la maison">
-                      <textarea
-                        rows={2}
-                        className="input-coach"
-                        value={form.home_recommendations}
-                        onChange={(e) => setForm({ ...form, home_recommendations: e.target.value })}
-                      />
-                    </Field>
-                    <Field label="Message aux parents" hint="2 à 4 phrases chaleureuses">
-                      <textarea
-                        rows={2}
-                        className="input-coach"
-                        value={form.coach_message_parent}
-                        onChange={(e) => setForm({ ...form, coach_message_parent: e.target.value })}
-                      />
-                    </Field>
-                    <div className="flex justify-end">
-                      <button
-                        onClick={() => submitReport(s)}
-                        disabled={saving || !form.performance_summary}
-                        className="px-6 py-2.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white text-sm font-bold disabled:opacity-50"
-                      >
-                        {saving ? 'Envoi…' : 'Terminer la séance et envoyer le bilan'}
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {s.status === 'COMPLETED' && s.coach_notes && (
-                  <div className="px-5 pb-5 border-t border-navy-50 pt-3">
-                    <p className="text-xs text-navy-600/70 whitespace-pre-line line-clamp-3">
-                      {s.coach_notes}
-                    </p>
-                  </div>
-                )}
+                <button
+                  onClick={() => setRescheduling(rescheduling === s.id ? null : s.id)}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700 hover:bg-navy-100"
+                >
+                  Replanifier
+                </button>
+                <Link
+                  href={`/coach/athletes/${child.id}/session/${s.id}`}
+                  className={`px-4 py-2 rounded-full text-xs font-bold ${
+                    s.status === 'COMPLETED'
+                      ? 'bg-sage text-navy-900 hover:bg-sage-dark'
+                      : 'bg-sun text-navy-900 hover:bg-sun-dark'
+                  }`}
+                >
+                  {s.status === 'COMPLETED' ? 'Bilan envoyé ✓' : 'Faire la séance →'}
+                </Link>
               </div>
-            );
-          })}
+
+              {rescheduling === s.id && (
+                <div className="px-5 pb-5 flex items-center gap-3 border-t border-navy-50 pt-4">
+                  <input
+                    type="datetime-local"
+                    value={newDate}
+                    onChange={(e) => setNewDate(e.target.value)}
+                    className="border border-navy-100 rounded-xl px-3 py-2 text-sm"
+                  />
+                  <button
+                    onClick={() => reschedule(s.id)}
+                    className="px-4 py-2 rounded-full bg-navy-600 text-white text-xs font-bold"
+                  >
+                    Enregistrer la date
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
-
-      <style jsx global>{`
-        .input-coach {
-          width: 100%;
-          border: 1px solid #cbe0ee;
-          border-radius: 0.75rem;
-          padding: 0.5rem 0.75rem;
-          font-size: 0.875rem;
-          color: #022539;
-          background: #fff;
-        }
-        .input-coach:focus {
-          outline: 2px solid #004e7a;
-          outline-offset: 0;
-        }
-      `}</style>
     </div>
-  );
-}
-
-function Field({
-  label,
-  hint,
-  children,
-}: {
-  label: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
-        {label}
-      </span>
-      {children}
-      {hint && <span className="block text-[11px] text-navy-600/50 mt-1">{hint}</span>}
-    </label>
   );
 }
