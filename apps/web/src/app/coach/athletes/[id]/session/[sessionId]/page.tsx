@@ -18,7 +18,18 @@ type DraftState = {
   ratings: Record<string, number>;
   fields: Record<string, string>;
   parentMsg: string;
+  startedAt?: number | null;
 };
+
+// "0:05–0:20 — Bloc 1" -> plage en minutes [5, 20]
+function parseTimeRange(title: string): [number, number] | null {
+  const m = title.match(/^(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)/);
+  if (!m) return null;
+  return [
+    parseInt(m[1]) * 60 + parseInt(m[2]),
+    parseInt(m[3]) * 60 + parseInt(m[4]),
+  ];
+}
 
 export default function CoachLiveSessionPage() {
   const params = useParams<{ id: string; sessionId: string }>();
@@ -35,7 +46,16 @@ export default function CoachLiveSessionPage() {
   const [ratings, setRatings] = useState<Record<string, number>>({});
   const [fields, setFields] = useState<Record<string, string>>({});
   const [parentMsg, setParentMsg] = useState('');
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
   const restoredRef = useRef(false);
+
+  // Tic du chrono (1 s)
+  useEffect(() => {
+    if (!startedAt) return;
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [startedAt]);
 
   const draftKey = `thrive-seance-${params?.sessionId}`;
 
@@ -77,6 +97,7 @@ export default function CoachLiveSessionPage() {
         setChecks(d.checks ?? {});
         setRatings(d.ratings ?? {});
         setFields(d.fields ?? {});
+        setStartedAt(d.startedAt ?? null);
         setParentMsg(
           d.parentMsg ||
             fillParentTemplate(
@@ -102,7 +123,7 @@ export default function CoachLiveSessionPage() {
   // Sauvegarde automatique du brouillon (rien ne se perd)
   useEffect(() => {
     if (!restoredRef.current) return;
-    const d: DraftState = { checks, ratings, fields, parentMsg };
+    const d: DraftState = { checks, ratings, fields, parentMsg, startedAt };
     const timeout = setTimeout(() => {
       try {
         localStorage.setItem(draftKey, JSON.stringify(d));
@@ -111,9 +132,12 @@ export default function CoachLiveSessionPage() {
       }
     }, 600);
     return () => clearTimeout(timeout);
-  }, [checks, ratings, fields, parentMsg, draftKey]);
+  }, [checks, ratings, fields, parentMsg, startedAt, draftKey]);
 
   const ratedCount = Object.values(ratings).filter((v) => v > 0).length;
+  const elapsedSec = startedAt ? Math.max(0, Math.floor((nowTick - startedAt) / 1000)) : 0;
+  const elapsedMin = elapsedSec / 60;
+  const timerLabel = `${Math.floor(elapsedSec / 60)}:${String(elapsedSec % 60).padStart(2, '0')}`;
 
   const send = useCallback(async () => {
     if (!user?.id || !child || !session) return;
@@ -216,21 +240,40 @@ export default function CoachLiveSessionPage() {
 
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
 
+      {/* Chrono de séance */}
+      {!isDone && !startedAt && (
+        <button
+          onClick={() => setStartedAt(Date.now())}
+          className="w-full mb-6 py-4 rounded-2xl bg-navy-600 hover:bg-navy-700 text-white font-bold text-base transition-colors"
+        >
+          ▶ Commencer la séance — le chrono guide le déroulé
+        </button>
+      )}
+
       {/* Déroulé interactif de la séance */}
       <div className="space-y-3">
         {script.blocks.map((b, bi) => {
           switch (b.t) {
-            case 'section':
+            case 'section': {
+              const range = parseTimeRange(b.title);
+              const isCurrent =
+                !!startedAt && !!range && elapsedMin >= range[0] && elapsedMin < range[1];
               return (
                 <h2
                   key={bi}
-                  className={`font-display font-semibold text-navy-900 pt-5 ${
-                    b.level === 2 ? 'text-xl' : 'text-base text-navy-700'
-                  }`}
+                  className={`font-display font-semibold pt-5 flex items-center gap-2 ${
+                    b.level === 2 ? 'text-xl' : 'text-base'
+                  } ${isCurrent ? 'text-navy-900' : 'text-navy-900/80'}`}
                 >
                   {b.title}
+                  {isCurrent && (
+                    <span className="px-2.5 py-1 rounded-full bg-sun text-navy-900 text-[11px] font-bold animate-pulse">
+                      ⏱ EN COURS
+                    </span>
+                  )}
                 </h2>
               );
+            }
             case 'callout':
               return (
                 <div
@@ -370,6 +413,11 @@ export default function CoachLiveSessionPage() {
       {/* Barre d'envoi */}
       <div className="fixed bottom-0 left-64 right-0 z-40 px-10 py-4 bg-cream/80 backdrop-blur-xl border-t border-navy-100">
         <div className="max-w-3xl flex items-center gap-4">
+          {startedAt && !isDone && (
+            <span className="px-3 py-1.5 rounded-full bg-navy-900 text-sun text-sm font-bold tabular-nums">
+              ⏱ {timerLabel}
+            </span>
+          )}
           <span className="text-xs text-navy-600/70">
             {ratedCount} indicateur{ratedCount > 1 ? 's' : ''} coté{ratedCount > 1 ? 's' : ''} ·{' '}
             {Object.values(fields).filter((v) => v.trim()).length} notes · brouillon
