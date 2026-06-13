@@ -7,9 +7,15 @@ import { useAuthStore } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type Mode = 'signin' | 'signup';
-type ChildRow = { firstName: string; age: string; gender: string };
+type ChildRow = { firstName: string; age: string; sport: string };
 
-const EMPTY_CHILD: ChildRow = { firstName: '', age: '', gender: '' };
+const EMPTY_CHILD: ChildRow = { firstName: '', age: '', sport: '' };
+
+const SPORT_OPTIONS = [
+  'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
+  'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
+  'Patinage', 'Football', 'Athlétisme', 'Autre',
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -91,8 +97,7 @@ export default function LoginPage() {
             family_id: family.id,
             first_name: c.firstName.trim(),
             date_of_birth: dob.toISOString().split('T')[0],
-            gender: c.gender || null,
-            sport: 'Hockey',
+            sport: c.sport.trim() || 'Hockey',
             is_active: true,
           };
         });
@@ -206,12 +211,28 @@ export default function LoginPage() {
                 <p className="text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-2">
                   Vos enfants (8–17 ans)
                 </p>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {childRows.map((c, i) => (
-                    <div key={i} className="flex gap-2">
+                    <div key={i} className="rounded-2xl bg-white/60 p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] font-bold text-navy-600/60 shrink-0">
+                          Enfant {i + 1}
+                        </span>
+                        <div className="flex-1 border-t border-navy-100/60" />
+                        {childRows.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setChildRows(childRows.filter((_, j) => j !== i))}
+                            className="w-6 h-6 shrink-0 rounded-lg bg-red-50 text-red-500 font-bold leading-none"
+                            aria-label="Retirer cet enfant"
+                          >
+                            ×
+                          </button>
+                        )}
+                      </div>
                       <input
-                        placeholder="Prénom"
-                        className="input-auth flex-1"
+                        placeholder="Prénom de l'enfant"
+                        className="input-auth"
                         value={c.firstName}
                         onChange={(e) => {
                           const next = [...childRows];
@@ -219,39 +240,32 @@ export default function LoginPage() {
                           setChildRows(next);
                         }}
                       />
-                      <input
-                        type="number" min={4} max={17} placeholder="Âge"
-                        className="input-auth w-20"
-                        value={c.age}
-                        onChange={(e) => {
-                          const next = [...childRows];
-                          next[i] = { ...c, age: e.target.value };
-                          setChildRows(next);
-                        }}
-                      />
-                      <select
-                        className="input-auth w-28"
-                        value={c.gender}
-                        onChange={(e) => {
-                          const next = [...childRows];
-                          next[i] = { ...c, gender: e.target.value };
-                          setChildRows(next);
-                        }}
-                      >
-                        <option value="">Genre…</option>
-                        <option value="MALE">Garçon</option>
-                        <option value="FEMALE">Fille</option>
-                      </select>
-                      {childRows.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => setChildRows(childRows.filter((_, j) => j !== i))}
-                          className="w-9 shrink-0 rounded-xl bg-red-50 text-red-500 font-bold"
-                          aria-label="Retirer cet enfant"
+                      <div className="flex gap-2">
+                        <input
+                          type="number" min={4} max={17} placeholder="Âge"
+                          className="input-auth w-24"
+                          value={c.age}
+                          onChange={(e) => {
+                            const next = [...childRows];
+                            next[i] = { ...c, age: e.target.value };
+                            setChildRows(next);
+                          }}
+                        />
+                        <select
+                          className="input-auth flex-1"
+                          value={c.sport}
+                          onChange={(e) => {
+                            const next = [...childRows];
+                            next[i] = { ...c, sport: e.target.value };
+                            setChildRows(next);
+                          }}
                         >
-                          ×
-                        </button>
-                      )}
+                          <option value="">Sport…</option>
+                          {SPORT_OPTIONS.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   ))}
                 </div>
