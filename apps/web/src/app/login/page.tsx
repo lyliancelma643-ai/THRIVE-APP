@@ -6,7 +6,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
-type Mode = 'signin' | 'signup';
+type Mode = 'signin' | 'signup' | 'forgot';
 type ChildRow = { firstName: string; age: string; sport: string };
 
 const EMPTY_CHILD: ChildRow = { firstName: '', age: '', sport: '' };
@@ -34,6 +34,29 @@ export default function LoginPage() {
     firstName: '', lastName: '', email: '', password: '',
   });
   const [childRows, setChildRows] = useState<ChildRow[]>([{ ...EMPTY_CHILD }]);
+
+  // Réinitialisation du mot de passe
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [resetSent, setResetSent] = useState(false);
+
+  const handleForgot = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) { setError('Entre ton adresse email'); return; }
+    setError('');
+    setSubmitting(true);
+    try {
+      const { error: rErr } = await supabase.auth.resetPasswordForEmail(
+        forgotEmail.trim(),
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
+      if (rErr) throw rErr;
+      setResetSent(true);
+    } catch (err: any) {
+      setError(err?.message ?? "Envoi de l'email impossible");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -135,24 +158,88 @@ export default function LoginPage() {
 
         <div className="glass-strong rounded-3xl p-6 md:p-8">
           {/* Onglets */}
-          <div className="flex gap-1 p-1 rounded-full bg-white/60 mb-6">
-            {([
-              ['signin', 'Se connecter'],
-              ['signup', 'Créer un compte'],
-            ] as [Mode, string][]).map(([m, label]) => (
-              <button
-                key={m}
-                onClick={() => { setMode(m); setError(''); }}
-                className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
-                  mode === m ? 'bg-navy-600 text-white shadow-card' : 'text-navy-600'
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {mode !== 'forgot' && (
+            <div className="flex gap-1 p-1 rounded-full bg-white/60 mb-6">
+              {([
+                ['signin', 'Se connecter'],
+                ['signup', 'Créer un compte'],
+              ] as [Mode, string][]).map(([m, label]) => (
+                <button
+                  key={m}
+                  onClick={() => { setMode(m); setError(''); }}
+                  className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
+                    mode === m ? 'bg-navy-600 text-white shadow-card' : 'text-navy-600'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {mode === 'signin' ? (
+          {mode === 'forgot' ? (
+            resetSent ? (
+              <div className="text-center py-4">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-sage/40 flex items-center justify-center text-2xl">
+                  ✉️
+                </div>
+                <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
+                  Email envoyé !
+                </h2>
+                <p className="text-sm text-navy-600/80 mb-6">
+                  Si un compte existe pour <span className="font-medium">{forgotEmail}</span>,
+                  un lien de réinitialisation vient d&apos;être envoyé. Vérifie ta boîte de
+                  réception (et tes spams).
+                </p>
+                <button
+                  onClick={() => {
+                    setMode('signin');
+                    setResetSent(false);
+                    setError('');
+                  }}
+                  className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold"
+                >
+                  Retour à la connexion
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgot} className="space-y-4">
+                <div>
+                  <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
+                    Mot de passe oublié
+                  </h2>
+                  <p className="text-sm text-navy-600/70">
+                    Entre ton email : on t&apos;envoie un lien pour choisir un nouveau mot de passe.
+                  </p>
+                </div>
+                <Field label="Email">
+                  <input
+                    type="email"
+                    className="input-auth"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    placeholder="ton@email.com"
+                    autoComplete="email"
+                  />
+                </Field>
+                {error && <p className="text-red-600 text-sm">{error}</p>}
+                <button
+                  type="submit"
+                  disabled={submitting}
+                  className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50"
+                >
+                  {submitting ? 'Envoi…' : "Envoyer le lien de réinitialisation"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setMode('signin'); setError(''); }}
+                  className="w-full text-sm text-navy-600/70 hover:text-navy-900"
+                >
+                  ← Retour à la connexion
+                </button>
+              </form>
+            )
+          ) : mode === 'signin' ? (
             <form onSubmit={handleLogin} className="space-y-4">
               <Field label="Email">
                 <input
@@ -174,6 +261,17 @@ export default function LoginPage() {
                   autoComplete="current-password"
                 />
               </Field>
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotEmail(email);
+                  setMode('forgot');
+                  setError('');
+                }}
+                className="block ml-auto text-xs font-medium text-navy-600/70 hover:text-navy-900"
+              >
+                Mot de passe oublié ?
+              </button>
               {error && <p className="text-red-600 text-sm">{error}</p>}
               <button
                 type="submit"
