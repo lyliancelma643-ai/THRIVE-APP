@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const NAV_ITEMS = [
   { href: '/parent', label: 'Accueil', icon: '⌂', exact: true },
@@ -28,9 +29,9 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       {/* Barre de navigation horizontale (liquid glass) */}
       <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4">
         <div className="glass-strong rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
-          <Link href="/parent" className="flex items-baseline gap-2 mr-1 md:mr-4 shrink-0">
-            <span className="font-display text-lg md:text-xl font-semibold tracking-wide text-navy-900">
-              THRIVE<span className="text-navy-600">↑</span>
+          <Link href="/parent" className="flex items-center gap-2 mr-1 md:mr-4 shrink-0">
+            <span className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-xl bg-navy-900 shadow-card">
+              <BrandLogo className="h-6 md:h-7 w-auto" />
             </span>
             <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-navy-600/60">
               Sport Positive

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const NAV_ITEMS = [
   { href: '/coach/dashboard', label: 'Tableau de bord', icon: '⌂' },
@@ -41,8 +42,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
     <div className="min-h-screen bg-cream">
       {/* Mini-barre mobile */}
       <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white">
-        <span className="font-display text-lg font-semibold">
-          THRIVE<span className="text-sun">↑</span>{' '}
+        <span className="flex items-center gap-2">
+          <BrandLogo className="h-7 w-auto" />
           <span className="text-[10px] uppercase tracking-[0.2em] text-sage">Coach</span>
         </span>
         <button
@@ -81,10 +82,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-navy-900 text-white flex-col z-40">
         <div className="px-6 pt-8 pb-6">
           <Link href="/coach/dashboard" className="block">
-            <span className="font-display text-2xl font-semibold tracking-wide">
-              THRIVE<span className="text-sun">↑</span>
-            </span>
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-sage mt-1">
+            <BrandLogo className="h-10 w-auto" />
+            <span className="block text-[11px] uppercase tracking-[0.2em] text-sage mt-2">
               Espace coach
             </span>
           </Link>

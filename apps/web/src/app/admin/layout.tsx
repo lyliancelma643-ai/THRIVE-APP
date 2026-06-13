@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
+import { BrandLogo } from '@/components/BrandLogo';
 
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
@@ -48,7 +49,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* Barre mobile : logo + navigation horizontale défilante */}
       <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-black text-white">
         <div className="flex items-center justify-between px-4 pt-3 pb-1">
-          <p className="font-bold">THRIVE <span className="text-gray-400 text-xs font-normal">Admin</span></p>
+          <p className="flex items-center gap-2"><BrandLogo className="h-6 w-auto" /> <span className="text-gray-400 text-xs">Admin</span></p>
           <button
             onClick={async () => { await signOut(); router.push('/login'); }}
             className="text-xs text-gray-400"
@@ -78,8 +79,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <aside className="hidden lg:flex w-64 bg-black text-white flex-col fixed h-full z-10">
         <div className="p-6 border-b border-gray-800">
-          <p className="text-xl font-bold">THRIVE</p>
-          <p className="text-gray-400 text-xs mt-1">Espace Admin</p>
+          <BrandLogo className="h-9 w-auto" />
+          <p className="text-gray-400 text-xs mt-2">Espace Admin</p>
         </div>
         <nav className="flex-1 p-4 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
