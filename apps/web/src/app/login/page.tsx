@@ -19,7 +19,7 @@ const SPORT_OPTIONS = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, isLoading } = useAuthStore();
+  const { signIn, isLoading, hydrate, isAuthenticated } = useAuthStore();
 
   const [mode, setMode] = useState<Mode>('signin');
   const [error, setError] = useState('');
@@ -60,6 +60,14 @@ export default function LoginPage() {
       );
     }
   }, []);
+
+  // Un utilisateur déjà connecté ne reste pas sur /login. Utile aussi quand le
+  // middleware renvoie ici une session au cookie (access token) expiré : hydrate
+  // revalide/rafraîchit la session, puis on repart vers l'espace par rôle.
+  useEffect(() => { hydrate(); }, [hydrate]);
+  useEffect(() => {
+    if (isAuthenticated) router.replace('/dashboard');
+  }, [isAuthenticated, router]);
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
