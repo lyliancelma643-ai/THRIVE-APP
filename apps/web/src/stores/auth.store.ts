@@ -57,7 +57,10 @@ export const useAuthStore = create<AuthStore>()(
       user: null,
       session: null,
       isAuthenticated: false,
-      isLoading: false,
+      // Démarre à true : tant que hydrate() n'a pas confirmé la session, les
+      // gardes de layout (admin/parent/coach) attendent au lieu de rediriger
+      // vers /login. Évite le rebond au rechargement / deep-link d'une sous-page.
+      isLoading: true,
 
       hydrate: async () => {
         set({ isLoading: true });
