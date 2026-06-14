@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { InteractionPoint, InteractionAnswer, VideoSession } from '@/lib/catalog';
+import { WistiaPlayer, WistiaHandle, wistiaId } from './WistiaPlayer';
 
 type Props = {
   session: VideoSession;
@@ -15,9 +16,13 @@ type Props = {
 type Stage = 'playing' | 'question' | 'feedback' | 'rpe' | 'done';
 
 export function InteractivePlayer({ session, interactions, childId, parentId, onCompleted }: Props) {
+  const wid = wistiaId(session.video_url);
+
   const videoRef = useRef<HTMLVideoElement>(null);
+  const wistiaRef = useRef<WistiaHandle | null>(null);
   const runIdRef = useRef<string | null>(null);
   const answeredRef = useRef<Set<string>>(new Set());
+  const stageRef = useRef<Stage>('playing');
 
   const [stage, setStage] = useState<Stage>('playing');
   const [activeInteraction, setActiveInteraction] = useState<InteractionPoint | null>(null);
@@ -26,6 +31,21 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [rpe, setRpe] = useState<number | null>(null);
+
+  useEffect(() => {
+    stageRef.current = stage;
+  }, [stage]);
+
+  // Contrôles unifiés : Wistia si c'est une vidéo Wistia, sinon la balise <video>.
+  const playMedia = useCallback(() => {
+    if (wid) wistiaRef.current?.play();
+    else videoRef.current?.play();
+  }, [wid]);
+
+  const pauseMedia = useCallback(() => {
+    if (wid) wistiaRef.current?.pause();
+    else videoRef.current?.pause();
+  }, [wid]);
 
   // Crée le run au montage
   useEffect(() => {
@@ -58,28 +78,29 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
   useEffect(() => {
     const interval = setInterval(() => {
-      const v = videoRef.current;
-      if (v && !v.paused) saveProgress(v.currentTime);
+      if (!isPlaying) return;
+      const t = wid ? wistiaRef.current?.time() : videoRef.current?.currentTime;
+      if (typeof t === 'number') saveProgress(t);
     }, 10000);
     return () => clearInterval(interval);
-  }, [saveProgress]);
+  }, [saveProgress, isPlaying, wid]);
 
-  const handleTimeUpdate = () => {
-    const v = videoRef.current;
-    if (!v) return;
-    setProgress(v.currentTime);
-
-    if (stage !== 'playing') return;
-    // Déclenche l'interaction au timecode atteint
-    const due = interactions.find(
-      (i) => !answeredRef.current.has(i.id) && v.currentTime >= i.timecode_seconds
-    );
-    if (due) {
-      v.pause();
-      setActiveInteraction(due);
-      setStage('question');
-    }
-  };
+  // Déclenche l'interaction au timecode atteint — appelé par Wistia et par <video>.
+  const handleTime = useCallback(
+    (currentTime: number) => {
+      setProgress(currentTime);
+      if (stageRef.current !== 'playing') return;
+      const due = interactions.find(
+        (i) => !answeredRef.current.has(i.id) && currentTime >= i.timecode_seconds
+      );
+      if (due) {
+        pauseMedia();
+        setActiveInteraction(due);
+        setStage('question');
+      }
+    },
+    [interactions, pauseMedia]
+  );
 
   const handleAnswer = async (answer: InteractionAnswer) => {
     if (!activeInteraction) return;
@@ -116,14 +137,14 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       setActiveInteraction(null);
       setChosen(null);
       setStage('playing');
-      videoRef.current?.play();
+      playMedia();
     }, 1800);
   };
 
-  const handleEnded = async () => {
-    await saveProgress(videoRef.current?.duration ?? 0);
+  const handleEnded = useCallback(async () => {
+    await saveProgress(duration);
     setStage('rpe');
-  };
+  }, [saveProgress, duration]);
 
   const handleRpe = async (value: number) => {
     setRpe(value);
@@ -157,21 +178,36 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
   return (
     <div className="relative aspect-video rounded-2xl overflow-hidden bg-navy-900 shadow-card group">
-      <video
-        ref={videoRef}
-        src={session.video_url ?? undefined}
-        className="w-full h-full object-contain"
-        onTimeUpdate={handleTimeUpdate}
-        onEnded={handleEnded}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-        onClick={togglePlay}
-        playsInline
-      />
+      {wid ? (
+        <WistiaPlayer
+          hashedId={wid}
+          onReady={(h) => {
+            wistiaRef.current = h;
+          }}
+          onTime={handleTime}
+          onEnded={handleEnded}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onDuration={(d) => setDuration(d)}
+        />
+      ) : (
+        <video
+          ref={videoRef}
+          src={session.video_url ?? undefined}
+          className="w-full h-full object-contain"
+          onTimeUpdate={(e) => handleTime(e.currentTarget.currentTime)}
+          onEnded={handleEnded}
+          onPlay={() => setIsPlaying(true)}
+          onPause={() => setIsPlaying(false)}
+          onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+          onClick={togglePlay}
+          playsInline
+        />
+      )}
 
-      {/* Contrôles */}
-      {(stage === 'playing') && (
+      {/* Contrôles personnalisés — uniquement pour la balise <video>.
+          Le player Wistia fournit ses propres contrôles. */}
+      {!wid && stage === 'playing' && (
         <div className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-12 bg-gradient-to-t from-navy-900/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
           <div
             className="h-1.5 rounded-full bg-white/20 cursor-pointer mb-3"
@@ -199,8 +235,8 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
         </div>
       )}
 
-      {/* Grand bouton play au départ */}
-      {!isPlaying && stage === 'playing' && progress === 0 && (
+      {/* Grand bouton play au départ — uniquement pour la balise <video> */}
+      {!wid && !isPlaying && stage === 'playing' && progress === 0 && (
         <button
           onClick={togglePlay}
           className="absolute inset-0 flex items-center justify-center bg-navy-900/40"
@@ -213,7 +249,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Overlay question A/B/C/D */}
       {stage === 'question' && activeInteraction && (
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
           <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-4">
             À toi de jouer !
           </p>
@@ -239,7 +275,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Feedback après réponse */}
       {stage === 'feedback' && chosen && (
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
           <span className="w-16 h-16 rounded-full bg-sage text-navy-900 flex items-center justify-center text-2xl mb-4">
             ✓
           </span>
@@ -250,7 +286,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* RPE en fin de séance */}
       {stage === 'rpe' && (
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8">
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
           <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-3">
             Dernière question
           </p>
@@ -274,7 +310,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Écran final */}
       {stage === 'done' && (
-        <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 flex flex-col items-center justify-center p-8 text-center">
+        <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 flex flex-col items-center justify-center p-8 text-center z-10">
           <span className="w-20 h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-3xl mb-5">
             ★
           </span>
