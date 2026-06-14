@@ -129,10 +129,12 @@ Deno.serve(async (req: Request) => {
             }
           }
 
-          // Auth : on fusionne avec les métadonnées existantes (prénom/nom).
+          // Auth : app_metadata.role fait autorité (non modifiable par l'user) ;
+          // user_metadata.role est gardé en miroir pour l'affichage.
           const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(id);
           const meta = { ...(authUser?.user?.user_metadata ?? {}), role };
           const { error: authErr } = await supabaseAdmin.auth.admin.updateUserById(id, {
+            app_metadata: { role },
             user_metadata: meta,
           });
           if (authErr) throw authErr;

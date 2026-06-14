@@ -91,6 +91,8 @@ Deno.serve(async (req: Request) => {
         email: String(email).trim().toLowerCase(),
         password: String(password),
         email_confirm: true,
+        // app_metadata.role = autorité (non modifiable par l'utilisateur).
+        app_metadata: { role: targetRole },
         user_metadata: {
           firstName: String(firstName).trim(),
           lastName: String(lastName).trim(),

@@ -32,10 +32,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // Vérification du rôle selon le path
+  // Vérification du rôle selon le path.
+  // Source d'autorité : app_metadata.role (posé par les edge functions via la
+  // clé service, NON modifiable par l'utilisateur). Repli sur user_metadata.role
+  // le temps que les sessions existantes rafraîchissent leur JWT.
   const matchedPath = Object.keys(ROLE_PATHS).find((p) => pathname.startsWith(p));
   if (matchedPath) {
-    const userRole = data.user.user_metadata?.role as string;
+    const userRole = (data.user.app_metadata?.role
+      ?? data.user.user_metadata?.role) as string;
     if (!ROLE_PATHS[matchedPath].includes(userRole)) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }

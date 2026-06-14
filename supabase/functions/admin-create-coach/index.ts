@@ -48,7 +48,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", user.id)
       .single();
 
-    if (!profile || profile.role !== "ADMIN") {
+    if (!profile || (profile.role !== "ADMIN" && profile.role !== "SUPER_ADMIN")) {
       return new Response(JSON.stringify({ error: "Accès refusé : rôle ADMIN requis" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -84,6 +84,8 @@ Deno.serve(async (req: Request) => {
       email: email.toLowerCase().trim(),
       password,
       email_confirm: true,
+      // app_metadata.role = autorité (non modifiable par l'utilisateur).
+      app_metadata: { role: "COACH" },
       user_metadata: {
         first_name: firstName.trim(),
         last_name: lastName.trim(),

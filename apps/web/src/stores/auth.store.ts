@@ -38,7 +38,10 @@ function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthToke
       email: supabaseSession.user.email ?? '',
       firstName: supabaseSession.user.user_metadata?.firstName,
       lastName: supabaseSession.user.user_metadata?.lastName,
-      role: supabaseSession.user.user_metadata?.role,
+      // Autorité du rôle = app_metadata (non modifiable par l'utilisateur),
+      // repli sur user_metadata pour les sessions pas encore rafraîchies.
+      role: supabaseSession.user.app_metadata?.role
+        ?? supabaseSession.user.user_metadata?.role,
     },
     session: {
       accessToken: supabaseSession.access_token,
