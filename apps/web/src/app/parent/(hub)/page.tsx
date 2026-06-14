@@ -78,8 +78,8 @@ export default function ParentHomePage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="h-72 rounded-3xl bg-navy-100 animate-pulse" />
-        <div className="h-40 rounded-2xl bg-navy-50 animate-pulse" />
+        <div className="h-72 rounded-3xl bg-white/5 animate-pulse" />
+        <div className="h-40 rounded-2xl bg-white/[0.04] animate-pulse" />
       </div>
     );
   }
@@ -139,18 +139,18 @@ export default function ParentHomePage() {
 
       {/* Progression */}
       {sessions.length > 0 && (
-        <div className="mb-12 p-6 rounded-2xl glass">
+        <div className="mb-12 p-6 rounded-2xl glass-navy">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="font-display text-lg font-semibold text-navy-900">
+            <h2 className="font-display text-lg font-semibold text-white">
               Parcours 20 minutes{selectedChild ? ` de ${selectedChild.first_name}` : ''}
             </h2>
-            <span className="text-sm text-navy-600 font-medium">
+            <span className="text-sm text-white/60 font-medium">
               {completedIds.size} / {sessions.length} séances
             </span>
           </div>
-          <div className="h-2.5 rounded-full bg-navy-50 overflow-hidden">
+          <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-navy-600 to-sage transition-all"
+              className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all"
               style={{ width: `${(completedIds.size / Math.max(sessions.length, 1)) * 100}%` }}
             />
           </div>

@@ -49,10 +49,10 @@ export default function LibraryPage() {
 
   return (
     <div>
-      <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">
+      <h1 className="font-display text-3xl font-semibold text-white mb-2">
         Toutes les séances
       </h1>
-      <p className="text-navy-600/70 mb-8">
+      <p className="text-white/55 mb-8">
         13 séances de 20 minutes par tranche d&apos;âge, à vivre parent et enfant.
       </p>
 
@@ -87,7 +87,7 @@ export default function LibraryPage() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="aspect-video rounded-2xl bg-navy-100 animate-pulse" />
+            <div key={i} className="aspect-video rounded-2xl bg-white/5 animate-pulse" />
           ))}
         </div>
       ) : (
@@ -101,7 +101,7 @@ export default function LibraryPage() {
       )}
 
       {!loading && filtered.length === 0 && (
-        <p className="text-navy-600/60 text-sm py-12 text-center">
+        <p className="text-white/50 text-sm py-12 text-center">
           Aucune séance ne correspond à ces filtres.
         </p>
       )}
@@ -122,16 +122,16 @@ function FilterGroup({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="text-xs font-bold uppercase tracking-wide text-navy-600/60">{label}</span>
-      <div className="flex gap-1 p-1 rounded-full glass">
+      <span className="text-xs font-bold uppercase tracking-wide text-white/45">{label}</span>
+      <div className="flex gap-1 p-1 rounded-full glass-navy">
         {options.map((opt) => (
           <button
             key={opt.value}
             onClick={() => onChange(opt.value)}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
               value === opt.value
-                ? 'bg-navy-600 text-white'
-                : 'text-navy-600 hover:bg-navy-50'
+                ? 'bg-sun text-navy-900'
+                : 'text-white/60 hover:bg-white/10'
             }`}
           >
             {opt.label}

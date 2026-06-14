@@ -18,22 +18,22 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const { user, signOut } = useAuthStore();
 
   return (
-    <div className="min-h-screen bg-cream relative">
-      {/* Fond décoratif pour révéler l'effet de verre */}
+    <div className="min-h-screen relative bg-gradient-to-b from-[#031b29] via-navy-900 to-[#01121b] text-white">
+      {/* Halos ambiants — profondeur premium type Apple TV (atténués sur fond sombre) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-200/50 blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-sage/40 blur-3xl" />
-        <div className="absolute -bottom-40 left-1/4 w-[28rem] h-[28rem] rounded-full bg-sun/25 blur-3xl" />
+        <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-500/20 blur-3xl" />
+        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-sage/10 blur-3xl" />
+        <div className="absolute -bottom-40 left-1/4 w-[28rem] h-[28rem] rounded-full bg-sun/[0.07] blur-3xl" />
       </div>
 
       {/* Barre de navigation horizontale (liquid glass) */}
       <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4">
-        <div className="glass-strong rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
+        <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
           <Link href="/parent" className="flex items-center gap-2 mr-1 md:mr-4 shrink-0">
             <span className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-xl bg-navy-900 shadow-card">
               <BrandLogo className="h-6 md:h-7 w-auto" />
             </span>
-            <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-navy-600/60">
+            <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-white/40">
               Sport Positive
             </span>
           </Link>
@@ -45,10 +45,10 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
                     active
-                      ? 'bg-navy-600 text-white shadow-card'
-                      : 'text-navy-700 hover:bg-white/70'
+                      ? 'bg-white/15 text-white font-semibold'
+                      : 'text-white/55 font-medium hover:text-white hover:bg-white/10'
                   }`}
                 >
                   <span className="text-base leading-none">{item.icon}</span>
@@ -79,7 +79,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 router.push('/login');
               }}
               title={user?.email}
-              className="hidden sm:block px-3 py-2 rounded-full text-xs text-navy-600/70 hover:bg-white/70 hover:text-navy-900 transition-colors"
+              className="hidden sm:block px-3 py-2 rounded-full text-xs text-white/50 hover:bg-white/10 hover:text-white transition-colors"
             >
               Quitter
             </button>

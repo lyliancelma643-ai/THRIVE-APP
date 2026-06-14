@@ -125,7 +125,7 @@ export default function MySessionsPage() {
     return (
       <div className="space-y-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
+          <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
         ))}
       </div>
     );
@@ -135,12 +135,12 @@ export default function MySessionsPage() {
 
   return (
     <div className="max-w-4xl">
-      <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Mes séances</h1>
-      <p className="text-navy-600/70 mb-8">
+      <h1 className="font-display text-3xl font-semibold text-white mb-2">Mes séances</h1>
+      <p className="text-white/55 mb-8">
         Le programme 1:1 de {selectedChild.first_name}
         {coach ? (
           <>
-            {' '}avec <span className="font-medium text-navy-900">{coach.first_name} {coach.last_name}</span>, coach THRIVE
+            {' '}avec <span className="font-medium text-white">{coach.first_name} {coach.last_name}</span>, coach THRIVE
           </>
         ) : null}
         . Mise à jour automatique après chaque séance.
@@ -152,7 +152,7 @@ export default function MySessionsPage() {
           <span className="font-display text-lg">Progression du programme</span>
           <span className="text-sun font-bold">{completedCount} / 13</span>
         </div>
-        <div className="h-2.5 rounded-full bg-navy-700 overflow-hidden">
+        <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
           <div
             className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all"
             style={{ width: `${(completedCount / 13) * 100}%` }}
@@ -189,8 +189,8 @@ export default function MySessionsPage() {
               key={rowId}
               className={`rounded-2xl overflow-hidden transition-all duration-500 ${
                 isDone
-                  ? 'glass ring-1 ring-sage/60'
-                  : 'bg-navy-900/75 backdrop-blur-md opacity-80'
+                  ? 'glass-navy ring-1 ring-sage/40'
+                  : 'bg-navy-900/50 backdrop-blur-md opacity-80'
               }`}
             >
               <button
@@ -207,14 +207,14 @@ export default function MySessionsPage() {
                 <span className="min-w-0 flex-1">
                   <span
                     className={`block font-semibold truncate ${
-                      isDone ? 'text-navy-900' : 'text-white/55'
+                      isDone ? 'text-white' : 'text-white/55'
                     }`}
                   >
                     {s?.title ?? tpl.title}
                   </span>
                   <span
                     className={`block text-xs mt-0.5 ${
-                      isDone ? 'text-navy-600/60' : 'text-white/35'
+                      isDone ? 'text-white/55' : 'text-white/35'
                     }`}
                   >
                     {PHASE_LABELS[phase]}
@@ -234,17 +234,17 @@ export default function MySessionsPage() {
                   {isDone ? 'Validée par le coach' : 'À venir'}
                 </span>
                 {hasDetails && (
-                  <span className="text-navy-400 text-xs">{isOpen ? '▲' : '▼'}</span>
+                  <span className="text-white/40 text-xs">{isOpen ? '▲' : '▼'}</span>
                 )}
               </button>
 
               {isOpen && hasDetails && s && (
-                <div className="px-5 pb-5 pt-1 border-t border-navy-50">
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-2 mt-3">
+                <div className="px-5 pb-5 pt-1 border-t border-white/10">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 mt-3">
                     Bilan du coach
                   </h4>
                   {s.coach_notes && (
-                    <p className="text-sm text-navy-900/80 whitespace-pre-line mb-3">
+                    <p className="text-sm text-white/80 whitespace-pre-line mb-3">
                       {s.coach_notes}
                     </p>
                   )}
@@ -260,7 +260,7 @@ export default function MySessionsPage() {
                         .map(([key, value]) =>
                           key === 'observations' && value && typeof value === 'object' ? (
                             <div key={key} className="pt-2">
-                              <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-2">
+                              <span className="block text-xs font-bold uppercase tracking-wide text-white/45 mb-2">
                                 Observations du coach
                               </span>
                               <div className="space-y-1.5">
@@ -270,15 +270,15 @@ export default function MySessionsPage() {
                                       key={ind}
                                       className="flex items-center justify-between gap-3 text-sm"
                                     >
-                                      <span className="text-navy-900/80">{ind}</span>
+                                      <span className="text-white/80">{ind}</span>
                                       <span className="flex gap-1 shrink-0">
                                         {[1, 2, 3, 4, 5].map((n) => (
                                           <span
                                             key={n}
                                             className={`w-2.5 h-2.5 rounded-full ${
                                               n <= Number(note)
-                                                ? 'bg-navy-600'
-                                                : 'bg-navy-100'
+                                                ? 'bg-sun'
+                                                : 'bg-white/15'
                                             }`}
                                           />
                                         ))}
@@ -290,10 +290,10 @@ export default function MySessionsPage() {
                             </div>
                           ) : (
                             <div key={key} className="text-sm">
-                              <span className="font-medium text-navy-900 capitalize">
+                              <span className="font-medium text-white capitalize">
                                 {key.replace(/_/g, ' ')} :{' '}
                               </span>
-                              <span className="text-navy-900/75">{String(value)}</span>
+                              <span className="text-white/75">{String(value)}</span>
                             </div>
                           )
                         )}
@@ -312,11 +312,11 @@ export default function MySessionsPage() {
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
     <div className="max-w-xl mx-auto text-center py-20">
-      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-navy-50 flex items-center justify-center text-2xl">
+      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center text-2xl text-sun">
         ★
       </div>
-      <h2 className="font-display text-2xl font-semibold text-navy-900 mb-3">{title}</h2>
-      <p className="text-navy-600/70">{body}</p>
+      <h2 className="font-display text-2xl font-semibold text-white mb-3">{title}</h2>
+      <p className="text-white/55">{body}</p>
     </div>
   );
 }

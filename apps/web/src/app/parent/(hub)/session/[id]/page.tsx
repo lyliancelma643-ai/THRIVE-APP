@@ -47,8 +47,8 @@ export default function SessionDetailPage() {
   if (loading) {
     return (
       <div className="max-w-5xl space-y-6">
-        <div className="aspect-video rounded-2xl bg-navy-100 animate-pulse" />
-        <div className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
+        <div className="aspect-video rounded-2xl bg-white/5 animate-pulse" />
+        <div className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
       </div>
     );
   }
@@ -56,8 +56,8 @@ export default function SessionDetailPage() {
   if (!session) {
     return (
       <div className="text-center py-20">
-        <p className="text-navy-600 mb-4">Séance introuvable.</p>
-        <button onClick={() => router.back()} className="text-navy-600 underline text-sm">
+        <p className="text-white/60 mb-4">Séance introuvable.</p>
+        <button onClick={() => router.back()} className="text-white/60 underline text-sm">
           Retour
         </button>
       </div>
@@ -70,7 +70,7 @@ export default function SessionDetailPage() {
     <div className="max-w-5xl">
       <Link
         href="/parent"
-        className="inline-flex items-center gap-2 text-sm text-navy-600/70 hover:text-navy-900 mb-6 transition-colors"
+        className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white mb-6 transition-colors"
       >
         ← Retour au catalogue
       </Link>
@@ -129,37 +129,37 @@ export default function SessionDetailPage() {
             <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${accent.chip}`}>
               {session.theme}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-navy-50 text-navy-600">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-white/10 text-white/70">
               {PHASE_LABELS[session.phase]}
             </span>
           </div>
-          <h1 className="font-display text-3xl font-semibold text-navy-900 mb-1">
+          <h1 className="font-display text-3xl font-semibold text-white mb-1">
             {session.title}
           </h1>
-          <p className="text-navy-600 mb-4">{session.subtitle}</p>
-          <p className="text-navy-900/75 leading-relaxed">{session.description}</p>
+          <p className="text-white/60 mb-4">{session.subtitle}</p>
+          <p className="text-white/75 leading-relaxed">{session.description}</p>
         </div>
 
-        <div className="p-5 rounded-2xl glass h-fit">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-navy-600/60 mb-4">
+        <div className="p-5 rounded-2xl glass-navy h-fit">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-4">
             Cette séance
           </h3>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <dt className="text-navy-600/70">Durée</dt>
-              <dd className="font-medium text-navy-900">{session.duration_minutes} min</dd>
+              <dt className="text-white/55">Durée</dt>
+              <dd className="font-medium text-white">{session.duration_minutes} min</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-navy-600/70">Âge</dt>
-              <dd className="font-medium text-navy-900">{session.age_group} ans</dd>
+              <dt className="text-white/55">Âge</dt>
+              <dd className="font-medium text-white">{session.age_group} ans</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-navy-600/70">Life skill</dt>
-              <dd className="font-medium text-navy-900 text-right">{session.life_skill}</dd>
+              <dt className="text-white/55">Life skill</dt>
+              <dd className="font-medium text-white text-right">{session.life_skill}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-navy-600/70">Interactions</dt>
-              <dd className="font-medium text-navy-900">{interactions.length}</dd>
+              <dt className="text-white/55">Interactions</dt>
+              <dd className="font-medium text-white">{interactions.length}</dd>
             </div>
           </dl>
         </div>

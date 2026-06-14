@@ -16,8 +16,8 @@ export function SessionRow({ title, subtitle, sessions, completedIds }: Props) {
   return (
     <section className="mb-10">
       <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-navy-900">{title}</h2>
-        {subtitle && <p className="text-sm text-navy-600/70 mt-0.5">{subtitle}</p>}
+        <h2 className="font-display text-xl font-semibold text-white">{title}</h2>
+        {subtitle && <p className="text-sm text-white/50 mt-0.5">{subtitle}</p>}
       </div>
       <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-2">
         {sessions.map((s) => (
