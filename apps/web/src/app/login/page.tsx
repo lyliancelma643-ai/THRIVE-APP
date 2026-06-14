@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
@@ -38,6 +38,28 @@ export default function LoginPage() {
   // Réinitialisation du mot de passe
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+
+  // Message affiché quand la session a été coupée à distance (compte désactivé).
+  // On lit la raison depuis sessionStorage (posée avant la déconnexion, robuste
+  // aux courses de navigation) avec repli sur le paramètre d'URL.
+  const [accountNotice, setAccountNotice] = useState('');
+  useEffect(() => {
+    let reason = new URLSearchParams(window.location.search).get('reason');
+    try {
+      const stored = window.sessionStorage.getItem('thrive_logout_reason');
+      if (stored) {
+        reason = stored;
+        window.sessionStorage.removeItem('thrive_logout_reason');
+      }
+    } catch {
+      /* sessionStorage indisponible : on garde le paramètre d'URL */
+    }
+    if (reason === 'disabled') {
+      setAccountNotice(
+        'Votre compte a été désactivé. Contactez un administrateur pour le réactiver.'
+      );
+    }
+  }, []);
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -157,6 +179,11 @@ export default function LoginPage() {
         </div>
 
         <div className="glass-strong rounded-3xl p-6 md:p-8">
+          {accountNotice && (
+            <p className="mb-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              {accountNotice}
+            </p>
+          )}
           {/* Onglets */}
           {mode !== 'forgot' && (
             <div className="flex gap-1 p-1 rounded-full bg-white/60 mb-6">

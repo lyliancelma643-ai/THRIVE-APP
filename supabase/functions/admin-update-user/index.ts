@@ -12,6 +12,8 @@
 //   - Appelant ADMIN ou SUPER_ADMIN uniquement.
 //   - Seul un SUPER_ADMIN peut attribuer le rôle ADMIN.
 //   - On ne peut jamais cibler un SUPER_ADMIN ni soi-même (anti-lockout).
+//   - Un parent qui a au moins un enfant ne peut pas devenir COACH ni ADMIN :
+//     un titulaire d'enfants reste forcément PARENT.
 //
 // verify_jwt: true
 
@@ -106,6 +108,25 @@ Deno.serve(async (req: Request) => {
           }
           if (role === "ADMIN" && callerRole !== "SUPER_ADMIN") {
             throw new Error("Seul un super admin peut nommer un ADMIN");
+          }
+
+          // Règle métier : un parent qui a des enfants doit rester PARENT.
+          if (role === "COACH" || role === "ADMIN") {
+            const { data: fams } = await supabaseAdmin
+              .from("families")
+              .select("id")
+              .eq("parent_id", id);
+            const famIds = (fams ?? []).map((f) => f.id);
+            if (famIds.length > 0) {
+              const { count } = await supabaseAdmin
+                .from("children")
+                .select("id", { count: "exact", head: true })
+                .in("family_id", famIds)
+                .eq("is_active", true);
+              if ((count ?? 0) > 0) {
+                throw new Error("Ce parent a des enfants : il doit rester Parent.");
+              }
+            }
           }
 
           // Auth : on fusionne avec les métadonnées existantes (prénom/nom).

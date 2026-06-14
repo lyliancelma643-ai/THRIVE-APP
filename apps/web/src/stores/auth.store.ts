@@ -20,6 +20,17 @@ function syncAuthCookie(accessToken: string | null) {
   }
 }
 
+// Mémorise (hors URL, robuste aux courses de navigation) qu'une session a été
+// coupée car le compte est désactivé. Lu puis effacé par la page de connexion.
+export function markDisabledLogout() {
+  if (typeof window === 'undefined') return;
+  try {
+    window.sessionStorage.setItem('thrive_logout_reason', 'disabled');
+  } catch {
+    /* sessionStorage indisponible (mode privé) : on ignore */
+  }
+}
+
 function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthTokens } {
   return {
     user: {
@@ -53,6 +64,23 @@ export const useAuthStore = create<AuthStore>()(
           return;
         }
         const mapped = mapSession(data.session);
+
+        // Backstop désactivation : un compte banni peut conserver un JWT en
+        // cache valide jusqu'à ~1 h. On revérifie is_active au chargement et on
+        // coupe la session si le compte a été désactivé entre-temps.
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('is_active')
+          .eq('id', mapped.user.id)
+          .single();
+        if (prof && prof.is_active === false) {
+          markDisabledLogout();
+          await supabase.auth.signOut();
+          syncAuthCookie(null);
+          set({ user: null, session: null, isAuthenticated: false, isLoading: false });
+          return;
+        }
+
         syncAuthCookie(data.session.access_token);
         set({ ...mapped, isAuthenticated: true, isLoading: false });
       },

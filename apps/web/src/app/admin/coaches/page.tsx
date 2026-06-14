@@ -73,6 +73,8 @@ export default function AdminCoachesPage() {
   const [search, setSearch] = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
   const [togglingId, setTogglingId] = useState<string | null>(null);
+  // Erreur des actions de ligne (activer/désactiver), distincte du formulaire.
+  const [rowError, setRowError] = useState('');
 
   // ── Chargement des coaches ─────────────────────────────────────────────────
   const fetchCoaches = useCallback(async () => {
@@ -177,12 +179,27 @@ export default function AdminCoachesPage() {
     }
   };
 
-  // ── Activer / désactiver ───────────────────────────────────────────────────
+  // ── Activer / désactiver (ban réel via Edge Function) ──────────────────────
+  // On passe par admin-update-user pour que la désactivation BLOQUE vraiment la
+  // connexion (ban Supabase Auth) et pas seulement le drapeau is_active.
   const toggleActive = async (coachId: string, current: boolean) => {
     setTogglingId(coachId);
-    await supabase.from('profiles').update({ is_active: !current }).eq('id', coachId);
-    await fetchCoaches();
-    setTogglingId(null);
+    setRowError('');
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('admin-update-user', {
+        body: { changes: [{ id: coachId, isActive: !current }] },
+      });
+      if (fnError) throw new Error(fnError.message ?? 'Action impossible');
+      const failed = (data?.results as { ok: boolean; error?: string }[] | undefined)?.find(
+        (r) => !r.ok
+      );
+      if (failed) throw new Error(failed.error ?? 'Action impossible');
+      await fetchCoaches();
+    } catch (err: any) {
+      setRowError(err?.message ?? 'Action impossible');
+    } finally {
+      setTogglingId(null);
+    }
   };
 
   const strength = passwordStrength(form.password);
@@ -211,6 +228,14 @@ export default function AdminCoachesPage() {
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm flex items-center justify-between">
           <span>{success}</span>
           <button onClick={() => setSuccess('')} className="text-green-500 hover:text-green-700 text-lg leading-none">×</button>
+        </div>
+      )}
+
+      {/* Banner erreur des actions de ligne (ex. échec d'activation/désactivation) */}
+      {rowError && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-700 text-sm flex items-center justify-between">
+          <span>{rowError}</span>
+          <button onClick={() => setRowError('')} className="text-red-500 hover:text-red-700 text-lg leading-none">×</button>
         </div>
       )}
 

@@ -44,6 +44,8 @@ export default function AdminUsersPage() {
 
   const [profiles, setProfiles] = useState<ProfileRow[]>([]);
   const [childrenCount, setChildrenCount] = useState(0);
+  // Parents ayant au moins un enfant → verrouillés sur le rôle PARENT.
+  const [parentsWithChildren, setParentsWithChildren] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Role | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -68,15 +70,30 @@ export default function AdminUsersPage() {
   });
 
   const load = useCallback(async () => {
-    const [profilesRes, childrenRes] = await Promise.all([
+    const [profilesRes, childrenRes, familiesRes, childRowsRes] = await Promise.all([
       supabase
         .from('profiles')
         .select('id, email, first_name, last_name, role, is_active, created_at')
         .order('created_at', { ascending: false }),
       supabase.from('children').select('id', { count: 'exact', head: true }),
+      supabase.from('families').select('id, parent_id'),
+      supabase.from('children').select('family_id').eq('is_active', true),
     ]);
     setProfiles((profilesRes.data ?? []) as ProfileRow[]);
     setChildrenCount(childrenRes.count ?? 0);
+
+    // Quels parents ont au moins un enfant (familles → enfants).
+    const parentByFamily = new Map<string, string>();
+    (familiesRes.data ?? []).forEach((f: { id: string; parent_id: string | null }) => {
+      if (f.parent_id) parentByFamily.set(f.id, f.parent_id);
+    });
+    const withKids = new Set<string>();
+    (childRowsRes.data ?? []).forEach((c: { family_id: string | null }) => {
+      const pid = c.family_id ? parentByFamily.get(c.family_id) : undefined;
+      if (pid) withKids.add(pid);
+    });
+    setParentsWithChildren(withKids);
+
     setLoading(false);
   }, []);
 
@@ -87,6 +104,7 @@ export default function AdminUsersPage() {
       .channel('admin-users')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => load())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, () => load())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
@@ -114,6 +132,11 @@ export default function AdminUsersPage() {
   // ── Modifications en attente (appliquées via « Enregistrer ») ───────────
   const stageRole = (p: ProfileRow, role: Role) => {
     if (!isSuperAdmin) return;
+    // Règle métier : un parent avec enfant(s) ne peut pas devenir COACH/ADMIN.
+    if (parentsWithChildren.has(p.id) && role !== 'PARENT') {
+      flash('err', `${p.first_name} a des enfants : ce compte doit rester Parent.`);
+      return;
+    }
     setEdits((prev) => {
       const next = { ...prev };
       const entry = { ...next[p.id] };
@@ -150,12 +173,22 @@ export default function AdminUsersPage() {
         name: `${p.first_name} ${p.last_name}`.trim() || p.email,
       };
       let dirty = false;
-      if (e.role !== undefined && e.role !== p.role) { change.role = e.role; dirty = true; }
+      // On n'envoie jamais une promotion devenue invalide (parent avec enfants) :
+      // l'edge function la refuserait, et le compteur resterait faux.
+      const lockedToParent = parentsWithChildren.has(p.id);
+      if (
+        e.role !== undefined &&
+        e.role !== p.role &&
+        !(lockedToParent && e.role !== 'PARENT')
+      ) {
+        change.role = e.role;
+        dirty = true;
+      }
       if (e.isActive !== undefined && e.isActive !== p.is_active) { change.isActive = e.isActive; dirty = true; }
       if (dirty) list.push(change);
     }
     return list;
-  }, [profiles, edits]);
+  }, [profiles, edits, parentsWithChildren]);
 
   const discardAll = () => setEdits({});
 
@@ -401,7 +434,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-3 text-gray-500">{p.email}</td>
                     <td className="px-5 py-3">
-                      {isSuperAdmin && !isSelf && p.role !== 'SUPER_ADMIN' ? (
+                      {isSuperAdmin && !isSelf && p.role !== 'SUPER_ADMIN' && !parentsWithChildren.has(p.id) ? (
                         <select
                           value={effRole}
                           disabled={saving}
@@ -417,8 +450,18 @@ export default function AdminUsersPage() {
                           ))}
                         </select>
                       ) : (
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${meta.cls}`}>
+                        <span
+                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${meta.cls}`}
+                          title={
+                            parentsWithChildren.has(p.id)
+                              ? 'Ce parent a des enfants : rôle verrouillé sur Parent.'
+                              : undefined
+                          }
+                        >
                           {meta.label}
+                          {parentsWithChildren.has(p.id) && p.role !== 'SUPER_ADMIN' && (
+                            <span aria-hidden>🔒</span>
+                          )}
                         </span>
                       )}
                     </td>
