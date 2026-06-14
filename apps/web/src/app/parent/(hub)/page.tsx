@@ -9,6 +9,7 @@ import {
   VideoSession,
   PHASE_LABELS,
   ageGroupFromBirthDate,
+  themeAccent,
 } from '@/lib/catalog';
 import { SessionRow } from '@/components/parent/SessionRow';
 
@@ -85,33 +86,53 @@ export default function ParentHomePage() {
 
   return (
     <div>
-      {/* Hero — séance suivante, incrustée dans le fond (pas un bloc) */}
+      {/* Hero — séance suivante : grande bannière (≈ moitié de l'écran).
+          Fond coloré aujourd'hui, image de la séance (thumbnail_url) demain. */}
       {nextSession && (
         <Link
           href={`/parent/session/${nextSession.id}`}
-          className="block group relative overflow-hidden mb-10 md:mb-14"
+          className="block group relative mb-10 md:mb-14"
         >
-          {/* Grand numéro en filigrane, incrusté dans le fond */}
-          <span className="pointer-events-none absolute -top-10 -right-4 md:right-2 font-display text-[11rem] md:text-[22rem] leading-none text-navy-900/[0.05] select-none">
-            {nextSession.session_number}
-          </span>
+          <div
+            className={`relative rounded-3xl overflow-hidden flex items-end h-[50vh] min-h-[400px] shadow-card group-hover:shadow-card-hover transition-all bg-gradient-to-br ${themeAccent(nextSession.theme).glow}`}
+          >
+            {/* Image de fond de la séance (quand elle sera disponible) */}
+            {nextSession.thumbnail_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={nextSession.thumbnail_url}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
 
-          <div className="relative max-w-2xl pt-4 pb-2 md:pt-8">
-            <p className="text-navy-600 text-xs font-bold uppercase tracking-[0.2em] mb-3">
-              {completedIds.size > 0 ? 'Continuer le parcours' : 'Commencer le parcours'}
-              {selectedChild ? ` · ${selectedChild.first_name}` : ''}
-            </p>
-            <h1 className="font-display text-3xl md:text-5xl text-navy-900 font-semibold leading-tight mb-2 group-hover:text-navy-700 transition-colors">
-              {nextSession.title}
-            </h1>
-            <p className="text-navy-700/80 text-base md:text-lg mb-2">{nextSession.subtitle}</p>
-            <p className="text-navy-500 text-sm mb-7">
-              Séance {nextSession.session_number} · {PHASE_LABELS[nextSession.phase]} ·{' '}
-              {nextSession.duration_minutes} min · {nextSession.age_group} ans
-            </p>
-            <span className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-sun text-navy-900 font-bold text-sm shadow-card group-hover:bg-sun-dark group-hover:scale-[1.03] transition-all">
-              ▶ Lancer la séance
+            {/* Grand numéro en filigrane */}
+            <span className="pointer-events-none absolute -top-10 -right-4 md:right-2 font-display text-[11rem] md:text-[22rem] leading-none text-white/10 select-none">
+              {nextSession.session_number}
             </span>
+
+            {/* Voile sombre pour garder le texte lisible sur l'image */}
+            <div className="absolute inset-0 bg-gradient-to-t from-navy-900/90 via-navy-900/35 to-transparent" />
+
+            <div className="relative p-6 md:p-12 max-w-2xl">
+              <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-3">
+                {completedIds.size > 0 ? 'Continuer le parcours' : 'Commencer le parcours'}
+                {selectedChild ? ` · ${selectedChild.first_name}` : ''}
+              </p>
+              <h1 className="font-display text-3xl md:text-5xl text-white font-semibold leading-tight mb-2">
+                {nextSession.title}
+              </h1>
+              <p className="text-navy-100/90 text-base md:text-lg mb-2">
+                {nextSession.subtitle}
+              </p>
+              <p className="text-sage text-sm mb-7">
+                Séance {nextSession.session_number} · {PHASE_LABELS[nextSession.phase]} ·{' '}
+                {nextSession.duration_minutes} min · {nextSession.age_group} ans
+              </p>
+              <span className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full bg-sun text-navy-900 font-bold text-sm shadow-card group-hover:bg-sun-dark group-hover:scale-[1.03] transition-all">
+                ▶ Lancer la séance
+              </span>
+            </div>
           </div>
         </Link>
       )}
