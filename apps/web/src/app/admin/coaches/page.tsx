@@ -264,8 +264,8 @@ export default function AdminCoachesPage() {
       </div>
 
       {/* Tableau des coaches */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Coach</th>
@@ -363,7 +363,11 @@ export default function AdminCoachesPage() {
                     <button
                       onClick={() => toggleActive(coach.id, coach.is_active)}
                       disabled={togglingId === coach.id}
-                      className="text-xs text-gray-500 hover:text-black underline disabled:opacity-40 transition-colors"
+                      className={`px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-40 transition-colors ${
+                        coach.is_active
+                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                          : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                      }`}
                     >
                       {togglingId === coach.id ? '…' : coach.is_active ? 'Désactiver' : 'Réactiver'}
                     </button>

@@ -47,7 +47,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-screen bg-gray-50">
       {/* Barre mobile : logo + navigation horizontale défilante */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-black text-white">
+      <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-black text-white safe-top">
         <div className="flex items-center justify-between px-4 pt-3 pb-1">
           <p className="flex items-center gap-2"><BrandLogo className="h-6 w-auto" /> <span className="text-gray-400 text-xs">Admin</span></p>
           <button
@@ -115,7 +115,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
       </aside>
-      <main className="flex-1 p-4 pt-28 md:p-6 md:pt-28 lg:ml-64 lg:p-8 lg:pt-8 min-w-0">{children}</main>
+      <main className="flex-1 p-4 pt-[calc(7rem+env(safe-area-inset-top))] md:p-6 md:pt-[calc(7rem+env(safe-area-inset-top))] lg:ml-64 lg:p-8 lg:pt-8 min-w-0">{children}</main>
     </div>
   );
 }

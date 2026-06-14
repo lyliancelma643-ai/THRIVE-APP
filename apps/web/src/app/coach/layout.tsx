@@ -41,7 +41,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   return (
     <div className="min-h-screen bg-cream">
       {/* Mini-barre mobile */}
-      <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white">
+      <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white safe-top">
         <span className="flex items-center gap-2">
           <BrandLogo className="h-7 w-auto" />
           <span className="text-[10px] uppercase tracking-[0.2em] text-sage">Coach</span>

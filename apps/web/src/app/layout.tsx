@@ -16,6 +16,18 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: 'THRIVE — Plateforme psychoéducative',
   description: 'Plateforme de suivi et d\'intervention psychoéducative par le sport pour les jeunes 8-17 ans',
+  applicationName: 'THRIVE',
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'THRIVE',
+  },
+  formatDetection: { telephone: false },
+  icons: {
+    icon: '/icon.svg',
+    apple: '/icon.svg',
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

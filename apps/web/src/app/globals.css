@@ -16,10 +16,30 @@
 @layer base {
   html {
     scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+  /* Pas de scroll horizontal accidentel + feel app (pas de rebond / pull-to-refresh) */
+  html,
+  body {
+    overflow-x: hidden;
+  }
+  body {
+    overscroll-behavior-y: none;
   }
   button,
   a {
     -webkit-tap-highlight-color: transparent;
+  }
+  /* Supprime le délai de 300 ms et le double-tap-zoom sur les éléments tactiles */
+  button,
+  a,
+  [role='button'],
+  input,
+  select,
+  textarea,
+  label {
+    touch-action: manipulation;
   }
   button:active {
     transform: scale(0.97);
@@ -31,6 +51,19 @@
     select {
       font-size: 16px !important;
     }
+  }
+}
+
+@layer utilities {
+  /* Respect des encoches / barres système (PWA plein écran) */
+  .safe-top {
+    padding-top: max(0px, env(safe-area-inset-top));
+  }
+  .safe-bottom {
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
+  }
+  .min-h-dvh {
+    min-height: 100dvh;
   }
 }
 

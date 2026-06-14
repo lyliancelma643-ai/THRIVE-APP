@@ -27,7 +27,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       </div>
 
       {/* Barre de navigation horizontale (liquid glass) */}
-      <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4">
+      <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4 safe-top">
         <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
           <Link href="/parent" className="flex items-center gap-2 mr-1 md:mr-4 shrink-0">
             <span className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-xl bg-navy-900 shadow-card">

@@ -163,8 +163,8 @@ export default function AdminChildrenPage() {
       </div>
 
       {/* Tableau */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Enfant</th>

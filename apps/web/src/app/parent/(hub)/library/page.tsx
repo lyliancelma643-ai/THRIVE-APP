@@ -121,9 +121,9 @@ function FilterGroup({
   onChange: (value: string) => void;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="text-xs font-bold uppercase tracking-wide text-white/45">{label}</span>
-      <div className="flex gap-1 p-1 rounded-full glass-navy">
+    <div className="flex items-center gap-2 min-w-0">
+      <span className="text-xs font-bold uppercase tracking-wide text-white/45 shrink-0">{label}</span>
+      <div className="flex gap-1 p-1 rounded-full glass-navy overflow-x-auto scrollbar-hide">
         {options.map((opt) => (
           <button
             key={opt.value}

@@ -142,7 +142,7 @@ export default function AdminFamiliesPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
         />
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {([
             { key: 'all',            label: 'Tous' },
             { key: 'with_family',    label: '✅ Avec famille' },
@@ -162,8 +162,8 @@ export default function AdminFamiliesPage() {
       </div>
 
       {/* Tableau */}
-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
+      <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Parent</th>

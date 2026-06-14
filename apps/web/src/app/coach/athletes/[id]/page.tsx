@@ -186,7 +186,7 @@ export default function CoachAthletePage() {
         <div className="space-y-3">
           {sessions.map((s) => (
             <div key={s.id} className="rounded-2xl bg-white shadow-card overflow-hidden">
-              <div className="flex items-center gap-4 p-5">
+              <div className="flex flex-wrap items-center gap-3 p-5">
                 <span
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
                     s.status === 'COMPLETED' ? 'bg-sage text-navy-900' : 'bg-navy-50 text-navy-600'
@@ -196,7 +196,7 @@ export default function CoachAthletePage() {
                 </span>
                 <Link
                   href={`/coach/athletes/${child.id}/session/${s.id}`}
-                  className="flex-1 min-w-0 group"
+                  className="flex-1 min-w-0 basis-[55%] group"
                 >
                   <span className="block font-semibold text-navy-900 truncate group-hover:underline">
                     {s.title}
@@ -211,31 +211,33 @@ export default function CoachAthletePage() {
                   </span>
                 </Link>
 
-                <button
-                  onClick={() => setRescheduling(rescheduling === s.id ? null : s.id)}
-                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-navy-50 text-navy-700 hover:bg-navy-100"
-                >
-                  Replanifier
-                </button>
-                <Link
-                  href={`/coach/athletes/${child.id}/session/${s.id}`}
-                  className={`px-4 py-2 rounded-full text-xs font-bold ${
-                    s.status === 'COMPLETED'
-                      ? 'bg-sage text-navy-900 hover:bg-sage-dark'
-                      : 'bg-sun text-navy-900 hover:bg-sun-dark'
-                  }`}
-                >
-                  {s.status === 'COMPLETED' ? 'Bilan envoyé ✓' : 'Faire la séance →'}
-                </Link>
+                <div className="flex items-center gap-2 ml-auto shrink-0">
+                  <button
+                    onClick={() => setRescheduling(rescheduling === s.id ? null : s.id)}
+                    className="px-3 py-2 rounded-full text-xs font-medium bg-navy-50 text-navy-700 hover:bg-navy-100"
+                  >
+                    Replanifier
+                  </button>
+                  <Link
+                    href={`/coach/athletes/${child.id}/session/${s.id}`}
+                    className={`px-4 py-2 rounded-full text-xs font-bold ${
+                      s.status === 'COMPLETED'
+                        ? 'bg-sage text-navy-900 hover:bg-sage-dark'
+                        : 'bg-sun text-navy-900 hover:bg-sun-dark'
+                    }`}
+                  >
+                    {s.status === 'COMPLETED' ? 'Bilan envoyé ✓' : 'Faire la séance →'}
+                  </Link>
+                </div>
               </div>
 
               {rescheduling === s.id && (
-                <div className="px-5 pb-5 flex items-center gap-3 border-t border-navy-50 pt-4">
+                <div className="px-5 pb-5 flex flex-col sm:flex-row sm:items-center gap-3 border-t border-navy-50 pt-4">
                   <input
                     type="datetime-local"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="border border-navy-100 rounded-xl px-3 py-2 text-sm"
+                    className="w-full sm:w-auto min-w-0 border border-navy-100 rounded-xl px-3 py-2 text-sm"
                   />
                   <button
                     onClick={() => reschedule(s.id)}

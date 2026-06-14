@@ -458,7 +458,7 @@ export default function CoachLiveSessionPage() {
       </div>
 
       {/* Barre d'envoi */}
-      <div className="fixed bottom-14 lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
+      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
         <div className="max-w-3xl flex items-center gap-3">
           {startedAt && !isDone && (
             <button
