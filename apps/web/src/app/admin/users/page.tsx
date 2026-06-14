@@ -35,6 +35,9 @@ const FILTERS: { value: Role | 'ALL'; label: string }[] = [
   { value: 'CHILD', label: 'Enfants' },
 ];
 
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://ircpewhmmcpghucnywis.supabase.co';
+
 export default function AdminUsersPage() {
   const { user, session } = useAuthStore();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
@@ -44,7 +47,9 @@ export default function AdminUsersPage() {
   const [filter, setFilter] = useState<Role | 'ALL'>('ALL');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  // Modifications de rôle / activation en attente, indexées par id de compte.
+  const [edits, setEdits] = useState<Record<string, { role?: Role; isActive?: boolean }>>({});
   const [notice, setNotice] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   // Modale création de compte
@@ -106,27 +111,87 @@ export default function AdminUsersPage() {
     setTimeout(() => setNotice(null), 5000);
   };
 
-  // ── Actions ────────────────────────────────────────────────────────────
-  const toggleActive = async (p: ProfileRow) => {
-    setBusyId(p.id);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ is_active: !p.is_active })
-      .eq('id', p.id);
-    if (error) flash('err', error.message);
-    else flash('ok', `${p.first_name} ${p.is_active ? 'désactivé' : 'activé'}.`);
-    await load();
-    setBusyId(null);
+  // ── Modifications en attente (appliquées via « Enregistrer ») ───────────
+  const stageRole = (p: ProfileRow, role: Role) => {
+    if (!isSuperAdmin) return;
+    setEdits((prev) => {
+      const next = { ...prev };
+      const entry = { ...next[p.id] };
+      if (role === p.role) delete entry.role;
+      else entry.role = role;
+      if (entry.role === undefined && entry.isActive === undefined) delete next[p.id];
+      else next[p.id] = entry;
+      return next;
+    });
   };
 
-  const changeRole = async (p: ProfileRow, role: Role) => {
-    if (!isSuperAdmin) return;
-    setBusyId(p.id);
-    const { error } = await supabase.from('profiles').update({ role }).eq('id', p.id);
-    if (error) flash('err', error.message);
-    else flash('ok', `${p.first_name} est maintenant ${ROLE_META[role].label}.`);
-    await load();
-    setBusyId(null);
+  const stageActive = (p: ProfileRow) => {
+    setEdits((prev) => {
+      const next = { ...prev };
+      const entry = { ...next[p.id] };
+      const current = entry.isActive ?? p.is_active;
+      const target = !current;
+      if (target === p.is_active) delete entry.isActive;
+      else entry.isActive = target;
+      if (entry.role === undefined && entry.isActive === undefined) delete next[p.id];
+      else next[p.id] = entry;
+      return next;
+    });
+  };
+
+  // Liste des changements réels (champ par champ) à envoyer à l'edge function.
+  const pending = useMemo(() => {
+    const list: { id: string; name: string; role?: Role; isActive?: boolean }[] = [];
+    for (const p of profiles) {
+      const e = edits[p.id];
+      if (!e) continue;
+      const change: { id: string; name: string; role?: Role; isActive?: boolean } = {
+        id: p.id,
+        name: `${p.first_name} ${p.last_name}`.trim() || p.email,
+      };
+      let dirty = false;
+      if (e.role !== undefined && e.role !== p.role) { change.role = e.role; dirty = true; }
+      if (e.isActive !== undefined && e.isActive !== p.is_active) { change.isActive = e.isActive; dirty = true; }
+      if (dirty) list.push(change);
+    }
+    return list;
+  }, [profiles, edits]);
+
+  const discardAll = () => setEdits({});
+
+  const saveAll = async () => {
+    if (pending.length === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-update-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.accessToken}`,
+        },
+        body: JSON.stringify({
+          changes: pending.map(({ id, role, isActive }) => ({ id, role, isActive })),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) {
+        throw new Error(data?.error ?? 'Synchronisation impossible');
+      }
+      const applied = data.applied ?? 0;
+      const failed = data.failed ?? 0;
+      if (failed > 0) {
+        const firstErr = (data.results ?? []).find((r: { ok: boolean; error?: string }) => !r.ok)?.error;
+        flash('err', `${applied} appliquée(s), ${failed} en échec${firstErr ? ` — ${firstErr}` : ''}.`);
+      } else {
+        flash('ok', `${applied} modification(s) synchronisée(s) ✓ — les nouveaux accès sont actifs.`);
+      }
+      setEdits({});
+      await load();
+    } catch (err: any) {
+      flash('err', err?.message ?? 'Erreur lors de la synchronisation');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const createAccount = async (e: React.FormEvent) => {
@@ -134,7 +199,7 @@ export default function AdminUsersPage() {
     setCreating(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://ircpewhmmcpghucnywis.supabase.co'}/functions/v1/admin-create-user`,
+        `${SUPABASE_URL}/functions/v1/admin-create-user`,
         {
           method: 'POST',
           headers: {
@@ -253,8 +318,8 @@ export default function AdminUsersPage() {
         </div>
       </div>
       <p className="text-gray-500 mb-6">
-        {profiles.length} comptes · {childrenCount} profils enfants — tout se synchronise en
-        temps réel, sans validation manuelle.
+        {profiles.length} comptes · {childrenCount} profils enfants — les changements de rôle et
+        d&apos;activation sont mis en attente, puis appliqués d&apos;un clic sur « Enregistrer ».
       </p>
 
       {notice && (
@@ -312,22 +377,38 @@ export default function AdminUsersPage() {
             </thead>
             <tbody>
               {filtered.map((p) => {
-                const meta = ROLE_META[p.role] ?? ROLE_META.PARENT;
+                const e = edits[p.id];
+                const effRole = (e?.role ?? p.role) as Role;
+                const effActive = e?.isActive ?? p.is_active;
+                const roleDirty = e?.role !== undefined && e.role !== p.role;
+                const activeDirty = e?.isActive !== undefined && e.isActive !== p.is_active;
+                const rowDirty = roleDirty || activeDirty;
+                const meta = ROLE_META[effRole] ?? ROLE_META.PARENT;
                 const isSelf = p.id === user?.id;
                 return (
-                  <tr key={p.id} className="border-b border-gray-50 last:border-0">
+                  <tr
+                    key={p.id}
+                    className={`border-b border-gray-50 last:border-0 ${rowDirty ? 'bg-amber-50/60' : ''}`}
+                  >
                     <td className="px-5 py-3 font-medium">
                       {p.first_name} {p.last_name}
                       {isSelf && <span className="ml-2 text-xs text-gray-400">(vous)</span>}
+                      {rowDirty && (
+                        <span className="ml-2 align-middle text-[11px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
+                          ● modifié
+                        </span>
+                      )}
                     </td>
                     <td className="px-5 py-3 text-gray-500">{p.email}</td>
                     <td className="px-5 py-3">
                       {isSuperAdmin && !isSelf && p.role !== 'SUPER_ADMIN' ? (
                         <select
-                          value={p.role}
-                          disabled={busyId === p.id}
-                          onChange={(e) => changeRole(p, e.target.value as Role)}
-                          className={`rounded-full px-2 py-1 text-xs font-semibold border-0 ${meta.cls}`}
+                          value={effRole}
+                          disabled={saving}
+                          onChange={(ev) => stageRole(p, ev.target.value as Role)}
+                          className={`rounded-full px-2 py-1 text-xs font-semibold border-0 ${meta.cls} ${
+                            roleDirty ? 'ring-2 ring-amber-400' : ''
+                          }`}
                         >
                           {(['PARENT', 'COACH', 'ADMIN'] as Role[]).map((r) => (
                             <option key={r} value={r}>
@@ -347,24 +428,24 @@ export default function AdminUsersPage() {
                     <td className="px-5 py-3">
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          p.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
-                        }`}
+                          effActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                        } ${activeDirty ? 'ring-2 ring-amber-400' : ''}`}
                       >
-                        {p.is_active ? 'Actif' : 'Désactivé'}
+                        {effActive ? 'Actif' : 'Désactivé'}
                       </span>
                     </td>
                     <td className="px-5 py-3 text-right">
                       {!isSelf && p.role !== 'SUPER_ADMIN' && (
                         <button
-                          onClick={() => toggleActive(p)}
-                          disabled={busyId === p.id}
+                          onClick={() => stageActive(p)}
+                          disabled={saving}
                           className={`px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${
-                            p.is_active
+                            effActive
                               ? 'bg-red-50 text-red-600 hover:bg-red-100'
                               : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                           }`}
                         >
-                          {p.is_active ? 'Désactiver' : 'Réactiver'}
+                          {effActive ? 'Désactiver' : 'Réactiver'}
                         </button>
                       )}
                     </td>
@@ -469,6 +550,30 @@ export default function AdminUsersPage() {
             </p>
           </form>
         </Modal>
+      )}
+
+      {/* ── Barre flottante : enregistrer les modifications ── */}
+      {pending.length > 0 && (
+        <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3 rounded-2xl border border-gray-100 bg-white px-4 py-3 shadow-xl">
+          <span className="text-sm text-gray-600">
+            <span className="font-semibold text-gray-900">{pending.length}</span> modification
+            {pending.length > 1 ? 's' : ''} en attente
+          </span>
+          <button
+            onClick={discardAll}
+            disabled={saving}
+            className="px-3 py-2 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={saveAll}
+            disabled={saving}
+            className="px-4 py-2 rounded-xl text-sm font-semibold bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+          >
+            {saving ? 'Synchronisation…' : `Enregistrer (${pending.length})`}
+          </button>
+        </div>
       )}
 
       <style jsx global>{`
