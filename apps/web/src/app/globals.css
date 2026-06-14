@@ -19,13 +19,11 @@
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
-  /* Pas de scroll horizontal accidentel + feel app (pas de rebond / pull-to-refresh) */
+  /* Pas de scroll horizontal accidentel. `clip` (et non `hidden`) car `hidden`
+     force overflow-y:auto et peut bloquer le scroll vertical sur mobile. */
   html,
   body {
-    overflow-x: hidden;
-  }
-  body {
-    overscroll-behavior-y: none;
+    overflow-x: clip;
   }
   button,
   a {
