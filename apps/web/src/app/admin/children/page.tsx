@@ -37,6 +37,11 @@ export default function AdminChildrenPage() {
   const [isLoading, setIsLoading]   = useState(true);
   const [search, setSearch]         = useState('');
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
+  // Suppression définitive
+  const [confirmChild, setConfirmChild] = useState<Child | null>(null);
+  const [deleting, setDeleting]     = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+  const [notice, setNotice]         = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
 
   const fetchChildren = useCallback(async () => {
     setIsLoading(true);
@@ -117,6 +122,24 @@ export default function AdminChildrenPage() {
     return () => { supabase.removeChannel(ch); };
   }, [fetchChildren]);
 
+  // Suppression réelle : la cascade Postgres retire aussi séances, rapports,
+  // badges, inscriptions, assignations et runs vidéo liés. Le realtime propage
+  // la disparition au compte parent (ChildSwitcher) et aux espaces coach.
+  const deleteChild = async () => {
+    if (!confirmChild) return;
+    setDeleting(true);
+    setDeleteError('');
+    const { error } = await supabase.from('children').delete().eq('id', confirmChild.id);
+    setDeleting(false);
+    if (error) {
+      setDeleteError(error.message);
+      return;
+    }
+    setNotice({ type: 'ok', text: `« ${confirmChild.first_name} » a été supprimé définitivement.` });
+    setConfirmChild(null);
+    await fetchChildren();
+  };
+
   const filtered = children.filter((c) => {
     const q = search.toLowerCase();
     const matchSearch = !search ||
@@ -140,6 +163,16 @@ export default function AdminChildrenPage() {
           </p>
         </div>
       </div>
+
+      {/* Notification */}
+      {notice && (
+        <div className={`mb-4 rounded-xl p-3 text-sm flex items-center justify-between ${
+          notice.type === 'ok' ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+        }`}>
+          <span>{notice.text}</span>
+          <button onClick={() => setNotice(null)} className="text-lg leading-none opacity-60 hover:opacity-100">×</button>
+        </div>
+      )}
 
       {/* Recherche + filtres */}
       <div className="flex flex-col sm:flex-row gap-3 mb-6">
@@ -175,13 +208,14 @@ export default function AdminChildrenPage() {
               <th className="px-6 py-4 hidden sm:table-cell">Programmes</th>
               <th className="px-6 py-4 hidden sm:table-cell">Badges</th>
               <th className="px-6 py-4">Statut</th>
+              <th className="px-6 py-4 text-right">Actions</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t">
-                  {Array.from({ length: 8 }).map((__, j) => (
+                  {Array.from({ length: 9 }).map((__, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: j === 0 ? '60%' : '80%' }} />
                     </td>
@@ -190,7 +224,7 @@ export default function AdminChildrenPage() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-14 text-center">
+                <td colSpan={9} className="px-6 py-14 text-center">
                   <div className="text-4xl mb-3">🧒</div>
                   <p className="text-gray-500 font-medium">
                     {search || filterActive !== 'all' ? 'Aucun résultat.' : 'Aucun enfant enregistré pour le moment.'}
@@ -255,12 +289,62 @@ export default function AdminChildrenPage() {
                       {child.is_active ? 'Actif' : 'Inactif'}
                     </span>
                   </td>
+                  {/* Actions */}
+                  <td className="px-6 py-4 text-right">
+                    <button
+                      onClick={() => { setDeleteError(''); setConfirmChild(child); }}
+                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                    >
+                      Supprimer
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Modale de confirmation — suppression définitive */}
+      {confirmChild && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+          onClick={() => { if (!deleting) setConfirmChild(null); }}
+        >
+          <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold mb-2">Supprimer définitivement ?</h2>
+            <p className="text-sm text-gray-600 mb-1">
+              Vous allez supprimer{' '}
+              <span className="font-semibold">{confirmChild.first_name} {confirmChild.last_name}</span>
+              {confirmChild.parent_name ? <> — famille de {confirmChild.parent_name}</> : null}.
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              Cela supprime aussi <span className="font-medium">toutes ses séances, rapports, badges,
+              inscriptions et assignations</span>. C&apos;est <span className="font-semibold text-red-600">irréversible</span>
+              {' '}et se répercute immédiatement sur le compte parent et les coachs.
+            </p>
+            {deleteError && (
+              <p className="mb-3 rounded-lg bg-red-50 text-red-700 text-sm p-2.5">{deleteError}</p>
+            )}
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => setConfirmChild(null)}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={deleteChild}
+                disabled={deleting}
+                className="px-4 py-2 rounded-xl text-sm font-semibold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                {deleting ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
