@@ -36,7 +36,7 @@ const FILTERS: { value: Role | 'ALL'; label: string }[] = [
 ];
 
 const SUPABASE_URL =
-  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://ircpewhmmcpghucnywis.supabase.co';
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://kkdcgzvdmipmrgkawnky.supabase.co';
 
 export default function AdminUsersPage() {
   const { user, session } = useAuthStore();
