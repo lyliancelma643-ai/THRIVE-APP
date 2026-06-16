@@ -106,7 +106,7 @@ export default function SelectProfilePage() {
 
     const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://ircpewhmmcpghucnywis.supabase.co'}/functions/v1/admin-create-user`,
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://kkdcgzvdmipmrgkawnky.supabase.co'}/functions/v1/admin-create-user`,
       {
         method: 'POST',
         headers: {
