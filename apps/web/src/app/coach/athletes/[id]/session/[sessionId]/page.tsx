@@ -201,6 +201,37 @@ export default function CoachLiveSessionPage() {
       });
       if (repErr) throw repErr;
 
+      // Alimente aussi le moteur de bilans (coach_reports → parent_reports via EF).
+      // Best-effort : l'envoi legacy a déjà réussi, on ne bloque pas dessus.
+      try {
+        const perfSummary = Object.keys(observations).length
+          ? `Indicateurs cotés : ${Object.entries(observations)
+              .map(([k, v]) => `${k} ${v}/5`)
+              .join(' · ')}`
+          : null;
+        const { data: cr } = await supabase
+          .from('coach_reports')
+          .insert({
+            child_id: child.id,
+            coach_id: user.id,
+            session_id: session.id,
+            age_group: ageGroup,
+            life_skill_target: script?.title || session.title,
+            performance_summary: perfSummary,
+            success_count: ratedCount,
+            coach_message_parent: parentMsg,
+          })
+          .select('id')
+          .single();
+        if (cr?.id) {
+          await supabase.functions.invoke('generate-parent-report', {
+            body: { coach_report_id: cr.id },
+          });
+        }
+      } catch {
+        /* moteur de bilans best-effort : le bilan legacy est déjà parti */
+      }
+
       localStorage.removeItem(draftKey);
       router.push(`/coach/athletes/${child.id}?sent=1`);
     } catch (e: any) {
