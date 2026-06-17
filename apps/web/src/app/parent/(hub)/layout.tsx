@@ -9,6 +9,7 @@ import { BrandLogo } from '@/components/BrandLogo';
 const NAV_ITEMS = [
   { href: '/parent', label: 'Accueil', icon: '⌂', exact: true },
   { href: '/parent/my-sessions', label: 'Mes séances', icon: '★', exact: false },
+  { href: '/parent/progress', label: 'Progrès', icon: '↗', exact: false },
   { href: '/parent/library', label: 'Toutes les séances', icon: '▦', exact: false },
 ];
 
