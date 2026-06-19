@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
@@ -47,7 +47,7 @@ export default function MySessionsPage() {
   const [reports, setReports] = useState<Report[]>([]);
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
-  const [openReport, setOpenReport] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
@@ -133,8 +133,25 @@ export default function MySessionsPage() {
 
   const completedCount = sessions.filter((s) => s.status === 'COMPLETED').length;
 
+  // Séance sélectionnée → alimente le lecteur de bilan (panneau de droite ≥ lg)
+  const selectedSession = selectedId
+    ? sessions.find((x) => x.id === selectedId) ?? null
+    : null;
+  const selectedReport = selectedSession
+    ? reports.find(
+        (r) =>
+          (r.content as any)?.session_id === selectedSession.id ||
+          (r.content as any)?.session_number === selectedSession.session_number
+      ) ?? null
+    : null;
+  const selectedTpl = selectedSession
+    ? THRIVE_SESSIONS.find((t) => t.num === selectedSession.session_number) ?? null
+    : null;
+
   return (
-    <div className="max-w-4xl">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+      {/* Colonne gauche — le programme de séances */}
+      <div>
       <h1 className="font-display text-3xl font-semibold text-white mb-2">Mes séances</h1>
       <p className="text-white/55 mb-8">
         Le programme 1:1 de {selectedChild.first_name}
@@ -181,7 +198,7 @@ export default function MySessionsPage() {
               ) ?? null
             : null;
           const rowId = s?.id ?? `tpl-${tpl.num}`;
-          const isOpen = openReport === rowId;
+          const isSelected = selectedId === rowId;
           const hasDetails = Boolean(report || (isDone && s?.coach_notes));
 
           return (
@@ -191,11 +208,15 @@ export default function MySessionsPage() {
                 isDone
                   ? 'glass-navy ring-1 ring-sage/40'
                   : 'bg-navy-900/50 backdrop-blur-md opacity-80'
-              }`}
+              } ${isSelected ? 'ring-2 ring-sun/70' : ''}`}
             >
               <button
-                className="w-full flex items-center gap-4 p-5 text-left"
-                onClick={() => hasDetails && setOpenReport(isOpen ? null : rowId)}
+                disabled={!hasDetails}
+                aria-pressed={hasDetails ? isSelected : undefined}
+                className={`w-full flex items-center gap-4 p-5 text-left ${
+                  hasDetails ? 'cursor-pointer' : 'cursor-default'
+                }`}
+                onClick={() => hasDetails && setSelectedId(isSelected ? null : rowId)}
               >
                 <span
                   className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
@@ -234,76 +255,44 @@ export default function MySessionsPage() {
                   {isDone ? 'Validée par le coach' : 'À venir'}
                 </span>
                 {hasDetails && (
-                  <span className="text-white/40 text-xs">{isOpen ? '▲' : '▼'}</span>
+                  <span
+                    className={`text-base leading-none transition-colors ${
+                      isSelected ? 'text-sun' : 'text-white/35'
+                    }`}
+                    aria-hidden
+                  >
+                    ›
+                  </span>
                 )}
               </button>
 
-              {isOpen && hasDetails && s && (
-                <div className="px-5 pb-5 pt-1 border-t border-white/10">
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 mt-3">
-                    Bilan du coach
-                  </h4>
-                  {s.coach_notes && (
-                    <p className="text-sm text-white/80 whitespace-pre-line mb-3">
-                      {s.coach_notes}
-                    </p>
-                  )}
-                  {report?.content && (
-                    <div className="space-y-2">
-                      {Object.entries(report.content)
-                        .filter(
-                          ([k, v]) =>
-                            !['session_id', 'session_number'].includes(k) &&
-                            v !== '' &&
-                            v !== null
-                        )
-                        .map(([key, value]) =>
-                          key === 'observations' && value && typeof value === 'object' ? (
-                            <div key={key} className="pt-2">
-                              <span className="block text-xs font-bold uppercase tracking-wide text-white/45 mb-2">
-                                Observations du coach
-                              </span>
-                              <div className="space-y-1.5">
-                                {Object.entries(value as Record<string, number>).map(
-                                  ([ind, note]) => (
-                                    <div
-                                      key={ind}
-                                      className="flex items-center justify-between gap-3 text-sm"
-                                    >
-                                      <span className="text-white/80">{ind}</span>
-                                      <span className="flex gap-1 shrink-0">
-                                        {[1, 2, 3, 4, 5].map((n) => (
-                                          <span
-                                            key={n}
-                                            className={`w-2.5 h-2.5 rounded-full ${
-                                              n <= Number(note)
-                                                ? 'bg-sun'
-                                                : 'bg-white/15'
-                                            }`}
-                                          />
-                                        ))}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </div>
-                          ) : (
-                            <div key={key} className="text-sm">
-                              <span className="font-medium text-white capitalize">
-                                {key.replace(/_/g, ' ')} :{' '}
-                              </span>
-                              <span className="text-white/75">{String(value)}</span>
-                            </div>
-                          )
-                        )}
-                    </div>
-                  )}
+              {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
+              {isSelected && hasDetails && s && (
+                <div className="lg:hidden px-5 pb-5 pt-3 border-t border-white/10">
+                  <BilanDetails session={s} report={report} />
                 </div>
               )}
             </div>
           );
         })}
+      </div>
+      </div>
+
+      {/* Colonne droite — lecteur du bilan du coach */}
+      <div className="hidden lg:block">
+        <div className="sticky top-24">
+          {selectedSession ? (
+            <BilanPanel
+              session={selectedSession}
+              report={selectedReport}
+              phaseLabel={PHASE_LABELS[phaseOfSession(selectedSession.session_number)]}
+              fallbackTitle={selectedTpl?.title ?? null}
+              onClose={() => setSelectedId(null)}
+            />
+          ) : (
+            <BilanReaderEmpty />
+          )}
+        </div>
       </div>
     </div>
   );
@@ -317,6 +306,199 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       </div>
       <h2 className="font-display text-2xl font-semibold text-white mb-3">{title}</h2>
       <p className="text-white/55">{body}</p>
+    </div>
+  );
+}
+
+/* Échelle de couleur des notes : vert (fort) → jaune (moyen) → gris (faible / sans couleur) */
+const NOTE_COLORS: Record<number, string> = {
+  5: '#34D399', // vert plein
+  4: '#A3E635', // vert-lime
+  3: '#F9EB50', // jaune (accent sun)
+  2: '#B7AE72', // jaune éteint
+  1: '#6B7280', // gris — « sans couleur »
+};
+
+/* Jauge circulaire incurvée — note /5 au centre, anneau coloré selon le niveau */
+function ScoreGauge({ note, max = 5 }: { note: number; max?: number }) {
+  const value = Math.max(0, Math.min(max, Math.round(note)));
+  const pct = (value / max) * 100;
+  const color = NOTE_COLORS[value] ?? '#6B7280';
+  return (
+    <div
+      className="relative w-16 h-16 shrink-0"
+      role="img"
+      aria-label={`Note ${value} sur ${max}`}
+    >
+      <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+        <circle
+          cx="18"
+          cy="18"
+          r="16"
+          fill="none"
+          stroke="rgba(255,255,255,0.10)"
+          strokeWidth="3.5"
+        />
+        <circle
+          cx="18"
+          cy="18"
+          r="16"
+          fill="none"
+          stroke={color}
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          pathLength={100}
+          strokeDasharray={`${pct} 100`}
+          className="transition-all duration-500"
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="font-display font-bold text-white text-lg leading-none tabular-nums">
+          {value}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* Carte de section interactive — réagit au survol (lift + halo accent, titre qui s'allume) */
+function BilanCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
+      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+function fieldLabel(key: string): string {
+  if (key === 'message du coach') return 'Message du coach';
+  const k = key.replace(/_/g, ' ').trim();
+  return k.charAt(0).toUpperCase() + k.slice(1);
+}
+
+/* Corps du bilan — sections interactives ; partagé entre la lecture inline (mobile)
+   et le panneau latéral (desktop) */
+function BilanDetails({
+  session,
+  report,
+}: {
+  session: OneToOneSession;
+  report: Report | null;
+}) {
+  const content = (report?.content ?? {}) as Record<string, unknown>;
+  const observations =
+    content.observations && typeof content.observations === 'object'
+      ? (content.observations as Record<string, number>)
+      : null;
+  const otherFields = Object.entries(content).filter(
+    ([k, v]) =>
+      !['session_id', 'session_number', 'titre', 'observations'].includes(k) &&
+      v !== '' &&
+      v !== null
+  );
+  const message = session.coach_notes?.trim() || null;
+
+  return (
+    <div className="space-y-3">
+      {/* Bloc 1 — Bilan du coach (le message, mis en forme) */}
+      {message && (
+        <BilanCard title="Bilan du coach">
+          <p className="text-sm text-white/80 whitespace-pre-line leading-relaxed">{message}</p>
+        </BilanCard>
+      )}
+
+      {/* Bloc 2 — Observations du coach : une jauge circulaire par indicateur coté */}
+      {observations && Object.keys(observations).length > 0 && (
+        <BilanCard title="Observations du coach">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {Object.entries(observations).map(([ind, note]) => (
+              <div
+                key={ind}
+                className="flex flex-col items-center text-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+              >
+                <ScoreGauge note={Number(note)} />
+                <span className="text-[13px] font-semibold leading-snug text-white">{ind}</span>
+              </div>
+            ))}
+          </div>
+        </BilanCard>
+      )}
+
+      {/* Bloc 3+ — Message du coach + autres champs libres du bilan */}
+      {otherFields.map(([key, value]) => (
+        <BilanCard key={key} title={fieldLabel(key)}>
+          <p className="text-sm text-white/80 whitespace-pre-line leading-relaxed">
+            {String(value)}
+          </p>
+        </BilanCard>
+      ))}
+    </div>
+  );
+}
+
+/* Lecteur de bilan — panneau latéral (≥ lg), scrollable avec en-tête collant */
+function BilanPanel({
+  session,
+  report,
+  phaseLabel,
+  fallbackTitle,
+  onClose,
+}: {
+  session: OneToOneSession;
+  report: Report | null;
+  phaseLabel: string;
+  fallbackTitle: string | null;
+  onClose: () => void;
+}) {
+  return (
+    <div className="glass-navy rounded-2xl ring-1 ring-sage/40 max-h-[calc(100dvh-8rem)] overflow-y-auto">
+      <div className="sticky top-0 z-10 flex items-start gap-3 p-6 pb-4 bg-navy-900/70 backdrop-blur-md border-b border-white/10">
+        <span className="w-10 h-10 rounded-full bg-sage text-navy-900 flex items-center justify-center font-display font-semibold shrink-0">
+          {session.session_number ?? '✓'}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-display text-lg font-semibold text-white leading-tight">
+            {session.title ?? fallbackTitle ?? 'Séance'}
+          </h3>
+          <p className="text-xs text-white/55 mt-0.5">
+            {phaseLabel}
+            {session.completed_at &&
+              ` · Validée le ${new Date(session.completed_at).toLocaleDateString('fr-CA', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}`}
+          </p>
+        </div>
+        <button
+          onClick={onClose}
+          aria-label="Fermer le bilan"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+        >
+          ✕
+        </button>
+      </div>
+      <div className="p-6 pt-4">
+        <BilanDetails session={session} report={report} />
+      </div>
+    </div>
+  );
+}
+
+/* État vide du lecteur — invite à sélectionner une séance */
+function BilanReaderEmpty() {
+  return (
+    <div className="glass-navy rounded-2xl p-10 text-center border border-white/5">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center text-xl text-sun">
+        ✉
+      </div>
+      <h3 className="font-display text-lg font-semibold text-white mb-2">Lecteur de bilan</h3>
+      <p className="text-sm text-white/55">
+        Sélectionne une séance validée à gauche pour lire le bilan rédigé par le coach.
+      </p>
     </div>
   );
 }
