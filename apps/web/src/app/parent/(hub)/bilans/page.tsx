@@ -4,33 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 
-// ── Niveaux de validation THRIVE (cf. protocole §1.4) ────────────────────────
+// Niveaux & acteurs conservés en donnée (protocole §1.4) — non affichés sur la carte
 type Level = 'A' | 'B' | 'C';
-const LEVELS: Record<Level, { tag: string; cls: string; meaning: string }> = {
-  A: {
-    tag: 'Validé science',
-    cls: 'bg-sage text-navy-900',
-    meaning: 'Soutenu directement par la littérature scientifique',
-  },
-  B: {
-    tag: 'Adapté science',
-    cls: 'bg-sun text-navy-900',
-    meaning: 'Adaptation cohérente avec la science — à valider dans ce contexte',
-  },
-  C: {
-    tag: 'Terrain',
-    cls: 'bg-white/15 text-white',
-    meaning: 'Expérience de terrain et intuition éducative',
-  },
-};
-
 type Actor = 'Jeune' | 'Coach' | 'Parent' | 'Mixte';
-const ACTOR_DOT: Record<Actor, string> = {
-  Jeune: 'bg-sage',
-  Coach: 'bg-sun',
-  Parent: 'bg-navy-300',
-  Mixte: 'bg-gradient-to-r from-sage to-sun',
-};
 
 type Support = {
   title: string;
@@ -270,31 +246,14 @@ export default function AthleteIdentityPage() {
       </div>
 
       {/* Parcours & supports */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
-        <div>
-          <h3 className="font-display text-xl font-semibold text-white">
-            Parcours &amp; supports THRIVE
-          </h3>
-          <p className="text-sm text-white/50 mt-0.5">
-            Les outils qui construisent l&apos;identité et l&apos;autonomie de{' '}
-            {selectedChild.first_name}.
-          </p>
-        </div>
-        {/* Légende des niveaux */}
-        <div className="flex flex-wrap gap-2">
-          {(['A', 'B', 'C'] as Level[]).map((lv) => (
-            <span
-              key={lv}
-              title={LEVELS[lv].meaning}
-              className="inline-flex items-center gap-1.5 text-[11px] text-white/60 cursor-help"
-            >
-              <span className={`px-1.5 py-0.5 rounded font-bold text-[10px] ${LEVELS[lv].cls}`}>
-                {lv}
-              </span>
-              {LEVELS[lv].tag}
-            </span>
-          ))}
-        </div>
+      <div className="mb-4">
+        <h3 className="font-display text-xl font-semibold text-white">
+          Parcours &amp; supports THRIVE
+        </h3>
+        <p className="text-sm text-white/50 mt-0.5">
+          Les outils qui construisent l&apos;identité et l&apos;autonomie de{' '}
+          {selectedChild.first_name}.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -307,35 +266,11 @@ export default function AthleteIdentityPage() {
 }
 
 function SupportCard({ support }: { support: Support }) {
-  const lv = LEVELS[support.level];
   return (
     <section className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <h4 className="font-display text-base font-semibold text-white leading-tight transition-colors group-hover:text-sun">
-          {support.title}
-        </h4>
-        <span
-          title={`Niveau ${support.level} — ${lv.meaning}`}
-          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${lv.cls}`}
-        >
-          {support.level} · {lv.tag}
-        </span>
-      </div>
-
-      <div className="flex flex-wrap items-center gap-1.5 mb-3">
-        {support.sessions.map((sess) => (
-          <span
-            key={sess}
-            className="px-2 py-0.5 rounded-md bg-white/10 text-[11px] font-semibold text-white/70 tabular-nums"
-          >
-            {sess}
-          </span>
-        ))}
-        <span className="inline-flex items-center gap-1.5 text-[11px] text-white/55 ml-1">
-          <span className={`w-1.5 h-1.5 rounded-full ${ACTOR_DOT[support.actor]}`} />
-          {support.actorLabel}
-        </span>
-      </div>
+      <h4 className="font-display text-base font-semibold text-white leading-tight mb-2 transition-colors group-hover:text-sun">
+        {support.title}
+      </h4>
 
       <p className="text-sm text-white/75 leading-relaxed mb-3">{support.desc}</p>
 
