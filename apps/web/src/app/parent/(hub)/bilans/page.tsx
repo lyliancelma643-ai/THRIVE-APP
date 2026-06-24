@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 
@@ -116,22 +116,40 @@ function ageFromDob(dob: string | null): number | null {
 
 type CoachInfo = { first_name: string; last_name: string } | null;
 
+type ToolboxItem = { tool: string; context: string };
+type ParentIdentity = {
+  sport: string | null;
+  position: string | null;
+  club: string | null;
+  sport_story: string | null;
+  strengths: string[] | null;
+  season_dream: string | null;
+  smart_goal: string | null;
+  life_skill_goal: string | null;
+  my_actions: string[] | null;
+  toolbox: ToolboxItem[] | null;
+  focus_word: string | null;
+  letter: string | null;
+} | null;
+
 export default function AthleteIdentityPage() {
   const { children, selectedChildId } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [completed, setCompleted] = useState(0);
+  const [identity, setIdentity] = useState<ParentIdentity>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
       setCoach(null);
       setCompleted(0);
+      setIdentity(null);
       setLoading(false);
       return;
     }
-    const [sessionsRes, assignmentRes] = await Promise.all([
+    const [sessionsRes, assignmentRes, identityRes] = await Promise.all([
       supabase.from('sessions').select('status').eq('child_id', selectedChildId),
       supabase
         .from('coach_assignments')
@@ -139,6 +157,13 @@ export default function AthleteIdentityPage() {
         .eq('child_id', selectedChildId)
         .eq('is_active', true)
         .limit(1),
+      supabase
+        .from('athlete_identity')
+        .select(
+          'sport, position, club, sport_story, strengths, season_dream, smart_goal, life_skill_goal, my_actions, toolbox, focus_word, letter'
+        )
+        .eq('child_id', selectedChildId)
+        .maybeSingle(),
     ]);
     setCompleted((sessionsRes.data ?? []).filter((s: any) => s.status === 'COMPLETED').length);
     const assignment = (assignmentRes.data ?? [])[0] as any;
@@ -146,6 +171,7 @@ export default function AthleteIdentityPage() {
       ? assignment.profiles[0]
       : assignment?.profiles;
     setCoach((coachProfile as CoachInfo) ?? null);
+    setIdentity((identityRes.data as ParentIdentity) ?? null);
     setLoading(false);
   }, [selectedChildId]);
 
@@ -153,6 +179,27 @@ export default function AthleteIdentityPage() {
     setLoading(true);
     load();
   }, [load]);
+
+  // Mise à jour en direct quand le coach/admin modifie la carte
+  useEffect(() => {
+    if (!selectedChildId) return;
+    const channel = supabase
+      .channel(`identity-${selectedChildId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'athlete_identity',
+          filter: `child_id=eq.${selectedChildId}`,
+        },
+        () => load()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedChildId, load]);
 
   if (!selectedChild) {
     return (
@@ -213,8 +260,10 @@ export default function AthleteIdentityPage() {
               {age != null && <span>{age} ans</span>}
               <span className="inline-flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-sage" />
-                Hockey sur glace
+                {identity?.sport || 'Hockey sur glace'}
               </span>
+              {identity?.position && <span>{identity.position}</span>}
+              {identity?.club && <span>{identity.club}</span>}
               {coach && (
                 <span>
                   Coach&nbsp;
@@ -245,6 +294,8 @@ export default function AthleteIdentityPage() {
         </div>
       </div>
 
+      {identity && <AthleteProfile identity={identity} firstName={selectedChild.first_name} />}
+
       {/* Parcours & supports */}
       <div className="mb-4">
         <h3 className="font-display text-xl font-semibold text-white">
@@ -260,6 +311,129 @@ export default function AthleteIdentityPage() {
         {SUPPORTS.map((s) => (
           <SupportCard key={s.title} support={s} />
         ))}
+      </div>
+    </div>
+  );
+}
+
+/* Carte d'une rubrique du profil (données réelles renseignées par le coach) */
+function ProfileCard({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
+      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
+        {title}
+      </h4>
+      {children}
+    </section>
+  );
+}
+
+/* Profil de l'athlète — n'affiche que les rubriques réellement renseignées */
+function AthleteProfile({
+  identity,
+  firstName,
+}: {
+  identity: NonNullable<ParentIdentity>;
+  firstName: string;
+}) {
+  const strengths = identity.strengths ?? [];
+  const actions = identity.my_actions ?? [];
+  const toolbox = identity.toolbox ?? [];
+  const has =
+    identity.sport_story ||
+    identity.season_dream ||
+    identity.smart_goal ||
+    identity.life_skill_goal ||
+    identity.focus_word ||
+    identity.letter ||
+    strengths.length > 0 ||
+    actions.length > 0 ||
+    toolbox.length > 0;
+  if (!has) return null;
+
+  return (
+    <div className="mb-10">
+      <div className="mb-4">
+        <h3 className="font-display text-xl font-semibold text-white">Profil de {firstName}</h3>
+        <p className="text-sm text-white/50 mt-0.5">Renseigné par son coach THRIVE.</p>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {identity.sport_story && (
+          <ProfileCard title="Histoire sportive">
+            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
+              {identity.sport_story}
+            </p>
+          </ProfileCard>
+        )}
+        {strengths.length > 0 && (
+          <ProfileCard title="Forces">
+            <div className="flex flex-wrap gap-2">
+              {strengths.map((s, i) => (
+                <span
+                  key={i}
+                  className="px-3 py-1 rounded-full bg-sage/20 text-sage text-sm font-medium"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
+          </ProfileCard>
+        )}
+        {identity.season_dream && (
+          <ProfileCard title="Rêve de saison">
+            <p className="text-sm text-white/80 leading-relaxed italic">« {identity.season_dream} »</p>
+          </ProfileCard>
+        )}
+        {identity.smart_goal && (
+          <ProfileCard title="Objectif technique (SMART)">
+            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
+              {identity.smart_goal}
+            </p>
+          </ProfileCard>
+        )}
+        {identity.life_skill_goal && (
+          <ProfileCard title="Objectif life skill">
+            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
+              {identity.life_skill_goal}
+            </p>
+          </ProfileCard>
+        )}
+        {actions.length > 0 && (
+          <ProfileCard title="Ce qui dépend de moi">
+            <ul className="space-y-1.5">
+              {actions.map((a, i) => (
+                <li key={i} className="flex items-start gap-2 text-sm text-white/75">
+                  <span className="text-sun mt-0.5">✓</span>
+                  <span>{a}</span>
+                </li>
+              ))}
+            </ul>
+          </ProfileCard>
+        )}
+        {toolbox.length > 0 && (
+          <ProfileCard title="Boîte à outils">
+            <ul className="space-y-2">
+              {toolbox.map((t, i) => (
+                <li key={i} className="text-sm">
+                  <span className="font-medium text-white">{t.tool}</span>
+                  {t.context && <span className="text-white/55"> — {t.context}</span>}
+                </li>
+              ))}
+            </ul>
+          </ProfileCard>
+        )}
+        {identity.focus_word && (
+          <ProfileCard title="Focus word">
+            <p className="font-display text-xl font-semibold text-sun">{identity.focus_word}</p>
+          </ProfileCard>
+        )}
+        {identity.letter && (
+          <ProfileCard title="Lettre à moi-même dans 1 an">
+            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
+              {identity.letter}
+            </p>
+          </ProfileCard>
+        )}
       </div>
     </div>
   );

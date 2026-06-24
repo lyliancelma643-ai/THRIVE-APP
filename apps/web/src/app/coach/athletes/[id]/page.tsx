@@ -7,6 +7,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { childAge, AssignedChild, CoachSession, THRIVE_SESSIONS } from '@/lib/coach';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
+import { AthleteIdentityEditor } from '@/components/AthleteIdentityEditor';
 
 export default function CoachAthletePage() {
   const params = useParams<{ id: string }>();
@@ -21,6 +22,7 @@ export default function CoachAthletePage() {
   const [error, setError] = useState('');
   const [rescheduling, setRescheduling] = useState<string | null>(null);
   const [newDate, setNewDate] = useState('');
+  const [showIdentity, setShowIdentity] = useState(false);
 
   const load = useCallback(async () => {
     if (!params?.id) return;
@@ -143,6 +145,31 @@ export default function CoachAthletePage() {
         </p>
       )}
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
+
+      {/* Carte d'identité de l'athlète — éditable par le coach */}
+      <div className="mb-6 rounded-2xl bg-white shadow-card overflow-hidden">
+        <button
+          onClick={() => setShowIdentity((v) => !v)}
+          className="w-full flex items-center justify-between gap-3 p-5 text-left cursor-pointer"
+        >
+          <span>
+            <span className="block font-display text-lg font-semibold text-navy-900">
+              Carte d&apos;identité de l&apos;athlète
+            </span>
+            <span className="block text-sm text-navy-600/70">
+              Histoire, forces, rêve de saison, objectifs, boîte à outils…
+            </span>
+          </span>
+          <span className="text-navy-400 text-sm shrink-0 font-medium">
+            {showIdentity ? '▲ Fermer' : '▼ Modifier'}
+          </span>
+        </button>
+        {showIdentity && (
+          <div className="px-5 pb-5 pt-4 border-t border-navy-50 bg-cream/40">
+            <AthleteIdentityEditor childId={child.id} childName={child.first_name} />
+          </div>
+        )}
+      </div>
 
       {/* Prochaine séance à faire — accès direct */}
       {(() => {

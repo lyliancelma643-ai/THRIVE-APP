@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { AthleteIdentityEditor } from '@/components/AthleteIdentityEditor';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Child {
@@ -39,6 +40,7 @@ export default function AdminChildrenPage() {
   const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
   // Suppression définitive
   const [confirmChild, setConfirmChild] = useState<Child | null>(null);
+  const [identityChild, setIdentityChild] = useState<Child | null>(null);
   const [deleting, setDeleting]     = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [notice, setNotice]         = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
@@ -291,12 +293,20 @@ export default function AdminChildrenPage() {
                   </td>
                   {/* Actions */}
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => { setDeleteError(''); setConfirmChild(child); }}
-                      className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
-                    >
-                      Supprimer
-                    </button>
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => setIdentityChild(child)}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold bg-navy-50 text-navy-700 hover:bg-navy-100 transition-colors"
+                      >
+                        Identité
+                      </button>
+                      <button
+                        onClick={() => { setDeleteError(''); setConfirmChild(child); }}
+                        className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                      >
+                        Supprimer
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))
@@ -341,6 +351,38 @@ export default function AdminChildrenPage() {
               >
                 {deleting ? 'Suppression…' : 'Supprimer définitivement'}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale — carte d'identité de l'athlète (admin) */}
+      {identityChild && (
+        <div
+          className="fixed inset-0 z-50 flex items-start sm:items-center justify-center bg-black/40 p-4 overflow-y-auto"
+          onClick={() => setIdentityChild(null)}
+        >
+          <div
+            className="w-full max-w-2xl bg-gray-50 rounded-2xl shadow-xl my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-3 p-5 border-b border-gray-200 bg-white rounded-t-2xl sticky top-0 z-10">
+              <div>
+                <h2 className="text-lg font-bold">
+                  Carte d&apos;identité — {identityChild.first_name} {identityChild.last_name}
+                </h2>
+                <p className="text-xs text-gray-500">Modifiable par l&apos;admin et le coach.</p>
+              </div>
+              <button
+                onClick={() => setIdentityChild(null)}
+                aria-label="Fermer"
+                className="w-9 h-9 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="p-5">
+              <AthleteIdentityEditor childId={identityChild.id} childName={identityChild.first_name} />
             </div>
           </div>
         </div>
