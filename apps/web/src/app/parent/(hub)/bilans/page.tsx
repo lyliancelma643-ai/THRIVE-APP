@@ -316,19 +316,45 @@ export default function AthleteIdentityPage() {
   );
 }
 
-/* Carte d'une rubrique du profil (données réelles renseignées par le coach) */
-function ProfileCard({ title, children }: { title: string; children: ReactNode }) {
+/* Carte de rubrique repliable — clic pour révéler le détail ; contenu contenu
+   dans la carte (retour à la ligne forcé, aucun débordement). */
+function ExpandableCard({ title, children }: { title: string; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
   return (
-    <section className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
-        {title}
-      </h4>
-      {children}
+    <section
+      className={`rounded-2xl border bg-white/[0.03] overflow-hidden transition-colors duration-200 ${
+        open ? 'border-sun/40 bg-white/[0.06]' : 'border-white/10 hover:border-white/25'
+      }`}
+    >
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer"
+      >
+        <span
+          className={`text-xs font-bold uppercase tracking-wide transition-colors ${
+            open ? 'text-sun' : 'text-white/55'
+          }`}
+        >
+          {title}
+        </span>
+        <span
+          aria-hidden
+          className={`shrink-0 text-white/40 text-sm transition-transform duration-200 ${
+            open ? 'rotate-180' : ''
+          }`}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div className="px-4 pb-4 break-words [overflow-wrap:anywhere]">{children}</div>
+      )}
     </section>
   );
 }
 
-/* Profil de l'athlète — n'affiche que les rubriques réellement renseignées */
+/* Profil de l'athlète — rubriques repliables, n'affiche que ce qui est renseigné */
 function AthleteProfile({
   identity,
   firstName,
@@ -339,101 +365,93 @@ function AthleteProfile({
   const strengths = identity.strengths ?? [];
   const actions = identity.my_actions ?? [];
   const toolbox = identity.toolbox ?? [];
-  const has =
-    identity.sport_story ||
-    identity.season_dream ||
-    identity.smart_goal ||
-    identity.life_skill_goal ||
-    identity.focus_word ||
-    identity.letter ||
-    strengths.length > 0 ||
-    actions.length > 0 ||
-    toolbox.length > 0;
-  if (!has) return null;
+
+  const textBlock = (value: string) => (
+    <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{value}</p>
+  );
+
+  const rubrics: { title: string; node: ReactNode }[] = [];
+  if (identity.sport_story)
+    rubrics.push({ title: 'Histoire sportive', node: textBlock(identity.sport_story) });
+  if (strengths.length > 0)
+    rubrics.push({
+      title: 'Forces',
+      node: (
+        <div className="flex flex-wrap gap-2">
+          {strengths.map((s, i) => (
+            <span
+              key={i}
+              className="px-3 py-1 rounded-full bg-sage/20 text-sage text-sm font-medium"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      ),
+    });
+  if (identity.season_dream)
+    rubrics.push({
+      title: 'Rêve de saison',
+      node: (
+        <p className="text-sm text-white/80 leading-relaxed italic">« {identity.season_dream} »</p>
+      ),
+    });
+  if (identity.smart_goal)
+    rubrics.push({ title: 'Objectif technique (SMART)', node: textBlock(identity.smart_goal) });
+  if (identity.life_skill_goal)
+    rubrics.push({ title: 'Objectif life skill', node: textBlock(identity.life_skill_goal) });
+  if (actions.length > 0)
+    rubrics.push({
+      title: 'Ce qui dépend de moi',
+      node: (
+        <ul className="space-y-1.5">
+          {actions.map((a, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-white/80">
+              <span className="text-sun mt-0.5 shrink-0">✓</span>
+              <span>{a}</span>
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  if (toolbox.length > 0)
+    rubrics.push({
+      title: 'Boîte à outils',
+      node: (
+        <ul className="space-y-2">
+          {toolbox.map((t, i) => (
+            <li key={i} className="text-sm">
+              <span className="font-medium text-white">{t.tool}</span>
+              {t.context && <span className="text-white/55"> — {t.context}</span>}
+            </li>
+          ))}
+        </ul>
+      ),
+    });
+  if (identity.focus_word)
+    rubrics.push({
+      title: 'Focus word',
+      node: <p className="font-display text-xl font-semibold text-sun">{identity.focus_word}</p>,
+    });
+  if (identity.letter)
+    rubrics.push({ title: 'Lettre à moi-même dans 1 an', node: textBlock(identity.letter) });
+
+  if (rubrics.length === 0) return null;
 
   return (
     <div className="mb-10">
       <div className="mb-4">
         <h3 className="font-display text-xl font-semibold text-white">Profil de {firstName}</h3>
-        <p className="text-sm text-white/50 mt-0.5">Renseigné par son coach THRIVE.</p>
+        <p className="text-sm text-white/50 mt-0.5">
+          Renseigné par son coach THRIVE — clique sur une rubrique pour la lire.
+        </p>
       </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {identity.sport_story && (
-          <ProfileCard title="Histoire sportive">
-            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
-              {identity.sport_story}
-            </p>
-          </ProfileCard>
-        )}
-        {strengths.length > 0 && (
-          <ProfileCard title="Forces">
-            <div className="flex flex-wrap gap-2">
-              {strengths.map((s, i) => (
-                <span
-                  key={i}
-                  className="px-3 py-1 rounded-full bg-sage/20 text-sage text-sm font-medium"
-                >
-                  {s}
-                </span>
-              ))}
-            </div>
-          </ProfileCard>
-        )}
-        {identity.season_dream && (
-          <ProfileCard title="Rêve de saison">
-            <p className="text-sm text-white/80 leading-relaxed italic">« {identity.season_dream} »</p>
-          </ProfileCard>
-        )}
-        {identity.smart_goal && (
-          <ProfileCard title="Objectif technique (SMART)">
-            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
-              {identity.smart_goal}
-            </p>
-          </ProfileCard>
-        )}
-        {identity.life_skill_goal && (
-          <ProfileCard title="Objectif life skill">
-            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
-              {identity.life_skill_goal}
-            </p>
-          </ProfileCard>
-        )}
-        {actions.length > 0 && (
-          <ProfileCard title="Ce qui dépend de moi">
-            <ul className="space-y-1.5">
-              {actions.map((a, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm text-white/75">
-                  <span className="text-sun mt-0.5">✓</span>
-                  <span>{a}</span>
-                </li>
-              ))}
-            </ul>
-          </ProfileCard>
-        )}
-        {toolbox.length > 0 && (
-          <ProfileCard title="Boîte à outils">
-            <ul className="space-y-2">
-              {toolbox.map((t, i) => (
-                <li key={i} className="text-sm">
-                  <span className="font-medium text-white">{t.tool}</span>
-                  {t.context && <span className="text-white/55"> — {t.context}</span>}
-                </li>
-              ))}
-            </ul>
-          </ProfileCard>
-        )}
-        {identity.focus_word && (
-          <ProfileCard title="Focus word">
-            <p className="font-display text-xl font-semibold text-sun">{identity.focus_word}</p>
-          </ProfileCard>
-        )}
-        {identity.letter && (
-          <ProfileCard title="Lettre à moi-même dans 1 an">
-            <p className="text-sm text-white/75 leading-relaxed whitespace-pre-line">
-              {identity.letter}
-            </p>
-          </ProfileCard>
-        )}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
+        {rubrics.map((r) => (
+          <ExpandableCard key={r.title} title={r.title}>
+            {r.node}
+          </ExpandableCard>
+        ))}
       </div>
     </div>
   );
