@@ -9,6 +9,7 @@ type Level = 'A' | 'B' | 'C';
 type Actor = 'Jeune' | 'Coach' | 'Parent' | 'Mixte';
 
 type Support = {
+  id: string;
   title: string;
   sessions: string[];
   actorLabel: string;
@@ -18,9 +19,11 @@ type Support = {
   desc: string;
 };
 
-// Les 11 supports / outils du parcours THRIVE (protocole §8.5 + tableau de synthèse)
+// Supports / outils du parcours THRIVE (protocole §8.5 + tableau de synthèse).
+// `id` relie chaque support au contenu réel rempli par le coach (athlete_identity).
 const SUPPORTS: Support[] = [
   {
+    id: 'identite',
     title: 'Fiche Identité Athlète',
     sessions: ['S1'],
     actorLabel: 'Coach + Jeune ensemble',
@@ -30,6 +33,7 @@ const SUPPORTS: Support[] = [
     desc: "Le jeune décrit son histoire sportive, nomme 2–3 forces VIA que le coach lui a reflétées, et formule son rêve de saison. Document de référence pour personnaliser les séances suivantes.",
   },
   {
+    id: 'contrat',
     title: 'Contrat de confiance',
     sessions: ['S1'],
     actorLabel: 'Jeune + Parent + Coach',
@@ -39,6 +43,7 @@ const SUPPORTS: Support[] = [
     desc: "Engagement co-signé par le jeune, le parent et le coach : cadre, confidentialité et consentement éclairé. Pose l'alliance et le lien de confiance du programme.",
   },
   {
+    id: 'lsss',
     title: 'LSSS (Cronin & Allen, 2017)',
     sessions: ['S1', 'S7', 'S13'],
     actorLabel: 'Jeune (auto-évaluation)',
@@ -48,6 +53,7 @@ const SUPPORTS: Support[] = [
     desc: "Auto-évaluation validée des compétences de vie, administrée en S1, S7 et S13 pour mesurer objectivement la progression du jeune.",
   },
   {
+    id: 'objectif',
     title: 'Fiche Objectif THRIVE',
     sessions: ['S2'],
     actorLabel: 'Jeune guidé par le coach',
@@ -57,6 +63,7 @@ const SUPPORTS: Support[] = [
     desc: "Un objectif technique SMART + un objectif de life skill pour la saison, écrits par le jeune, accompagnés de « ce qui dépend uniquement de moi » : 3 actions concrètes.",
   },
   {
+    id: 'emotions',
     title: 'Roue des Émotions Sportives THRIVE',
     sessions: ['S4', 'S5'],
     actorLabel: 'Jeune',
@@ -66,6 +73,7 @@ const SUPPORTS: Support[] = [
     desc: "Le jeune identifie et nomme ses émotions en contexte sportif pour développer sa capacité de régulation émotionnelle.",
   },
   {
+    id: 'routine',
     title: 'Routine pré-tir THRIVE',
     sessions: ['S6'],
     actorLabel: 'Jeune autonome',
@@ -75,6 +83,17 @@ const SUPPORTS: Support[] = [
     desc: "Fiche plastifiée : une routine de pré-performance personnelle, répétable sous pression et exécutée en autonomie par le jeune.",
   },
   {
+    id: 'focus',
+    title: 'Fiche Focus Word THRIVE',
+    sessions: ['S9'],
+    actorLabel: 'Jeune',
+    actor: 'Jeune',
+    level: 'B',
+    anchor: 'Self-talk · Focus word',
+    desc: "Format billet plastifié : un mot d'activation personnel (focus word) au recto, une phrase d'activation au verso. À garder à portée pour activer le transfert hors du sport.",
+  },
+  {
+    id: 'outils',
     title: 'Carte Boîte à Outils THRIVE',
     sessions: ['S11'],
     actorLabel: 'Jeune entièrement',
@@ -84,6 +103,7 @@ const SUPPORTS: Support[] = [
     desc: "Format poche : le jeune liste lui-même ses 6 outils THRIVE et, pour chacun, le contexte hors-sport où il l'utilise. Elle ne le quitte plus après S11.",
   },
   {
+    id: 'lettre',
     title: 'Lettre à moi-même dans 1 an',
     sessions: ['S13'],
     actorLabel: 'Jeune (dicte ou écrit)',
@@ -93,6 +113,7 @@ const SUPPORTS: Support[] = [
     desc: "Le jeune écrit une lettre à son futur lui-même, scellée et remise au parent, ouverte 12 mois plus tard. Consolide une identité positive tournée vers la croissance.",
   },
   {
+    id: 'certificat',
     title: 'Certificat THRIVE',
     sessions: ['S13'],
     actorLabel: 'Coach (remis au jeune)',
@@ -294,31 +315,128 @@ export default function AthleteIdentityPage() {
         </div>
       </div>
 
-      {identity && <AthleteProfile identity={identity} firstName={selectedChild.first_name} />}
-
-      {/* Parcours & supports */}
+      {/* Parcours & supports — chaque carte se déplie au clic et révèle ce que le coach a rempli */}
       <div className="mb-4">
         <h3 className="font-display text-xl font-semibold text-white">
           Parcours &amp; supports THRIVE
         </h3>
         <p className="text-sm text-white/50 mt-0.5">
-          Les outils qui construisent l&apos;identité et l&apos;autonomie de{' '}
-          {selectedChild.first_name}.
+          Clique sur un support pour découvrir ce que {selectedChild.first_name} a construit avec son
+          coach.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
         {SUPPORTS.map((s) => (
-          <SupportCard key={s.title} support={s} />
+          <SupportCard key={s.id} support={s} identity={identity} />
         ))}
       </div>
     </div>
   );
 }
 
-/* Carte de rubrique repliable — clic pour révéler le détail ; contenu contenu
-   dans la carte (retour à la ligne forcé, aucun débordement). */
-function ExpandableCard({ title, children }: { title: string; children: ReactNode }) {
+/* Contenu réel rempli par le coach, mappé au support concerné */
+function IdentityContent({ id, identity }: { id: string; identity: ParentIdentity }) {
+  if (!identity) return null;
+  const strengths = identity.strengths ?? [];
+  const actions = identity.my_actions ?? [];
+  const toolbox = identity.toolbox ?? [];
+
+  const text = (v: string) => (
+    <p className="text-sm text-white/85 leading-relaxed whitespace-pre-line">{v}</p>
+  );
+
+  const blocks: { label: string; node: ReactNode }[] = [];
+  if (id === 'identite') {
+    if (identity.sport_story)
+      blocks.push({ label: 'Histoire sportive', node: text(identity.sport_story) });
+    if (strengths.length > 0)
+      blocks.push({
+        label: 'Forces',
+        node: (
+          <div className="flex flex-wrap gap-2">
+            {strengths.map((s, i) => (
+              <span
+                key={i}
+                className="px-3 py-1 rounded-full bg-sage/20 text-sage text-sm font-medium"
+              >
+                {s}
+              </span>
+            ))}
+          </div>
+        ),
+      });
+    if (identity.season_dream)
+      blocks.push({
+        label: 'Rêve de saison',
+        node: (
+          <p className="text-sm text-white/85 leading-relaxed italic">« {identity.season_dream} »</p>
+        ),
+      });
+  } else if (id === 'objectif') {
+    if (identity.smart_goal)
+      blocks.push({ label: 'Objectif technique (SMART)', node: text(identity.smart_goal) });
+    if (identity.life_skill_goal)
+      blocks.push({ label: 'Objectif life skill', node: text(identity.life_skill_goal) });
+    if (actions.length > 0)
+      blocks.push({
+        label: 'Ce qui dépend de moi',
+        node: (
+          <ul className="space-y-1.5">
+            {actions.map((a, i) => (
+              <li key={i} className="flex items-start gap-2 text-sm text-white/85">
+                <span className="text-sun mt-0.5 shrink-0">✓</span>
+                <span>{a}</span>
+              </li>
+            ))}
+          </ul>
+        ),
+      });
+  } else if (id === 'focus') {
+    if (identity.focus_word)
+      blocks.push({
+        label: 'Son focus word',
+        node: <p className="font-display text-xl font-semibold text-sun">{identity.focus_word}</p>,
+      });
+  } else if (id === 'outils') {
+    if (toolbox.length > 0)
+      blocks.push({
+        label: 'Ses outils',
+        node: (
+          <ul className="space-y-2">
+            {toolbox.map((t, i) => (
+              <li key={i} className="text-sm">
+                <span className="font-medium text-white">{t.tool}</span>
+                {t.context && <span className="text-white/55"> — {t.context}</span>}
+              </li>
+            ))}
+          </ul>
+        ),
+      });
+  } else if (id === 'lettre') {
+    if (identity.letter) blocks.push({ label: 'Sa lettre', node: text(identity.letter) });
+  }
+
+  if (blocks.length === 0) return null;
+
+  return (
+    <div className="mt-4 pt-4 border-t border-white/10 space-y-3">
+      <p className="text-[11px] font-bold uppercase tracking-wide text-sun/80">
+        Renseigné par le coach
+      </p>
+      {blocks.map((b) => (
+        <div key={b.label}>
+          <span className="block text-xs font-semibold text-white/45 mb-1">{b.label}</span>
+          {b.node}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* Carte de support repliable — clic pour révéler la description + ce que le coach a rempli.
+   Contenu contenu dans la carte (retour à la ligne forcé, aucun débordement). */
+function SupportCard({ support, identity }: { support: Support; identity: ParentIdentity }) {
   const [open, setOpen] = useState(false);
   return (
     <section
@@ -332,11 +450,11 @@ function ExpandableCard({ title, children }: { title: string; children: ReactNod
         className="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer"
       >
         <span
-          className={`text-xs font-bold uppercase tracking-wide transition-colors ${
-            open ? 'text-sun' : 'text-white/55'
+          className={`font-display text-base font-semibold leading-tight transition-colors ${
+            open ? 'text-sun' : 'text-white'
           }`}
         >
-          {title}
+          {support.title}
         </span>
         <span
           aria-hidden
@@ -348,127 +466,14 @@ function ExpandableCard({ title, children }: { title: string; children: ReactNod
         </span>
       </button>
       {open && (
-        <div className="px-4 pb-4 break-words [overflow-wrap:anywhere]">{children}</div>
-      )}
-    </section>
-  );
-}
-
-/* Profil de l'athlète — rubriques repliables, n'affiche que ce qui est renseigné */
-function AthleteProfile({
-  identity,
-  firstName,
-}: {
-  identity: NonNullable<ParentIdentity>;
-  firstName: string;
-}) {
-  const strengths = identity.strengths ?? [];
-  const actions = identity.my_actions ?? [];
-  const toolbox = identity.toolbox ?? [];
-
-  const textBlock = (value: string) => (
-    <p className="text-sm text-white/80 leading-relaxed whitespace-pre-line">{value}</p>
-  );
-
-  const rubrics: { title: string; node: ReactNode }[] = [];
-  if (identity.sport_story)
-    rubrics.push({ title: 'Histoire sportive', node: textBlock(identity.sport_story) });
-  if (strengths.length > 0)
-    rubrics.push({
-      title: 'Forces',
-      node: (
-        <div className="flex flex-wrap gap-2">
-          {strengths.map((s, i) => (
-            <span
-              key={i}
-              className="px-3 py-1 rounded-full bg-sage/20 text-sage text-sm font-medium"
-            >
-              {s}
-            </span>
-          ))}
+        <div className="px-4 pb-4 break-words [overflow-wrap:anywhere]">
+          <p className="text-sm text-white/75 leading-relaxed">{support.desc}</p>
+          <p className="text-[11px] text-white/40 mt-3">
+            <span className="uppercase tracking-wide">Ancrage</span> · {support.anchor}
+          </p>
+          <IdentityContent id={support.id} identity={identity} />
         </div>
-      ),
-    });
-  if (identity.season_dream)
-    rubrics.push({
-      title: 'Rêve de saison',
-      node: (
-        <p className="text-sm text-white/80 leading-relaxed italic">« {identity.season_dream} »</p>
-      ),
-    });
-  if (identity.smart_goal)
-    rubrics.push({ title: 'Objectif technique (SMART)', node: textBlock(identity.smart_goal) });
-  if (identity.life_skill_goal)
-    rubrics.push({ title: 'Objectif life skill', node: textBlock(identity.life_skill_goal) });
-  if (actions.length > 0)
-    rubrics.push({
-      title: 'Ce qui dépend de moi',
-      node: (
-        <ul className="space-y-1.5">
-          {actions.map((a, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-white/80">
-              <span className="text-sun mt-0.5 shrink-0">✓</span>
-              <span>{a}</span>
-            </li>
-          ))}
-        </ul>
-      ),
-    });
-  if (toolbox.length > 0)
-    rubrics.push({
-      title: 'Boîte à outils',
-      node: (
-        <ul className="space-y-2">
-          {toolbox.map((t, i) => (
-            <li key={i} className="text-sm">
-              <span className="font-medium text-white">{t.tool}</span>
-              {t.context && <span className="text-white/55"> — {t.context}</span>}
-            </li>
-          ))}
-        </ul>
-      ),
-    });
-  if (identity.focus_word)
-    rubrics.push({
-      title: 'Focus word',
-      node: <p className="font-display text-xl font-semibold text-sun">{identity.focus_word}</p>,
-    });
-  if (identity.letter)
-    rubrics.push({ title: 'Lettre à moi-même dans 1 an', node: textBlock(identity.letter) });
-
-  if (rubrics.length === 0) return null;
-
-  return (
-    <div className="mb-10">
-      <div className="mb-4">
-        <h3 className="font-display text-xl font-semibold text-white">Profil de {firstName}</h3>
-        <p className="text-sm text-white/50 mt-0.5">
-          Renseigné par son coach THRIVE — clique sur une rubrique pour la lire.
-        </p>
-      </div>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
-        {rubrics.map((r) => (
-          <ExpandableCard key={r.title} title={r.title}>
-            {r.node}
-          </ExpandableCard>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SupportCard({ support }: { support: Support }) {
-  return (
-    <section className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <h4 className="font-display text-base font-semibold text-white leading-tight mb-2 transition-colors group-hover:text-sun">
-        {support.title}
-      </h4>
-
-      <p className="text-sm text-white/75 leading-relaxed mb-3">{support.desc}</p>
-
-      <p className="text-[11px] text-white/40 pt-2 border-t border-white/10">
-        <span className="uppercase tracking-wide">Ancrage</span> · {support.anchor}
-      </p>
+      )}
     </section>
   );
 }
