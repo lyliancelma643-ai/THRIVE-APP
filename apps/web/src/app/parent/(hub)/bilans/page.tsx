@@ -4,52 +4,190 @@ import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 
-type ParentReport = {
-  id: string;
-  child_id: string;
-  parent_visible_body: {
-    detail_level?: number;
-    session_number?: number | null;
-    age_group?: string | null;
-    sections?: Record<string, unknown>;
-  } | null;
-  language: string;
-  seen_at: string | null;
-  created_at: string;
+// ── Niveaux de validation THRIVE (cf. protocole §1.4) ────────────────────────
+type Level = 'A' | 'B' | 'C';
+const LEVELS: Record<Level, { tag: string; cls: string; meaning: string }> = {
+  A: {
+    tag: 'Validé science',
+    cls: 'bg-sage text-navy-900',
+    meaning: 'Soutenu directement par la littérature scientifique',
+  },
+  B: {
+    tag: 'Adapté science',
+    cls: 'bg-sun text-navy-900',
+    meaning: 'Adaptation cohérente avec la science — à valider dans ce contexte',
+  },
+  C: {
+    tag: 'Terrain',
+    cls: 'bg-white/15 text-white',
+    meaning: 'Expérience de terrain et intuition éducative',
+  },
 };
 
-// Ordre + libellés d'affichage des sections assemblées par l'EF
-const SECTION_META: [string, string][] = [
-  ['objectif', 'Objectif travaillé'],
-  ['resume', 'Résumé de la séance'],
-  ['forces', 'Forces observées'],
-  ['recommandations_maison', 'À la maison'],
-  ['transfert', 'Transfert hors du sport'],
-  ['reussites', 'Réussites'],
-  ['rpe', 'Intensité ressentie (RPE)'],
-  ['message_coach', 'Message du coach'],
+type Actor = 'Jeune' | 'Coach' | 'Parent' | 'Mixte';
+const ACTOR_DOT: Record<Actor, string> = {
+  Jeune: 'bg-sage',
+  Coach: 'bg-sun',
+  Parent: 'bg-navy-300',
+  Mixte: 'bg-gradient-to-r from-sage to-sun',
+};
+
+type Support = {
+  title: string;
+  sessions: string[];
+  actorLabel: string;
+  actor: Actor;
+  level: Level;
+  anchor: string;
+  desc: string;
+};
+
+// Les 11 supports / outils du parcours THRIVE (protocole §8.5 + tableau de synthèse)
+const SUPPORTS: Support[] = [
+  {
+    title: 'Fiche Identité Athlète',
+    sessions: ['S1'],
+    actorLabel: 'Coach + Jeune ensemble',
+    actor: 'Mixte',
+    level: 'B',
+    anchor: 'Forces VIA · Alliance SDT',
+    desc: "Le jeune décrit son histoire sportive, nomme 2–3 forces VIA que le coach lui a reflétées, et formule son rêve de saison. Document de référence pour personnaliser les séances suivantes.",
+  },
+  {
+    title: 'Contrat de confiance',
+    sessions: ['S1'],
+    actorLabel: 'Jeune + Parent + Coach',
+    actor: 'Mixte',
+    level: 'A',
+    anchor: 'SDT Connexion · Consentement éclairé',
+    desc: "Engagement co-signé par le jeune, le parent et le coach : cadre, confidentialité et consentement éclairé. Pose l'alliance et le lien de confiance du programme.",
+  },
+  {
+    title: 'LSSS (Cronin & Allen, 2017)',
+    sessions: ['S1', 'S7', 'S13'],
+    actorLabel: 'Jeune (auto-évaluation)',
+    actor: 'Jeune',
+    level: 'A',
+    anchor: 'Life Skills Scale for Sport (validée)',
+    desc: "Auto-évaluation validée des compétences de vie, administrée en S1, S7 et S13 pour mesurer objectivement la progression du jeune.",
+  },
+  {
+    title: 'Fiche Objectif THRIVE',
+    sessions: ['S2'],
+    actorLabel: 'Jeune guidé par le coach',
+    actor: 'Jeune',
+    level: 'A',
+    anchor: 'SMART · AGT · SDT compétence',
+    desc: "Un objectif technique SMART + un objectif de life skill pour la saison, écrits par le jeune, accompagnés de « ce qui dépend uniquement de moi » : 3 actions concrètes.",
+  },
+  {
+    title: 'Roue des Émotions Sportives THRIVE',
+    sessions: ['S4', 'S5'],
+    actorLabel: 'Jeune',
+    actor: 'Jeune',
+    level: 'B',
+    anchor: 'Régulation émotionnelle · SDT',
+    desc: "Le jeune identifie et nomme ses émotions en contexte sportif pour développer sa capacité de régulation émotionnelle.",
+  },
+  {
+    title: 'Routine pré-tir THRIVE',
+    sessions: ['S6'],
+    actorLabel: 'Jeune autonome',
+    actor: 'Jeune',
+    level: 'A',
+    anchor: 'Routines de performance · Self-Efficacy',
+    desc: "Fiche plastifiée : une routine de pré-performance personnelle, répétable sous pression et exécutée en autonomie par le jeune.",
+  },
+  {
+    title: "Grille d'observation coach",
+    sessions: ['Toutes'],
+    actorLabel: 'Coach',
+    actor: 'Coach',
+    level: 'B',
+    anchor: 'Évaluation qualitative comportementale',
+    desc: "~15 indicateurs comportementaux observés par le coach à chaque séance (engagement, gestion émotionnelle, transfert…). Outil de suivi du coach.",
+  },
+  {
+    title: 'Carte Boîte à Outils THRIVE',
+    sessions: ['S11'],
+    actorLabel: 'Jeune entièrement',
+    actor: 'Jeune',
+    level: 'A',
+    anchor: 'Transfert conscient (Pierce et al., 2017)',
+    desc: "Format poche : le jeune liste lui-même ses 6 outils THRIVE et, pour chacun, le contexte hors-sport où il l'utilise. Elle ne le quitte plus après S11.",
+  },
+  {
+    title: 'Lettre à moi-même dans 1 an',
+    sessions: ['S13'],
+    actorLabel: 'Jeune (dicte ou écrit)',
+    actor: 'Jeune',
+    level: 'B',
+    anchor: 'Identité positive · SDT',
+    desc: "Le jeune écrit une lettre à son futur lui-même, scellée et remise au parent, ouverte 12 mois plus tard. Consolide une identité positive tournée vers la croissance.",
+  },
+  {
+    title: 'Certificat THRIVE',
+    sessions: ['S13'],
+    actorLabel: 'Coach (remis au jeune)',
+    actor: 'Coach',
+    level: 'C',
+    anchor: 'Reconnaissance symbolique',
+    desc: "Reconnaissance symbolique remise au jeune à la fin du programme, qui marque le chemin parcouru sur les 13 séances.",
+  },
+  {
+    title: 'Feedback parent (3 questions)',
+    sessions: ['S1', 'S7', 'S13'],
+    actorLabel: 'Parent',
+    actor: 'Parent',
+    level: 'B',
+    anchor: 'Transfert à domicile · PYD',
+    desc: "3 questions posées au parent en S1, S7 et S13 pour soutenir et documenter le transfert des acquis à la maison.",
+  },
 ];
 
-export default function BilansPage() {
+function ageFromDob(dob: string | null): number | null {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1;
+  return age >= 0 && age < 120 ? age : null;
+}
+
+type CoachInfo = { first_name: string; last_name: string } | null;
+
+export default function AthleteIdentityPage() {
   const { children, selectedChildId } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
-  const [reports, setReports] = useState<ParentReport[]>([]);
+  const [coach, setCoach] = useState<CoachInfo>(null);
+  const [completed, setCompleted] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [open, setOpen] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
-      setReports([]);
+      setCoach(null);
+      setCompleted(0);
       setLoading(false);
       return;
     }
-    const { data } = await supabase
-      .from('parent_reports')
-      .select('id, child_id, parent_visible_body, language, seen_at, created_at')
-      .eq('child_id', selectedChildId)
-      .order('created_at', { ascending: false });
-    setReports((data ?? []) as ParentReport[]);
+    const [sessionsRes, assignmentRes] = await Promise.all([
+      supabase.from('sessions').select('status').eq('child_id', selectedChildId),
+      supabase
+        .from('coach_assignments')
+        .select('coach_id, profiles:coach_id (first_name, last_name)')
+        .eq('child_id', selectedChildId)
+        .eq('is_active', true)
+        .limit(1),
+    ]);
+    setCompleted((sessionsRes.data ?? []).filter((s: any) => s.status === 'COMPLETED').length);
+    const assignment = (assignmentRes.data ?? [])[0] as any;
+    const coachProfile = Array.isArray(assignment?.profiles)
+      ? assignment.profiles[0]
+      : assignment?.profiles;
+    setCoach((coachProfile as CoachInfo) ?? null);
     setLoading(false);
   }, [selectedChildId]);
 
@@ -58,108 +196,170 @@ export default function BilansPage() {
     load();
   }, [load]);
 
-  // Temps réel : nouveau bilan parent généré par le coach
-  useEffect(() => {
-    if (!selectedChildId) return;
-    const channel = supabase
-      .channel(`bilans-${selectedChildId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'parent_reports', filter: `child_id=eq.${selectedChildId}` },
-        () => load()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedChildId, load]);
-
-  const toggle = async (r: ParentReport) => {
-    const next = open === r.id ? null : r.id;
-    setOpen(next);
-    // Marque comme lu à la première ouverture (KPI d'ouverture)
-    if (next === r.id && !r.seen_at) {
-      const seenAt = new Date().toISOString();
-      setReports((list) => list.map((x) => (x.id === r.id ? { ...x, seen_at: seenAt } : x)));
-      await supabase.from('parent_reports').update({ seen_at: seenAt }).eq('id', r.id).is('seen_at', null);
-    }
-  };
-
   if (!selectedChild) {
     return (
       <div className="max-w-xl mx-auto text-center py-20">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center text-2xl text-sun">✉</div>
+        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center text-2xl text-sun">
+          ◈
+        </div>
         <h2 className="font-display text-2xl font-semibold text-white mb-3">Aucun profil enfant</h2>
-        <p className="text-white/55">Ajoute un enfant pour voir ses bilans de séance.</p>
+        <p className="text-white/55">
+          Ajoute un enfant pour découvrir sa carte d&apos;identité d&apos;athlète THRIVE.
+        </p>
       </div>
     );
   }
 
-  if (loading) {
-    return (
-      <div className="space-y-4 max-w-3xl">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
-        ))}
-      </div>
-    );
-  }
+  const age = ageFromDob(selectedChild.date_of_birth);
+  const initials =
+    `${selectedChild.first_name?.[0] ?? ''}${selectedChild.last_name?.[0] ?? ''}`.toUpperCase();
+  const pct = Math.round((completed / 13) * 100);
 
   return (
-    <div className="max-w-3xl">
-      <h1 className="font-display text-3xl font-semibold text-white mb-2">Bilans de {selectedChild.first_name}</h1>
-      <p className="text-white/55 mb-8">Les bilans rédigés par le coach après chaque séance, mis à jour automatiquement.</p>
+    <div className="max-w-5xl">
+      <h1 className="font-display text-3xl font-semibold text-white mb-2">Carte d&apos;identité</h1>
+      <p className="text-white/55 mb-8">
+        Le passeport THRIVE de {selectedChild.first_name} : son identité d&apos;athlète et tous les
+        supports qui jalonnent son parcours de 13 séances.
+      </p>
 
-      {reports.length === 0 ? (
-        <div className="p-6 rounded-2xl bg-white/[0.04] text-white/55 text-sm">
-          Aucun bilan pour l&apos;instant. Ils apparaîtront ici dès que le coach de {selectedChild.first_name} en publiera un.
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {reports.map((r) => {
-            const body = r.parent_visible_body ?? {};
-            const sections = (body.sections ?? {}) as Record<string, unknown>;
-            const isOpen = open === r.id;
-            const present = SECTION_META.filter(([k]) => {
-              const v = sections[k];
-              return v !== null && v !== undefined && v !== '';
-            });
-            const title = (sections['objectif'] as string) || `Bilan${body.session_number ? ` · séance ${body.session_number}` : ''}`;
-
-            return (
-              <div key={r.id} className="rounded-2xl glass-navy overflow-hidden">
-                <button className="w-full flex items-center gap-3 p-5 text-left" onClick={() => toggle(r)}>
-                  <span className="w-10 h-10 rounded-full bg-sage/20 text-sage flex items-center justify-center shrink-0">✉</span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold text-white truncate">{title}</span>
-                    <span className="block text-xs text-white/50 mt-0.5">
-                      {new Date(r.created_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </span>
-                  </span>
-                  {!r.seen_at && (
-                    <span className="px-2.5 py-1 rounded-full bg-sun text-navy-900 text-[11px] font-bold">Nouveau</span>
-                  )}
-                  <span className="text-white/40 text-xs">{isOpen ? '▲' : '▼'}</span>
-                </button>
-
-                {isOpen && (
-                  <div className="px-5 pb-5 pt-1 border-t border-white/10 space-y-4">
-                    {present.length === 0 && (
-                      <p className="text-sm text-white/55 mt-3">Bilan en cours de préparation par le coach.</p>
-                    )}
-                    {present.map(([key, label]) => (
-                      <div key={key} className="mt-3">
-                        <span className="block text-xs font-bold uppercase tracking-wide text-white/45 mb-1">{label}</span>
-                        <p className="text-sm text-white/80 whitespace-pre-line">{String(sections[key])}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+      {/* Carte de membre — en-tête premium */}
+      <div className="relative overflow-hidden rounded-3xl glass-navy ring-1 ring-white/10 p-6 md:p-8 mb-10">
+        <div className="absolute -top-16 -right-12 w-56 h-56 rounded-full bg-sun/10 blur-3xl pointer-events-none" />
+        <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
+          {/* Avatar */}
+          <div className="shrink-0">
+            {selectedChild.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={selectedChild.avatar_url}
+                alt={selectedChild.first_name}
+                className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover ring-2 ring-sun/40"
+              />
+            ) : (
+              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-800 ring-2 ring-sun/40 flex items-center justify-center font-display text-2xl font-bold text-white">
+                {initials || '★'}
               </div>
-            );
-          })}
+            )}
+          </div>
+
+          {/* Identité */}
+          <div className="min-w-0 flex-1">
+            <span className="text-[10px] uppercase tracking-[0.25em] text-sun/80">
+              Athlète THRIVE
+            </span>
+            <h2 className="font-display text-2xl md:text-3xl font-semibold text-white leading-tight mt-0.5">
+              {selectedChild.first_name} {selectedChild.last_name ?? ''}
+            </h2>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-white/60">
+              {age != null && <span>{age} ans</span>}
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+                Hockey sur glace
+              </span>
+              {coach && (
+                <span>
+                  Coach&nbsp;
+                  <span className="text-white/85 font-medium">
+                    {coach.first_name} {coach.last_name}
+                  </span>
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Progression */}
+          <div className="sm:text-right sm:w-44 shrink-0">
+            <div className="flex sm:justify-end items-baseline gap-1.5">
+              <span className="font-display text-2xl font-bold text-sun tabular-nums">
+                {loading ? '—' : `${completed}/13`}
+              </span>
+              <span className="text-xs text-white/45">séances</span>
+            </div>
+            <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all duration-700"
+                style={{ width: `${loading ? 0 : pct}%` }}
+              />
+            </div>
+            <p className="text-[11px] text-white/40 mt-1.5">Programme complété</p>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Parcours & supports */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4">
+        <div>
+          <h3 className="font-display text-xl font-semibold text-white">
+            Parcours &amp; supports THRIVE
+          </h3>
+          <p className="text-sm text-white/50 mt-0.5">
+            Les outils qui construisent l&apos;identité et l&apos;autonomie de{' '}
+            {selectedChild.first_name}.
+          </p>
+        </div>
+        {/* Légende des niveaux */}
+        <div className="flex flex-wrap gap-2">
+          {(['A', 'B', 'C'] as Level[]).map((lv) => (
+            <span
+              key={lv}
+              title={LEVELS[lv].meaning}
+              className="inline-flex items-center gap-1.5 text-[11px] text-white/60 cursor-help"
+            >
+              <span className={`px-1.5 py-0.5 rounded font-bold text-[10px] ${LEVELS[lv].cls}`}>
+                {lv}
+              </span>
+              {LEVELS[lv].tag}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {SUPPORTS.map((s) => (
+          <SupportCard key={s.title} support={s} />
+        ))}
+      </div>
     </div>
+  );
+}
+
+function SupportCard({ support }: { support: Support }) {
+  const lv = LEVELS[support.level];
+  return (
+    <section className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
+      <div className="flex items-start justify-between gap-3 mb-2">
+        <h4 className="font-display text-base font-semibold text-white leading-tight transition-colors group-hover:text-sun">
+          {support.title}
+        </h4>
+        <span
+          title={`Niveau ${support.level} — ${lv.meaning}`}
+          className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${lv.cls}`}
+        >
+          {support.level} · {lv.tag}
+        </span>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-1.5 mb-3">
+        {support.sessions.map((sess) => (
+          <span
+            key={sess}
+            className="px-2 py-0.5 rounded-md bg-white/10 text-[11px] font-semibold text-white/70 tabular-nums"
+          >
+            {sess}
+          </span>
+        ))}
+        <span className="inline-flex items-center gap-1.5 text-[11px] text-white/55 ml-1">
+          <span className={`w-1.5 h-1.5 rounded-full ${ACTOR_DOT[support.actor]}`} />
+          {support.actorLabel}
+        </span>
+      </div>
+
+      <p className="text-sm text-white/75 leading-relaxed mb-3">{support.desc}</p>
+
+      <p className="text-[11px] text-white/40 pt-2 border-t border-white/10">
+        <span className="uppercase tracking-wide">Ancrage</span> · {support.anchor}
+      </p>
+    </section>
   );
 }
