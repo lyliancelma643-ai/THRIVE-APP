@@ -99,15 +99,6 @@ const SUPPORTS: Support[] = [
     desc: "Fiche plastifiée : une routine de pré-performance personnelle, répétable sous pression et exécutée en autonomie par le jeune.",
   },
   {
-    title: "Grille d'observation coach",
-    sessions: ['Toutes'],
-    actorLabel: 'Coach',
-    actor: 'Coach',
-    level: 'B',
-    anchor: 'Évaluation qualitative comportementale',
-    desc: "~15 indicateurs comportementaux observés par le coach à chaque séance (engagement, gestion émotionnelle, transfert…). Outil de suivi du coach.",
-  },
-  {
     title: 'Carte Boîte à Outils THRIVE',
     sessions: ['S11'],
     actorLabel: 'Jeune entièrement',
@@ -133,15 +124,6 @@ const SUPPORTS: Support[] = [
     level: 'C',
     anchor: 'Reconnaissance symbolique',
     desc: "Reconnaissance symbolique remise au jeune à la fin du programme, qui marque le chemin parcouru sur les 13 séances.",
-  },
-  {
-    title: 'Feedback parent (3 questions)',
-    sessions: ['S1', 'S7', 'S13'],
-    actorLabel: 'Parent',
-    actor: 'Parent',
-    level: 'B',
-    anchor: 'Transfert à domicile · PYD',
-    desc: "3 questions posées au parent en S1, S7 et S13 pour soutenir et documenter le transfert des acquis à la maison.",
   },
 ];
 
