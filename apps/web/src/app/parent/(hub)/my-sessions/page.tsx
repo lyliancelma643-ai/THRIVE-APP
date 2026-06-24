@@ -5,6 +5,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
+import { type Pack, asPack, canSeePremium, upgradeHint } from '@/lib/packs';
 
 type OneToOneSession = {
   id: string;
@@ -48,6 +49,7 @@ export default function MySessionsPage() {
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pack, setPack] = useState<Pack>('ESSENTIEL');
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
@@ -57,7 +59,7 @@ export default function MySessionsPage() {
       setLoading(false);
       return;
     }
-    const [sessionsRes, reportsRes, assignmentRes] = await Promise.all([
+    const [sessionsRes, reportsRes, assignmentRes, familyRes] = await Promise.all([
       supabase
         .from('sessions')
         .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes')
@@ -74,6 +76,11 @@ export default function MySessionsPage() {
         .eq('child_id', selectedChildId)
         .eq('is_active', true)
         .limit(1),
+      supabase
+        .from('children')
+        .select('family:families (pack)')
+        .eq('id', selectedChildId)
+        .maybeSingle(),
     ]);
 
     setSessions((sessionsRes.data ?? []) as OneToOneSession[]);
@@ -83,6 +90,9 @@ export default function MySessionsPage() {
       ? assignment.profiles[0]
       : assignment?.profiles;
     setCoach((coachProfile as CoachInfo) ?? null);
+    const familyRel = (familyRes.data as any)?.family;
+    const famPack = Array.isArray(familyRel) ? familyRel[0]?.pack : familyRel?.pack;
+    setPack(asPack(famPack));
     setLoading(false);
   }, [selectedChildId]);
 
@@ -104,6 +114,11 @@ export default function MySessionsPage() {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'reports', filter: `child_id=eq.${selectedChildId}` },
+        () => load()
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'families' },
         () => load()
       )
       .subscribe();
@@ -269,7 +284,7 @@ export default function MySessionsPage() {
               {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
               {isSelected && hasDetails && s && (
                 <div className="lg:hidden px-5 pb-5 pt-3 border-t border-white/10">
-                  <BilanDetails session={s} report={report} />
+                  <BilanDetails session={s} report={report} pack={pack} />
                 </div>
               )}
             </div>
@@ -285,6 +300,7 @@ export default function MySessionsPage() {
             <BilanPanel
               session={selectedSession}
               report={selectedReport}
+              pack={pack}
               phaseLabel={PHASE_LABELS[phaseOfSession(selectedSession.session_number)]}
               fallbackTitle={selectedTpl?.title ?? null}
               onClose={() => setSelectedId(null)}
@@ -319,8 +335,9 @@ const NOTE_COLORS: Record<number, string> = {
   1: '#6B7280', // gris — « sans couleur »
 };
 
-/* Jauge circulaire incurvée — note /5 au centre, anneau coloré selon le niveau */
-function ScoreGauge({ note, max = 5 }: { note: number; max?: number }) {
+/* Jauge circulaire incurvée — note /5 au centre, anneau coloré selon le niveau.
+   `locked` : anneau (couleurs + cercle) visible mais chiffre flouté (teaser d'upgrade). */
+function ScoreGauge({ note, max = 5, locked = false }: { note: number; max?: number; locked?: boolean }) {
   const value = Math.max(0, Math.min(max, Math.round(note)));
   const pct = (value / max) * 100;
   const color = NOTE_COLORS[value] ?? '#6B7280';
@@ -328,7 +345,7 @@ function ScoreGauge({ note, max = 5 }: { note: number; max?: number }) {
     <div
       className="relative w-16 h-16 shrink-0"
       role="img"
-      aria-label={`Note ${value} sur ${max}`}
+      aria-label={locked ? 'Note masquée — réservée aux packs supérieurs' : `Note ${value} sur ${max}`}
     >
       <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
         <circle
@@ -353,7 +370,12 @@ function ScoreGauge({ note, max = 5 }: { note: number; max?: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
-        <span className="font-display font-bold text-white text-lg leading-none tabular-nums">
+        <span
+          className={`font-display font-bold text-white text-lg leading-none tabular-nums ${
+            locked ? 'blur-[6px] select-none' : ''
+          }`}
+          aria-hidden={locked}
+        >
           {value}
         </span>
       </div>
@@ -379,62 +401,134 @@ function fieldLabel(key: string): string {
   return k.charAt(0).toUpperCase() + k.slice(1);
 }
 
-/* Corps du bilan — sections interactives ; partagé entre la lecture inline (mobile)
-   et le panneau latéral (desktop) */
+/* Cadenas (SVG — pas d'emoji, cf. règles d'icônes) */
+function LockIcon({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
+      <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+/* Bandeau d'incitation à l'upgrade — affiché sur les sections verrouillées */
+function UpgradeHintBar({ pack }: { pack: Pack }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-3 py-2.5">
+      <LockIcon className="w-4 h-4 text-sun shrink-0 mt-0.5" />
+      <p className="text-xs leading-relaxed text-white/85">
+        <span className="font-semibold text-sun">Contenu réservé.</span> {upgradeHint(pack)}
+      </p>
+    </div>
+  );
+}
+
+/* Aperçu flouté d'un contenu texte verrouillé (aucune donnée réelle exposée) */
+function LockedText({ pack }: { pack: Pack }) {
+  return (
+    <div>
+      <div aria-hidden className="space-y-2 mb-3 blur-[5px] select-none pointer-events-none">
+        <div className="h-3 rounded bg-white/15 w-[95%]" />
+        <div className="h-3 rounded bg-white/15 w-[88%]" />
+        <div className="h-3 rounded bg-white/15 w-[72%]" />
+      </div>
+      <UpgradeHintBar pack={pack} />
+    </div>
+  );
+}
+
+/* Corps du bilan — 3 sections gérées par le pack de la famille ; partagé entre la
+   lecture inline (mobile) et le panneau latéral (desktop).
+   Message → tous les packs · Bilan détaillé + Observations → Performance (toutes
+   les séances) / Avancé (séances 3, 7, 13) / Essentiel (verrouillé). */
 function BilanDetails({
   session,
   report,
+  pack,
 }: {
   session: OneToOneSession;
   report: Report | null;
+  pack: Pack;
 }) {
   const content = (report?.content ?? {}) as Record<string, unknown>;
   const observations =
     content.observations && typeof content.observations === 'object'
       ? (content.observations as Record<string, number>)
       : null;
-  const otherFields = Object.entries(content).filter(
+  const messageRaw =
+    session.coach_notes?.trim() ||
+    (typeof content['message du coach'] === 'string'
+      ? (content['message du coach'] as string).trim()
+      : '');
+  const message = messageRaw || null;
+  // Bilan détaillé = champs texte structurés (hors message / observations / méta)
+  const bilanFields = Object.entries(content).filter(
     ([k, v]) =>
-      !['session_id', 'session_number', 'titre', 'observations'].includes(k) &&
+      !['session_id', 'session_number', 'titre', 'observations', 'message du coach'].includes(k) &&
+      typeof v !== 'object' &&
       v !== '' &&
       v !== null
   );
-  const message = session.coach_notes?.trim() || null;
+
+  const premium = canSeePremium(pack, session.session_number);
+  const hasObs = !!observations && Object.keys(observations).length > 0;
+  const hasBilan = bilanFields.length > 0;
 
   return (
     <div className="space-y-3">
-      {/* Bloc 1 — Bilan du coach (le message, mis en forme) */}
+      {/* Message du coach — inclus dans tous les packs */}
       {message && (
-        <BilanCard title="Bilan du coach">
+        <BilanCard title="Message du coach">
           <p className="text-sm text-white/80 whitespace-pre-line leading-relaxed">{message}</p>
         </BilanCard>
       )}
 
-      {/* Bloc 2 — Observations du coach : une jauge circulaire par indicateur coté */}
-      {observations && Object.keys(observations).length > 0 && (
+      {/* Bilan du coach — premium (titre visible, contenu flouté si verrouillé) */}
+      {hasBilan && (
+        <BilanCard title="Bilan du coach">
+          {premium ? (
+            <div className="space-y-2">
+              {bilanFields.map(([key, value]) => (
+                <div key={key} className="text-sm">
+                  <span className="font-medium text-white">{fieldLabel(key)} : </span>
+                  <span className="text-white/75">{String(value)}</span>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <LockedText pack={pack} />
+          )}
+        </BilanCard>
+      )}
+
+      {/* Observations du coach — premium (verrouillé : couleurs + cercles visibles, chiffre flouté) */}
+      {hasObs && (
         <BilanCard title="Observations du coach">
+          {!premium && (
+            <div className="mb-3">
+              <UpgradeHintBar pack={pack} />
+            </div>
+          )}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {Object.entries(observations).map(([ind, note]) => (
+            {Object.entries(observations!).map(([ind, note]) => (
               <div
                 key={ind}
-                className="flex flex-col items-center text-center gap-2 rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+                className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
               >
-                <ScoreGauge note={Number(note)} />
-                <span className="text-[13px] font-semibold leading-snug text-white">{ind}</span>
+                <div
+                  className={`flex flex-col items-center text-center gap-2 ${
+                    premium ? '' : 'blur-[7px] select-none pointer-events-none'
+                  }`}
+                  aria-hidden={!premium}
+                >
+                  <ScoreGauge note={Number(note)} locked={!premium} />
+                  <span className="text-[13px] font-semibold leading-snug text-white">{ind}</span>
+                </div>
               </div>
             ))}
           </div>
         </BilanCard>
       )}
-
-      {/* Bloc 3+ — Message du coach + autres champs libres du bilan */}
-      {otherFields.map(([key, value]) => (
-        <BilanCard key={key} title={fieldLabel(key)}>
-          <p className="text-sm text-white/80 whitespace-pre-line leading-relaxed">
-            {String(value)}
-          </p>
-        </BilanCard>
-      ))}
     </div>
   );
 }
@@ -443,12 +537,14 @@ function BilanDetails({
 function BilanPanel({
   session,
   report,
+  pack,
   phaseLabel,
   fallbackTitle,
   onClose,
 }: {
   session: OneToOneSession;
   report: Report | null;
+  pack: Pack;
   phaseLabel: string;
   fallbackTitle: string | null;
   onClose: () => void;
@@ -482,7 +578,7 @@ function BilanPanel({
         </button>
       </div>
       <div className="p-6 pt-4">
-        <BilanDetails session={session} report={report} />
+        <BilanDetails session={session} report={report} pack={pack} />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { type Pack, PACK_LABELS, PACK_ORDER, asPack } from '@/lib/packs';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ParentRow {
@@ -20,6 +21,7 @@ interface ParentRow {
   city?: string | null;
   province?: string | null;
   children_count?: number;
+  pack?: Pack | null;
 }
 
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
@@ -55,7 +57,7 @@ export default function AdminFamiliesPage() {
     // 2. Toutes les familles avec le compte des enfants
     const { data: familiesData } = await supabase
       .from('families')
-      .select('id, name, parent_id, city, province');
+      .select('id, name, parent_id, city, province, pack');
 
     const { data: childrenData } = await supabase
       .from('children')
@@ -79,6 +81,7 @@ export default function AdminFamiliesPage() {
         city:          fam?.city ?? null,
         province:      fam?.province ?? null,
         children_count: fam ? (childCountMap.get(fam.id) ?? 0) : 0,
+        pack:          fam ? asPack(fam.pack) : null,
       };
     });
 
@@ -87,6 +90,20 @@ export default function AdminFamiliesPage() {
   }, []);
 
   useEffect(() => { fetchParents(); }, [fetchParents]);
+
+  // ── Attribution du pack (ADMIN/SUPER_ADMIN — verrou base, migration 023) ──────
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const updatePack = useCallback(async (familyId: string, pack: Pack) => {
+    setSavingId(familyId);
+    // Optimiste : on reflète tout de suite ; le realtime confirmera (ou on revert)
+    setParents((prev) => prev.map((p) => (p.family_id === familyId ? { ...p, pack } : p)));
+    const { error } = await supabase.from('families').update({ pack }).eq('id', familyId);
+    setSavingId(null);
+    if (error) {
+      alert('Impossible de modifier le pack : ' + error.message);
+      fetchParents();
+    }
+  }, [fetchParents]);
 
   // ── Realtime — écoute profiles + families ───────────────────────────────────
   useEffect(() => {
@@ -171,6 +188,7 @@ export default function AdminFamiliesPage() {
               <th className="px-6 py-4">Famille</th>
               <th className="px-6 py-4 hidden lg:table-cell">Ville</th>
               <th className="px-6 py-4 hidden sm:table-cell">Enfants</th>
+              <th className="px-6 py-4">Pack</th>
               <th className="px-6 py-4">Statut</th>
               <th className="px-6 py-4 hidden lg:table-cell">Inscription</th>
             </tr>
@@ -179,7 +197,7 @@ export default function AdminFamiliesPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t">
-                  {Array.from({ length: 7 }).map((__, j) => (
+                  {Array.from({ length: 8 }).map((__, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: j === 0 ? '60%' : '80%' }} />
                     </td>
@@ -188,7 +206,7 @@ export default function AdminFamiliesPage() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-14 text-center">
+                <td colSpan={8} className="px-6 py-14 text-center">
                   <div className="text-4xl mb-3">👨‍👩‍👧‍👦</div>
                   <p className="text-gray-500 font-medium">
                     {search || filter !== 'all'
@@ -245,6 +263,27 @@ export default function AdminFamiliesPage() {
                       <span className="bg-gray-100 rounded-full px-3 py-1 text-xs font-semibold">
                         {parent.children_count ?? 0} enfant{(parent.children_count ?? 0) > 1 ? 's' : ''}
                       </span>
+                    </td>
+
+                    {/* Pack — modifiable par l'admin (upgrade / downgrade) */}
+                    <td className="px-6 py-4">
+                      {parent.family_id ? (
+                        <select
+                          value={parent.pack ?? 'ESSENTIEL'}
+                          disabled={savingId === parent.family_id}
+                          onChange={(e) => updatePack(parent.family_id!, e.target.value as Pack)}
+                          aria-label={`Pack de la famille ${parent.family_name ?? ''}`}
+                          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50 cursor-pointer"
+                        >
+                          {PACK_ORDER.map((p) => (
+                            <option key={p} value={p}>
+                              {PACK_LABELS[p]}
+                            </option>
+                          ))}
+                        </select>
+                      ) : (
+                        <span className="text-xs text-gray-400">—</span>
+                      )}
                     </td>
 
                     {/* Statut */}
