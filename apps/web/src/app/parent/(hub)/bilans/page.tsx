@@ -239,91 +239,111 @@ export default function AthleteIdentityPage() {
   const age = ageFromDob(selectedChild.date_of_birth);
   const initials =
     `${selectedChild.first_name?.[0] ?? ''}${selectedChild.last_name?.[0] ?? ''}`.toUpperCase();
-  const pct = Math.round((completed / 13) * 100);
+
+  // Statistiques dérivées des données déjà chargées (aucune requête supplémentaire)
+  const strengthsCount = identity?.strengths?.length ?? 0;
+  const toolsCount = identity?.toolbox?.length ?? 0;
+  const goalsCount = [identity?.smart_goal, identity?.life_skill_goal].filter(Boolean).length;
+  const filledCount = SUPPORTS.filter((s) => supportHasContent(s.id, identity)).length;
+  const filledTotal = SUPPORTS.filter((s) => SUPPORT_HAS_FIELDS.has(s.id)).length;
 
   return (
-    <div className="max-w-5xl">
+    <div className="max-w-6xl">
       <h1 className="font-display text-3xl font-semibold text-white mb-2">Carte d&apos;identité</h1>
       <p className="text-white/55 mb-8">
         Le passeport THRIVE de {selectedChild.first_name} : son identité d&apos;athlète et tous les
         supports qui jalonnent son parcours de 13 séances.
       </p>
 
-      {/* Carte de membre — en-tête premium */}
-      <div className="relative overflow-hidden rounded-3xl glass-navy ring-1 ring-white/10 p-6 md:p-8 mb-10">
-        <div className="absolute -top-16 -right-12 w-56 h-56 rounded-full bg-sun/10 blur-3xl pointer-events-none" />
-        <div className="relative flex flex-col sm:flex-row sm:items-center gap-5">
-          {/* Avatar */}
-          <div className="shrink-0">
-            {selectedChild.avatar_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={selectedChild.avatar_url}
-                alt={selectedChild.first_name}
-                className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover ring-2 ring-sun/40"
-              />
-            ) : (
-              <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-800 ring-2 ring-sun/40 flex items-center justify-center font-display text-2xl font-bold text-white">
-                {initials || '★'}
-              </div>
-            )}
-          </div>
+      {/* ── Carte passeport — en-tête premium ───────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl glass-navy ring-1 ring-white/10 p-6 md:p-8 mb-5">
+        {/* Halos ambiants + filet lumineux supérieur */}
+        <div className="absolute -top-20 -right-16 w-64 h-64 rounded-full bg-sun/10 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-12 w-56 h-56 rounded-full bg-sage/10 blur-3xl pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
 
-          {/* Identité */}
-          <div className="min-w-0 flex-1">
-            <span className="text-[10px] uppercase tracking-[0.25em] text-sun/80">
-              Athlète THRIVE
-            </span>
-            <h2 className="font-display text-2xl md:text-3xl font-semibold text-white leading-tight mt-0.5">
-              {selectedChild.first_name} {selectedChild.last_name ?? ''}
-            </h2>
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-2 text-sm text-white/60">
-              {age != null && <span>{age} ans</span>}
-              <span className="inline-flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-sage" />
-                {identity?.sport || 'Hockey sur glace'}
-              </span>
-              {identity?.position && <span>{identity.position}</span>}
-              {identity?.club && <span>{identity.club}</span>}
-              {coach && (
-                <span>
-                  Coach&nbsp;
-                  <span className="text-white/85 font-medium">
-                    {coach.first_name} {coach.last_name}
-                  </span>
-                </span>
+        <div className="relative flex flex-col md:flex-row md:items-center gap-6 md:gap-8">
+          {/* Avatar + identité */}
+          <div className="flex items-center gap-5 min-w-0 flex-1">
+            <div className="shrink-0">
+              {selectedChild.avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={selectedChild.avatar_url}
+                  alt={selectedChild.first_name}
+                  className="w-20 h-20 md:w-24 md:h-24 rounded-2xl object-cover ring-2 ring-sun/40"
+                />
+              ) : (
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-800 ring-2 ring-sun/40 flex items-center justify-center font-display text-2xl font-bold text-white">
+                  {initials || '★'}
+                </div>
               )}
             </div>
+
+            <div className="min-w-0 flex-1">
+              <span className="text-[10px] uppercase tracking-[0.25em] text-sun/80">
+                Passeport athlète · THRIVE
+              </span>
+              <h2 className="font-display text-2xl md:text-3xl font-semibold text-white leading-tight mt-0.5">
+                {selectedChild.first_name} {selectedChild.last_name ?? ''}
+              </h2>
+              <div className="flex flex-wrap items-center gap-2 mt-3">
+                {age != null && <MetaChip>{age} ans</MetaChip>}
+                <MetaChip>
+                  <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+                  {identity?.sport || 'Hockey sur glace'}
+                </MetaChip>
+                {identity?.position && <MetaChip>{identity.position}</MetaChip>}
+                {identity?.club && <MetaChip>{identity.club}</MetaChip>}
+                {coach && (
+                  <MetaChip>
+                    Coach{' '}
+                    <span className="text-white/90 font-semibold">
+                      {coach.first_name} {coach.last_name}
+                    </span>
+                  </MetaChip>
+                )}
+              </div>
+            </div>
           </div>
 
-          {/* Progression */}
-          <div className="sm:text-right sm:w-44 shrink-0">
-            <div className="flex sm:justify-end items-baseline gap-1.5">
-              <span className="font-display text-2xl font-bold text-sun tabular-nums">
-                {loading ? '—' : `${completed}/13`}
-              </span>
-              <span className="text-xs text-white/45">séances</span>
-            </div>
-            <div className="mt-2 h-2 rounded-full bg-white/10 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all duration-700"
-                style={{ width: `${loading ? 0 : pct}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-white/40 mt-1.5">Programme complété</p>
+          {/* Jauge de progression du programme */}
+          <div className="shrink-0 md:border-l md:border-white/10 md:pl-8 flex flex-col items-center">
+            <ProgressGauge value={completed} max={13} loading={loading} />
+            <p className="text-sm text-white/70 mt-1">
+              <span className="font-display font-bold text-white tabular-nums">
+                {loading ? '—' : completed}/13
+              </span>{' '}
+              séances
+            </p>
+            <p className="text-[11px] text-white/40">Programme complété</p>
           </div>
         </div>
       </div>
 
-      {/* Parcours & supports — chaque carte se déplie au clic et révèle ce que le coach a rempli */}
-      <div className="mb-4">
-        <h3 className="font-display text-xl font-semibold text-white">
-          Parcours &amp; supports THRIVE
-        </h3>
-        <p className="text-sm text-white/50 mt-0.5">
-          Clique sur un support pour découvrir ce que {selectedChild.first_name} a construit avec son
-          coach.
-        </p>
+      {/* ── Bande de statistiques ──────────────────────────────────────── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-10">
+        <StatTile icon="✓" value={completed} suffix="/13" label="Séances complétées" loading={loading} />
+        <StatTile icon="✦" value={strengthsCount} label="Forces identifiées" loading={loading} />
+        <StatTile icon="◎" value={goalsCount} suffix="/2" label="Objectifs fixés" loading={loading} />
+        <StatTile icon="▦" value={toolsCount} label="Outils collectés" loading={loading} />
+      </div>
+
+      {/* ── Parcours & supports ────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-4">
+        <div>
+          <h3 className="font-display text-xl font-semibold text-white">
+            Parcours &amp; supports THRIVE
+          </h3>
+          <p className="text-sm text-white/50 mt-0.5">
+            Clique sur un support pour découvrir ce que {selectedChild.first_name} a construit avec
+            son coach.
+          </p>
+        </div>
+        <span className="inline-flex items-center gap-2 text-xs text-white/45 px-3 py-1.5 rounded-full bg-white/[0.04] ring-1 ring-white/10">
+          <span className="w-1.5 h-1.5 rounded-full bg-sage" />
+          {loading ? '—' : `${filledCount}/${filledTotal}`} renseignés par le coach
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 items-start">
@@ -333,6 +353,120 @@ export default function AthleteIdentityPage() {
       </div>
     </div>
   );
+}
+
+/* ── Petits composants de présentation (UI only) ─────────────────────── */
+
+function MetaChip({ children }: { children: ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/[0.06] ring-1 ring-white/10 text-xs text-white/65">
+      {children}
+    </span>
+  );
+}
+
+function StatTile({
+  icon,
+  value,
+  suffix,
+  label,
+  loading,
+}: {
+  icon: string;
+  value: number;
+  suffix?: string;
+  label: string;
+  loading: boolean;
+}) {
+  return (
+    <div className="rounded-2xl glass-navy p-4 flex items-center gap-3">
+      <span className="shrink-0 w-10 h-10 rounded-xl bg-white/[0.06] flex items-center justify-center text-sun text-lg">
+        {icon}
+      </span>
+      <div className="min-w-0">
+        <div className="font-display text-2xl font-bold text-white tabular-nums leading-none">
+          {loading ? '—' : value}
+          {!loading && suffix && (
+            <span className="text-sm font-sans font-medium text-white/35">{suffix}</span>
+          )}
+        </div>
+        <div className="text-[11px] text-white/50 mt-1 truncate">{label}</div>
+      </div>
+    </div>
+  );
+}
+
+/* Jauge semi-circulaire (SVG) — progression du programme sur 13 séances */
+function ProgressGauge({ value, max, loading }: { value: number; max: number; loading: boolean }) {
+  const pct = Math.max(0, Math.min(1, max ? value / max : 0));
+  const R = 80;
+  const CIRC = Math.PI * R; // longueur de l'arc semi-circulaire
+  const dash = loading ? 0 : pct * CIRC;
+  return (
+    <div className="relative w-40 h-[88px]">
+      <svg viewBox="0 0 200 110" className="w-full h-full">
+        <defs>
+          <linearGradient id="thrive-gauge" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#A7C4BC" />
+            <stop offset="100%" stopColor="#F9EB50" />
+          </linearGradient>
+        </defs>
+        {/* Piste */}
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="rgba(255,255,255,0.10)"
+          strokeWidth="14"
+          strokeLinecap="round"
+        />
+        {/* Progression */}
+        <path
+          d="M 20 100 A 80 80 0 0 1 180 100"
+          fill="none"
+          stroke="url(#thrive-gauge)"
+          strokeWidth="14"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${CIRC}`}
+          style={{ transition: 'stroke-dasharray 0.7s ease' }}
+        />
+      </svg>
+      <div className="absolute inset-x-0 bottom-0 flex flex-col items-center">
+        <span className="font-display text-3xl font-bold text-white tabular-nums leading-none">
+          {loading ? '—' : `${Math.round(pct * 100)}%`}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* Supports qui possèdent des champs renseignables par le coach (athlete_identity) */
+const SUPPORT_HAS_FIELDS = new Set(['identite', 'objectif', 'focus', 'outils', 'lettre']);
+
+/* Le coach a-t-il rempli du contenu pour ce support ? (même logique que IdentityContent) */
+function supportHasContent(id: string, identity: ParentIdentity): boolean {
+  if (!identity) return false;
+  switch (id) {
+    case 'identite':
+      return (
+        Boolean(identity.sport_story) ||
+        (identity.strengths?.length ?? 0) > 0 ||
+        Boolean(identity.season_dream)
+      );
+    case 'objectif':
+      return (
+        Boolean(identity.smart_goal) ||
+        Boolean(identity.life_skill_goal) ||
+        (identity.my_actions?.length ?? 0) > 0
+      );
+    case 'focus':
+      return Boolean(identity.focus_word);
+    case 'outils':
+      return (identity.toolbox?.length ?? 0) > 0;
+    case 'lettre':
+      return Boolean(identity.letter);
+    default:
+      return false;
+  }
 }
 
 /* Contenu réel rempli par le coach, mappé au support concerné */
@@ -435,27 +569,55 @@ function IdentityContent({ id, identity }: { id: string; identity: ParentIdentit
 }
 
 /* Carte de support repliable — clic pour révéler la description + ce que le coach a rempli.
-   Contenu contenu dans la carte (retour à la ligne forcé, aucun débordement). */
+   Badge de séance + indicateur « Renseigné ». Contenu borné (retour à la ligne forcé). */
 function SupportCard({ support, identity }: { support: Support; identity: ParentIdentity }) {
   const [open, setOpen] = useState(false);
+  const filled = supportHasContent(support.id, identity);
+  const sessionsLabel = support.sessions.join(' · ');
   return (
     <section
-      className={`rounded-2xl border bg-white/[0.03] overflow-hidden transition-colors duration-200 ${
-        open ? 'border-sun/40 bg-white/[0.06]' : 'border-white/10 hover:border-white/25'
+      className={`rounded-2xl border overflow-hidden transition-all duration-200 ${
+        open
+          ? 'border-sun/40 bg-white/[0.06]'
+          : 'border-white/10 bg-white/[0.03] hover:border-white/25 hover:bg-white/[0.05]'
       }`}
     >
       <button
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
-        className="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer"
+        className="w-full flex items-center gap-3 p-4 text-left cursor-pointer"
       >
+        {/* Badge séance */}
         <span
-          className={`font-display text-base font-semibold leading-tight transition-colors ${
-            open ? 'text-sun' : 'text-white'
+          className={`shrink-0 w-11 h-11 rounded-xl flex items-center justify-center font-display text-sm font-bold leading-none ${
+            filled ? 'bg-sun/15 text-sun ring-1 ring-sun/30' : 'bg-white/[0.06] text-white/70'
           }`}
         >
-          {support.title}
+          {support.sessions[0]}
         </span>
+
+        {/* Titre + méta */}
+        <span className="min-w-0 flex-1">
+          <span
+            className={`block font-display text-base font-semibold leading-tight transition-colors ${
+              open ? 'text-sun' : 'text-white'
+            }`}
+          >
+            {support.title}
+          </span>
+          <span className="flex flex-wrap items-center gap-x-2.5 gap-y-1 mt-1">
+            <span className="text-[11px] text-white/45">
+              {support.sessions.length > 1 ? `Séances ${sessionsLabel}` : `Séance ${sessionsLabel}`}
+            </span>
+            {filled && (
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-sage">
+                <span className="w-1.5 h-1.5 rounded-full bg-sage" /> Renseigné
+              </span>
+            )}
+          </span>
+        </span>
+
+        {/* Chevron */}
         <span
           aria-hidden
           className={`shrink-0 text-white/40 text-sm transition-transform duration-200 ${
@@ -465,8 +627,9 @@ function SupportCard({ support, identity }: { support: Support; identity: Parent
           ▾
         </span>
       </button>
+
       {open && (
-        <div className="px-4 pb-4 break-words [overflow-wrap:anywhere]">
+        <div className="px-4 pb-4 pl-[4.5rem] break-words [overflow-wrap:anywhere]">
           <p className="text-sm text-white/75 leading-relaxed">{support.desc}</p>
           <p className="text-[11px] text-white/40 mt-3">
             <span className="uppercase tracking-wide">Ancrage</span> · {support.anchor}
