@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 
@@ -307,8 +308,12 @@ export default function AthleteIdentityPage() {
             </div>
           </div>
 
-          {/* Jauge de progression du programme */}
-          <div className="shrink-0 md:border-l md:border-white/10 md:pl-8 flex flex-col items-center">
+          {/* Jauge de progression du programme — mène vers les séances */}
+          <Link
+            href="/parent/my-sessions"
+            aria-label="Voir mes séances"
+            className="group shrink-0 md:border-l md:border-white/10 md:pl-8 flex flex-col items-center cursor-pointer rounded-xl transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sun/40"
+          >
             <ProgressGauge value={completed} max={13} loading={loading} />
             <p className="text-sm text-white/70 mt-1">
               <span className="font-display font-bold text-white tabular-nums">
@@ -316,8 +321,13 @@ export default function AthleteIdentityPage() {
               </span>{' '}
               séances
             </p>
-            <p className="text-[11px] text-white/40">Programme complété</p>
-          </div>
+            <p className="text-[11px] text-white/40 inline-flex items-center gap-1 transition-colors group-hover:text-white/70">
+              Programme complété
+              <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+                →
+              </span>
+            </p>
+          </Link>
         </div>
       </div>
 
