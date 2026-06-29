@@ -52,7 +52,8 @@ const esc = (s: unknown) =>
 /* CSS du design : polices (Fraunces + Inter, déjà chargées par l'app), keyframes
    d'animation (toutes en CSS pur, aucun runtime JS requis) et grilles responsives. */
 const DESIGN_CSS = `
-.bilan-root{font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:#eaf3f1;}
+.bilan-root{font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:#eaf3f1;--bcard-pad:22px;--bnode:46px;max-width:100%;overflow-x:hidden;}
+.bilan-root *{min-width:0;}
 .bilan-root .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
 .bilan-root .bx{box-sizing:border-box;}
 @keyframes b-pulseRing{0%,100%{box-shadow:0 0 0 0 rgba(249,235,80,.35),0 0 26px rgba(249,235,80,.35);}50%{box-shadow:0 0 0 6px rgba(249,235,80,0),0 0 34px rgba(249,235,80,.55);}}
@@ -78,15 +79,17 @@ const DESIGN_CSS = `
   .bilan-root .b-tools>div{grid-column:auto!important;}
 }
 @media(max-width:680px){
+  .bilan-root{--bcard-pad:16px;--bnode:33px;}
   .bilan-root .b-row1{grid-template-columns:1fr;}
-  .bilan-root .b-nodes{grid-template-columns:repeat(5,1fr);}
-  .bilan-root .b-pad{padding:18px 14px 26px!important;}
-  .bilan-root .b-title{font-size:34px!important;}
+  .bilan-root .b-row1,.bilan-root .b-row2,.bilan-root .b-tools{gap:12px;}
+  .bilan-root .b-nodes{grid-template-columns:repeat(5,1fr);gap:12px 6px;}
+  .bilan-root .b-pad{padding:16px 12px 24px!important;}
+  .bilan-root .b-title{font-size:31px!important;}
 }
 `;
 
 const CARD =
-  'position:relative;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.08);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:22px;';
+  'position:relative;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.08);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);';
 const CHIP =
   'width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;font-size:15px;';
 
@@ -156,13 +159,13 @@ function buildHtml(d: {
     let subWeight = 400;
     if (done) {
       const y = milestone.has(n);
-      circle = `<span class="disp bx" style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#06222a;background:radial-gradient(circle at 40% 35%,${y ? '#fff7c8,#F9EB50' : '#dff0ea,#A7C4BC'} 70%);${y ? 'box-shadow:0 0 18px rgba(249,235,80,.3);' : ''}">${n}</span>`;
+      circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#06222a;background:radial-gradient(circle at 40% 35%,${y ? '#fff7c8,#F9EB50' : '#dff0ea,#A7C4BC'} 70%);${y ? 'box-shadow:0 0 18px rgba(249,235,80,.3);' : ''}">${n}</span>`;
     } else if (isCur) {
-      circle = `<span class="disp bx" style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#06222a;background:radial-gradient(circle at 40% 35%,#fff7c8,#F9EB50 70%);animation:b-pulseRing 2.4s ease-in-out infinite;">${n}</span>`;
+      circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#06222a;background:radial-gradient(circle at 40% 35%,#fff7c8,#F9EB50 70%);animation:b-pulseRing 2.4s ease-in-out infinite;">${n}</span>`;
       subColor = '#F9EB50';
       subWeight = 600;
     } else {
-      circle = `<span class="disp bx" style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:rgba(234,243,241,.45);background:rgba(255,255,255,.03);border:1.5px dashed rgba(255,255,255,.18);">${n}</span>`;
+      circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:rgba(234,243,241,.45);background:rgba(255,255,255,.03);border:1.5px dashed rgba(255,255,255,.18);">${n}</span>`;
       subColor = 'rgba(234,243,241,.35)';
     }
     const sub = n === 7 ? 'S7 · LSSS' : n === 13 ? 'S13 · bilan' : isCur ? `S${n} · en cours` : `S${n}`;
@@ -444,7 +447,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S9 · FOCUS WORD -->
-    <div class="bx" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:22px;display:flex;flex-direction:column;">
+    <div class="bx" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);display:flex;flex-direction:column;">
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;position:relative;z-index:2;">
         <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(249,235,80,.25);display:grid;place-items:center;color:#F9EB50;font-size:15px;">✦</span>
         <span class="disp" style="font-weight:600;font-size:17px;">Focus Word</span>
@@ -547,7 +550,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S13 · CERTIFICAT -->
-    <div class="bx" style="grid-column:span 3;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px dashed rgba(255,255,255,.17);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px rgba(0,0,0,.32);padding:22px;">
+    <div class="bx" style="grid-column:span 3;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px dashed rgba(255,255,255,.17);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);">
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;color:rgba(234,243,241,.55);font-size:15px;">◈</span>
         <span class="disp" style="font-weight:600;font-size:17px;color:rgba(234,243,241,.85);">Certificat THRIVE</span>
