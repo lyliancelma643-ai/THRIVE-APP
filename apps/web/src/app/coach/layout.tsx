@@ -10,6 +10,7 @@ const NAV_ITEMS = [
   { href: '/coach/dashboard', label: 'Tableau de bord', icon: '⌂' },
   { href: '/coach/sessions', label: 'Séances', icon: '✓' },
   { href: '/coach/athletes', label: 'Mes athlètes', icon: '★' },
+  { href: '/coach/bilan', label: 'Bilans', icon: '◈' },
 ];
 
 export default function CoachLayout({ children }: { children: React.ReactNode }) {
