@@ -107,7 +107,13 @@ function buildHtml(d: {
   smartGoal: string | null;
   focusWord: string | null;
   toolboxCount: number;
+  toolbox: { tool: string; context: string }[];
   letter: string | null;
+  sportStory: string | null;
+  strengths: string[];
+  seasonDream: string | null;
+  lifeSkillGoal: string | null;
+  myActions: string[];
 }) {
   const {
     firstName,
@@ -126,7 +132,13 @@ function buildHtml(d: {
     smartGoal,
     focusWord,
     toolboxCount,
+    toolbox,
     letter,
+    sportStory,
+    strengths,
+    seasonDream,
+    lifeSkillGoal,
+    myActions,
   } = d;
 
   const cur = Math.min(Math.max(completed, 0), 13);
@@ -173,10 +185,56 @@ function buildHtml(d: {
   const waitBadge = (txt: string) =>
     `<span class="bx" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.12);font-weight:600;font-size:11px;color:rgba(234,243,241,.45);">${txt}</span>`;
 
-  const renseignes = [smartGoal, focusWord, letter, toolboxCount > 0].filter(Boolean).length + 1; // +1 = contrat (coach)
+  const strengthChips = strengths.filter(Boolean);
+  const idFilled = Boolean(sportStory) || strengthChips.length > 0 || Boolean(seasonDream);
+  const objFilled = Boolean(smartGoal) || Boolean(lifeSkillGoal) || myActions.length > 0;
+  const renseignes =
+    [idFilled, objFilled, Boolean(focusWord), toolbox.length > 0, Boolean(letter)].filter(Boolean)
+      .length + 1; // +1 = contrat (coach assigné)
 
   const objText = smartGoal || 'Objectif SMART à co-construire avec le coach.';
   const focus = focusWord || '—';
+
+  // ── Fragments alimentés par ce que le coach a rempli ──
+  const toolboxItemsHtml = toolbox.length
+    ? `<div style="display:flex;flex-direction:column;gap:7px;margin-bottom:14px;">${toolbox
+        .map(
+          (t) =>
+            `<div style="display:flex;gap:8px;align-items:baseline;"><span style="width:5px;height:5px;border-radius:50%;background:#A7C4BC;margin-top:6px;flex-shrink:0;"></span><span style="font-weight:500;font-size:12px;color:rgba(234,243,241,.85);">${esc(t.tool)}${t.context ? `<span style="color:rgba(234,243,241,.5);"> — ${esc(t.context)}</span>` : ''}</span></div>`
+        )
+        .join('')}</div>`
+    : '';
+  const lifeSkillHtml = lifeSkillGoal
+    ? `<div style="margin-bottom:14px;"><div style="font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:rgba(234,243,241,.42);margin-bottom:5px;">Objectif life skill</div><p style="margin:0;font-weight:500;font-size:14px;line-height:1.4;color:rgba(234,243,241,.85);">${esc(lifeSkillGoal)}</p></div>`
+    : '';
+  const actionsHtml = myActions.length
+    ? `<div style="margin-bottom:16px;"><div style="font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:rgba(234,243,241,.42);margin-bottom:7px;">Ce qui dépend de moi</div><div style="display:flex;flex-direction:column;gap:6px;">${myActions
+        .map(
+          (a) =>
+            `<div style="display:flex;gap:8px;align-items:baseline;"><span style="color:#F9EB50;font-size:12px;flex-shrink:0;">✓</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.85);">${esc(a)}</span></div>`
+        )
+        .join('')}</div></div>`
+    : '';
+  const identiteCard = `
+    <!-- S1 · FICHE IDENTITÉ ATHLÈTE -->
+    <div class="bx" style="grid-column:span 6;${CARD}">
+      <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;flex-wrap:wrap;">
+        <span class="bx" style="${CHIP}color:#A7C4BC;">◈</span>
+        <span class="disp" style="font-weight:600;font-size:18px;">Fiche Identité Athlète</span>
+        ${idFilled ? okBadge('S1 · ✓ Renseigné') : waitBadge('S1 · À venir')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;align-items:start;">
+        <div>
+          <div style="font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:rgba(234,243,241,.42);margin-bottom:7px;">Histoire sportive</div>
+          <p style="margin:0 0 16px;font-weight:400;font-size:14px;line-height:1.55;color:rgba(234,243,241,.85);white-space:pre-line;">${sportStory ? esc(sportStory) : '<span style="color:rgba(234,243,241,.4);">À renseigner avec le coach.</span>'}</p>
+          ${seasonDream ? `<div style="position:relative;padding:14px 16px 14px 38px;border-radius:14px;background:rgba(249,235,80,.06);border:1px solid rgba(249,235,80,.16);"><span class="disp" style="position:absolute;left:13px;top:6px;font-size:30px;color:rgba(249,235,80,.45);line-height:1;">“</span><div style="font-weight:500;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:rgba(249,235,80,.7);margin-bottom:3px;">Rêve de saison</div><p class="disp" style="margin:0;font-style:italic;font-size:15px;line-height:1.4;color:#eaf3f1;">${esc(seasonDream)}</p></div>` : ''}
+        </div>
+        <div>
+          <div style="font-weight:500;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:rgba(234,243,241,.42);margin-bottom:9px;">Forces (VIA)</div>
+          ${strengthChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${strengthChips.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:7px 13px;border-radius:11px;background:rgba(167,196,188,.14);border:1px solid rgba(167,196,188,.25);font-weight:600;font-size:13px;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>${esc(s)}</span>`).join('')}</div>` : '<span style="font-weight:400;font-size:13px;color:rgba(234,243,241,.4);">Forces à identifier ensemble.</span>'}
+        </div>
+      </div>
+    </div>`;
 
   return `
 <div class="bilan-root b-pad bx" style="position:relative;overflow:hidden;border-radius:28px;background:radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%);padding:22px 28px 34px;">
@@ -319,6 +377,7 @@ function buildHtml(d: {
         </div>
         <div style="display:flex;align-items:baseline;gap:6px;"><span class="disp" style="font-weight:700;font-size:30px;line-height:1;">${toolboxCount}</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.45);">/6 outils collectés</span></div>
         <div style="height:9px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden;margin:14px 0 16px;"><div style="width:${Math.round((Math.min(toolboxCount, 6) / 6) * 100)}%;height:100%;border-radius:5px;background:linear-gradient(90deg,#A7C4BC,#F9EB50);transform-origin:left;animation:b-growX 1s cubic-bezier(.22,.61,.36,1) both .6s;"></div></div>
+        ${toolboxItemsHtml}
         <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:13px;background:rgba(249,235,80,.08);border:1px solid rgba(249,235,80,.2);">
           <span style="font-weight:500;font-size:11px;color:rgba(234,243,241,.55);">Focus word</span>
           <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;letter-spacing:.02em;margin-left:auto;">${esc(focus)}</span>
@@ -351,21 +410,24 @@ function buildHtml(d: {
         <div style="font-weight:400;font-size:13px;color:rgba(234,243,241,.5);margin-top:2px;">Les livrables construits séance après séance — chacun son atelier.</div>
       </div>
     </div>
-    <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:11px;background:rgba(249,235,80,.1);border:1px solid rgba(249,235,80,.22);font-weight:600;font-size:12px;color:#F9EB50;">7 ateliers · ${renseignes} renseignés</span>
+    <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 14px;border-radius:11px;background:rgba(249,235,80,.1);border:1px solid rgba(249,235,80,.22);font-weight:600;font-size:12px;color:#F9EB50;">8 ateliers · ${renseignes} renseignés</span>
   </div>
 
   <div class="b-tools">
+    ${identiteCard}
     <!-- S2 · FICHE OBJECTIF -->
     <div class="bx" style="grid-column:span 4;${CARD}">
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◎</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Fiche Objectif THRIVE</span>
-        ${smartGoal ? okBadge('S2 · ✓ Renseigné') : waitBadge('S2 · À venir')}
+        ${objFilled ? okBadge('S2 · ✓ Renseigné') : waitBadge('S2 · À venir')}
       </div>
       <div style="position:relative;padding:16px 18px 16px 40px;border-radius:15px;background:rgba(167,196,188,.06);border:1px solid rgba(167,196,188,.16);margin-bottom:16px;">
         <span class="disp" style="position:absolute;left:14px;top:8px;font-size:34px;color:rgba(249,235,80,.45);line-height:1;">“</span>
         <p class="disp" style="margin:0;font-weight:500;font-size:19px;line-height:1.35;color:#eaf3f1;">${esc(objText)}</p>
       </div>
+      ${lifeSkillHtml}
+      ${actionsHtml}
       <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;">
         ${[['S', 'Spécifique'], ['M', 'Mesurable'], ['A', 'Atteignable'], ['R', 'Réaliste'], ['T', 'Temporel']]
           .map(
@@ -622,7 +684,13 @@ export default function AthleteIdentityPage() {
     smartGoal: identity?.smart_goal ?? null,
     focusWord: identity?.focus_word ?? null,
     toolboxCount: identity?.toolbox?.length ?? 0,
+    toolbox: identity?.toolbox ?? [],
     letter: identity?.letter ?? null,
+    sportStory: identity?.sport_story ?? null,
+    strengths: identity?.strengths ?? [],
+    seasonDream: identity?.season_dream ?? null,
+    lifeSkillGoal: identity?.life_skill_goal ?? null,
+    myActions: identity?.my_actions ?? [],
   });
 
   return (
