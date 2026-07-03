@@ -6,18 +6,26 @@ import { useAuthStore } from '@/stores/auth.store';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
 import { BrandLogo } from '@/components/BrandLogo';
 
-const NAV_ITEMS = [
-  { href: '/parent', label: 'Accueil', icon: '⌂', exact: true },
-  { href: '/parent/my-sessions', label: 'Mes séances', icon: '★', exact: false },
-  { href: '/parent/progress', label: 'Progrès', icon: '↗', exact: false },
-  { href: '/parent/bilans', label: 'Identité', icon: '◈', exact: false },
-  { href: '/parent/library', label: 'Toutes les séances', icon: '▦', exact: false },
+// Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Fitness
+const TABS = [
+  { href: '/parent/bilans', label: 'Bilan', icon: '◈' },
+  { href: '/parent/my-sessions', label: 'Mes séances', icon: '★' },
+  { href: '/parent/fitness', label: 'Fitness', icon: '▦' },
 ];
+
+// Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness
+function activeTabIndex(pathname: string): number {
+  const i = TABS.findIndex((t) => pathname.startsWith(t.href));
+  if (i >= 0) return i;
+  if (pathname.startsWith('/parent/session')) return 2;
+  return 0;
+}
 
 export default function ParentHubLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, signOut } = useAuthStore();
+  const active = activeTabIndex(pathname);
 
   return (
     <div className="min-h-screen relative bg-gradient-to-b from-[#031b29] via-navy-900 to-[#01121b] text-white">
@@ -28,10 +36,10 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         <div className="absolute -bottom-40 left-1/4 w-[28rem] h-[28rem] rounded-full bg-sun/[0.07] blur-3xl" />
       </div>
 
-      {/* Barre de navigation horizontale (liquid glass) */}
-      <header className="sticky top-0 z-50 px-2 pt-2 md:px-4 md:pt-4 safe-top">
-        <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-3 flex items-center gap-1.5 md:gap-2">
-          <Link href="/parent" className="flex items-center gap-2 mr-1 md:mr-4 shrink-0">
+      {/* Barre haute allégée : logo + profils. La navigation vit en bas, comme Apple Forme. */}
+      <header className="sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-4 safe-top">
+        <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between gap-2">
+          <Link href="/parent/bilans" className="flex items-center gap-2 shrink-0">
             <span className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-xl bg-navy-900 shadow-card">
               <BrandLogo className="h-6 md:h-7 w-auto" />
             </span>
@@ -39,26 +47,6 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
               Sport Positive
             </span>
           </Link>
-
-          <nav className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
-            {NAV_ITEMS.map((item) => {
-              const active = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-full text-sm whitespace-nowrap transition-all ${
-                    active
-                      ? 'bg-white/15 text-white font-semibold'
-                      : 'text-white/55 font-medium hover:text-white hover:bg-white/10'
-                  }`}
-                >
-                  <span className="text-base leading-none">{item.icon}</span>
-                  <span className="hidden sm:inline">{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
 
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <Link
@@ -89,7 +77,56 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         </div>
       </header>
 
-      <main className="relative max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8">{children}</main>
+      <main className="relative max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 pb-32 md:pb-36">
+        {/* Chaque changement d'onglet ré-anime le contenu (fondu + glissement iOS) */}
+        <div key={pathname} className="animate-page-in">
+          {children}
+        </div>
+      </main>
+
+      {/* Tab bar liquid glass (Apple Forme) : bulle de verre qui glisse sous l'onglet actif */}
+      <nav
+        aria-label="Navigation principale"
+        className="fixed bottom-0 inset-x-0 z-50 px-4 pointer-events-none"
+        style={{ paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}
+      >
+        <div className="pointer-events-auto relative max-w-md mx-auto rounded-[28px] glass-navy p-1.5 shadow-[0_18px_50px_rgba(0,10,20,0.55)]">
+          {/* Reflet spéculaire du verre */}
+          <div
+            aria-hidden
+            className="absolute inset-0 rounded-[28px] pointer-events-none"
+            style={{
+              boxShadow:
+                'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(255,255,255,0.04)',
+            }}
+          />
+          <div
+            aria-hidden
+            className="absolute top-1.5 bottom-1.5 left-1.5 rounded-[22px] bg-white/[0.14] border border-white/25 transition-transform duration-500"
+            style={{
+              width: 'calc((100% - 12px) / 3)',
+              transform: `translateX(${active * 100}%)`,
+              transitionTimingFunction: 'cubic-bezier(0.32, 1.35, 0.4, 1)',
+              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(0,0,0,0.35)',
+            }}
+          />
+          <div className="relative grid grid-cols-3">
+            {TABS.map((tab, i) => (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                aria-current={active === i ? 'page' : undefined}
+                className={`flex flex-col items-center gap-0.5 py-2 rounded-[22px] transition-colors duration-300 ${
+                  active === i ? 'text-sun' : 'text-white/55 hover:text-white'
+                }`}
+              >
+                <span className="text-lg leading-none">{tab.icon}</span>
+                <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </nav>
     </div>
   );
 }

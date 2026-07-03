@@ -66,25 +66,58 @@ const DESIGN_CSS = `
 @keyframes b-breatheC{0%,100%{opacity:.82;transform:scale(1);}50%{opacity:1;transform:scale(1.05);}}
 @keyframes b-spin{to{transform:rotate(360deg);}}
 @keyframes b-floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-5px);}}
-.bilan-root .b-row1{display:grid;grid-template-columns:310px 310px 1fr;gap:16px;margin-bottom:16px;}
+.bilan-root .b-row1{display:grid;grid-template-columns:340px 1fr;gap:16px;margin-bottom:16px;}
+.bilan-root .b-duo{display:grid;grid-template-columns:1fr 1fr;gap:16px;min-width:0;}
+.bilan-root .b-lsss{margin-bottom:16px;}
 .bilan-root .b-row2{display:grid;grid-template-columns:1.62fr 1fr 1fr;gap:16px;}
 .bilan-root .b-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
 .bilan-root .b-hover{transition:transform .15s ease,opacity .15s ease,background .15s ease;cursor:pointer;}
 .bilan-root .b-hover:hover{transform:translateY(-2px);opacity:.93;}
 .bilan-root .b-nodes{display:grid;grid-template-columns:repeat(7,1fr);gap:14px 10px;}
 @media(max-width:1100px){
-  .bilan-root .b-row1{grid-template-columns:1fr 1fr;}
+  .bilan-root .b-row1{grid-template-columns:1fr;}
   .bilan-root .b-row2{grid-template-columns:1fr;}
-  .bilan-root .b-tools{grid-template-columns:1fr;}
-  .bilan-root .b-tools>div{grid-column:auto!important;}
+  .bilan-root .b-tools{grid-template-columns:1fr 1fr;}
+  .bilan-root .b-tools>div{grid-column:span 2!important;}
+  .bilan-root .b-tools>.b-half{grid-column:span 1!important;}
 }
 @media(max-width:680px){
-  .bilan-root{--bcard-pad:16px;--bnode:33px;}
-  .bilan-root .b-row1{grid-template-columns:1fr;}
-  .bilan-root .b-row1,.bilan-root .b-row2,.bilan-root .b-tools{gap:12px;}
-  .bilan-root .b-nodes{grid-template-columns:repeat(5,1fr);gap:12px 6px;}
-  .bilan-root .b-pad{padding:16px 12px 24px!important;}
-  .bilan-root .b-title{font-size:31px!important;}
+  .bilan-root{--bcard-pad:13px;--bnode:33px;}
+  .bilan-root .b-row1{grid-template-columns:1fr;margin-bottom:10px;}
+  .bilan-root .b-lsss{margin-bottom:10px;}
+  .bilan-root .b-row1,.bilan-root .b-row2,.bilan-root .b-tools,.bilan-root .b-duo{gap:10px;}
+  .bilan-root .b-nodes{grid-template-columns:repeat(5,1fr);gap:10px 4px;}
+  .bilan-root .b-pad{padding:14px 10px 22px!important;}
+  .bilan-root .b-title{font-size:29px!important;}
+  .bilan-root .b-sub{font-size:12.5px!important;margin-top:8px!important;}
+  .bilan-root .b-head{margin-bottom:16px!important;gap:12px!important;}
+  .bilan-root .b-seg{width:100%;}
+  .bilan-root .b-seg>span{flex:1;justify-content:center;padding:9px 8px!important;font-size:12.5px!important;}
+  .bilan-root .b-clk{border-radius:18px!important;}
+  .bilan-root .b-hint{width:18px;height:18px;font-size:10px;right:8px;bottom:7px;}
+  .bilan-root .b-legend{display:none!important;}
+  .bilan-root .b-ct{font-size:13.5px!important;}
+  .bilan-root .b-chip{width:28px!important;height:28px!important;font-size:12px!important;border-radius:9px!important;}
+  .bilan-root .b-subl{margin-left:39px!important;}
+  .bilan-root .b-pct{font-size:40px!important;}
+  .bilan-root .b-pctchip{font-size:10.5px!important;padding:6px 9px!important;margin-top:10px!important;background:rgba(4,28,36,.6)!important;border-color:rgba(255,255,255,.15)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+  .bilan-root .b-sun1{width:150px!important;height:150px!important;bottom:-58px!important;}
+  .bilan-root .b-sun2{width:40px!important;height:40px!important;bottom:-14px!important;}
+  .bilan-root .b-lsss .b-clk{padding-bottom:26px!important;}
+  .bilan-root .b-certbar{margin-right:24px!important;}
+  .bilan-root .b-gaugenum{font-size:23px!important;}
+  .bilan-root .b-gaugecap{font-size:10.5px!important;}
+  .bilan-root .b-lsvg{height:150px!important;}
+  .bilan-root .b-lchip{font-size:9.5px!important;padding:2px 6px!important;}
+  .bilan-root .b-focusword{font-size:26px!important;}
+  .bilan-root .b-wheel{width:118px!important;height:118px!important;}
+  .bilan-root .b-wheelring{-webkit-mask:radial-gradient(circle at 50% 50%,transparent 36px,#000 37px)!important;mask:radial-gradient(circle at 50% 50%,transparent 36px,#000 37px)!important;}
+  .bilan-root .b-emochip{font-size:10px!important;padding:4px 8px!important;}
+  .bilan-root .b-rn{width:24px!important;height:24px!important;font-size:11px!important;}
+  .bilan-root .b-rline{left:15px!important;}
+  .bilan-root .b-rt{font-size:11.5px!important;}
+  .bilan-root .b-cname{font-size:15px!important;}
+  .bilan-root .b-toolshead{margin:22px 2px 12px!important;}
 }
 @keyframes b-cardIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
 @keyframes b-scanX{0%{left:0;opacity:0;}8%{opacity:.5;}92%{opacity:.5;}100%{left:calc(100% - 2px);opacity:0;}}
@@ -266,18 +299,18 @@ function buildHtml(d: {
   <div style="position:absolute;bottom:-200px;left:38%;width:520px;height:520px;border-radius:50%;background:rgba(249,235,80,.05);filter:blur(90px);pointer-events:none;"></div>
 
   <!-- TITLE -->
-  <div style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
+  <div class="b-head" style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
     <div>
       <h1 class="disp b-title" style="font-weight:600;font-size:46px;line-height:1;margin:0;letter-spacing:-.02em;">Carte d'identité</h1>
-      <p style="font-weight:400;font-size:15px;color:rgba(234,243,241,.55);margin:12px 0 0;">Le passeport THRIVE de ${esc(firstName)} — identité d'athlète &amp; parcours des 13 séances.</p>
+      <p class="b-sub" style="font-weight:400;font-size:15px;color:rgba(234,243,241,.55);margin:12px 0 0;">Le passeport THRIVE de ${esc(firstName)} — identité d'athlète &amp; parcours des 13 séances.</p>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;">
         <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:rgba(167,196,188,.08);border:1px solid rgba(167,196,188,.2);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;animation:b-blink 2.2s ease-in-out infinite;"></span>Labo THRIVE · en direct</span>
         <span style="font-weight:500;font-size:11px;color:rgba(234,243,241,.45);">ⓘ Touche une carte pour découvrir son explication</span>
       </div>
     </div>
-    <div style="display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
+    <div class="b-seg bx" style="display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
       <span class="b-hover" data-href="/parent/my-sessions" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;background:rgba(255,255,255,.06);font-weight:600;font-size:14px;color:#eaf3f1;">⤓ Voir le passeport</span>
-      <span class="b-hover" data-href="/parent/progress" style="display:flex;align-items:center;gap:8px;padding:10px 18px;font-weight:500;font-size:14px;color:rgba(234,243,241,.65);">↗ Progrès</span>
+      <span class="b-hover" data-href="/parent/fitness" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;font-weight:500;font-size:14px;color:rgba(234,243,241,.65);">▦ Fitness</span>
     </div>
   </div>
 
@@ -302,22 +335,42 @@ function buildHtml(d: {
       <div class="b-hover" data-href="/parent/my-sessions" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:13px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);font-weight:600;font-size:13px;color:rgba(234,243,241,.8);">Voir toutes les séances →</div>
     </div>
 
-    <!-- Programme complété -->
-    <div class="bx b-clk" data-info="programme" style="${CARD}overflow:hidden;${ain(1)}">${hint}
-      <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
-        <span class="bx" style="${CHIP}color:#F9EB50;">★</span>
-        <span class="disp" style="font-weight:600;font-size:18px;">Programme complété</span>
+    <!-- Duo : Programme complété · Compétences de vie (côte à côte à toutes les tailles) -->
+    <div class="b-duo">
+      <div class="bx b-clk" data-info="programme" style="${CARD}overflow:hidden;${ain(1)}">${hint}
+        <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
+          <span class="bx b-chip" style="${CHIP}color:#F9EB50;">★</span>
+          <span class="disp b-ct" style="font-weight:600;font-size:18px;">Programme complété</span>
+        </div>
+        <div style="position:relative;z-index:2;display:flex;align-items:baseline;gap:3px;margin-top:18px;">
+          <span class="disp b-pct" style="font-weight:700;font-size:60px;line-height:.9;">${pct}</span><span class="disp" style="font-weight:600;font-size:24px;color:rgba(234,243,241,.6);">%</span>
+        </div>
+        <div class="b-pctchip" style="position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 15px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-weight:600;font-size:13px;color:rgba(234,243,241,.85);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;flex-shrink:0;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
+        <div class="b-sun1" style="position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.9) 0%, rgba(224,165,40,.55) 26%, rgba(120,90,20,.18) 48%, transparent 66%);filter:blur(2px);animation:b-breathe 4.6s ease-in-out infinite;"></div>
+        <div class="b-sun2" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-coreBreathe 4.6s ease-in-out infinite;"></div>
       </div>
-      <div style="position:relative;z-index:2;display:flex;align-items:baseline;gap:3px;margin-top:18px;">
-        <span class="disp" style="font-weight:700;font-size:60px;line-height:.9;">${pct}</span><span class="disp" style="font-weight:600;font-size:24px;color:rgba(234,243,241,.6);">%</span>
-      </div>
-      <div style="position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 15px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-weight:600;font-size:13px;color:rgba(234,243,241,.85);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
-      <div style="position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.9) 0%, rgba(224,165,40,.55) 26%, rgba(120,90,20,.18) 48%, transparent 66%);filter:blur(2px);animation:b-breathe 4.6s ease-in-out infinite;"></div>
-      <div style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-coreBreathe 4.6s ease-in-out infinite;"></div>
-    </div>
 
-    <!-- LSSS chart -->
-    <div class="bx b-clk" data-info="lsss" style="${CARD}${ain(2)}">${hint}
+      <div class="bx b-clk" data-info="competences" style="${CARD}display:flex;flex-direction:column;justify-content:space-between;${ain(2)}">${hint}
+        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
+          <span class="bx b-chip" style="${CHIP}color:#A7C4BC;">✓</span>
+          <span class="disp b-ct" style="font-weight:600;font-size:17px;">Compétences de vie</span>
+        </div>
+        <div style="position:relative;width:100%;max-width:170px;margin:6px auto 0;">
+          <svg viewBox="0 0 200 110" style="width:100%;height:auto;display:block;">
+            <defs><linearGradient id="b-gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A7C4BC"></stop><stop offset="100%" stop-color="#F9EB50"></stop></linearGradient></defs>
+            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14" stroke-linecap="round"></path>
+            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#b-gB)" stroke-width="14" stroke-linecap="round" stroke-dasharray="181 251" style="animation:b-gaugeSweep 1.4s cubic-bezier(.22,.61,.36,1) both .5s;"></path>
+          </svg>
+          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp b-gaugenum" style="font-weight:700;font-size:30px;line-height:1;">72<span style="font-size:16px;color:rgba(234,243,241,.55);">%</span></span></div>
+        </div>
+        <p class="b-gaugecap" style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">Bon niveau · <span style="color:#A7C4BC;">+16 pts depuis S1</span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LSSS · pleine largeur -->
+  <div class="b-lsss">
+    <div class="bx b-clk" data-info="lsss" style="${CARD}${ain(3)}">${hint}
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:11px;">
           <span class="bx" style="${CHIP}color:#A7C4BC;">⤢</span>
@@ -327,28 +380,28 @@ function buildHtml(d: {
       </div>
       <div style="display:flex;gap:12px;">
         <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 26px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);text-align:right;width:34px;"><span>Élevé</span><span>Moyen</span><span>Bas</span></div>
-        <div style="flex:1;min-width:0;position:relative;">
-          <div style="position:absolute;top:4px;bottom:28px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
-          <svg viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
-            <defs><linearGradient id="b-areaC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(167,196,188,.32)"></stop><stop offset="100%" stop-color="rgba(167,196,188,0)"></stop></linearGradient></defs>
-            <rect x="0" y="64" width="660" height="40" fill="rgba(167,196,188,.07)"></rect>
-            <text x="10" y="80" font-family="var(--font-inter)" font-size="11" fill="rgba(167,196,188,.55)">Zone cible</text>
-            <line x1="0" y1="40" x2="660" y2="40" stroke="rgba(255,255,255,.05)"></line>
-            <line x1="0" y1="104" x2="660" y2="104" stroke="rgba(255,255,255,.05)"></line>
-            <line x1="0" y1="150" x2="660" y2="150" stroke="rgba(255,255,255,.05)"></line>
-            <path d="M30,128 L135,120 L240,110 L345,92 L450,84 L450,190 L30,190 Z" fill="url(#b-areaC)" style="opacity:0;animation:b-fadeIn .9s ease forwards .55s;"></path>
-            <polyline points="30,128 135,120 240,110 345,92 450,84" fill="none" stroke="#A7C4BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:640;stroke-dashoffset:640;animation:b-drawLine 1.5s ease forwards .4s;"></polyline>
-            <polyline points="450,84 555,76 630,68" fill="none" stroke="rgba(249,235,80,.7)" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round" style="opacity:0;animation:b-fadeIn .6s ease forwards 1.5s;"></polyline>
-            <circle cx="30" cy="128" r="4" fill="#A7C4BC" style="opacity:0;animation:b-fadeIn .4s ease forwards .8s;"></circle>
-            <circle cx="345" cy="92" r="6" fill="#fff7c8" stroke="#F9EB50" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.25s;"></circle>
-            <circle cx="450" cy="84" r="5" fill="#eafaf7" stroke="#A7C4BC" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.5s;"></circle>
-            <circle cx="630" cy="68" r="5" fill="none" stroke="#F9EB50" stroke-width="2" style="opacity:0;animation:b-fadeIn .5s ease forwards 1.9s;"></circle>
-            <g font-family="var(--font-inter)" font-size="11" fill="rgba(234,243,241,.75)" style="opacity:0;animation:b-fadeIn .6s ease forwards 1.7s;">
-              <rect x="14" y="134" width="34" height="18" rx="5" fill="rgba(255,255,255,.06)"></rect><text x="20" y="146.5">56</text>
-              <rect x="325" y="66" width="40" height="18" rx="5" fill="rgba(249,235,80,.16)"></rect><text x="331" y="78.5" fill="#F9EB50">71</text>
-              <rect x="604" y="50" width="50" height="18" rx="5" fill="rgba(255,255,255,.06)"></rect><text x="610" y="62.5">84 cible</text>
-            </g>
-          </svg>
+        <div style="flex:1;min-width:0;">
+          <div style="position:relative;">
+            <div style="position:absolute;top:4px;bottom:4px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
+            <svg class="b-lsvg" viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
+              <defs><linearGradient id="b-areaC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(167,196,188,.32)"></stop><stop offset="100%" stop-color="rgba(167,196,188,0)"></stop></linearGradient></defs>
+              <rect x="0" y="64" width="660" height="40" fill="rgba(167,196,188,.07)"></rect>
+              <line x1="0" y1="40" x2="660" y2="40" stroke="rgba(255,255,255,.05)"></line>
+              <line x1="0" y1="104" x2="660" y2="104" stroke="rgba(255,255,255,.05)"></line>
+              <line x1="0" y1="150" x2="660" y2="150" stroke="rgba(255,255,255,.05)"></line>
+              <path d="M30,128 L135,120 L240,110 L345,92 L450,84 L450,190 L30,190 Z" fill="url(#b-areaC)" style="opacity:0;animation:b-fadeIn .9s ease forwards .55s;"></path>
+              <polyline points="30,128 135,120 240,110 345,92 450,84" fill="none" stroke="#A7C4BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:640;stroke-dashoffset:640;animation:b-drawLine 1.5s ease forwards .4s;"></polyline>
+              <polyline points="450,84 555,76 630,68" fill="none" stroke="rgba(249,235,80,.7)" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round" style="opacity:0;animation:b-fadeIn .6s ease forwards 1.5s;"></polyline>
+              <circle cx="30" cy="128" r="4" fill="#A7C4BC" style="opacity:0;animation:b-fadeIn .4s ease forwards .8s;"></circle>
+              <circle cx="345" cy="92" r="6" fill="#fff7c8" stroke="#F9EB50" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.25s;"></circle>
+              <circle cx="450" cy="84" r="5" fill="#eafaf7" stroke="#A7C4BC" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.5s;"></circle>
+              <circle cx="630" cy="68" r="5" fill="none" stroke="#F9EB50" stroke-width="2" style="opacity:0;animation:b-fadeIn .5s ease forwards 1.9s;"></circle>
+            </svg>
+            <span class="b-lchip bx" style="position:absolute;left:8px;top:34%;padding:3px 8px;border-radius:6px;background:rgba(167,196,188,.12);font-weight:600;font-size:11px;color:rgba(167,196,188,.85);white-space:nowrap;pointer-events:none;">Zone cible</span>
+            <span class="b-lchip bx" style="position:absolute;left:4.5%;top:67.4%;transform:translate(0,9px);padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.08);font-weight:600;font-size:11px;color:rgba(234,243,241,.8);white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.7s;">Départ · 56</span>
+            <span class="b-lchip bx" style="position:absolute;left:52.3%;top:48.4%;transform:translate(-50%,-135%);padding:3px 8px;border-radius:6px;background:rgba(249,235,80,.16);font-weight:700;font-size:11px;color:#F9EB50;white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.7s;">S7 · 71</span>
+            <span class="b-lchip bx" style="position:absolute;left:96%;top:35.8%;transform:translate(-100%,-135%);padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.08);font-weight:600;font-size:11px;color:rgba(234,243,241,.8);white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.9s;">Cible · 84</span>
+          </div>
           <div style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);"><span>S1</span><span>S3</span><span>S5</span><span>S7</span><span>S9</span><span>S11</span><span>S13</span></div>
         </div>
       </div>
@@ -367,7 +420,7 @@ function buildHtml(d: {
         <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:7px 13px;border-radius:11px;background:rgba(249,235,80,.12);border:1px solid rgba(249,235,80,.25);font-weight:600;font-size:12px;color:#F9EB50;">${completed}/13 complétées</span>
       </div>
       <div style="display:flex;gap:20px;">
-        <div style="display:flex;gap:11px;flex-shrink:0;">
+        <div class="b-legend" style="display:flex;gap:11px;flex-shrink:0;">
           <div style="width:7px;border-radius:4px;background:linear-gradient(180deg,#F9EB50,#A7C4BC 52%,rgba(255,255,255,.12) 60%);"></div>
           <div style="display:flex;flex-direction:column;justify-content:space-between;padding:2px 0;font-weight:500;font-size:11px;color:rgba(234,243,241,.55);"><span>Terminée</span><span style="color:#F9EB50;">En cours</span><span style="color:rgba(234,243,241,.35);">À venir</span></div>
         </div>
@@ -381,24 +434,8 @@ function buildHtml(d: {
       </div>
     </div>
 
-    <!-- Middle column : gauge + boîte à outils -->
-    <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="bx b-clk" data-info="competences" style="${CARD}${ain(4)}">${hint}
-        <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
-          <span class="bx" style="${CHIP}color:#A7C4BC;">✓</span>
-          <span class="disp" style="font-weight:600;font-size:17px;">Compétences de vie</span>
-        </div>
-        <div style="position:relative;width:170px;height:96px;margin:6px auto 0;">
-          <svg viewBox="0 0 200 110" style="width:100%;height:100%;display:block;">
-            <defs><linearGradient id="b-gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A7C4BC"></stop><stop offset="100%" stop-color="#F9EB50"></stop></linearGradient></defs>
-            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14" stroke-linecap="round"></path>
-            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#b-gB)" stroke-width="14" stroke-linecap="round" stroke-dasharray="181 251" style="animation:b-gaugeSweep 1.4s cubic-bezier(.22,.61,.36,1) both .5s;"></path>
-          </svg>
-          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp" style="font-weight:700;font-size:30px;line-height:1;">72<span style="font-size:16px;color:rgba(234,243,241,.55);">%</span></span></div>
-        </div>
-        <p style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">Bon niveau · <span style="color:#A7C4BC;">+16 pts depuis S1</span></p>
-      </div>
-      <div class="bx b-clk" data-info="boite" style="${CARD}flex:1;${ain(5)}">${hint}
+    <!-- Boîte à outils -->
+    <div class="bx b-clk" data-info="boite" style="${CARD}${ain(5)}">${hint}
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
           <span class="bx" style="${CHIP}color:#F9EB50;">◎</span>
           <span class="disp" style="font-weight:600;font-size:17px;">Boîte à outils</span>
@@ -410,7 +447,6 @@ function buildHtml(d: {
           <span style="font-weight:500;font-size:11px;color:rgba(234,243,241,.55);">Focus word</span>
           <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;letter-spacing:.02em;margin-left:auto;">${esc(focus)}</span>
         </div>
-      </div>
     </div>
 
     <!-- Prochaines étapes -->
@@ -425,12 +461,12 @@ function buildHtml(d: {
         <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">▦</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Compléter la Carte Boîte à Outils (S11)</span></div>
         <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">✉</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Rédiger la Lettre à moi-même (S13)</span></div>
       </div>
-      <div class="b-hover" data-href="/parent/progress" style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);font-weight:600;font-size:13px;color:#A7C4BC;">Voir le parcours complet →</div>
+      <div class="b-hover" data-href="/parent/fitness" style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);font-weight:600;font-size:13px;color:#A7C4BC;">Voir le parcours complet →</div>
     </div>
   </div>
 
   <!-- ROW 3 · MES OUTILS THRIVE -->
-  <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;margin:34px 2px 16px;flex-wrap:wrap;">
+  <div class="b-toolshead" style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;margin:34px 2px 16px;flex-wrap:wrap;">
     <div style="display:flex;align-items:center;gap:11px;">
       <span class="bx" style="${CHIP}color:#F9EB50;">⊞</span>
       <div>
@@ -472,15 +508,15 @@ function buildHtml(d: {
     </div>
 
     <!-- S9 · FOCUS WORD -->
-    <div class="bx b-clk" data-info="focus" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);display:flex;flex-direction:column;${ain(9)}">${hint}
+    <div class="bx b-clk b-half" data-info="focus" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);display:flex;flex-direction:column;${ain(9)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;position:relative;z-index:2;">
-        <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(249,235,80,.25);display:grid;place-items:center;color:#F9EB50;font-size:15px;">✦</span>
-        <span class="disp" style="font-weight:600;font-size:17px;">Focus Word</span>
+        <span class="bx b-chip" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(249,235,80,.25);display:grid;place-items:center;color:#F9EB50;font-size:15px;">✦</span>
+        <span class="disp b-ct" style="font-weight:600;font-size:17px;">Focus Word</span>
       </div>
-      <div style="font-weight:600;font-size:11px;color:#F9EB50;margin:2px 0 0 47px;position:relative;z-index:2;">S9 · ${focusWord ? 'renseigné' : 'à venir'}</div>
+      <div class="b-subl" style="font-weight:600;font-size:11px;color:#F9EB50;margin:2px 0 0 47px;position:relative;z-index:2;">S9 · ${focusWord ? 'renseigné' : 'à venir'}</div>
       <div style="flex:1;display:grid;place-items:center;position:relative;z-index:2;padding:14px 0 6px;">
         <div style="text-align:center;">
-          <div class="disp" style="font-weight:700;font-size:38px;letter-spacing:.04em;color:#fff7c8;text-shadow:0 0 26px rgba(249,235,80,.6);animation:b-breatheC 4.6s ease-in-out infinite;transform-origin:center;">${esc(focus)}</div>
+          <div class="disp b-focusword" style="font-weight:700;font-size:38px;letter-spacing:.04em;color:#fff7c8;text-shadow:0 0 26px rgba(249,235,80,.6);animation:b-breatheC 4.6s ease-in-out infinite;transform-origin:center;overflow-wrap:anywhere;">${esc(focus)}</div>
           <div style="font-weight:500;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:rgba(234,243,241,.5);margin-top:10px;">Mot-ancre actif</div>
         </div>
       </div>
@@ -488,14 +524,14 @@ function buildHtml(d: {
     </div>
 
     <!-- S4·S5 · ROUE DES ÉMOTIONS -->
-    <div class="bx b-clk" data-info="emotions" style="grid-column:span 2;${CARD}${ain(10)}">${hint}
+    <div class="bx b-clk b-half" data-info="emotions" style="grid-column:span 2;${CARD}${ain(10)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
-        <span class="bx" style="${CHIP}color:#A7C4BC;">◍</span>
-        <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Roue des Émotions</span>
+        <span class="bx b-chip" style="${CHIP}color:#A7C4BC;">◍</span>
+        <span class="disp b-ct" style="font-weight:600;font-size:16px;line-height:1.1;">Roue des Émotions</span>
       </div>
-      <div style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 6px 47px;">Séances S4 · S5</div>
-      <div style="position:relative;width:142px;height:142px;margin:6px auto 14px;">
-        <div style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#F9EB50 0 25%,#A7C4BC 25% 50%,#6FA8B0 50% 75%,#cdbf78 75% 100%);-webkit-mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);animation:b-spin 26s linear infinite;opacity:.92;"></div>
+      <div class="b-subl" style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 6px 47px;">Séances S4 · S5</div>
+      <div class="b-wheel" style="position:relative;width:142px;height:142px;margin:6px auto 14px;">
+        <div class="b-wheelring" style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#F9EB50 0 25%,#A7C4BC 25% 50%,#6FA8B0 50% 75%,#cdbf78 75% 100%);-webkit-mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);animation:b-spin 26s linear infinite;opacity:.92;"></div>
         <div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#fff7c8;box-shadow:0 0 12px rgba(249,235,80,.8);"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
           <span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">Identifiée</span>
@@ -503,21 +539,21 @@ function buildHtml(d: {
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;">
-        <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(249,235,80,.1);border:1px solid rgba(249,235,80,.22);font-weight:500;font-size:11px;color:#F9EB50;"><span style="width:6px;height:6px;border-radius:50%;background:#F9EB50;"></span>Trac</span>
-        <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(167,196,188,.1);border:1px solid rgba(167,196,188,.2);font-weight:500;font-size:11px;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
-        <span style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:11px;color:rgba(234,243,241,.7);"><span style="width:6px;height:6px;border-radius:50%;background:#cdbf78;"></span>Détermination</span>
+        <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(249,235,80,.1);border:1px solid rgba(249,235,80,.22);font-weight:500;font-size:11px;color:#F9EB50;"><span style="width:6px;height:6px;border-radius:50%;background:#F9EB50;"></span>Trac</span>
+        <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(167,196,188,.1);border:1px solid rgba(167,196,188,.2);font-weight:500;font-size:11px;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
+        <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:11px;color:rgba(234,243,241,.7);"><span style="width:6px;height:6px;border-radius:50%;background:#cdbf78;"></span>Détermination</span>
       </div>
     </div>
 
     <!-- S6 · ROUTINE PRÉ-TIR -->
-    <div class="bx b-clk" data-info="routine" style="grid-column:span 2;${CARD}${ain(11)}">${hint}
+    <div class="bx b-clk b-half" data-info="routine" style="grid-column:span 2;${CARD}${ain(11)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px;">
-        <span class="bx" style="${CHIP}color:#A7C4BC;">◷</span>
-        <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Routine pré-tir</span>
+        <span class="bx b-chip" style="${CHIP}color:#A7C4BC;">◷</span>
+        <span class="disp b-ct" style="font-weight:600;font-size:16px;line-height:1.1;">Routine pré-tir</span>
       </div>
-      <div style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 16px 47px;">Séance S6</div>
+      <div class="b-subl" style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 16px 47px;">Séance S6</div>
       <div style="position:relative;display:flex;flex-direction:column;gap:13px;padding-left:4px;">
-        <div style="position:absolute;left:18px;top:11px;bottom:11px;width:2px;background:linear-gradient(180deg,#F9EB50,#A7C4BC 60%,rgba(167,196,188,.3));"></div>
+        <div class="b-rline" style="position:absolute;left:18px;top:11px;bottom:11px;width:2px;background:linear-gradient(180deg,#F9EB50,#A7C4BC 60%,rgba(167,196,188,.3));"></div>
         ${[
           ['1', '#fff7c8,#F9EB50', '#06222a', 'Respire · 3 cycles lents', 500],
           ['2', '#dff0ea,#A7C4BC', '#06222a', 'Visualise le geste parfait', 500],
@@ -525,20 +561,20 @@ function buildHtml(d: {
         ]
           .map(
             ([n, grad, col, txt, w]) =>
-              `<div style="position:relative;display:flex;align-items:center;gap:13px;"><span class="disp bx" style="z-index:1;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 40% 35%,${grad} 70%);color:${col};display:grid;place-items:center;font-weight:700;font-size:12px;">${n}</span><span style="font-weight:${w};font-size:13px;color:rgba(234,243,241,.85);">${txt}</span></div>`
+              `<div style="position:relative;display:flex;align-items:center;gap:13px;"><span class="disp bx b-rn" style="z-index:1;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle at 40% 35%,${grad} 70%);color:${col};display:grid;place-items:center;font-weight:700;font-size:12px;">${n}</span><span class="b-rt" style="font-weight:${w};font-size:13px;color:rgba(234,243,241,.85);">${txt}</span></div>`
           )
           .join('')}
-        <div style="position:relative;display:flex;align-items:center;gap:13px;"><span class="disp bx" style="z-index:1;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eaf3f1;display:grid;place-items:center;font-weight:700;font-size:12px;">4</span><span style="font-weight:600;font-size:13px;color:#eaf3f1;">Action — j'y vais</span></div>
+        <div style="position:relative;display:flex;align-items:center;gap:13px;"><span class="disp bx b-rn" style="z-index:1;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.14);color:#eaf3f1;display:grid;place-items:center;font-weight:700;font-size:12px;">4</span><span class="b-rt" style="font-weight:600;font-size:13px;color:#eaf3f1;">Action — j'y vais</span></div>
       </div>
     </div>
 
     <!-- S1 · CONTRAT DE CONFIANCE -->
-    <div class="bx b-clk" data-info="contrat" style="grid-column:span 2;${CARD}${ain(12)}">${hint}
+    <div class="bx b-clk b-half" data-info="contrat" style="grid-column:span 2;${CARD}${ain(12)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px;">
-        <span class="bx" style="${CHIP}color:#A7C4BC;">✎</span>
-        <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Contrat de confiance</span>
+        <span class="bx b-chip" style="${CHIP}color:#A7C4BC;">✎</span>
+        <span class="disp b-ct" style="font-weight:600;font-size:16px;line-height:1.1;">Contrat de confiance</span>
       </div>
-      <div style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 14px 47px;">Séance S1</div>
+      <div class="b-subl" style="font-weight:400;font-size:11px;color:rgba(234,243,241,.45);margin:0 0 14px 47px;">Séance S1</div>
       <div style="display:flex;flex-direction:column;">
         ${[
           ['Athlète', esc(firstName)],
@@ -547,11 +583,11 @@ function buildHtml(d: {
         ]
           .map(
             ([role, val], i, arr) =>
-              `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;${i < arr.length - 1 ? 'border-bottom:1px dashed rgba(255,255,255,.09);' : ''}"><div><div style="font-weight:500;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:rgba(234,243,241,.4);">${role}</div><div class="disp" style="font-style:italic;font-size:17px;color:#eaf3f1;margin-top:1px;">${val}</div></div><span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(167,196,188,.16);color:#A7C4BC;display:grid;place-items:center;font-size:12px;">✓</span></div>`
+              `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;${i < arr.length - 1 ? 'border-bottom:1px dashed rgba(255,255,255,.09);' : ''}"><div style="min-width:0;"><div style="font-weight:500;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:rgba(234,243,241,.4);">${role}</div><div class="disp b-cname" style="font-style:italic;font-size:17px;color:#eaf3f1;margin-top:1px;overflow-wrap:anywhere;">${val}</div></div><span style="flex-shrink:0;width:24px;height:24px;border-radius:50%;background:rgba(167,196,188,.16);color:#A7C4BC;display:grid;place-items:center;font-size:12px;">✓</span></div>`
           )
           .join('')}
       </div>
-      <div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);font-weight:500;font-size:11px;color:rgba(234,243,241,.5);">Les 3 parties engagées</div>
+      <div style="margin-top:12px;padding-top:12px;padding-right:26px;border-top:1px solid rgba(255,255,255,.07);font-weight:500;font-size:11px;color:rgba(234,243,241,.5);">Les 3 parties engagées</div>
     </div>
 
     <!-- S13 · LETTRE À MOI-MÊME -->
@@ -592,7 +628,7 @@ function buildHtml(d: {
             <span style="font-weight:500;font-size:12px;color:rgba(234,243,241,.55);">${completed}/13 séances</span>
             <span class="disp" style="font-weight:600;font-size:14px;color:rgba(234,243,241,.7);">${remaining} restantes</span>
           </div>
-          <div style="height:9px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden;"><div style="width:${pct}%;height:100%;border-radius:5px;background:linear-gradient(90deg,#A7C4BC,#F9EB50);transform-origin:left;animation:b-growX 1s cubic-bezier(.22,.61,.36,1) both .7s;"></div></div>
+          <div class="b-certbar" style="height:9px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden;"><div style="width:${pct}%;height:100%;border-radius:5px;background:linear-gradient(90deg,#A7C4BC,#F9EB50);transform-origin:left;animation:b-growX 1s cubic-bezier(.22,.61,.36,1) both .7s;"></div></div>
         </div>
       </div>
     </div>
