@@ -86,6 +86,20 @@ const DESIGN_CSS = `
   .bilan-root .b-pad{padding:16px 12px 24px!important;}
   .bilan-root .b-title{font-size:31px!important;}
 }
+@keyframes b-cardIn{from{opacity:0;transform:translateY(18px);}to{opacity:1;transform:translateY(0);}}
+@keyframes b-scanX{0%{left:0;opacity:0;}8%{opacity:.5;}92%{opacity:.5;}100%{left:calc(100% - 2px);opacity:0;}}
+@keyframes b-blink{0%,100%{opacity:1;}50%{opacity:.2;}}
+@keyframes b-overlayIn{from{opacity:0;}to{opacity:1;}}
+@keyframes b-modalIn{from{opacity:0;transform:translateY(28px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
+.bilan-root .b-clk{cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;}
+.bilan-root .b-clk:hover{transform:translateY(-3px);box-shadow:0 26px 60px rgba(0,0,0,.45),0 0 0 1px rgba(249,235,80,.22),inset 0 1px 0 rgba(255,255,255,.05);}
+.bilan-root .b-clk:active{transform:translateY(-1px) scale(.995);}
+.bilan-root .b-hint{position:absolute;right:11px;bottom:9px;z-index:3;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;color:rgba(249,235,80,.75);background:rgba(249,235,80,.08);border:1px solid rgba(249,235,80,.22);opacity:.5;transition:opacity .2s ease,transform .2s ease;pointer-events:none;}
+.bilan-root .b-clk:hover .b-hint{opacity:1;transform:scale(1.08);}
+.b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(2,15,19,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px;animation:b-overlayIn .22s ease both;}
+.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:#eaf3f1;position:relative;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:radial-gradient(120% 90% at 50% -10%,#0a3a44 0%,#053039 40%,#03161b 100%);border:1px solid rgba(255,255,255,.13);box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);padding:26px;animation:b-modalIn .3s cubic-bezier(.22,.61,.36,1) both;}
+.b-modal .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
+@media(max-width:680px){.b-modal-ov{padding:0;align-items:flex-end;}.b-modal{max-height:90vh;border-radius:24px 24px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom,0px));}}
 `;
 
 const CARD =
@@ -148,6 +162,12 @@ function buildHtml(d: {
   const next = Math.min(completed + 1, 13);
   const remaining = Math.max(13 - completed, 0);
   const milestone = new Set([1, 4, 7]);
+
+  // Entrée en cascade des cartes (fill "backwards" : l'état final reste le style
+  // naturel, pour ne pas bloquer le transform du survol .b-clk).
+  const ain = (i: number) =>
+    `animation:b-cardIn .6s cubic-bezier(.22,.61,.36,1) ${(0.05 + i * 0.06).toFixed(2)}s backwards;`;
+  const hint = '<span class="b-hint bx">ⓘ</span>';
 
   // ── Parcours : 13 nœuds ──
   let nodes = '';
@@ -220,7 +240,7 @@ function buildHtml(d: {
     : '';
   const identiteCard = `
     <!-- S1 · FICHE IDENTITÉ ATHLÈTE -->
-    <div class="bx" style="grid-column:span 6;${CARD}">
+    <div class="bx b-clk" data-info="identite" style="grid-column:span 6;${CARD}${ain(7)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;flex-wrap:wrap;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◈</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Fiche Identité Athlète</span>
@@ -250,6 +270,10 @@ function buildHtml(d: {
     <div>
       <h1 class="disp b-title" style="font-weight:600;font-size:46px;line-height:1;margin:0;letter-spacing:-.02em;">Carte d'identité</h1>
       <p style="font-weight:400;font-size:15px;color:rgba(234,243,241,.55);margin:12px 0 0;">Le passeport THRIVE de ${esc(firstName)} — identité d'athlète &amp; parcours des 13 séances.</p>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;">
+        <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:rgba(167,196,188,.08);border:1px solid rgba(167,196,188,.2);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;animation:b-blink 2.2s ease-in-out infinite;"></span>Labo THRIVE · en direct</span>
+        <span style="font-weight:500;font-size:11px;color:rgba(234,243,241,.45);">ⓘ Touche une carte pour découvrir son explication</span>
+      </div>
     </div>
     <div style="display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
       <span class="b-hover" data-href="/parent/my-sessions" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;background:rgba(255,255,255,.06);font-weight:600;font-size:14px;color:#eaf3f1;">⤓ Voir le passeport</span>
@@ -260,7 +284,7 @@ function buildHtml(d: {
   <!-- ROW 1 -->
   <div class="b-row1">
     <!-- Passeport athlète -->
-    <div class="bx" style="${CARD}">
+    <div class="bx b-clk" data-info="passeport" style="${CARD}${ain(0)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◷</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Passeport athlète</span>
@@ -279,7 +303,7 @@ function buildHtml(d: {
     </div>
 
     <!-- Programme complété -->
-    <div class="bx b-hover" data-href="/parent/my-sessions" style="${CARD}overflow:hidden;">
+    <div class="bx b-clk" data-info="programme" style="${CARD}overflow:hidden;${ain(1)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
         <span class="bx" style="${CHIP}color:#F9EB50;">★</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Programme complété</span>
@@ -293,7 +317,7 @@ function buildHtml(d: {
     </div>
 
     <!-- LSSS chart -->
-    <div class="bx" style="${CARD}">
+    <div class="bx b-clk" data-info="lsss" style="${CARD}${ain(2)}">${hint}
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:11px;">
           <span class="bx" style="${CHIP}color:#A7C4BC;">⤢</span>
@@ -303,7 +327,8 @@ function buildHtml(d: {
       </div>
       <div style="display:flex;gap:12px;">
         <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 26px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);text-align:right;width:34px;"><span>Élevé</span><span>Moyen</span><span>Bas</span></div>
-        <div style="flex:1;min-width:0;">
+        <div style="flex:1;min-width:0;position:relative;">
+          <div style="position:absolute;top:4px;bottom:28px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
           <svg viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
             <defs><linearGradient id="b-areaC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(167,196,188,.32)"></stop><stop offset="100%" stop-color="rgba(167,196,188,0)"></stop></linearGradient></defs>
             <rect x="0" y="64" width="660" height="40" fill="rgba(167,196,188,.07)"></rect>
@@ -333,7 +358,7 @@ function buildHtml(d: {
   <!-- ROW 2 -->
   <div class="b-row2">
     <!-- Parcours des 13 séances -->
-    <div class="bx" style="${CARD}overflow:hidden;background:linear-gradient(180deg,rgba(8,40,46,.6),rgba(4,24,30,.6));">
+    <div class="bx b-clk" data-info="parcours" style="${CARD}overflow:hidden;background:linear-gradient(180deg,rgba(8,40,46,.6),rgba(4,24,30,.6));${ain(3)}">${hint}
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:10px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:11px;">
           <span class="bx" style="${CHIP}color:#A7C4BC;">▦</span>
@@ -358,7 +383,7 @@ function buildHtml(d: {
 
     <!-- Middle column : gauge + boîte à outils -->
     <div style="display:flex;flex-direction:column;gap:16px;">
-      <div class="bx" style="${CARD}">
+      <div class="bx b-clk" data-info="competences" style="${CARD}${ain(4)}">${hint}
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
           <span class="bx" style="${CHIP}color:#A7C4BC;">✓</span>
           <span class="disp" style="font-weight:600;font-size:17px;">Compétences de vie</span>
@@ -373,7 +398,7 @@ function buildHtml(d: {
         </div>
         <p style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">Bon niveau · <span style="color:#A7C4BC;">+16 pts depuis S1</span></p>
       </div>
-      <div class="bx" style="${CARD}flex:1;">
+      <div class="bx b-clk" data-info="boite" style="${CARD}flex:1;${ain(5)}">${hint}
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
           <span class="bx" style="${CHIP}color:#F9EB50;">◎</span>
           <span class="disp" style="font-weight:600;font-size:17px;">Boîte à outils</span>
@@ -389,7 +414,7 @@ function buildHtml(d: {
     </div>
 
     <!-- Prochaines étapes -->
-    <div class="bx" style="${CARD}display:flex;flex-direction:column;">
+    <div class="bx b-clk" data-info="etapes" style="${CARD}display:flex;flex-direction:column;${ain(6)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">⊟</span>
         <span class="disp" style="font-weight:600;font-size:17px;">Prochaines étapes</span>
@@ -419,7 +444,7 @@ function buildHtml(d: {
   <div class="b-tools">
     ${identiteCard}
     <!-- S2 · FICHE OBJECTIF -->
-    <div class="bx" style="grid-column:span 4;${CARD}">
+    <div class="bx b-clk" data-info="objectif" style="grid-column:span 4;${CARD}${ain(8)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◎</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Fiche Objectif THRIVE</span>
@@ -447,7 +472,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S9 · FOCUS WORD -->
-    <div class="bx" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);display:flex;flex-direction:column;">
+    <div class="bx b-clk" data-info="focus" style="grid-column:span 2;position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(249,235,80,.07),rgba(255,255,255,.015));border:1px solid rgba(249,235,80,.2);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);display:flex;flex-direction:column;${ain(9)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;position:relative;z-index:2;">
         <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(249,235,80,.25);display:grid;place-items:center;color:#F9EB50;font-size:15px;">✦</span>
         <span class="disp" style="font-weight:600;font-size:17px;">Focus Word</span>
@@ -463,7 +488,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S4·S5 · ROUE DES ÉMOTIONS -->
-    <div class="bx" style="grid-column:span 2;${CARD}">
+    <div class="bx b-clk" data-info="emotions" style="grid-column:span 2;${CARD}${ain(10)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◍</span>
         <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Roue des Émotions</span>
@@ -485,7 +510,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S6 · ROUTINE PRÉ-TIR -->
-    <div class="bx" style="grid-column:span 2;${CARD}">
+    <div class="bx b-clk" data-info="routine" style="grid-column:span 2;${CARD}${ain(11)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◷</span>
         <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Routine pré-tir</span>
@@ -508,7 +533,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S1 · CONTRAT DE CONFIANCE -->
-    <div class="bx" style="grid-column:span 2;${CARD}">
+    <div class="bx b-clk" data-info="contrat" style="grid-column:span 2;${CARD}${ain(12)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:4px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">✎</span>
         <span class="disp" style="font-weight:600;font-size:16px;line-height:1.1;">Contrat de confiance</span>
@@ -530,7 +555,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S13 · LETTRE À MOI-MÊME -->
-    <div class="bx" style="grid-column:span 3;${CARD}">
+    <div class="bx b-clk" data-info="lettre" style="grid-column:span 3;${CARD}${ain(13)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">✉</span>
         <span class="disp" style="font-weight:600;font-size:17px;">Lettre à moi-même dans 1 an</span>
@@ -550,7 +575,7 @@ function buildHtml(d: {
     </div>
 
     <!-- S13 · CERTIFICAT -->
-    <div class="bx" style="grid-column:span 3;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px dashed rgba(255,255,255,.17);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);">
+    <div class="bx b-clk" data-info="certificat" style="grid-column:span 3;position:relative;background:linear-gradient(180deg,rgba(255,255,255,.03),rgba(255,255,255,.01));border:1px dashed rgba(255,255,255,.17);border-radius:22px;box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 20px 50px rgba(0,0,0,.32);padding:var(--bcard-pad,22px);${ain(14)}">${hint}
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;color:rgba(234,243,241,.55);font-size:15px;">◈</span>
         <span class="disp" style="font-weight:600;font-size:17px;color:rgba(234,243,241,.85);">Certificat THRIVE</span>
@@ -575,6 +600,538 @@ function buildHtml(d: {
 </div>`;
 }
 
+/* ────────────────────────────────────────────────────────────────────────────
+   Fiches d'explication des cartes — contenu vulgarisé pour le parent et
+   l'enfant, tiré du document « LA MÉTHODE THRIVE : PROTOCOLE » (v1.0, 2026).
+──────────────────────────────────────────────────────────────────────────── */
+type InfoSection = { label: string; text?: string; bullets?: string[] };
+type CardInfo = {
+  icon: string;
+  badge: string;
+  title: string;
+  tagline: string;
+  sections: InfoSection[];
+  tip?: string;
+};
+
+const CARD_INFO: Record<string, CardInfo> = {
+  passeport: {
+    icon: '◷',
+    badge: 'Séance 1',
+    title: 'Passeport athlète',
+    tagline: "La carte d'identité sportive de ton enfant, construite dès la première rencontre.",
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: "Le résumé de qui est ton enfant en tant qu'athlète : son sport, son poste, son club, son coach et sa force n°1. Il est rempli avec le coach lors de la séance 1, puis mis à jour tout au long du parcours.",
+      },
+      {
+        label: 'Pourquoi c’est important ?',
+        text: "THRIVE commence par apprendre à connaître le jeune — pas à l'évaluer. À la première séance : aucun chrono, aucun score, aucune note. Le coach observe, écoute et découvre. C'est cette relation de confiance qui rend tout le reste possible.",
+      },
+      {
+        label: 'Ce que le coach y note',
+        bullets: [
+          'Son histoire sportive : comment le sport est entré dans sa vie',
+          '2 à 3 forces observées pendant qu’il joue — vues en action, pas déclarées',
+          'Son rêve de saison, en une seule phrase',
+        ],
+      },
+    ],
+    tip: 'Demande à ton enfant : « C’est quoi ta plus grande force sur la glace ? » Sa réponse vient directement de ce travail avec le coach.',
+  },
+  programme: {
+    icon: '★',
+    badge: 'S1 → S13',
+    title: 'Programme complété',
+    tagline: 'Le chemin parcouru sur les 13 séances de la méthode THRIVE.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: "Cette jauge montre combien de séances sont terminées sur les 13 du programme. Chaque séance combine un exercice sur la glace, un moment d'apprentissage de 10 à 15 minutes et une discussion pour relier le tout à la vraie vie.",
+      },
+      {
+        label: 'Les 3 phases du parcours',
+        bullets: [
+          'ANCRER (S1–S2) : créer la confiance, mesurer le point de départ, fixer le cap ensemble',
+          'DÉVELOPPER (S3–S10) : apprendre les outils un par un — confiance, émotions, respiration, concentration, imagerie mentale',
+          'INTÉGRER (S11–S13) : rassembler ses outils, devenir autonome, célébrer',
+        ],
+      },
+      {
+        label: 'Pourquoi 13 séances ?',
+        text: "Assez long pour créer de vrais changements durables, assez court pour garder la motivation intacte. Chaque séance s'appuie sur la précédente, comme les marches d'un escalier.",
+      },
+    ],
+    tip: 'La régularité compte plus que la vitesse : mieux vaut une séance par semaine bien ancrée que trois séances pressées.',
+  },
+  lsss: {
+    icon: '⤢',
+    badge: 'Mesuré S1 · S7 · S13',
+    title: 'Progression des compétences de vie',
+    tagline: 'La courbe scientifique qui montre ce que le sport apprend… pour la vie.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'LSSS veut dire « Life Skills Scale for Sport » : une échelle scientifique validée par des chercheurs (Cronin & Allen, 2017). Ton enfant répond à des phrases qui commencent toutes par : « Ce sport m’a appris à… ».',
+      },
+      {
+        label: 'Ce qu’elle mesure',
+        bullets: [
+          'Se fixer des objectifs et les atteindre',
+          'Reconnaître et gérer ses émotions',
+          'Travailler en équipe et communiquer',
+          'Résoudre des problèmes et s’organiser',
+        ],
+      },
+      {
+        label: 'Comment ça marche ?',
+        text: "La mesure est prise 3 fois : au départ (S1), à mi-parcours (S7) et à la fin (S13). Si la courbe monte, les compétences grandissent — pas seulement au hockey, partout. Le questionnaire est adapté à l'âge : pour les 8–11 ans, c'est le coach qui observe avec une grille.",
+      },
+    ],
+    tip: 'La « zone cible » sur le graphique montre le niveau qu’on veut atteindre ensemble d’ici la fin du programme.',
+  },
+  parcours: {
+    icon: '▦',
+    badge: '13 étapes',
+    title: 'Parcours des 13 séances',
+    tagline: 'La carte du voyage THRIVE, pastille par pastille.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Chaque pastille représente une séance. Les dorées sont des étapes clés : S1 (le grand départ et la première mesure), S4 (le travail sur les émotions commence), S7 (le bilan de mi-parcours, où le parent est rencontré).',
+      },
+      {
+        label: 'À quoi ressemble une séance ?',
+        bullets: [
+          'Un exercice sportif concret : tirs, slalom, défis chronométrés',
+          'Un moment d’apprentissage de 10 à 15 minutes sur une compétence de vie',
+          'Une question de transfert : « Où pourrais-tu utiliser ça à l’école ? »',
+        ],
+      },
+      {
+        label: 'La règle d’or',
+        text: "La difficulté vient toujours de l'exercice, jamais du coach. Un coach THRIVE ne critique pas pour « endurcir » : la recherche montre que ça produit l'effet inverse chez les jeunes.",
+      },
+    ],
+    tip: 'Après chaque séance, demande plutôt « Qu’est-ce que tu as appris ? » que « As-tu gagné ? ».',
+  },
+  competences: {
+    icon: '✓',
+    badge: 'Score global',
+    title: 'Compétences de vie',
+    tagline: 'Le niveau global des habiletés utiles partout — pas juste sur la glace.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Un score qui résume où en est ton enfant dans ses « life skills » : les compétences qu’on apprend par le sport mais qu’on utilise dans toute la vie — à l’école, à la maison, avec les amis.',
+      },
+      {
+        label: 'Les 8 familles mesurées',
+        bullets: [
+          'Fixer des objectifs',
+          'Gérer ses émotions',
+          'Travailler en équipe',
+          'Communiquer',
+          'Créer des liens (habiletés sociales)',
+          'Prendre le leadership',
+          'Résoudre des problèmes',
+          'Gérer son temps',
+        ],
+      },
+      {
+        label: 'Pourquoi c’est le vrai but ?',
+        text: "THRIVE n'est pas un programme pour former un meilleur joueur de hockey — c'est un programme pour former un jeune plus solide, qui utilise le hockey comme terrain d'entraînement. Le score qui monte, c'est ça, la victoire.",
+      },
+    ],
+    tip: 'Cette jauge suit les mesures LSSS (S1 · S7 · S13) : elle avance au rythme des vraies évaluations, pas des impressions.',
+  },
+  boite: {
+    icon: '◎',
+    badge: 'Séance 11',
+    title: 'Boîte à outils',
+    tagline: 'Les outils mentaux collectés séance après séance — et gardés pour la vie.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Au fil du programme, ton enfant construit des outils concrets : la respiration qui calme, le focus word, la routine pré-tir, l’auto-encouragement… À la séance 11, il remplit sa « Carte Ma Boîte à Outils » : c’est lui qui nomme ses 6 outils et explique quand il les utilise en dehors du sport.',
+      },
+      {
+        label: 'Pourquoi c’est puissant ?',
+        text: 'Le but est qu’il puisse se dire : « Je suis quelqu’un qui a des outils ». Un outil qu’on sait nommer soi-même est un outil qu’on réutilise seul — même quand le coach n’est plus là. C’est ce que les chercheurs appellent le transfert conscient.',
+      },
+      {
+        label: 'Le focus word',
+        text: 'Le mot-ancre affiché sur cette carte est l’outil le plus personnel de la boîte : un mot choisi par ton enfant pour ramener sa concentration au bon endroit.',
+      },
+    ],
+    tip: 'La carte des 6 outils lui appartient : il la garde après le programme. Affichez-la quelque part à la maison !',
+  },
+  etapes: {
+    icon: '⊟',
+    badge: 'À venir',
+    title: 'Prochaines étapes',
+    tagline: 'Ce qui s’en vient dans le parcours — pour ne rien manquer.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Le radar des prochaines actions : la séance à programmer, les prochains outils à débloquer et les grandes étapes du parcours (bilan LSSS, boîte à outils, lettre finale).',
+      },
+      {
+        label: 'Pourquoi un ordre précis ?',
+        text: 'Chaque outil s’appuie sur le précédent : on apprend d’abord à reconnaître ses émotions (S4) avant de les calmer (S5), à respirer (S6) avant de se concentrer (S9). Sauter des étapes, c’est construire sur du sable.',
+      },
+      {
+        label: 'Le rôle du parent',
+        bullets: [
+          'Assurer la régularité des séances',
+          'Poser des questions curieuses — sans corriger',
+          'Célébrer les progrès d’effort, pas seulement les résultats',
+        ],
+      },
+    ],
+    tip: 'Ta présence est attendue à deux moments clés : le bilan de mi-parcours (S7) et la célébration finale (S13).',
+  },
+  identite: {
+    icon: '◈',
+    badge: 'Séance 1',
+    title: 'Fiche Identité Athlète',
+    tagline: 'Le portrait de départ : forces, histoire et rêve de saison.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Le tout premier document du parcours, rempli pendant la séance 1. Il contient l’histoire sportive de ton enfant, ses forces de caractère et son rêve de saison en une phrase.',
+      },
+      {
+        label: 'Les forces (VIA)',
+        text: 'Les forces sont repérées avec un outil scientifique reconnu — l’inventaire VIA : persévérance, courage, curiosité, humour… La particularité THRIVE : le coach les observe pendant que l’enfant patine. Ce sont des forces vues en action, pas cochées sur un papier.',
+      },
+      {
+        label: 'Le rêve de saison',
+        text: 'Une phrase, choisie par l’enfant, qui dit où il veut aller. C’est le moteur émotionnel de tout le programme : chaque objectif fixé ensuite se rattache à ce rêve.',
+      },
+      {
+        label: 'Pourquoi commencer par là ?',
+        text: 'Commencer par les forces — et non les faiblesses à corriger — construit la confiance dès le premier jour. Un jeune qui se sent vu et valorisé apprend mieux : c’est démontré.',
+      },
+    ],
+    tip: 'Relisez le rêve de saison ensemble de temps en temps : « On en est où, par rapport à ton rêve ? »',
+  },
+  objectif: {
+    icon: '◎',
+    badge: 'Séance 2',
+    title: 'Fiche Objectif THRIVE',
+    tagline: 'Deux objectifs choisis par ton enfant — un pour le sport, un pour la vie.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'À la séance 2, ton enfant formule lui-même — pas le coach, pas le parent ! — deux objectifs pour la saison : un objectif sportif technique et un objectif de compétence de vie.',
+      },
+      {
+        label: 'SMART, expliqué simplement',
+        bullets: [
+          'Spécifique — précis, pas vague',
+          'Mesurable — on peut vérifier si c’est atteint',
+          'Atteignable — un défi, mais possible',
+          'Réaliste — adapté à sa situation',
+          'Temporel — avec une échéance claire',
+        ],
+      },
+      {
+        label: 'Le secret : viser le processus',
+        text: 'THRIVE apprend à viser ce qu’on contrôle : « réussir 7 tirs sur 10 à l’entraînement » plutôt que « gagner le match ». On ne contrôle pas le résultat d’un match — mais on contrôle son effort, sa préparation, son attitude. C’est la liste « Ce qui dépend de moi ».',
+      },
+    ],
+    tip: 'Cette méthode marche aussi à l’école : propose-lui de formuler un objectif SMART avant son prochain examen.',
+  },
+  focus: {
+    icon: '✦',
+    badge: 'Séance 9',
+    title: 'Focus Word',
+    tagline: 'Un seul mot, choisi par ton enfant, pour ramener sa tête au bon endroit.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Un mot court — 1 à 3 syllabes — que ton enfant a choisi lui-même : « glisse », « calme », « bâton »… Il se le dit juste avant un moment difficile pour concentrer son attention sur le geste, pas sur la peur de rater.',
+      },
+      {
+        label: 'L’idée derrière',
+        text: 'Se concentrer, ce n’est pas « ne penser à rien » — c’est impossible ! C’est choisir à quoi on pense. Le coach l’explique ainsi : « Ta tête, c’est comme un projecteur. T’as le contrôle de ce que tu éclaires. »',
+      },
+      {
+        label: 'Et quand une pensée parasite arrive ?',
+        text: 'On la laisse passer comme un nuage, et on revient à son mot. La vraie concentration, ce n’est pas ne jamais partir — c’est revenir vite. Cette approche enlève la culpabilité des distractions et fait de la concentration une compétence qui s’entraîne.',
+      },
+    ],
+    tip: 'Ton enfant a une petite carte avec son mot (format billet de métro). Elle marche aussi avant un exposé ou un devoir — glisse-la dans son agenda.',
+  },
+  emotions: {
+    icon: '◍',
+    badge: 'Séances 4 · 5',
+    title: 'Roue des Émotions',
+    tagline: 'D’abord reconnaître ce qu’on ressent, ensuite savoir quoi en faire.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Un outil visuel avec 6 émotions fréquentes dans le sport : frustration, peur, colère, joie, fierté, nervosité. En S4, ton enfant apprend à reconnaître et nommer l’émotion pendant l’action. En S5, il apprend à agir dessus.',
+      },
+      {
+        label: 'Pourquoi nommer d’abord ?',
+        text: 'Une émotion qu’on sait nommer précisément est une émotion qu’on gère mieux — c’est un des résultats les plus solides de la recherche. Mettre un mot dessus, c’est déjà reprendre le contrôle.',
+      },
+      {
+        label: 'Les 2 stratégies apprises',
+        bullets: [
+          'La respiration 4-7-8 : inspirer 4 secondes, retenir 7, souffler 8 — ça calme réellement le corps (le cœur ralentit)',
+          'La phrase de recentrage, choisie par l’enfant : « Je recommence — c’est juste un tir »',
+        ],
+      },
+      {
+        label: 'La règle éthique',
+        text: 'Le coach ne provoque jamais d’émotion par des critiques. La difficulté vient de l’exercice lui-même — jamais de la pression d’un adulte. C’est une frontière non négociable de la méthode.',
+      },
+    ],
+    tip: 'Après un match ou une grosse journée : « T’étais où sur la roue, aujourd’hui ? » — une question simple qui ouvre de vraies conversations.',
+  },
+  routine: {
+    icon: '◷',
+    badge: 'Séance 6',
+    title: 'Routine pré-tir',
+    tagline: '3 étapes, toujours les mêmes, pour rester calme sous pression.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Une mini-séquence que ton enfant exécute toujours de la même façon avant une action sous pression : ① respirer (expirer lentement, sentir le ventre), ② sentir ses appuis (« Sens tes pieds sur la glace, tes mains sur le bâton — ici, maintenant »), ③ dire son mot-ancre et y aller.',
+      },
+      {
+        label: 'Pourquoi ça marche vraiment ?',
+        text: 'L’expiration lente active le système qui calme le corps : le cœur ralentit, les muscles se relâchent. Ce n’est pas de la magie, c’est de la physiologie. Et réussir à se calmer soi-même donne une confiance d’un nouveau genre : « Je peux contrôler ma réaction au stress ».',
+      },
+      {
+        label: 'Apprise sous vraie pression',
+        text: 'La routine est entraînée pendant des tirs chronométrés avec score visible — une pression réelle mais bienveillante. Une technique apprise seulement au calme ne fonctionne pas le jour du match : c’est pour ça que THRIVE l’entraîne en situation.',
+      },
+    ],
+    tip: 'Ton enfant a une carte plastifiée des 3 étapes dans son sac de hockey. La même routine marche avant un contrôle ou un exposé.',
+  },
+  contrat: {
+    icon: '✎',
+    badge: 'Séance 1',
+    title: 'Contrat de confiance',
+    tagline: 'Un engagement signé à trois : l’athlète, le coach… et toi.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Dès la première séance, les trois parties signent un engagement mutuel : l’enfant s’engage à essayer, le coach à accompagner sans juger, le parent à soutenir le parcours.',
+      },
+      {
+        label: 'Pourquoi c’est fondamental ?',
+        text: 'La recherche est formelle : ce qui fait le plus progresser un jeune, c’est la qualité du lien de confiance avec la personne qui l’accompagne — ce qu’on appelle l’« alliance ». Toute la séance 1 y est consacrée : zéro évaluation, zéro chrono, zéro score.',
+      },
+      {
+        label: 'L’engagement du parent',
+        bullets: [
+          'Assurer la régularité des séances',
+          'Encourager les efforts plus que les résultats',
+          'Laisser le coach coacher — et rester le parent',
+        ],
+      },
+    ],
+    tip: 'Le mot d’ordre du coach en S1 : « Mon seul travail aujourd’hui, c’est d’apprendre qui tu es. »',
+  },
+  lettre: {
+    icon: '✉',
+    badge: 'Séance 13',
+    title: 'Lettre à moi-même dans 1 an',
+    tagline: 'Une capsule temporelle écrite par ton enfant, pour ton enfant.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'À la dernière séance, ton enfant écrit (ou dicte) une lettre à la personne qu’il sera dans un an : ce qu’il a appris, ce qu’il veut continuer, ce qu’il veut devenir. La lettre est scellée dans une enveloppe — interdiction de l’ouvrir avant 12 mois !',
+      },
+      {
+        label: 'Pourquoi écrire ?',
+        text: 'Mettre ses apprentissages en mots les fixe dans la mémoire. Et s’écrire à soi-même transforme les outils du programme en promesses personnelles — bien plus fort qu’un conseil venu d’un adulte.',
+      },
+      {
+        label: 'Un an plus tard',
+        text: 'En ouvrant la lettre, ton enfant mesure le chemin parcouru avec ses propres mots. C’est souvent un moment fort — pour lui comme pour toute la famille.',
+      },
+    ],
+    tip: 'Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial.',
+  },
+  certificat: {
+    icon: '◈',
+    badge: 'Séance 13',
+    title: 'Certificat THRIVE',
+    tagline: 'La reconnaissance officielle d’un parcours accompli — et personnalisée.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'Le certificat est remis à la 13e et dernière séance, lors d’une célébration à laquelle le parent est invité pour les 10 dernières minutes. Il est personnalisé : il mentionne les 3 forces signatures identifiées dès la première séance.',
+      },
+      {
+        label: 'Juste avant, la séance 12',
+        text: 'Ton enfant dirige lui-même un exercice et l’explique à quelqu’un d’autre (un parent, un ami). Il passe du rôle d’élève à celui de guide — la meilleure preuve qu’il maîtrise ce qu’il a appris.',
+      },
+      {
+        label: 'Le message du certificat',
+        text: '« Tu as des forces, tu as des outils, et tu sais t’en servir. » Ce n’est pas un trophée de performance : c’est la reconnaissance d’une identité — celle d’un jeune qui a grandi.',
+      },
+    ],
+    tip: 'Encadrez-le ! Les 3 forces qui y figurent sont de vrais repères que ton enfant pourra relire dans les moments de doute.',
+  },
+};
+
+function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', onKey);
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.body.style.overflow = prev;
+    };
+  }, [onClose]);
+
+  return (
+    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label={info.title} onClick={onClose}>
+      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
+        <button
+          onClick={onClose}
+          aria-label="Fermer"
+          style={{
+            position: 'absolute',
+            top: 16,
+            right: 16,
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            background: 'rgba(255,255,255,.06)',
+            border: '1px solid rgba(255,255,255,.12)',
+            color: 'rgba(234,243,241,.75)',
+            fontSize: 14,
+            cursor: 'pointer',
+            display: 'grid',
+            placeItems: 'center',
+          }}
+        >
+          ✕
+        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, paddingRight: 40 }}>
+          <span
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: 'rgba(249,235,80,.1)',
+              border: '1px solid rgba(249,235,80,.25)',
+              display: 'grid',
+              placeItems: 'center',
+              fontSize: 17,
+              color: '#F9EB50',
+              flexShrink: 0,
+            }}
+          >
+            {info.icon}
+          </span>
+          <span
+            style={{
+              padding: '5px 11px',
+              borderRadius: 9,
+              background: 'rgba(249,235,80,.12)',
+              border: '1px solid rgba(249,235,80,.28)',
+              fontWeight: 600,
+              fontSize: 11,
+              color: '#F9EB50',
+            }}
+          >
+            {info.badge}
+          </span>
+        </div>
+        <h2 className="disp" style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 26, lineHeight: 1.1 }}>
+          {info.title}
+        </h2>
+        <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: 'rgba(234,243,241,.6)' }}>
+          {info.tagline}
+        </p>
+        {info.sections.map((s) => (
+          <div
+            key={s.label}
+            style={{
+              marginBottom: 12,
+              padding: '14px 16px',
+              borderRadius: 14,
+              background: 'rgba(255,255,255,.03)',
+              border: '1px solid rgba(255,255,255,.07)',
+            }}
+          >
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 10.5,
+                letterSpacing: '.06em',
+                textTransform: 'uppercase',
+                color: '#A7C4BC',
+                marginBottom: 7,
+              }}
+            >
+              {s.label}
+            </div>
+            {s.text && (
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(234,243,241,.85)' }}>{s.text}</p>
+            )}
+            {s.bullets && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: s.text ? 8 : 0 }}>
+                {s.bullets.map((b) => (
+                  <div key={b} style={{ display: 'flex', gap: 9, alignItems: 'baseline' }}>
+                    <span style={{ color: '#F9EB50', fontSize: 11, flexShrink: 0 }}>✦</span>
+                    <span style={{ fontSize: 13, lineHeight: 1.55, color: 'rgba(234,243,241,.85)' }}>{b}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        {info.tip && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 10,
+              alignItems: 'flex-start',
+              padding: '13px 15px',
+              borderRadius: 14,
+              background: 'rgba(249,235,80,.08)',
+              border: '1px solid rgba(249,235,80,.22)',
+              marginTop: 4,
+            }}
+          >
+            <span style={{ fontSize: 15, flexShrink: 0, color: '#F9EB50', lineHeight: 1.3 }}>⌂</span>
+            <div>
+              <div
+                style={{
+                  fontWeight: 600,
+                  fontSize: 10.5,
+                  letterSpacing: '.06em',
+                  textTransform: 'uppercase',
+                  color: '#F9EB50',
+                  marginBottom: 4,
+                }}
+              >
+                À la maison
+              </div>
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'rgba(234,243,241,.88)' }}>{info.tip}</p>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AthleteIdentityPage() {
   const router = useRouter();
   const { children, selectedChildId } = useChildStore();
@@ -584,6 +1141,7 @@ export default function AthleteIdentityPage() {
   const [completed, setCompleted] = useState(0);
   const [identity, setIdentity] = useState<ParentIdentity>(null);
   const [, setLoading] = useState(true);
+  const [infoKey, setInfoKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
@@ -645,11 +1203,18 @@ export default function AthleteIdentityPage() {
     };
   }, [selectedChildId, load]);
 
-  // Navigation déléguée pour les éléments [data-href] du design
+  // Clics délégués : les boutons [data-href] naviguent, les cartes [data-info]
+  // ouvrent leur fiche d'explication.
   const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const el = (e.target as HTMLElement).closest('[data-href]');
-    const href = el?.getAttribute('data-href');
-    if (href) router.push(href);
+    const target = e.target as HTMLElement;
+    const nav = target.closest('[data-href]');
+    const href = nav?.getAttribute('data-href');
+    if (href) {
+      router.push(href);
+      return;
+    }
+    const key = target.closest('[data-info]')?.getAttribute('data-info');
+    if (key && CARD_INFO[key]) setInfoKey(key);
   };
 
   if (!selectedChild) {
@@ -700,6 +1265,9 @@ export default function AthleteIdentityPage() {
     <div className="-mx-4 md:-mx-6 -my-6 md:-my-8">
       <style dangerouslySetInnerHTML={{ __html: DESIGN_CSS }} />
       <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+      {infoKey && CARD_INFO[infoKey] && (
+        <InfoModal info={CARD_INFO[infoKey]} onClose={() => setInfoKey(null)} />
+      )}
     </div>
   );
 }
