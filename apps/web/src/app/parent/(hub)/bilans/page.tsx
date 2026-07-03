@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
@@ -1301,9 +1302,15 @@ export default function AthleteIdentityPage() {
     <div className="-mx-4 md:-mx-6 -my-6 md:-my-8">
       <style dangerouslySetInnerHTML={{ __html: DESIGN_CSS }} />
       <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
-      {infoKey && CARD_INFO[infoKey] && (
-        <InfoModal info={CARD_INFO[infoKey]} onClose={() => setInfoKey(null)} />
-      )}
+      {infoKey &&
+        CARD_INFO[infoKey] &&
+        typeof document !== 'undefined' &&
+        // Portal vers <body> : la modale (position:fixed) doit se référer à
+        // l'écran, pas au conteneur de page animé (transform → bloc conteneur).
+        createPortal(
+          <InfoModal info={CARD_INFO[infoKey]} onClose={() => setInfoKey(null)} />,
+          document.body
+        )}
     </div>
   );
 }
