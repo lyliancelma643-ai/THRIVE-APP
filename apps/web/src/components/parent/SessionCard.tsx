@@ -16,16 +16,17 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
   return (
     <Link
       href={`/parent/session/${session.id}`}
-      className={`${width} shrink-0 group snap-start`}
+      className={`${width} shrink-0 group snap-start select-none`}
     >
       <div
-        className={`relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${accent.glow} shadow-card group-hover:shadow-card-hover group-hover:scale-[1.02] transition-all duration-200`}
+        className={`relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${accent.glow} shadow-card group-hover:shadow-card-hover group-hover:scale-[1.02] group-active:scale-[0.98] transition-all duration-200`}
       >
         {session.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={session.thumbnail_url}
             alt={session.title}
+            draggable={false}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (

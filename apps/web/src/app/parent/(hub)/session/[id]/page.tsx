@@ -57,8 +57,11 @@ export default function SessionDetailPage() {
     return (
       <div className="text-center py-20">
         <p className="text-white/60 mb-4">Séance introuvable.</p>
-        <button onClick={() => router.back()} className="text-white/60 underline text-sm">
-          Retour
+        <button
+          onClick={() => router.back()}
+          className="px-6 py-3 rounded-full glass-navy text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+        >
+          ← Retour
         </button>
       </div>
     );
@@ -69,10 +72,10 @@ export default function SessionDetailPage() {
   return (
     <div className="max-w-5xl">
       <Link
-        href="/parent"
-        className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white mb-6 transition-colors"
+        href="/parent/fitness"
+        className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white active:text-white mb-4 py-3 pr-4 -my-1 transition-colors select-none"
       >
-        ← Retour au catalogue
+        ← Retour au Fitness
       </Link>
 
       {started && selectedChild && user ? (

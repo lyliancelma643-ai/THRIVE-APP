@@ -114,9 +114,32 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
+      // Déconnexion à toute épreuve : même si l'appel réseau à Supabase échoue
+      // (hors-ligne, token déjà expiré), on purge SYSTÉMATIQUEMENT la session
+      // locale — sinon hydrate() restaurerait la session au prochain chargement
+      // et l'utilisateur resterait « connecté » malgré le clic sur Déconnexion.
       signOut: async () => {
-        await supabase.auth.signOut();
+        try {
+          await supabase.auth.signOut();
+        } catch {
+          // Repli purement local (aucun appel réseau) : garantit l'effacement
+          // du token Supabase même sans connexion.
+          try {
+            await supabase.auth.signOut({ scope: 'local' });
+          } catch {
+            /* rien de plus à faire : on force le nettoyage ci-dessous */
+          }
+        }
         syncAuthCookie(null);
+        // Efface aussi le profil enfant persistant pour ne pas le montrer à un
+        // autre compte connecté ensuite sur le même navigateur.
+        if (typeof window !== 'undefined') {
+          try {
+            window.localStorage.removeItem('thrive-selected-child');
+          } catch {
+            /* stockage indisponible : ignoré */
+          }
+        }
         set({ user: null, session: null, isAuthenticated: false, isLoading: false });
       },
     }),
@@ -126,6 +149,20 @@ export const useAuthStore = create<AuthStore>()(
     }
   )
 );
+
+// Déconnexion complète depuis l'UI : purge la session puis force un rechargement
+// dur de /login. Le `location.replace` (et non push) garantit : (1) qu'aucun état
+// React, abonnement realtime ou timer ne survit, (2) que l'utilisateur ne peut pas
+// « revenir » dans l'app authentifiée via le bouton précédent.
+export async function logout() {
+  try {
+    await useAuthStore.getState().signOut();
+  } finally {
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
+    }
+  }
+}
 
 // ── Synchronisation permanente avec Supabase Auth ────────────────────────────
 // Supabase renouvelle le token automatiquement en arrière-plan (~1 h) ; sans

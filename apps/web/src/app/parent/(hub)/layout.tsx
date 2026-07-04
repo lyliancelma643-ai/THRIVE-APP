@@ -1,9 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth.store';
+import { usePathname } from 'next/navigation';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
+import { UserMenu } from '@/components/parent/UserMenu';
 import { BrandLogo } from '@/components/BrandLogo';
 
 // Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Fitness
@@ -23,8 +23,6 @@ function activeTabIndex(pathname: string): number {
 
 export default function ParentHubLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, signOut } = useAuthStore();
   const active = activeTabIndex(pathname);
 
   return (
@@ -39,7 +37,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       {/* Barre haute allégée : logo + profils. La navigation vit en bas, comme Apple Forme. */}
       <header className="sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-4 safe-top">
         <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between gap-2">
-          <Link href="/parent/bilans" className="flex items-center gap-2 shrink-0">
+          <Link href="/parent/bilans" className="flex items-center gap-2 shrink-0 p-1 -m-1 select-none">
             <span className="inline-flex items-center justify-center w-9 h-9 md:w-10 md:h-10 rounded-xl bg-navy-900 shadow-card">
               <BrandLogo className="h-6 md:h-7 w-auto" />
             </span>
@@ -51,28 +49,21 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <Link
               href="/parent/select-profile"
-              className="hidden md:flex items-center gap-1.5 px-4 py-2 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
+              className="hidden md:flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant
             </Link>
             <Link
               href="/parent/select-profile"
               aria-label="Ajouter un enfant"
-              className="md:hidden w-9 h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center text-lg font-bold"
+              className="md:hidden w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl font-bold active:scale-95 transition-transform select-none"
             >
               +
             </Link>
             <ChildSwitcher />
-            <button
-              onClick={async () => {
-                await signOut();
-                router.push('/login');
-              }}
-              title={user?.email}
-              className="hidden sm:block px-3 py-2 rounded-full text-xs text-white/50 hover:bg-white/10 hover:text-white transition-colors"
-            >
-              Quitter
-            </button>
+            {/* Séparateur discret entre le profil enfant et le compte utilisateur */}
+            <span className="w-px h-6 bg-white/12 mx-0.5 hidden sm:block" aria-hidden />
+            <UserMenu />
           </div>
         </div>
       </header>
@@ -110,13 +101,13 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(0,0,0,0.35)',
             }}
           />
-          <div className="relative grid grid-cols-3">
+          <div className="relative grid grid-cols-3 select-none">
             {TABS.map((tab, i) => (
               <Link
                 key={tab.href}
                 href={tab.href}
                 aria-current={active === i ? 'page' : undefined}
-                className={`flex flex-col items-center gap-0.5 py-2 rounded-[22px] transition-colors duration-300 ${
+                className={`flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
                   active === i ? 'text-sun' : 'text-white/55 hover:text-white'
                 }`}
               >

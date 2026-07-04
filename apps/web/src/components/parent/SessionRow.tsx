@@ -19,7 +19,7 @@ export function SessionRow({ title, subtitle, sessions, completedIds }: Props) {
         <h2 className="font-display text-xl font-semibold text-white">{title}</h2>
         {subtitle && <p className="text-sm text-white/50 mt-0.5">{subtitle}</p>}
       </div>
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory -mx-1 px-1 pb-2">
+      <div className="flex gap-4 overflow-x-auto scrollbar-hide overscroll-x-contain snap-x snap-mandatory -mx-1 px-1 pb-2">
         {sessions.map((s) => (
           <SessionCard key={s.id} session={s} completed={completedIds?.has(s.id)} />
         ))}

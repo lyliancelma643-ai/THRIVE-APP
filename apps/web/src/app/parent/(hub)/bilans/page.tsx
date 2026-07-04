@@ -74,6 +74,11 @@ const DESIGN_CSS = `
 .bilan-root .b-tools{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;}
 .bilan-root .b-hover{transition:transform .15s ease,opacity .15s ease,background .15s ease;cursor:pointer;}
 .bilan-root .b-hover:hover{transform:translateY(-2px);opacity:.93;}
+.bilan-root .b-hover:active{transform:translateY(0) scale(.97);}
+/* Les cartes/boutons sont des div : on leur applique les optimisations tactiles
+   que les navigateurs réservent aux button/a (pas de flash gris, pas de délai
+   double-tap, pas de sélection de texte au tap long) */
+.bilan-root .b-clk,.bilan-root .b-hover{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;}
 .bilan-root .b-nodes{display:grid;grid-template-columns:repeat(7,1fr);gap:14px 10px;}
 @media(max-width:1100px){
   .bilan-root .b-row1{grid-template-columns:1fr;}
@@ -93,7 +98,7 @@ const DESIGN_CSS = `
   .bilan-root .b-sub{font-size:12.5px!important;margin-top:8px!important;}
   .bilan-root .b-head{margin-bottom:16px!important;gap:12px!important;}
   .bilan-root .b-seg{width:100%;}
-  .bilan-root .b-seg>span{flex:1;justify-content:center;padding:9px 8px!important;font-size:12.5px!important;}
+  .bilan-root .b-seg>span{flex:1;justify-content:center;padding:12px 8px!important;font-size:13px!important;min-height:44px;box-sizing:border-box;}
   .bilan-root .b-clk{border-radius:18px!important;}
   .bilan-root .b-hint{width:18px;height:18px;font-size:10px;right:8px;bottom:7px;}
   .bilan-root .b-legend{display:none!important;}
@@ -133,7 +138,12 @@ const DESIGN_CSS = `
 .b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(2,15,19,.68);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);display:flex;align-items:center;justify-content:center;padding:18px;animation:b-overlayIn .22s ease both;}
 .b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:#eaf3f1;position:relative;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:radial-gradient(120% 90% at 50% -10%,#0a3a44 0%,#053039 40%,#03161b 100%);border:1px solid rgba(255,255,255,.13);box-shadow:0 40px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.07);padding:26px;animation:b-modalIn .3s cubic-bezier(.22,.61,.36,1) both;}
 .b-modal .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
-@media(max-width:680px){.b-modal-ov{padding:0;align-items:flex-end;}.b-modal{max-height:90vh;border-radius:24px 24px 0 0;padding:22px 18px calc(24px + env(safe-area-inset-bottom,0px));}}
+@media(max-width:680px){
+  .b-modal-ov{padding:0;align-items:flex-end;}
+  .b-modal{max-height:90vh;border-radius:24px 24px 0 0;padding:30px 18px calc(24px + env(safe-area-inset-bottom,0px));}
+  /* Poignée de feuille (bottom sheet) façon iOS */
+  .b-modal::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:3px;background:rgba(255,255,255,.22);}
+}
 `;
 
 const CARD =
@@ -462,7 +472,7 @@ function buildHtml(d: {
         <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">▦</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Compléter la Carte Boîte à Outils (S11)</span></div>
         <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">✉</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Rédiger la Lettre à moi-même (S13)</span></div>
       </div>
-      <div class="b-hover" data-href="/parent/fitness" style="text-align:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.07);font-weight:600;font-size:13px;color:#A7C4BC;">Voir le parcours complet →</div>
+      <div class="b-hover bx" data-href="/parent/fitness" style="display:flex;align-items:center;justify-content:center;min-height:48px;text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);font-weight:600;font-size:13px;color:#A7C4BC;">Voir le parcours complet →</div>
     </div>
   </div>
 
@@ -1042,15 +1052,15 @@ function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
           aria-label="Fermer"
           style={{
             position: 'absolute',
-            top: 16,
-            right: 16,
-            width: 32,
-            height: 32,
-            borderRadius: 10,
+            top: 12,
+            right: 12,
+            width: 44,
+            height: 44,
+            borderRadius: 14,
             background: 'rgba(255,255,255,.06)',
             border: '1px solid rgba(255,255,255,.12)',
             color: 'rgba(234,243,241,.75)',
-            fontSize: 14,
+            fontSize: 16,
             cursor: 'pointer',
             display: 'grid',
             placeItems: 'center',
@@ -1058,7 +1068,7 @@ function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
         >
           ✕
         </button>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, paddingRight: 40 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, paddingRight: 56 }}>
           <span
             style={{
               width: 40,

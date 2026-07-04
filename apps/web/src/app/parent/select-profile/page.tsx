@@ -226,7 +226,13 @@ export default function SelectProfilePage() {
         {step === 'form' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
             <div className="flex items-center gap-3 mb-6">
-              <button onClick={() => { setStep('choose'); setError(null); }} className="text-slate-400 hover:text-slate-700 text-xl transition-colors">←</button>
+              <button
+                onClick={() => { setStep('choose'); setError(null); }}
+                aria-label="Retour au choix du profil"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+              >
+                ←
+              </button>
               <div>
                 <h2 className="text-xl font-bold text-slate-900">
                   {memberType === 'PARENT' ? '👨‍👩‍👧 Nouveau parent' : '🧒 Nouvel enfant'}

@@ -11,6 +11,11 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+  /* Un swipe horizontal au bord d'un carrousel ne déclenche pas le
+     « retour » du navigateur (geste de bord iOS/Android) */
+  .overscroll-x-contain {
+    overscroll-behavior-x: contain;
+  }
 }
 
 @layer base {
@@ -39,8 +44,14 @@
   label {
     touch-action: manipulation;
   }
-  button:active {
-    transform: scale(0.97);
+  /* Feedback tactile immédiat — jamais sur un bouton désactivé */
+  button:not(:disabled):active {
+    transform: scale(0.98);
+  }
+  /* Navigation clavier : anneau visible uniquement au focus clavier */
+  :focus-visible {
+    outline: 2px solid rgba(249, 235, 80, 0.75);
+    outline-offset: 2px;
   }
   /* iOS zoome automatiquement sur les champs < 16px : on force 16px sur mobile */
   @media (max-width: 768px) {
@@ -48,6 +59,17 @@
     textarea,
     select {
       font-size: 16px !important;
+    }
+  }
+  /* Accessibilité : respecte la préférence système « réduire les animations » */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
     }
   }
 }
