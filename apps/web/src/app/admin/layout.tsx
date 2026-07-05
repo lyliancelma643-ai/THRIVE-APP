@@ -6,8 +6,12 @@ import { useEffect } from 'react';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
-const NAV_ITEMS = [
+type NavItem = { href: string; label: string; icon: string; superAdminOnly?: boolean };
+
+const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: '📊' },
+  { href: '/admin/dossiers', label: 'Dossiers', icon: '🗂️' },
+  { href: '/admin/supervision', label: 'Supervision', icon: '🧭', superAdminOnly: true },
   { href: '/admin/users', label: 'Comptes', icon: '👤' },
   { href: '/admin/coaches', label: 'Coaches', icon: '🎯' },
   { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
@@ -47,6 +51,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
+  const navItems = NAV_ITEMS.filter((i) => !i.superAdminOnly || user.role === 'SUPER_ADMIN');
+
   return (
     <div className="flex min-h-screen bg-cream">
       {/* Barre mobile : logo + navigation horizontale défilante */}
@@ -61,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </button>
         </div>
         <nav className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide overscroll-x-contain">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
             return (
@@ -86,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="text-navy-200/70 text-xs mt-2">Espace Admin</p>
         </div>
         <nav className="flex-1 p-4 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
             return (

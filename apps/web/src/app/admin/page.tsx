@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import Link from 'next/link';
+import { IncompleteBanner } from '@/components/coach/IncompleteBanner';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Stats {
@@ -147,6 +148,8 @@ export default function AdminDashboardPage() {
           Temps réel
         </div>
       </div>
+
+      <IncompleteBanner href="/admin/dossiers" />
 
       {/* Grille KPIs */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
