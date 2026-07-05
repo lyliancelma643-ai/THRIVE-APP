@@ -5,6 +5,19 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
+import {
+  DocMeta,
+  EmotionLog,
+  NextStep,
+  LsssMoment,
+  fetchDocuments,
+  fetchEmotionLogs,
+  fetchGaugeSummary,
+  fetchLsssProgression,
+  fetchNextSteps,
+  programPct,
+  signedDocUrl,
+} from '@/lib/bilan';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Page « Carte d'identité » (zone bilan) — portage fidèle du design Claude
@@ -42,6 +55,8 @@ type ParentIdentity = {
   toolbox: ToolboxItem[] | null;
   focus_word: string | null;
   letter: string | null;
+  program_pct_override: number | null;
+  certificate_ready: boolean | null;
 } | null;
 
 const esc = (s: unknown) =>
@@ -151,6 +166,57 @@ const CARD =
 const CHIP =
   'width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;font-size:15px;';
 
+// Graphe de progression LSSS construit à partir des mesures réelles (skill_scores
+// agrégés par moment). 0-2 points → message d'attente ; sinon courbe + points.
+function lsssGraphHtml(points: { moment: LsssMoment; value: number }[]): string {
+  const X: Record<LsssMoment, number> = { BASELINE: 30, MID: 345, FINAL: 630 };
+  const LBL: Record<LsssMoment, string> = { BASELINE: 'Départ', MID: 'S7', FINAL: 'S13' };
+  const yOf = (v: number) => 20 + ((100 - Math.max(0, Math.min(100, v))) / 100) * 150;
+  const pts = [...points].sort((a, b) => X[a.moment] - X[b.moment]);
+
+  if (pts.length === 0) {
+    return `<div style="position:relative;height:186px;display:flex;align-items:center;justify-content:center;text-align:center;">
+      <div style="max-width:280px;">
+        <div style="font-size:26px;opacity:.4;">⤢</div>
+        <p style="margin:8px 0 0;font-weight:500;font-size:13px;color:rgba(234,243,241,.55);">En attente de la première mesure LSSS. Le coach enverra le questionnaire à ${'l’enfant'} au bon moment du programme.</p>
+      </div>
+    </div>`;
+  }
+
+  const coords = pts.map((p) => ({ x: X[p.moment], y: yOf(p.value), v: p.value, m: p.moment }));
+  const poly = coords.map((c) => `${c.x},${c.y}`).join(' ');
+  const line =
+    coords.length >= 2
+      ? `<polyline points="${poly}" fill="none" stroke="#A7C4BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:640;stroke-dashoffset:640;animation:b-drawLine 1.5s ease forwards .4s;"></polyline>`
+      : '';
+  const dots = coords
+    .map(
+      (c) =>
+        `<circle cx="${c.x}" cy="${c.y}" r="5.5" fill="#fff7c8" stroke="#F9EB50" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards .9s;"></circle>`
+    )
+    .join('');
+  const labels = coords
+    .map(
+      (c) =>
+        `<span class="b-lchip bx" style="position:absolute;left:${((c.x / 660) * 100).toFixed(1)}%;top:${((c.y / 190) * 100).toFixed(1)}%;transform:translate(-50%,-150%);padding:3px 8px;border-radius:6px;background:rgba(249,235,80,.16);font-weight:700;font-size:11px;color:#F9EB50;white-space:nowrap;pointer-events:none;">${LBL[c.m]} · ${c.v}</span>`
+    )
+    .join('');
+
+  return `<div style="position:relative;">
+    <div style="position:absolute;top:4px;bottom:4px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
+    <svg class="b-lsvg" viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
+      <rect x="0" y="20" width="660" height="60" fill="rgba(167,196,188,.07)"></rect>
+      <line x1="0" y1="40" x2="660" y2="40" stroke="rgba(255,255,255,.05)"></line>
+      <line x1="0" y1="104" x2="660" y2="104" stroke="rgba(255,255,255,.05)"></line>
+      <line x1="0" y1="150" x2="660" y2="150" stroke="rgba(255,255,255,.05)"></line>
+      ${line}
+      ${dots}
+    </svg>
+    <span class="b-lchip bx" style="position:absolute;left:8px;top:14%;padding:3px 8px;border-radius:6px;background:rgba(167,196,188,.12);font-weight:600;font-size:11px;color:rgba(167,196,188,.85);white-space:nowrap;pointer-events:none;">Zone cible</span>
+    ${labels}
+  </div>`;
+}
+
 function buildHtml(d: {
   firstName: string;
   fullName: string;
@@ -175,6 +241,14 @@ function buildHtml(d: {
   seasonDream: string | null;
   lifeSkillGoal: string | null;
   myActions: string[];
+  gaugeGlobal: number | null;
+  gaugeDelta: number | null;
+  lsssPoints: { moment: LsssMoment; value: number }[];
+  nextSteps: { label: string; status: string; due_date: string | null }[];
+  docIds: { contract?: string; letter?: string; certificate?: string };
+  latestEmotion: string | null;
+  statusByNum: Record<number, string>;
+  certificateReady: boolean;
 }) {
   const {
     firstName,
@@ -200,6 +274,14 @@ function buildHtml(d: {
     seasonDream,
     lifeSkillGoal,
     myActions,
+    gaugeGlobal,
+    gaugeDelta,
+    lsssPoints,
+    nextSteps,
+    docIds,
+    latestEmotion,
+    statusByNum,
+    certificateReady,
   } = d;
 
   const cur = Math.min(Math.max(completed, 0), 13);
@@ -213,17 +295,32 @@ function buildHtml(d: {
     `animation:b-cardIn .6s cubic-bezier(.22,.61,.36,1) ${(0.05 + i * 0.06).toFixed(2)}s backwards;`;
   const hint = '<span class="b-hint bx">ⓘ</span>';
 
-  // ── Parcours : 13 nœuds ──
+  // ── Parcours : 13 nœuds — pilotés par le statut réel de chaque séance ──
+  const hasStatus = Object.keys(statusByNum).length > 0;
   let nodes = '';
   for (let n = 1; n <= 13; n++) {
-    const done = n < cur;
-    const isCur = n === cur && cur >= 1 && cur < 13;
+    const st = statusByNum[n];
+    const done = hasStatus ? st === 'COMPLETED' : n < cur;
+    const missed = st === 'MISSED';
+    const postponed = st === 'POSTPONED';
+    const isCur = hasStatus ? st === 'IN_PROGRESS' : n === cur && cur >= 1 && cur < 13;
     let circle: string;
     let subColor = 'rgba(234,243,241,.4)';
     let subWeight = 400;
+    let subOverride = '';
     if (done) {
       const y = milestone.has(n);
       circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#06222a;background:radial-gradient(circle at 40% 35%,${y ? '#fff7c8,#F9EB50' : '#dff0ea,#A7C4BC'} 70%);${y ? 'box-shadow:0 0 18px rgba(249,235,80,.3);' : ''}">${n}</span>`;
+    } else if (missed) {
+      circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#ffb4b4;background:rgba(220,80,80,.12);border:1.5px solid rgba(220,80,80,.5);">${n}</span>`;
+      subColor = '#e78a8a';
+      subWeight = 600;
+      subOverride = `S${n} · manquée`;
+    } else if (postponed) {
+      circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:#f2d18a;background:rgba(230,170,40,.12);border:1.5px solid rgba(230,170,40,.5);">${n}</span>`;
+      subColor = '#e0b45a';
+      subWeight = 600;
+      subOverride = `S${n} · reportée`;
     } else if (isCur) {
       circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;color:#06222a;background:radial-gradient(circle at 40% 35%,#fff7c8,#F9EB50 70%);animation:b-pulseRing 2.4s ease-in-out infinite;">${n}</span>`;
       subColor = '#F9EB50';
@@ -232,7 +329,9 @@ function buildHtml(d: {
       circle = `<span class="disp bx" style="width:var(--bnode,46px);height:var(--bnode,46px);border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;color:rgba(234,243,241,.45);background:rgba(255,255,255,.03);border:1.5px dashed rgba(255,255,255,.18);">${n}</span>`;
       subColor = 'rgba(234,243,241,.35)';
     }
-    const sub = n === 7 ? 'S7 · LSSS' : n === 13 ? 'S13 · bilan' : isCur ? `S${n} · en cours` : `S${n}`;
+    const sub = subOverride
+      ? subOverride
+      : n === 7 ? 'S7 · LSSS' : n === 13 ? 'S13 · bilan' : isCur ? `S${n} · en cours` : `S${n}`;
     const subC = n === 7 && done ? '#A7C4BC' : subColor;
     nodes += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">${circle}<span style="font-weight:${subWeight};font-size:9px;color:${subC};">${sub}</span></div>`;
   }
@@ -370,11 +469,17 @@ function buildHtml(d: {
           <svg viewBox="0 0 200 110" style="width:100%;height:auto;display:block;">
             <defs><linearGradient id="b-gB" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#A7C4BC"></stop><stop offset="100%" stop-color="#F9EB50"></stop></linearGradient></defs>
             <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14" stroke-linecap="round"></path>
-            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#b-gB)" stroke-width="14" stroke-linecap="round" stroke-dasharray="181 251" style="animation:b-gaugeSweep 1.4s cubic-bezier(.22,.61,.36,1) both .5s;"></path>
+            <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#b-gB)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${gaugeGlobal != null ? Math.round((gaugeGlobal / 100) * 251) : 0} 251" style="transition:stroke-dasharray .8s ease;"></path>
           </svg>
-          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp b-gaugenum" style="font-weight:700;font-size:30px;line-height:1;">72<span style="font-size:16px;color:rgba(234,243,241,.55);">%</span></span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp b-gaugenum" style="font-weight:700;font-size:30px;line-height:1;">${gaugeGlobal != null ? gaugeGlobal : '—'}<span style="font-size:16px;color:rgba(234,243,241,.55);">${gaugeGlobal != null ? '%' : ''}</span></span></div>
         </div>
-        <p class="b-gaugecap" style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">Bon niveau · <span style="color:#A7C4BC;">+16 pts depuis S1</span></p>
+        <p class="b-gaugecap" style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">${
+          gaugeGlobal == null
+            ? 'En attente de mesure LSSS'
+            : gaugeDelta != null
+            ? `<span style="color:#A7C4BC;">${gaugeDelta >= 0 ? '+' : ''}${gaugeDelta} pts depuis le départ</span>`
+            : 'Basé sur le questionnaire LSSS'
+        }</p>
       </div>
     </div>
   </div>
@@ -387,32 +492,14 @@ function buildHtml(d: {
           <span class="bx" style="${CHIP}color:#A7C4BC;">⤢</span>
           <span class="disp" style="font-weight:600;font-size:18px;">Progression des compétences de vie</span>
         </div>
-        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">▦ LSSS · mesuré S1 · S7</span>
+        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">▦ LSSS · ${
+          lsssPoints.length ? `${lsssPoints.length} mesure${lsssPoints.length > 1 ? 's' : ''}` : 'à venir'
+        }</span>
       </div>
       <div style="display:flex;gap:12px;">
         <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 26px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);text-align:right;width:34px;"><span>Élevé</span><span>Moyen</span><span>Bas</span></div>
         <div style="flex:1;min-width:0;">
-          <div style="position:relative;">
-            <div style="position:absolute;top:4px;bottom:4px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
-            <svg class="b-lsvg" viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
-              <defs><linearGradient id="b-areaC" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="rgba(167,196,188,.32)"></stop><stop offset="100%" stop-color="rgba(167,196,188,0)"></stop></linearGradient></defs>
-              <rect x="0" y="64" width="660" height="40" fill="rgba(167,196,188,.07)"></rect>
-              <line x1="0" y1="40" x2="660" y2="40" stroke="rgba(255,255,255,.05)"></line>
-              <line x1="0" y1="104" x2="660" y2="104" stroke="rgba(255,255,255,.05)"></line>
-              <line x1="0" y1="150" x2="660" y2="150" stroke="rgba(255,255,255,.05)"></line>
-              <path d="M30,128 L135,120 L240,110 L345,92 L450,84 L450,190 L30,190 Z" fill="url(#b-areaC)" style="opacity:0;animation:b-fadeIn .9s ease forwards .55s;"></path>
-              <polyline points="30,128 135,120 240,110 345,92 450,84" fill="none" stroke="#A7C4BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:640;stroke-dashoffset:640;animation:b-drawLine 1.5s ease forwards .4s;"></polyline>
-              <polyline points="450,84 555,76 630,68" fill="none" stroke="rgba(249,235,80,.7)" stroke-width="2.5" stroke-dasharray="5 5" stroke-linecap="round" style="opacity:0;animation:b-fadeIn .6s ease forwards 1.5s;"></polyline>
-              <circle cx="30" cy="128" r="4" fill="#A7C4BC" style="opacity:0;animation:b-fadeIn .4s ease forwards .8s;"></circle>
-              <circle cx="345" cy="92" r="6" fill="#fff7c8" stroke="#F9EB50" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.25s;"></circle>
-              <circle cx="450" cy="84" r="5" fill="#eafaf7" stroke="#A7C4BC" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards 1.5s;"></circle>
-              <circle cx="630" cy="68" r="5" fill="none" stroke="#F9EB50" stroke-width="2" style="opacity:0;animation:b-fadeIn .5s ease forwards 1.9s;"></circle>
-            </svg>
-            <span class="b-lchip bx" style="position:absolute;left:8px;top:34%;padding:3px 8px;border-radius:6px;background:rgba(167,196,188,.12);font-weight:600;font-size:11px;color:rgba(167,196,188,.85);white-space:nowrap;pointer-events:none;">Zone cible</span>
-            <span class="b-lchip bx" style="position:absolute;left:4.5%;top:67.4%;transform:translate(0,9px);padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.08);font-weight:600;font-size:11px;color:rgba(234,243,241,.8);white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.7s;">Départ · 56</span>
-            <span class="b-lchip bx" style="position:absolute;left:52.3%;top:48.4%;transform:translate(-50%,-135%);padding:3px 8px;border-radius:6px;background:rgba(249,235,80,.16);font-weight:700;font-size:11px;color:#F9EB50;white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.7s;">S7 · 71</span>
-            <span class="b-lchip bx" style="position:absolute;left:96%;top:35.8%;transform:translate(-100%,-135%);padding:3px 8px;border-radius:6px;background:rgba(255,255,255,.08);font-weight:600;font-size:11px;color:rgba(234,243,241,.8);white-space:nowrap;pointer-events:none;opacity:0;animation:b-fadeIn .6s ease forwards 1.9s;">Cible · 84</span>
-          </div>
+          ${lsssGraphHtml(lsssPoints)}
           <div style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);"><span>S1</span><span>S3</span><span>S5</span><span>S7</span><span>S9</span><span>S11</span><span>S13</span></div>
         </div>
       </div>
@@ -467,10 +554,24 @@ function buildHtml(d: {
         <span class="disp" style="font-weight:600;font-size:17px;">Prochaines étapes</span>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;flex:1;">
-        <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(167,196,188,.08);border:1px solid rgba(167,196,188,.18);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(167,196,188,.15);display:grid;place-items:center;color:#A7C4BC;flex-shrink:0;">✓</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">LSSS intermédiaire complétée (S7)</span></div>
-        <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">◷</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Programmer la séance S${next} avec le coach</span></div>
-        <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">▦</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Compléter la Carte Boîte à Outils (S11)</span></div>
-        <div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">✉</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">Rédiger la Lettre à moi-même (S13)</span></div>
+        ${
+          nextSteps.length
+            ? nextSteps
+                .map((s) => {
+                  const done = s.status === 'done';
+                  const icon = done ? '✓' : s.status === 'doing' ? '◷' : '□';
+                  const iconColor = done ? '#A7C4BC' : '#F9EB50';
+                  const bg = done
+                    ? 'background:rgba(167,196,188,.08);border:1px solid rgba(167,196,188,.18);'
+                    : 'background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);';
+                  const dueTxt = s.due_date
+                    ? ` <span style="color:rgba(234,243,241,.45);">· ${new Date(s.due_date).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}</span>`
+                    : '';
+                  return `<div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;${bg}"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:${iconColor};flex-shrink:0;">${icon}</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.82);line-height:1.4;">${esc(s.label)}${dueTxt}</span></div>`;
+                })
+                .join('')
+            : `<div style="display:flex;align-items:center;gap:12px;padding:13px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);"><span style="width:34px;height:34px;border-radius:10px;background:rgba(255,255,255,.06);display:grid;place-items:center;color:#F9EB50;flex-shrink:0;">◷</span><span style="font-weight:500;font-size:13px;color:rgba(234,243,241,.6);line-height:1.4;">Le coach précisera bientôt les prochaines étapes.</span></div>`
+        }
       </div>
       <div class="b-hover bx" data-href="/parent/fitness" style="display:flex;align-items:center;justify-content:center;min-height:48px;text-align:center;margin-top:16px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);font-weight:600;font-size:13px;color:#A7C4BC;">Voir le parcours complet →</div>
     </div>
@@ -545,8 +646,8 @@ function buildHtml(d: {
         <div class="b-wheelring" style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#F9EB50 0 25%,#A7C4BC 25% 50%,#6FA8B0 50% 75%,#cdbf78 75% 100%);-webkit-mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);animation:b-spin 26s linear infinite;opacity:.92;"></div>
         <div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#fff7c8;box-shadow:0 0 12px rgba(249,235,80,.8);"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-          <span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">Identifiée</span>
-          <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;">Trac</span>
+          <span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">${latestEmotion ? 'Identifiée' : 'À explorer'}</span>
+          <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;">${esc(latestEmotion || '—')}</span>
         </div>
       </div>
       <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;">
@@ -598,7 +699,11 @@ function buildHtml(d: {
           )
           .join('')}
       </div>
-      <div style="margin-top:12px;padding-top:12px;padding-right:26px;border-top:1px solid rgba(255,255,255,.07);font-weight:500;font-size:11px;color:rgba(234,243,241,.5);">Les 3 parties engagées</div>
+      <div style="margin-top:12px;padding-top:12px;padding-right:26px;border-top:1px solid rgba(255,255,255,.07);font-weight:500;font-size:11px;color:rgba(234,243,241,.5);">${
+        docIds.contract
+          ? `<span class="b-doc" data-doc="${docIds.contract}" style="display:inline-flex;align-items:center;gap:6px;color:#A7C4BC;cursor:pointer;">⤓ Télécharger le contrat signé</span>`
+          : 'Les 3 parties engagées'
+      }</div>
     </div>
 
     <!-- S13 · LETTRE À MOI-MÊME -->
@@ -618,7 +723,13 @@ function buildHtml(d: {
         </div>
         <div style="position:absolute;right:16px;bottom:14px;width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff7c8,#F9EB50 60%,#d9a423);display:grid;place-items:center;color:#06222a;font-size:17px;box-shadow:0 6px 18px rgba(249,235,80,.4);animation:b-floaty 4.5s ease-in-out infinite;">✦</div>
       </div>
-      <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-weight:500;font-size:12px;color:rgba(234,243,241,.55);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;"></span>${letter ? 'Scellée — à ouvrir dans 1 an' : 'À écrire lors de la séance bilan (S13)'}</div>
+      <div style="margin-top:14px;display:flex;align-items:center;gap:8px;font-weight:500;font-size:12px;color:rgba(234,243,241,.55);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;"></span>${
+        docIds.letter
+          ? `<span class="b-doc" data-doc="${docIds.letter}" style="display:inline-flex;align-items:center;gap:6px;color:#A7C4BC;cursor:pointer;">⤓ Télécharger la lettre (PDF)</span>`
+          : letter
+          ? 'Scellée — à ouvrir dans 1 an'
+          : 'À écrire lors de la séance bilan (S13)'
+      }</div>
     </div>
 
     <!-- S13 · CERTIFICAT -->
@@ -626,7 +737,7 @@ function buildHtml(d: {
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:16px;">
         <span class="bx" style="width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;color:rgba(234,243,241,.55);font-size:15px;">◈</span>
         <span class="disp" style="font-weight:600;font-size:17px;color:rgba(234,243,241,.85);">Certificat THRIVE</span>
-        ${waitBadge('◷ À venir · S13')}
+        ${docIds.certificate && certificateReady ? okBadge('✓ Disponible') : waitBadge('◷ À venir · S13')}
       </div>
       <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
         <div style="flex-shrink:0;position:relative;width:92px;height:92px;display:grid;place-items:center;">
@@ -640,6 +751,11 @@ function buildHtml(d: {
             <span class="disp" style="font-weight:600;font-size:14px;color:rgba(234,243,241,.7);">${remaining} restantes</span>
           </div>
           <div class="b-certbar" style="height:9px;border-radius:5px;background:rgba(255,255,255,.07);overflow:hidden;"><div style="width:${pct}%;height:100%;border-radius:5px;background:linear-gradient(90deg,#A7C4BC,#F9EB50);transform-origin:left;animation:b-growX 1s cubic-bezier(.22,.61,.36,1) both .7s;"></div></div>
+          ${
+            docIds.certificate && certificateReady
+              ? `<div class="b-doc" data-doc="${docIds.certificate}" style="margin-top:14px;display:flex;align-items:center;justify-content:center;gap:8px;min-height:44px;border-radius:12px;background:rgba(249,235,80,.14);border:1px solid rgba(249,235,80,.3);color:#F9EB50;font-weight:700;font-size:13px;cursor:pointer;">⤓ Télécharger le certificat</div>`
+              : ''
+          }
         </div>
       </div>
     </div>
@@ -1210,16 +1326,32 @@ export default function AthleteIdentityPage() {
   const [loading, setLoading] = useState(true);
   const [infoKey, setInfoKey] = useState<string | null>(null);
 
+  // Données réelles complémentaires du bilan
+  const [statusByNum, setStatusByNum] = useState<Record<number, string>>({});
+  const [gauge, setGauge] = useState<{ global: number; sample_size: number } | null>(null);
+  const [lsssPoints, setLsssPoints] = useState<{ moment: LsssMoment; value: number }[]>([]);
+  const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
+  const [emotions, setEmotions] = useState<EmotionLog[]>([]);
+  const [docs, setDocs] = useState<DocMeta[]>([]);
+  const [pendingLsss, setPendingLsss] = useState<{ token: string | null; moment: string | null } | null>(null);
+
   const load = useCallback(async () => {
     if (!selectedChildId) {
       setCoach(null);
       setCompleted(0);
       setIdentity(null);
+      setStatusByNum({});
+      setGauge(null);
+      setLsssPoints([]);
+      setNextSteps([]);
+      setEmotions([]);
+      setDocs([]);
+      setPendingLsss(null);
       setLoading(false);
       return;
     }
-    const [sessionsRes, assignmentRes, identityRes] = await Promise.all([
-      supabase.from('sessions').select('status').eq('child_id', selectedChildId),
+    const [sessionsRes, assignmentRes, identityRes, progRes, pendRes] = await Promise.all([
+      supabase.from('sessions').select('status, session_number').eq('child_id', selectedChildId),
       supabase
         .from('coach_assignments')
         .select('coach_id, profiles:coach_id (first_name, last_name)')
@@ -1229,18 +1361,49 @@ export default function AthleteIdentityPage() {
       supabase
         .from('athlete_identity')
         .select(
-          'sport, position, club, sport_story, strengths, season_dream, smart_goal, life_skill_goal, my_actions, toolbox, focus_word, letter'
+          'sport, position, club, sport_story, strengths, season_dream, smart_goal, life_skill_goal, my_actions, toolbox, focus_word, letter, program_pct_override, certificate_ready'
         )
         .eq('child_id', selectedChildId)
         .maybeSingle(),
+      fetchLsssProgression(selectedChildId),
+      supabase
+        .from('questionnaires')
+        .select('access_token, moment, status')
+        .eq('child_id', selectedChildId)
+        .eq('kind', 'LSSS')
+        .in('status', ['PENDING', 'IN_PROGRESS'])
+        .order('created_at', { ascending: false })
+        .limit(1),
     ]);
-    setCompleted((sessionsRes.data ?? []).filter((s: any) => s.status === 'COMPLETED').length);
+
+    const sessions = (sessionsRes.data ?? []) as { status: string; session_number: number | null }[];
+    setCompleted(sessions.filter((s) => s.status === 'COMPLETED').length);
+    const byNum: Record<number, string> = {};
+    for (const s of sessions) if (s.session_number != null) byNum[s.session_number] = s.status;
+    setStatusByNum(byNum);
+
     const assignment = (assignmentRes.data ?? [])[0] as any;
     const coachProfile = Array.isArray(assignment?.profiles)
       ? assignment.profiles[0]
       : assignment?.profiles;
     setCoach((coachProfile as CoachInfo) ?? null);
     setIdentity((identityRes.data as ParentIdentity) ?? null);
+    setLsssPoints((progRes ?? []).map((p) => ({ moment: p.moment, value: p.value })));
+
+    const pend = (pendRes.data ?? [])[0] as any;
+    setPendingLsss(pend ? { token: pend.access_token ?? null, moment: pend.moment ?? null } : null);
+
+    // Données non bloquantes (jauge, prochaines étapes, émotions, documents)
+    const [g, ns, em, dc] = await Promise.all([
+      fetchGaugeSummary(selectedChildId),
+      fetchNextSteps(selectedChildId),
+      fetchEmotionLogs(selectedChildId),
+      fetchDocuments(selectedChildId),
+    ]);
+    setGauge(g && g.sample_size > 0 ? { global: g.global, sample_size: g.sample_size } : null);
+    setNextSteps(ns);
+    setEmotions(em);
+    setDocs(dc);
     setLoading(false);
   }, [selectedChildId]);
 
@@ -1249,31 +1412,38 @@ export default function AthleteIdentityPage() {
     load();
   }, [load]);
 
-  // Mise à jour en direct quand le coach/admin modifie la carte
+  // Mise à jour en direct quand le coach/admin modifie le dossier
   useEffect(() => {
     if (!selectedChildId) return;
+    const f = `child_id=eq.${selectedChildId}`;
     const channel = supabase
-      .channel(`identity-${selectedChildId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'athlete_identity',
-          filter: `child_id=eq.${selectedChildId}`,
-        },
-        () => load()
-      )
+      .channel(`bilan-${selectedChildId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_identity', filter: f }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions', filter: f }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_next_steps', filter: f }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'emotion_logs', filter: f }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_documents', filter: f }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'questionnaires', filter: f }, () => load())
       .subscribe();
     return () => {
       supabase.removeChannel(channel);
     };
   }, [selectedChildId, load]);
 
-  // Clics délégués : les boutons [data-href] naviguent, les cartes [data-info]
-  // ouvrent leur fiche d'explication.
-  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Clics délégués : [data-doc] télécharge (URL signée), [data-href] navigue,
+  // [data-info] ouvre la fiche d'explication.
+  const onClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    const docId = target.closest('[data-doc]')?.getAttribute('data-doc');
+    if (docId) {
+      e.stopPropagation();
+      const doc = docs.find((d) => d.id === docId);
+      if (doc) {
+        const url = await signedDocUrl(doc.storage_path, 120);
+        if (url) window.open(url, '_blank', 'noopener');
+      }
+      return;
+    }
     const nav = target.closest('[data-href]');
     const href = nav?.getAttribute('data-href');
     if (href) {
@@ -1283,6 +1453,9 @@ export default function AthleteIdentityPage() {
     const key = target.closest('[data-info]')?.getAttribute('data-info');
     if (key && CARD_INFO[key]) setInfoKey(key);
   };
+
+  const docIdByKind = (kind: DocMeta['kind']) =>
+    docs.find((d) => d.kind === kind && d.parent_visible)?.id;
 
   // Liste des enfants ou données du bilan encore en chargement : squelette
   // plutôt qu'un flash d'état vide ou de carte à 0 %.
@@ -1321,7 +1494,7 @@ export default function AthleteIdentityPage() {
     coachLabel: coach ? `${coach.first_name?.[0] ? coach.first_name[0] + '. ' : ''}${coach.last_name}` : null,
     force1: identity?.strengths?.[0] || '—',
     completed,
-    pct: Math.round((completed / 13) * 100),
+    pct: programPct(completed, 13, identity?.program_pct_override ?? null),
     smartGoal: identity?.smart_goal ?? null,
     focusWord: identity?.focus_word ?? null,
     toolboxCount: identity?.toolbox?.length ?? 0,
@@ -1332,11 +1505,47 @@ export default function AthleteIdentityPage() {
     seasonDream: identity?.season_dream ?? null,
     lifeSkillGoal: identity?.life_skill_goal ?? null,
     myActions: identity?.my_actions ?? [],
+    gaugeGlobal: gauge?.global ?? null,
+    gaugeDelta:
+      lsssPoints.length >= 2
+        ? lsssPoints[lsssPoints.length - 1].value - lsssPoints[0].value
+        : null,
+    lsssPoints,
+    nextSteps: nextSteps.map((s) => ({ label: s.label, status: s.status, due_date: s.due_date })),
+    docIds: {
+      contract: docIdByKind('CONTRACT'),
+      letter: docIdByKind('LETTER'),
+      certificate: docIdByKind('CERTIFICATE'),
+    },
+    latestEmotion: emotions[0]?.emotion ?? null,
+    statusByNum,
+    certificateReady: identity?.certificate_ready ?? false,
   });
 
   return (
     <div className="-mx-4 md:-mx-6 -my-6 md:-my-8">
       <style dangerouslySetInnerHTML={{ __html: DESIGN_CSS }} />
+      {pendingLsss && (
+        <div className="mx-4 md:mx-6 mt-4 mb-2 p-4 rounded-2xl bg-[#0a3a44] border border-[#F9EB50]/30 flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl bg-[#F9EB50]/15 flex items-center justify-center text-[#F9EB50] shrink-0">
+            ✎
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#eaf3f1]">Questionnaire LSSS en attente</p>
+            <p className="text-xs text-[#eaf3f1]/60">
+              {selectedChild.first_name} a un questionnaire à compléter avec toi.
+            </p>
+          </div>
+          {pendingLsss.token && (
+            <a
+              href={`/q/${pendingLsss.token}`}
+              className="shrink-0 px-4 py-2 rounded-full bg-[#F9EB50] text-[#06222a] text-sm font-bold"
+            >
+              Ouvrir
+            </a>
+          )}
+        </div>
+      )}
       <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
       {infoKey &&
         CARD_INFO[infoKey] &&
