@@ -130,9 +130,11 @@ export function ChildSwitcher() {
                     ✓
                   </span>
                 )}
-                <span className="text-[10px] text-white/45">
-                  {ageGroupFromBirthDate(child.date_of_birth) ?? ''} ans
-                </span>
+                {ageGroupFromBirthDate(child.date_of_birth) && (
+                  <span className="text-[10px] text-white/45">
+                    {ageGroupFromBirthDate(child.date_of_birth)} ans
+                  </span>
+                )}
               </button>
             ))}
             <Link

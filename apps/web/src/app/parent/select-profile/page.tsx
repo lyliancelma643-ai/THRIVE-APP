@@ -19,8 +19,6 @@ const SPORT_OPTIONS = [
   'Volleyball', 'Gym', 'Arts martiaux', 'Baseball', 'Autre',
 ];
 
-const PROVINCES = ['QC','ON','BC','AB','MB','SK','NS','NB','NL','PE','YT','NT','NU'];
-
 // Calcul date de naissance depuis âge
 const ageToDob = (age: number): string => {
   const d = new Date();
@@ -43,7 +41,7 @@ export default function SelectProfilePage() {
 
   // Formulaires
   const [parentForm, setParentForm] = useState({
-    first_name: '', last_name: '', email: '', phone: '', city: '', province: '',
+    first_name: '', last_name: '', email: '', phone: '',
   });
   const [childForm, setChildForm] = useState({
     first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '',
@@ -75,7 +73,7 @@ export default function SelectProfilePage() {
     setStep('choose');
     setMemberType(null);
     setError(null);
-    setParentForm({ first_name: '', last_name: '', email: '', phone: '', city: '', province: '' });
+    setParentForm({ first_name: '', last_name: '', email: '', phone: '' });
     setChildForm({ first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '' });
   };
 
@@ -125,6 +123,13 @@ export default function SelectProfilePage() {
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error ?? 'Impossible de créer le compte.');
+
+    // Le compte est créé avec un mot de passe temporaire jamais montré : on
+    // envoie donc un email « définir mon mot de passe » au nouveau parent,
+    // sans quoi il ne pourrait jamais se connecter.
+    await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
 
     setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };
@@ -181,22 +186,22 @@ export default function SelectProfilePage() {
   // Loading init
   if (initLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-cream flex items-center justify-center p-4">
       <div className="w-full max-w-lg">
 
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 text-3xl shadow-lg mb-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-700 text-3xl shadow-card mb-4">
             👨‍👩‍👧‍👦
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900">Ajouter un membre</h1>
+          <h1 className="text-2xl font-bold text-navy-900">Ajouter un membre</h1>
           <p className="text-slate-500 mt-1 text-sm">Choisissez le type de profil à créer</p>
         </div>
 
@@ -204,8 +209,8 @@ export default function SelectProfilePage() {
         {step === 'choose' && (
           <div className="grid grid-cols-2 gap-4">
             {([
-              { type: 'PARENT' as MemberType, icon: '👨‍👩‍👧', label: 'Parent',  desc: 'Ajouter un parent ou tuteur',      color: 'from-blue-500 to-cyan-500',    border: 'hover:border-blue-300' },
-              { type: 'CHILD'  as MemberType, icon: '🧒',         label: 'Enfant',  desc: 'Ajouter un enfant à la famille', color: 'from-orange-400 to-pink-500',  border: 'hover:border-orange-300' },
+              { type: 'PARENT' as MemberType, icon: '👨‍👩‍👧', label: 'Parent',  desc: 'Ajouter un parent ou tuteur',      color: 'from-navy-500 to-navy-700',    border: 'hover:border-navy-300' },
+              { type: 'CHILD'  as MemberType, icon: '🧒',         label: 'Enfant',  desc: 'Ajouter un enfant à la famille', color: 'from-sun to-sun-dark',  border: 'hover:border-sun-dark' },
             ]).map(({ type, icon, label, desc, color, border }) => (
               <button
                 key={type}
@@ -254,7 +259,7 @@ export default function SelectProfilePage() {
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, first_name: e.target.value })
                       : setChildForm({ ...childForm, first_name: e.target.value })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                   />
                 </div>
                 <div>
@@ -264,7 +269,7 @@ export default function SelectProfilePage() {
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, last_name: e.target.value })
                       : setChildForm({ ...childForm, last_name: e.target.value })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                   />
                 </div>
               </div>
@@ -277,7 +282,7 @@ export default function SelectProfilePage() {
                     <input required type="email" placeholder="jean@exemple.com"
                       value={parentForm.email}
                       onChange={(e) => setParentForm({ ...parentForm, email: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                     />
                   </div>
                   <div>
@@ -285,26 +290,8 @@ export default function SelectProfilePage() {
                     <input type="tel" placeholder="514-555-0123"
                       value={parentForm.phone}
                       onChange={(e) => setParentForm({ ...parentForm, phone: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                     />
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Ville</label>
-                      <input type="text" placeholder="Montréal"
-                        value={parentForm.city}
-                        onChange={(e) => setParentForm({ ...parentForm, city: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Province</label>
-                      <select value={parentForm.province} onChange={(e) => setParentForm({ ...parentForm, province: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-400 bg-white">
-                        <option value="">—</option>
-                        {PROVINCES.map((p) => <option key={p} value={p}>{p}</option>)}
-                      </select>
-                    </div>
                   </div>
                 </>
               )}
@@ -318,13 +305,13 @@ export default function SelectProfilePage() {
                       <input required type="number" min={1} max={25} placeholder="8"
                         value={childForm.age}
                         onChange={(e) => setChildForm({ ...childForm, age: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400"
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Genre</label>
                       <select value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-white">
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                         <option value="">—</option>
                         {GENDER_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
                       </select>
@@ -333,7 +320,7 @@ export default function SelectProfilePage() {
                   <div>
                     <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Sport principal</label>
                     <select value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 bg-white">
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                       <option value="">Choisir un sport...</option>
                       {SPORT_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
@@ -343,7 +330,7 @@ export default function SelectProfilePage() {
                     <textarea rows={3} placeholder="Allergies, besoins spéciaux..."
                       value={childForm.notes}
                       onChange={(e) => setChildForm({ ...childForm, notes: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-400 resize-none"
+                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 resize-none"
                     />
                   </div>
                 </>
@@ -361,8 +348,8 @@ export default function SelectProfilePage() {
               <button type="submit" disabled={isSubmitting}
                 className={`w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${
                   memberType === 'PARENT'
-                    ? 'bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700'
-                    : 'bg-gradient-to-r from-orange-400 to-pink-500 hover:from-orange-500 hover:to-pink-600'
+                    ? 'bg-navy-600 hover:bg-navy-700'
+                    : 'bg-navy-600 hover:bg-navy-700'
                 }`}>
                 {isSubmitting ? (
                   <span className="flex items-center justify-center gap-2">
@@ -382,12 +369,14 @@ export default function SelectProfilePage() {
         {step === 'success' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✅</div>
-            <h2 className="text-2xl font-extrabold text-slate-900 mb-2">
+            <h2 className="text-2xl font-bold text-navy-900 mb-2">
               {memberType === 'PARENT' ? 'Compte créé !' : 'Enfant ajouté !'}
             </h2>
             <p className="text-slate-500 mb-1">
               <span className="font-semibold text-slate-800">{successName}</span>
-              {memberType === 'PARENT' ? ' a bien été enregistré(e) comme parent.' : ' a bien été ajouté(e) à votre famille.'}
+              {memberType === 'PARENT'
+                ? ' a bien été enregistré(e) comme parent. Un email lui a été envoyé pour choisir son mot de passe.'
+                : ' a bien été ajouté(e) à votre famille.'}
             </p>
             <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>
             <div className="flex flex-col gap-3">
@@ -396,7 +385,7 @@ export default function SelectProfilePage() {
                 + Ajouter un autre membre
               </button>
               <button onClick={() => router.push('/dashboard')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-bold hover:from-blue-600 hover:to-indigo-700 transition-all shadow-md">
+                className="w-full py-3 rounded-xl bg-navy-600 text-white font-bold hover:bg-navy-700 transition-colors shadow-md">
                 Retour au dashboard
               </button>
             </div>

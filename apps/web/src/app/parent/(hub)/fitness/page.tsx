@@ -32,6 +32,12 @@ export default function FitnessPage() {
   const [phaseFilter, setPhaseFilter] = useState<Phase | 'all'>('all');
   const [themeFilter, setThemeFilter] = useState<string>('all');
 
+  // Le profil enfant peut arriver après le premier rendu (store async) : on
+  // aligne alors le filtre d'âge sur sa tranche, idem au changement d'enfant.
+  useEffect(() => {
+    if (childAgeGroup) setAgeFilter(childAgeGroup);
+  }, [childAgeGroup]);
+
   // Une seule requête catalogue : le parcours et la bibliothèque s'y partagent
   useEffect(() => {
     (async () => {
@@ -268,7 +274,7 @@ function FilterGroup({
             key={opt.value}
             onClick={() => onChange(opt.value)}
             aria-pressed={value === opt.value}
-            className={`px-4 py-2.5 min-h-[42px] rounded-full text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors select-none ${
+            className={`px-4 py-2.5 min-h-[44px] rounded-full text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors select-none ${
               value === opt.value
                 ? 'bg-sun text-navy-900 font-semibold'
                 : 'text-white/60 hover:bg-white/10 active:bg-white/10'

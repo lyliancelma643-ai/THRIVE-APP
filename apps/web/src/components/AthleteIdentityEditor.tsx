@@ -54,6 +54,7 @@ export function AthleteIdentityEditor({
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [error, setError] = useState('');
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -63,7 +64,15 @@ export function AthleteIdentityEditor({
       .select('*')
       .eq('child_id', childId)
       .maybeSingle();
-    if (e) setError(e.message);
+    if (e) {
+      // Échec de chargement : on bloque l'édition (un « Enregistrer » sur un
+      // formulaire vide écraserait la carte d'identité existante).
+      setError(e.message);
+      setLoadFailed(true);
+      setLoading(false);
+      return;
+    }
+    setLoadFailed(false);
     if (data) {
       setForm({
         sport: data.sport ?? '',
@@ -133,6 +142,23 @@ export function AthleteIdentityEditor({
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-10 rounded-lg bg-gray-100 animate-pulse" />
         ))}
+      </div>
+    );
+  }
+
+  if (loadFailed) {
+    return (
+      <div className="p-6 rounded-2xl bg-red-50 border border-red-100 text-center space-y-4">
+        <p className="text-sm text-red-700">
+          Impossible de charger la carte d&apos;identité{error ? ` (${error})` : ''}. Pour
+          éviter d&apos;écraser des données existantes, l&apos;édition est désactivée.
+        </p>
+        <button
+          onClick={() => load()}
+          className="px-6 py-3 min-h-[44px] rounded-full bg-navy-600 hover:bg-navy-700 text-white text-sm font-bold transition-colors"
+        >
+          Réessayer
+        </button>
       </div>
     );
   }
@@ -322,7 +348,7 @@ function StringList({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer"
-              className="shrink-0 w-9 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -374,7 +400,7 @@ function Toolbox({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer l'outil"
-              className="shrink-0 w-9 h-9 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>

@@ -69,7 +69,10 @@ export default function CoachAthletePage() {
         .single();
       if (progErr || !program) throw progErr ?? new Error('Programme non créé');
 
-      await supabase.from('program_enrollments').insert({ program_id: program.id, child_id: child.id });
+      const { error: enrollErr } = await supabase
+        .from('program_enrollments')
+        .insert({ program_id: program.id, child_id: child.id });
+      if (enrollErr) throw enrollErr;
 
       const monday = new Date();
       monday.setDate(monday.getDate() + ((8 - monday.getDay()) % 7 || 7));
@@ -96,10 +99,14 @@ export default function CoachAthletePage() {
 
   const reschedule = async (sessionId: string) => {
     if (!newDate) return;
-    await supabase
+    const { error: schedErr } = await supabase
       .from('sessions')
       .update({ scheduled_at: new Date(newDate).toISOString() })
       .eq('id', sessionId);
+    if (schedErr) {
+      setError(schedErr.message ?? 'Replanification impossible');
+      return;
+    }
     setRescheduling(null);
     setNewDate('');
     await load();

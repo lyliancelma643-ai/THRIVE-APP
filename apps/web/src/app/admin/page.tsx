@@ -26,7 +26,7 @@ interface Stats {
 }
 
 const ROLE_STYLE: Record<string, string> = {
-  PARENT:      'bg-blue-100 text-blue-700',
+  PARENT:      'bg-navy-100 text-navy-700',
   COACH:       'bg-purple-100 text-purple-700',
   ADMIN:       'bg-rose-100 text-rose-700',
   SUPER_ADMIN: 'bg-slate-800 text-white',
@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
     : 0;
 
   const STAT_CARDS = [
-    { label: 'Parents inscrits',  value: stats.totalParents,    icon: '👨‍👩‍👧‍👦', href: '/admin/families', gradient: 'from-blue-500 to-cyan-500',      shadow: 'shadow-blue-500/20'    },
+    { label: 'Parents inscrits',  value: stats.totalParents,    icon: '👨‍👩‍👧‍👦', href: '/admin/families', gradient: 'from-navy-500 to-navy-700',      shadow: 'shadow-navy-500/20'    },
     { label: 'Familles créées',  value: stats.totalFamilies,   icon: '🏠',           href: '/admin/families', gradient: 'from-indigo-500 to-blue-500',   shadow: 'shadow-indigo-500/20'  },
     { label: 'Enfants actifs',    value: stats.totalChildren,   icon: '🧒',           href: '/admin/children', gradient: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-500/20' },
     { label: 'Coaches',           value: stats.totalCoaches,    icon: '🎯',           href: '/admin/coaches',  gradient: 'from-purple-500 to-fuchsia-500',shadow: 'shadow-purple-500/20'  },
@@ -168,11 +168,11 @@ export default function AdminDashboardPage() {
 
       {/* Inscriptions récentes */}
       <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60" />
+        <div className="absolute top-0 right-0 w-64 h-64 bg-navy-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60" />
         <div className="relative z-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-slate-900">Inscriptions récentes</h2>
-            <Link href="/admin/families" className="text-sm text-blue-600 hover:underline font-medium">
+            <Link href="/admin/families" className="text-sm text-navy-600 hover:underline font-medium">
               Voir tous →
             </Link>
           </div>

@@ -82,9 +82,7 @@ export default function ResetPasswordPage() {
 
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
-          <span className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-navy-900 shadow-card mb-3">
-            <BrandLogo className="h-12 w-auto" />
-          </span>
+          <BrandLogo className="w-20 h-20 shadow-card mb-3" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
             Sport Positive
           </span>
@@ -109,7 +107,7 @@ export default function ResetPasswordPage() {
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold"
+                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold transition-colors"
               >
                 Retour à la connexion
               </button>
@@ -163,11 +161,12 @@ export default function ResetPasswordPage() {
                   placeholder="••••••••"
                 />
               </label>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50"
+                aria-busy={submitting}
+                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
               >
                 {submitting ? 'Mise à jour…' : 'Enregistrer le nouveau mot de passe'}
               </button>
@@ -176,21 +175,6 @@ export default function ResetPasswordPage() {
         </div>
       </div>
 
-      <style jsx global>{`
-        .input-auth {
-          width: 100%;
-          border: 1px solid rgba(0, 78, 122, 0.18);
-          border-radius: 0.85rem;
-          padding: 0.7rem 0.95rem;
-          font-size: 0.9rem;
-          background: rgba(255, 255, 255, 0.8);
-          color: #022539;
-        }
-        .input-auth:focus {
-          outline: 2px solid #004e7a;
-          outline-offset: 0;
-        }
-      `}</style>
     </main>
   );
 }

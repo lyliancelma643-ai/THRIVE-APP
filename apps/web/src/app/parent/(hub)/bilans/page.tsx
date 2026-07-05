@@ -1179,15 +1179,35 @@ function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
   );
 }
 
+// Squelette de chargement : évite le « saut » de données (carte rendue à 0 %
+// puis re-rendue avec les vraies valeurs) et le flash de l'état vide pendant
+// que la liste des enfants charge encore.
+function BilanSkeleton() {
+  return (
+    <div className="-mx-4 md:-mx-6 -my-6 md:-my-8" aria-busy role="status" aria-label="Chargement du bilan">
+      <div className="animate-pulse rounded-[28px] p-5 md:p-7 bg-[#03161b]/60 border border-white/5">
+        <div className="h-9 md:h-11 w-2/3 max-w-xs rounded-xl bg-white/10 mb-3" />
+        <div className="h-4 w-1/2 max-w-sm rounded bg-white/[0.07] mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10" />
+          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10" />
+          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10 hidden md:block" />
+        </div>
+        <div className="h-44 rounded-[22px] bg-white/[0.05] border border-white/10 mt-3 md:mt-4" />
+      </div>
+    </div>
+  );
+}
+
 export default function AthleteIdentityPage() {
   const router = useRouter();
-  const { children, selectedChildId } = useChildStore();
+  const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [completed, setCompleted] = useState(0);
   const [identity, setIdentity] = useState<ParentIdentity>(null);
-  const [, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [infoKey, setInfoKey] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -1263,6 +1283,12 @@ export default function AthleteIdentityPage() {
     const key = target.closest('[data-info]')?.getAttribute('data-info');
     if (key && CARD_INFO[key]) setInfoKey(key);
   };
+
+  // Liste des enfants ou données du bilan encore en chargement : squelette
+  // plutôt qu'un flash d'état vide ou de carte à 0 %.
+  if ((childrenLoading && !selectedChild) || (selectedChild && loading)) {
+    return <BilanSkeleton />;
+  }
 
   if (!selectedChild) {
     return (

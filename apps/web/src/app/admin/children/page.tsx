@@ -189,7 +189,7 @@ export default function AdminChildrenPage() {
           {(['all', 'active', 'inactive'] as const).map((f) => (
             <button key={f} onClick={() => setFilterActive(f)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                filterActive === f ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filterActive === f ? 'bg-navy-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}>
               {{ all: 'Tous', active: 'Actifs', inactive: 'Inactifs' }[f]}
             </button>
@@ -273,7 +273,7 @@ export default function AdminChildrenPage() {
                   </td>
                   {/* Programmes */}
                   <td className="px-6 py-4 hidden sm:table-cell">
-                    <span className="bg-blue-100 text-blue-700 rounded-full px-3 py-1 text-xs font-semibold">
+                    <span className="bg-navy-100 text-navy-700 rounded-full px-3 py-1 text-xs font-semibold">
                       {child.programs_count} prog.
                     </span>
                   </td>

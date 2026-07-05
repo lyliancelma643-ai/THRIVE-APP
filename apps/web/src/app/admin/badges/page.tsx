@@ -43,10 +43,12 @@ export default function AdminBadgesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({
-    name: '', description: '', icon: '🏅', color: '#3B82F6',
+    name: '', description: '', icon: '🏅', color: '#004E7A',
     category: 'participation', condition_type: 'sessions_completed', condition_value: '1',
   });
   const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const fetchAll = async () => {
     const [badgesRes, statsRes] = await Promise.all([
@@ -66,57 +68,75 @@ export default function AdminBadgesPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.name) return;
+    if (!form.name || saving) return;
     setSaving(true);
-    await supabase.from('badges').insert({
+    setError('');
+    const { error: insErr } = await supabase.from('badges').insert({
       ...form,
       condition_value: parseInt(form.condition_value),
       is_active: true,
     });
-    setForm({ name: '', description: '', icon: '🏅', color: '#3B82F6', category: 'participation', condition_type: 'sessions_completed', condition_value: '1' });
+    if (insErr) {
+      // Échec : on garde la saisie et le formulaire ouvert
+      setError(insErr.message ?? 'Création du badge impossible');
+      setSaving(false);
+      return;
+    }
+    setForm({ name: '', description: '', icon: '🏅', color: '#004E7A', category: 'participation', condition_type: 'sessions_completed', condition_value: '1' });
     setShowForm(false);
     await fetchAll();
     setSaving(false);
   };
 
   const toggleActive = async (id: string, current: boolean) => {
-    await supabase.from('badges').update({ is_active: !current }).eq('id', id);
+    if (togglingId) return;
+    setTogglingId(id);
+    setError('');
+    const { error: upErr } = await supabase.from('badges').update({ is_active: !current }).eq('id', id);
+    if (upErr) setError(upErr.message ?? 'Mise à jour impossible');
     await fetchAll();
+    setTogglingId(null);
   };
 
   return (
     <div className="max-w-7xl mx-auto">
-      <div className="flex justify-between items-end mb-10">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Badges 🏅</h1>
+          <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-2">Badges 🏅</h1>
           <p className="text-slate-500 font-medium">{badges.length} badge{badges.length > 1 ? 's' : ''} configuré{badges.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className={`px-6 py-3 rounded-2xl font-bold transition-all shadow-md ${
-            showForm 
-              ? 'bg-slate-200 text-slate-700 hover:bg-slate-300' 
-              : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-blue-500/25'
+          className={`px-6 py-3 min-h-[44px] rounded-2xl font-bold transition-all shadow-md ${
+            showForm
+              ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+              : 'bg-navy-600 text-white hover:bg-navy-700 hover:shadow-navy-500/25'
           }`}
         >
           {showForm ? 'Fermer l\'éditeur' : '+ Créer un badge'}
         </button>
       </div>
 
+      {error && (
+        <p role="alert" className="mb-6 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
       {showForm && (
         <form onSubmit={handleCreate} className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 mb-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60"></div>
+          <div className="absolute top-0 right-0 w-64 h-64 bg-navy-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60"></div>
           
           <div className="relative z-10">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Nouveau Badge</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Nom du badge</label>
-                <input className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Champion du retour" required />
+                <input className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Champion du retour" required />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Icône (emoji)</label>
-                <input className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-xl transition-all outline-none" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} required />
+                <input className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-xl transition-all outline-none" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })} required />
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Couleur de fond</label>
@@ -127,27 +147,27 @@ export default function AdminBadgesPage() {
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Catégorie</label>
-                <select className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
+                <select className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}>
                   {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Condition d'obtention</label>
-                <select className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.condition_type} onChange={(e) => setForm({ ...form, condition_type: e.target.value })}>
+                <select className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.condition_type} onChange={(e) => setForm({ ...form, condition_type: e.target.value })}>
                   {Object.entries(CONDITION_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
                 </select>
               </div>
               <div>
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Valeur cible</label>
-                <input type="number" className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.condition_value} onChange={(e) => setForm({ ...form, condition_value: e.target.value })} min="1" required />
+                <input type="number" className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.condition_value} onChange={(e) => setForm({ ...form, condition_value: e.target.value })} min="1" required />
               </div>
               <div className="md:col-span-3">
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Description courte</label>
-                <input className="w-full bg-slate-50 border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Félicitations pour votre persévérance !" />
+                <input className="w-full bg-slate-50 border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-xl px-4 py-3 text-sm font-medium transition-all outline-none" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Félicitations pour votre persévérance !" />
               </div>
             </div>
             <div className="mt-8 flex justify-end">
-              <button type="submit" disabled={saving} className="bg-slate-900 text-white rounded-xl px-8 py-3.5 font-bold hover:bg-slate-800 disabled:opacity-50 transition-all shadow-md shadow-slate-900/20">
+              <button type="submit" disabled={saving} className="bg-navy-600 text-white rounded-xl px-8 py-3.5 font-bold hover:bg-navy-700 disabled:opacity-50 transition-all shadow-md shadow-navy-900/20">
                 {saving ? 'Enregistrement...' : 'Sauvegarder le badge'}
               </button>
             </div>
@@ -157,7 +177,14 @@ export default function AdminBadgesPage() {
 
       {isLoading ? (
         <div className="flex items-center justify-center h-64">
-          <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      ) : badges.length === 0 ? (
+        <div className="text-center py-16 bg-white rounded-[24px] border border-slate-100">
+          <p className="text-3xl mb-3">🏅</p>
+          <p className="text-slate-500">
+            Aucun badge pour l&apos;instant — crée le premier avec «&nbsp;+ Créer un badge&nbsp;».
+          </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -195,7 +222,7 @@ export default function AdminBadgesPage() {
                   
                   <div className="bg-slate-50 rounded-xl p-3 mb-4 border border-slate-100">
                     <p className="text-xs font-semibold text-slate-700">Objectif à atteindre</p>
-                    <p className="text-sm font-bold text-blue-600 mt-0.5">{badge.condition_value} {CONDITION_LABELS[badge.condition_type] ?? badge.condition_type}</p>
+                    <p className="text-sm font-bold text-navy-600 mt-0.5">{badge.condition_value} {CONDITION_LABELS[badge.condition_type] ?? badge.condition_type}</p>
                   </div>
                   
                   <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-100">
@@ -204,7 +231,8 @@ export default function AdminBadgesPage() {
                     </p>
                     <button
                       onClick={() => toggleActive(badge.id, badge.is_active)}
-                      className={`text-xs font-bold px-3 py-1.5 rounded-lg transition-colors ${
+                      disabled={togglingId === badge.id}
+                      className={`text-xs font-bold px-3 py-2 min-h-[36px] rounded-lg transition-colors disabled:opacity-50 ${
                         badge.is_active 
                           ? 'text-rose-600 hover:bg-rose-50' 
                           : 'text-emerald-600 hover:bg-emerald-50'

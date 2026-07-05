@@ -1,22 +1,18 @@
-'use client';
+import Image from 'next/image';
 
-import { useState } from 'react';
-
-// Logo officiel THRIVE : version vectorielle /logo.svg (présente dans
-// apps/web/public/). On part directement sur le SVG pour éviter le flash de
-// logo cassé : /logo.png n'est pas livré (404). Si un /logo.png officiel est
-// déposé plus tard, repasser src initial à '/logo.png' (le SVG reste le repli).
-export function BrandLogo({ className = 'h-8 w-auto' }: { className?: string }) {
-  const [src, setSrc] = useState('/logo.svg');
+// Logo officiel THRIVE : tuile carrée navy-600 (#004E7A) + silhouette crème,
+// déclinée depuis assets/images/logo.png (master 1024px) vers /logo.png (512px).
+// Le rendu « app icon » (coins arrondis proportionnels) est appliqué ici pour
+// être identique partout ; la taille se pilote via className (h-N w-N).
+export function BrandLogo({ className = 'h-8 w-8' }: { className?: string }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={src}
+    <Image
+      src="/logo.png"
       alt="THRIVE Sport Positive"
-      className={className}
-      onError={() => {
-        if (src !== '/logo.svg') setSrc('/logo.svg');
-      }}
+      width={512}
+      height={512}
+      priority
+      className={`rounded-[22%] object-cover ${className}`}
     />
   );
 }

@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
 const NAV_ITEMS = [
@@ -24,7 +24,7 @@ const NAV_ITEMS = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
+  const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -38,26 +38,29 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-400">Chargement...</p>
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <div className="flex flex-col items-center gap-4" role="status" aria-label="Chargement">
+          <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-navy-600/60 text-sm font-medium">Chargement…</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-cream">
       {/* Barre mobile : logo + navigation horizontale défilante */}
-      <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-black text-white safe-top">
+      <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-navy-900 text-white safe-top">
         <div className="flex items-center justify-between px-4 pt-3 pb-1">
-          <p className="flex items-center gap-2"><BrandLogo className="h-6 w-auto" /> <span className="text-gray-400 text-xs">Admin</span></p>
+          <p className="flex items-center gap-2"><BrandLogo className="w-7 h-7" /> <span className="text-navy-200/70 text-xs">Admin</span></p>
           <button
-            onClick={async () => { await signOut(); router.push('/login'); }}
-            className="text-xs text-gray-400"
+            onClick={() => logout()}
+            className="text-xs text-navy-200/70 hover:text-white min-h-[44px] px-2 -mr-2 transition-colors"
           >
-            🚪 Quitter
+            Quitter
           </button>
         </div>
-        <nav className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide">
+        <nav className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide overscroll-x-contain">
           {NAV_ITEMS.map((item) => {
             const isActive = pathname === item.href ||
               (item.href !== '/admin' && pathname.startsWith(item.href));
@@ -65,8 +68,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs whitespace-nowrap ${
-                  isActive ? 'bg-white text-black font-semibold' : 'text-gray-300 bg-gray-900'
+                className={`flex items-center gap-1.5 px-3 py-2 min-h-[40px] rounded-full text-xs whitespace-nowrap transition-colors ${
+                  isActive ? 'bg-white text-navy-900 font-semibold' : 'text-navy-100/80 bg-navy-800'
                 }`}
               >
                 <span>{item.icon}</span>
@@ -77,10 +80,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
       </div>
 
-      <aside className="hidden lg:flex w-64 bg-black text-white flex-col fixed h-full z-10">
-        <div className="p-6 border-b border-gray-800">
-          <BrandLogo className="h-9 w-auto" />
-          <p className="text-gray-400 text-xs mt-2">Espace Admin</p>
+      <aside className="hidden lg:flex w-64 bg-navy-900 text-white flex-col fixed h-full z-10">
+        <div className="p-6 border-b border-navy-800">
+          <BrandLogo className="w-10 h-10 shadow-card" />
+          <p className="text-navy-200/70 text-xs mt-2">Espace Admin</p>
         </div>
         <nav className="flex-1 p-4 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
@@ -92,8 +95,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-colors ${
                   isActive
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                    ? 'bg-white text-navy-900 font-semibold'
+                    : 'text-navy-100/70 hover:bg-navy-800 hover:text-white'
                 }`}
               >
                 <span className="text-lg">{item.icon}</span>
@@ -102,16 +105,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             );
           })}
         </nav>
-        <div className="p-4 border-t border-gray-800">
+        <div className="p-4 border-t border-navy-800">
           <div className="px-4 py-3 mb-2">
             <p className="text-sm font-medium">{user.firstName} {user.lastName}</p>
-            <p className="text-xs text-gray-400">{user.role}</p>
+            <p className="text-xs text-navy-200/70">{user.role}</p>
           </div>
           <button
-            onClick={async () => { await signOut(); router.push('/login'); }}
-            className="w-full text-left px-4 py-2 text-gray-400 hover:text-white text-sm rounded-xl hover:bg-gray-800"
+            onClick={() => logout()}
+            className="w-full text-left px-4 py-2.5 min-h-[44px] text-navy-100/70 hover:text-white text-sm rounded-xl hover:bg-navy-800 transition-colors"
           >
-            🚪 Se déconnecter
+            Se déconnecter
           </button>
         </div>
       </aside>

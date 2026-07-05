@@ -21,7 +21,7 @@ type ParentOption = { id: string; email: string; name: string };
 const ROLE_META: Record<Role, { label: string; cls: string }> = {
   SUPER_ADMIN: { label: 'Super admin', cls: 'bg-purple-100 text-purple-700' },
   ADMIN: { label: 'Admin', cls: 'bg-indigo-100 text-indigo-700' },
-  COACH: { label: 'Coach', cls: 'bg-blue-100 text-blue-700' },
+  COACH: { label: 'Coach', cls: 'bg-navy-100 text-navy-700' },
   PARENT: { label: 'Parent', cls: 'bg-emerald-100 text-emerald-700' },
   CHILD: { label: 'Enfant', cls: 'bg-amber-100 text-amber-700' },
 };
@@ -344,7 +344,7 @@ export default function AdminUsersPage() {
           </button>
           <button
             onClick={() => setShowCreate(true)}
-            className="px-4 py-2.5 rounded-xl bg-black text-white text-sm font-semibold hover:bg-gray-800"
+            className="px-4 py-2.5 rounded-xl bg-navy-600 text-white text-sm font-semibold hover:bg-navy-700"
           >
             + Créer un compte
           </button>
@@ -373,7 +373,7 @@ export default function AdminUsersPage() {
               key={f.value}
               onClick={() => setFilter(f.value)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
-                filter === f.value ? 'bg-black text-white' : 'text-gray-600 hover:bg-gray-100'
+                filter === f.value ? 'bg-navy-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >
               {f.label}
@@ -516,7 +516,7 @@ export default function AdminUsersPage() {
                     onClick={() => setCreateRole(r)}
                     className={`flex-1 px-3 py-2.5 rounded-xl text-sm font-semibold border-2 ${
                       createRole === r
-                        ? 'border-black bg-black text-white'
+                        ? 'border-black bg-navy-600 text-white'
                         : 'border-gray-200 text-gray-600 hover:border-gray-400'
                     }`}
                   >
@@ -543,7 +543,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setAccountForm({ ...accountForm, speciality: e.target.value })} />
             )}
             <button type="submit" disabled={creating}
-              className="w-full py-3 rounded-xl bg-black text-white font-semibold disabled:opacity-50">
+              className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : `Créer le compte ${ROLE_META[createRole].label}`}
             </button>
             <p className="text-xs text-gray-400 text-center">
@@ -585,7 +585,7 @@ export default function AdminUsersPage() {
                 onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })} />
             </div>
             <button type="submit" disabled={creating}
-              className="w-full py-3 rounded-xl bg-black text-white font-semibold disabled:opacity-50">
+              className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : "Créer l'enfant"}
             </button>
             <p className="text-xs text-gray-400 text-center">
@@ -612,7 +612,7 @@ export default function AdminUsersPage() {
           <button
             onClick={saveAll}
             disabled={saving}
-            className="px-4 py-2 rounded-xl text-sm font-semibold bg-black text-white hover:bg-gray-800 disabled:opacity-50"
+            className="px-4 py-2 rounded-xl text-sm font-semibold bg-navy-600 text-white hover:bg-navy-700 disabled:opacity-50"
           >
             {saving ? 'Synchronisation…' : `Enregistrer (${pending.length})`}
           </button>

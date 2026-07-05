@@ -127,7 +127,8 @@ export default function AdminAssignmentsPage() {
         <p className="text-gray-400">Aucun enfant enregistré pour l&apos;instant.</p>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
+          <div className="overflow-x-auto">
+          <table className="w-full text-sm min-w-[640px]">
             <thead>
               <tr className="text-left text-gray-400 border-b border-gray-100">
                 <th className="px-5 py-3 font-medium">Enfant</th>
@@ -168,6 +169,7 @@ export default function AdminAssignmentsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         </div>
       )}
     </div>

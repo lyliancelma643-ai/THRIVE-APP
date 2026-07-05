@@ -48,6 +48,9 @@ export default function AdminProgramsPage() {
 
   useEffect(() => { fetchPrograms(); }, []);
 
+  const [savingId, setSavingId] = useState<string | null>(null);
+  const [actionError, setActionError] = useState('');
+
   // Realtime : créations/changements de statut visibles instantanément
   useEffect(() => {
     const channel = supabase
@@ -59,8 +62,17 @@ export default function AdminProgramsPage() {
   }, []);
 
   const updateStatus = async (programId: string, newStatus: string) => {
-    await supabase.from('programs').update({ status: newStatus }).eq('id', programId);
+    if (savingId) return;
+    // Garde-fou : l'archivage sort le programme du quotidien des familles
+    if (newStatus === 'ARCHIVED' && !window.confirm('Archiver ce programme ? Il ne sera plus visible comme actif.')) {
+      return;
+    }
+    setSavingId(programId);
+    setActionError('');
+    const { error: upErr } = await supabase.from('programs').update({ status: newStatus }).eq('id', programId);
+    if (upErr) setActionError(upErr.message ?? 'Mise à jour impossible');
     await fetchPrograms();
+    setSavingId(null);
   };
 
   const filtered = filterStatus === 'ALL'
@@ -71,19 +83,19 @@ export default function AdminProgramsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Programmes 🏆</h1>
+          <h1 className="text-3xl font-bold text-navy-900">Programmes 🏆</h1>
           <p className="text-gray-500 mt-1">{programs.length} programme{programs.length > 1 ? 's' : ''}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           {FILTER_OPTIONS.map((opt) => (
             <button
               key={opt}
               onClick={() => setFilterStatus(opt)}
               className={`rounded-full px-4 py-2 text-sm font-medium transition-colors ${
                 filterStatus === opt
-                  ? 'bg-black text-white'
+                  ? 'bg-navy-600 text-white'
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
@@ -93,11 +105,17 @@ export default function AdminProgramsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-5">
+      {actionError && (
+        <p role="alert" className="mb-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+          {actionError}
+        </p>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {isLoading ? (
-          <p className="text-gray-400 col-span-2">Chargement...</p>
+          <p className="text-gray-400 md:col-span-2">Chargement…</p>
         ) : filtered.length === 0 ? (
-          <p className="text-gray-400 col-span-2">Aucun programme trouvé.</p>
+          <p className="text-gray-400 md:col-span-2">Aucun programme trouvé.</p>
         ) : (
           filtered.map((program) => {
             const completedSessions = (program.sessions ?? []).filter((s) => s.status === 'COMPLETED').length;
@@ -130,7 +148,7 @@ export default function AdminProgramsPage() {
                   </div>
                   <div className="w-full bg-gray-100 rounded-full h-2">
                     <div
-                      className="bg-black h-2 rounded-full transition-all"
+                      className="bg-navy-600 h-2 rounded-full transition-all"
                       style={{ width: `${progressPct}%` }}
                     />
                   </div>
@@ -141,7 +159,8 @@ export default function AdminProgramsPage() {
                   {program.status !== 'ACTIVE' && (
                     <button
                       onClick={() => updateStatus(program.id, 'ACTIVE')}
-                      className="text-xs bg-green-50 text-green-700 rounded-lg px-3 py-1.5 hover:bg-green-100"
+                      disabled={savingId === program.id}
+                      className="text-xs bg-green-50 text-green-700 rounded-lg px-3 py-2.5 hover:bg-green-100 disabled:opacity-50 transition-colors"
                     >
                       Activer
                     </button>
@@ -149,7 +168,8 @@ export default function AdminProgramsPage() {
                   {program.status !== 'PAUSED' && program.status !== 'COMPLETED' && (
                     <button
                       onClick={() => updateStatus(program.id, 'PAUSED')}
-                      className="text-xs bg-yellow-50 text-yellow-700 rounded-lg px-3 py-1.5 hover:bg-yellow-100"
+                      disabled={savingId === program.id}
+                      className="text-xs bg-yellow-50 text-yellow-700 rounded-lg px-3 py-2.5 hover:bg-yellow-100 disabled:opacity-50 transition-colors"
                     >
                       Mettre en pause
                     </button>
@@ -157,7 +177,8 @@ export default function AdminProgramsPage() {
                   {program.status !== 'ARCHIVED' && (
                     <button
                       onClick={() => updateStatus(program.id, 'ARCHIVED')}
-                      className="text-xs bg-red-50 text-red-700 rounded-lg px-3 py-1.5 hover:bg-red-100"
+                      disabled={savingId === program.id}
+                      className="text-xs bg-red-50 text-red-700 rounded-lg px-3 py-2.5 hover:bg-red-100 disabled:opacity-50 transition-colors"
                     >
                       Archiver
                     </button>

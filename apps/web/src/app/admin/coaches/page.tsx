@@ -58,7 +58,7 @@ function passwordStrength(pwd: string): 0 | 1 | 2 | 3 | 4 {
 }
 
 const STRENGTH_LABELS: Record<number, string> = { 0: '', 1: 'Faible', 2: 'Moyen', 3: 'Bien', 4: 'Fort' };
-const STRENGTH_COLORS: Record<number, string> = { 0: '', 1: 'bg-red-400', 2: 'bg-yellow-400', 3: 'bg-blue-400', 4: 'bg-green-400' };
+const STRENGTH_COLORS: Record<number, string> = { 0: '', 1: 'bg-red-400', 2: 'bg-yellow-400', 3: 'bg-navy-400', 4: 'bg-green-400' };
 
 // ─── Composant principal ───────────────────────────────────────────────────────
 export default function AdminCoachesPage() {
@@ -217,7 +217,7 @@ export default function AdminCoachesPage() {
         </div>
         <button
           onClick={() => { setShowModal(true); setError(''); setSuccess(''); setForm(EMPTY_FORM); }}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800 transition-colors whitespace-nowrap"
+          className="bg-navy-600 text-white rounded-xl px-5 py-3 font-semibold hover:bg-navy-700 transition-colors whitespace-nowrap"
         >
           + Nouveau coach
         </button>
@@ -254,7 +254,7 @@ export default function AdminCoachesPage() {
               key={f}
               onClick={() => setFilterActive(f)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${
-                filterActive === f ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filterActive === f ? 'bg-navy-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {{ all: 'Tous', active: 'Actifs', inactive: 'Inactifs' }[f]}
@@ -331,7 +331,7 @@ export default function AdminCoachesPage() {
                   {/* Spécialité */}
                   <td className="px-6 py-4 hidden lg:table-cell">
                     {coach.speciality ? (
-                      <span className="bg-blue-50 text-blue-700 text-xs rounded-full px-3 py-1">
+                      <span className="bg-navy-50 text-navy-700 text-xs rounded-full px-3 py-1">
                         {coach.speciality}
                       </span>
                     ) : (
@@ -565,7 +565,7 @@ export default function AdminCoachesPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-black text-white rounded-xl py-3 text-sm font-semibold hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="flex-1 bg-navy-600 text-white rounded-xl py-3 text-sm font-semibold hover:bg-navy-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {saving ? (
                     <>

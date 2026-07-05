@@ -39,6 +39,7 @@ export default function AdminNotificationsPage() {
   const [profiles, setProfiles] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
   const [form, setForm] = useState({ user_id: '', title: '', body: '', type: 'SYSTEM' });
   const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState('');
 
   useEffect(() => {
     fetchAll();
@@ -57,14 +58,21 @@ export default function AdminNotificationsPage() {
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.user_id || !form.title) return;
+    if (!form.user_id || !form.title || sending) return;
     setSending(true);
-    await supabase.from('notifications').insert({
+    setSendError('');
+    const { error: insErr } = await supabase.from('notifications').insert({
       user_id: form.user_id,
       type: form.type,
       title: form.title,
       body: form.body || null,
     });
+    if (insErr) {
+      // Échec : on garde la saisie, le formulaire reste ouvert
+      setSendError(insErr.message ?? "Envoi impossible");
+      setSending(false);
+      return;
+    }
     setForm({ user_id: '', title: '', body: '', type: 'SYSTEM' });
     setShowSendForm(false);
     await fetchAll();
@@ -85,20 +93,20 @@ export default function AdminNotificationsPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">🔔 Notifications</h1>
+          <h1 className="text-3xl font-bold text-navy-900">🔔 Notifications</h1>
           <p className="text-gray-500 mt-1">Centre de notifications de l'application</p>
         </div>
         <button
           onClick={() => setShowSendForm(!showSendForm)}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+          className="bg-navy-600 text-white rounded-xl px-5 py-3 min-h-[44px] font-semibold hover:bg-navy-700 transition-colors"
         >
           {showSendForm ? 'Annuler' : '✉️ Envoyer une notif'}
         </button>
       </div>
 
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
         {[
           { label: 'Total', value: stats.total, icon: '🔔' },
           { label: 'Non lues', value: stats.unread, icon: '🔴' },
@@ -119,7 +127,7 @@ export default function AdminNotificationsPage() {
       {showSendForm && (
         <form onSubmit={handleSend} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-lg font-bold mb-4">Envoyer une notification manuelle</h2>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Destinataire</label>
               <select
@@ -148,6 +156,7 @@ export default function AdminNotificationsPage() {
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Titre</label>
               <input
+                required
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
@@ -164,17 +173,22 @@ export default function AdminNotificationsPage() {
               />
             </div>
           </div>
+          {sendError && (
+            <p role="alert" className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+              {sendError}
+            </p>
+          )}
           <button
             type="submit"
             disabled={sending || !form.user_id || !form.title}
-            className="mt-4 bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50"
+            className="mt-4 bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-6 py-3 min-h-[44px] font-semibold disabled:opacity-50 transition-colors"
           >
-            {sending ? 'Envoi...' : 'Envoyer'}
+            {sending ? 'Envoi…' : 'Envoyer'}
           </button>
         </form>
       )}
 
-      <div className="flex gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-4">
         {(['all', 'unread', 'MESSAGE', 'SESSION', 'BADGE'] as const).map((f) => (
           <button
             key={f}
@@ -197,7 +211,8 @@ export default function AdminNotificationsPage() {
             <p className="text-gray-500">Aucune notification</p>
           </div>
         ) : (
-          <table className="w-full">
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Type</th>
@@ -243,6 +258,7 @@ export default function AdminNotificationsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

@@ -24,6 +24,8 @@ export default function AdminContentPage() {
     title: '', body: '', type: 'article', age_group: '', tags: '',
   });
   const [saving, setSaving] = useState(false);
+  const [togglingId, setTogglingId] = useState<string | null>(null);
+  const [error, setError] = useState('');
 
   const fetchContent = async () => {
     const { data } = await supabase
@@ -38,10 +40,11 @@ export default function AdminContentPage() {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.title) return;
+    if (!form.title || saving) return;
     setSaving(true);
+    setError('');
     const tags = form.tags.split(',').map((t) => t.trim()).filter(Boolean);
-    await supabase.from('content_items').insert({
+    const { error: insErr } = await supabase.from('content_items').insert({
       title: form.title,
       body: form.body,
       type: form.type,
@@ -50,6 +53,12 @@ export default function AdminContentPage() {
       is_published: false,
       created_by: user?.id,
     });
+    if (insErr) {
+      // Échec : on conserve la saisie et le formulaire ouvert
+      setError(insErr.message ?? 'Enregistrement impossible');
+      setSaving(false);
+      return;
+    }
     setForm({ title: '', body: '', type: 'article', age_group: '', tags: '' });
     setShowForm(false);
     await fetchContent();
@@ -57,8 +66,16 @@ export default function AdminContentPage() {
   };
 
   const togglePublish = async (id: string, current: boolean) => {
-    await supabase.from('content_items').update({ is_published: !current }).eq('id', id);
+    if (togglingId) return;
+    setTogglingId(id);
+    setError('');
+    const { error: upErr } = await supabase
+      .from('content_items')
+      .update({ is_published: !current })
+      .eq('id', id);
+    if (upErr) setError(upErr.message ?? 'Mise à jour impossible');
     await fetchContent();
+    setTogglingId(null);
   };
 
   const TYPES = ['article', 'video', 'exercise', 'tip', 'guide'];
@@ -66,26 +83,32 @@ export default function AdminContentPage() {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Contenu pédagogique 📚</h1>
+          <h1 className="text-3xl font-bold text-navy-900">Contenu pédagogique 📚</h1>
           <p className="text-gray-500 mt-1">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800"
+          className="bg-navy-600 text-white rounded-xl px-5 py-3 min-h-[44px] font-semibold hover:bg-navy-700 transition-colors"
         >
           {showForm ? 'Annuler' : '+ Nouvelle ressource'}
         </button>
       </div>
 
+      {error && (
+        <p role="alert" className="mb-6 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
       {showForm && (
         <form onSubmit={handleCreate} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
           <h2 className="text-lg font-bold mb-4">Nouvelle ressource</h2>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+            <div className="sm:col-span-2">
               <label className="text-sm text-gray-500 mb-1 block">Titre</label>
-              <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
+              <input required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
             </div>
             <div>
               <label className="text-sm text-gray-500 mb-1 block">Type</label>
@@ -99,23 +122,24 @@ export default function AdminContentPage() {
                 {AGE_GROUPS.map((ag) => <option key={ag} value={ag}>{ag || 'Tous'}</option>)}
               </select>
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="text-sm text-gray-500 mb-1 block">Contenu</label>
               <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
             </div>
-            <div className="col-span-2">
+            <div className="sm:col-span-2">
               <label className="text-sm text-gray-500 mb-1 block">Tags (séparés par virgule)</label>
               <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
             </div>
           </div>
-          <button type="submit" disabled={saving} className="bg-black text-white rounded-xl px-6 py-3 font-semibold disabled:opacity-50">
+          <button type="submit" disabled={saving} className="bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-6 py-3 min-h-[44px] font-semibold disabled:opacity-50 transition-colors">
             {saving ? 'Enregistrement...' : 'Enregistrer (brouillon)'}
           </button>
         </form>
       )}
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-        <table className="w-full">
+        <div className="overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
             <tr className="text-left text-gray-400 text-sm">
               <th className="px-6 py-4">Titre</th>
@@ -144,7 +168,7 @@ export default function AdminContentPage() {
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
                       {(item.tags ?? []).slice(0, 3).map((tag, i) => (
-                        <span key={i} className="bg-blue-50 text-blue-700 rounded-full px-2 py-0.5 text-xs">{tag}</span>
+                        <span key={i} className="bg-navy-50 text-navy-700 rounded-full px-2 py-0.5 text-xs">{tag}</span>
                       ))}
                     </div>
                   </td>
@@ -158,9 +182,10 @@ export default function AdminContentPage() {
                   <td className="px-6 py-4">
                     <button
                       onClick={() => togglePublish(item.id, item.is_published)}
-                      className="text-sm text-gray-500 hover:text-black underline"
+                      disabled={togglingId === item.id}
+                      className="text-sm text-navy-600 hover:text-navy-900 underline py-2 disabled:opacity-50 transition-colors"
                     >
-                      {item.is_published ? 'Dépublier' : 'Publier'}
+                      {togglingId === item.id ? '…' : item.is_published ? 'Dépublier' : 'Publier'}
                     </button>
                   </td>
                 </tr>
@@ -168,6 +193,7 @@ export default function AdminContentPage() {
             )}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

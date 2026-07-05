@@ -27,7 +27,7 @@ interface ParentRow {
 const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending:   { label: 'En attente',  color: 'bg-yellow-100 text-yellow-700' },
   active:    { label: 'Actif',       color: 'bg-green-100 text-green-700'   },
-  completed: { label: 'Complété',    color: 'bg-blue-100 text-blue-700'     },
+  completed: { label: 'Complété',    color: 'bg-navy-100 text-navy-700'     },
   inactive:  { label: 'Inactif',     color: 'bg-gray-100 text-gray-500'     },
 };
 
@@ -169,7 +169,7 @@ export default function AdminFamiliesPage() {
               key={key}
               onClick={() => setFilter(key)}
               className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors whitespace-nowrap ${
-                filter === key ? 'bg-black text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                filter === key ? 'bg-navy-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               }`}
             >
               {label}

@@ -24,10 +24,8 @@ export const metadata: Metadata = {
     title: 'THRIVE',
   },
   formatDetection: { telephone: false },
-  icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
-  },
+  // Icônes servies par les fichiers conventionnels src/app/icon.png,
+  // apple-icon.png et opengraph-image.png (liens générés par Next).
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

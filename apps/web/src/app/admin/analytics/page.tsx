@@ -86,7 +86,7 @@ export default function AdminAnalyticsPage() {
         <button
           onClick={handleExport}
           disabled={exporting}
-          className="bg-black text-white rounded-xl px-5 py-3 font-semibold hover:bg-gray-800 disabled:opacity-50 flex items-center gap-2"
+          className="bg-navy-600 text-white rounded-xl px-5 py-3 font-semibold hover:bg-navy-700 disabled:opacity-50 flex items-center gap-2"
         >
           {exporting ? '⏳ Export...' : '⬇️ Export CSV séances'}
         </button>
@@ -98,7 +98,7 @@ export default function AdminAnalyticsPage() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
-              activeTab === tab ? 'bg-black text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              activeTab === tab ? 'bg-navy-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
             {{ overview: '🏠 Vue globale', coaches: '🎯 Coaches', children: '🧒 Enfants', badges: '🏅 Badges' }[tab]}
@@ -108,20 +108,20 @@ export default function AdminAnalyticsPage() {
 
       {activeTab === 'overview' && (
         <>
-          <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <KPICard icon="👨‍🏫" label="Coaches" value={kpis?.total_coaches ?? 0} />
             <KPICard icon="👨‍👩‍👧‍👦" label="Familles" value={kpis?.total_families ?? 0} />
             <KPICard icon="🧒" label="Enfants" value={kpis?.total_children ?? 0} />
             <KPICard icon="🏆" label="Programmes" value={kpis?.total_programs ?? 0} sub={`${kpis?.active_programs ?? 0} actifs`} />
           </div>
-          <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <KPICard icon="📅" label="Séances totales" value={kpis?.total_sessions ?? 0} sub={`${kpis?.sessions_this_month ?? 0} ce mois`} />
             <KPICard icon="✅" label="Taux complétion" value={`${completionRate}%`} sub={`${kpis?.completed_sessions ?? 0} complétées`} />
             <KPICard icon="🏅" label="Badges attribués" value={kpis?.total_badges_awarded ?? 0} />
           </div>
           <div className="bg-white rounded-2xl p-6 shadow-sm">
             <h2 className="text-lg font-bold mb-4">Activité sur 12 mois</h2>
-            <div className="grid grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
                 <p className="text-sm text-gray-500 mb-2">Séances</p>
                 <MiniBarChart data={sessionTrend} color="#000" />
@@ -157,7 +157,8 @@ export default function AdminAnalyticsPage() {
           {coachPerformance.length === 0 ? (
             <div className="p-12 text-center text-gray-400">Aucun coach enregistré</div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px]">
               <thead className="bg-gray-50">
                 <tr>
                   {['Coach', 'Programmes', 'Séances', 'Complétées', 'Taux', 'Messages', 'Badges'].map((h) => (
@@ -170,7 +171,7 @@ export default function AdminAnalyticsPage() {
                   <tr key={c.coach_id} className={`border-t border-gray-50 ${ i === 0 ? 'bg-yellow-50/50' : '' }`}>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-xs font-bold">
+                        <div className="w-8 h-8 rounded-full bg-navy-600 text-white flex items-center justify-center text-xs font-bold">
                           {c.first_name[0]}{c.last_name[0]}
                         </div>
                         <span className="font-medium">{c.first_name} {c.last_name}</span>
@@ -194,6 +195,7 @@ export default function AdminAnalyticsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
@@ -206,7 +208,8 @@ export default function AdminAnalyticsPage() {
           {childProgress.length === 0 ? (
             <div className="p-12 text-center text-gray-400">Aucun enfant enregistré</div>
           ) : (
-            <table className="w-full">
+            <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px]">
               <thead className="bg-gray-50">
                 <tr>
                   {['Enfant', 'Âge', 'Famille', 'Séances', 'Complétées', 'Badges', 'Dernière séance'].map((h) => (
@@ -245,12 +248,13 @@ export default function AdminAnalyticsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       )}
 
       {activeTab === 'badges' && (
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {badgeDistribution.length === 0 ? (
             <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-400">Aucun badge</div>
           ) : badgeDistribution.map((badge, i) => (

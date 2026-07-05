@@ -90,6 +90,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || submitting) return; // anti double-submit
     if (!email || !password) { setError('Tous les champs sont requis'); return; }
     try {
       setError('');
@@ -166,6 +167,19 @@ export default function LoginPage() {
     }
   };
 
+  // Déjà connecté : on affiche un état de redirection plutôt qu'un flash du formulaire
+  if (isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
+        <div
+          className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"
+          role="status"
+          aria-label="Redirection vers ton espace…"
+        />
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-cream relative flex items-center justify-center p-4">
       {/* Halos de fond (liquid glass) */}
@@ -178,9 +192,7 @@ export default function LoginPage() {
       <div className="relative w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
-          <span className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-navy-900 shadow-card mb-3">
-            <BrandLogo className="h-12 w-auto" />
-          </span>
+          <BrandLogo className="w-20 h-20 shadow-card mb-3" />
           <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
             Sport Positive
           </span>
@@ -201,9 +213,12 @@ export default function LoginPage() {
               ] as [Mode, string][]).map(([m, label]) => (
                 <button
                   key={m}
+                  type="button"
+                  disabled={isLoading || submitting}
+                  aria-pressed={mode === m}
                   onClick={() => { setMode(m); setError(''); }}
-                  className={`flex-1 py-2.5 rounded-full text-sm font-bold transition-colors ${
-                    mode === m ? 'bg-navy-600 text-white shadow-card' : 'text-navy-600'
+                  className={`flex-1 min-h-[44px] py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-60 ${
+                    mode === m ? 'bg-navy-600 text-white shadow-card' : 'text-navy-600 hover:bg-white/70'
                   }`}
                 >
                   {label}
@@ -257,18 +272,19 @@ export default function LoginPage() {
                     autoComplete="email"
                   />
                 </Field>
-                {error && <p className="text-red-600 text-sm">{error}</p>}
+                {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50"
+                  aria-busy={submitting}
+                  className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
                 >
-                  {submitting ? 'Envoi…' : "Envoyer le lien de réinitialisation"}
+                  {submitting ? (<><ButtonSpinner />Envoi…</>) : "Envoyer le lien de réinitialisation"}
                 </button>
                 <button
                   type="button"
                   onClick={() => { setMode('signin'); setError(''); }}
-                  className="w-full text-sm text-navy-600/70 hover:text-navy-900"
+                  className="w-full min-h-[44px] py-2 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
                 >
                   ← Retour à la connexion
                 </button>
@@ -279,16 +295,19 @@ export default function LoginPage() {
               <Field label="Email">
                 <input
                   type="email"
+                  required
                   className="input-auth"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="ton@email.com"
                   autoComplete="email"
+                  autoFocus
                 />
               </Field>
               <Field label="Mot de passe">
                 <input
                   type="password"
+                  required
                   className="input-auth"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -303,17 +322,18 @@ export default function LoginPage() {
                   setMode('forgot');
                   setError('');
                 }}
-                className="block ml-auto text-xs font-medium text-navy-600/70 hover:text-navy-900"
+                className="block ml-auto -my-1 py-2 px-1 text-xs font-medium text-navy-600/70 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
               >
                 Mot de passe oublié ?
               </button>
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50"
+                aria-busy={isLoading}
+                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
               >
-                {isLoading ? 'Connexion…' : 'Se connecter'}
+                {isLoading ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
               </button>
             </form>
           ) : (
@@ -356,7 +376,7 @@ export default function LoginPage() {
                           <button
                             type="button"
                             onClick={() => setChildRows(childRows.filter((_, j) => j !== i))}
-                            className="w-6 h-6 shrink-0 rounded-lg bg-red-50 text-red-500 font-bold leading-none"
+                            className="w-8 h-8 shrink-0 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 font-bold leading-none transition-colors relative before:absolute before:-inset-1.5 before:content-['']"
                             aria-label="Retirer cet enfant"
                           >
                             ×
@@ -376,6 +396,7 @@ export default function LoginPage() {
                       <div className="flex gap-2">
                         <input
                           type="number" min={4} max={17} placeholder="Âge"
+                          inputMode="numeric"
                           className="input-auth w-24"
                           value={c.age}
                           onChange={(e) => {
@@ -405,19 +426,20 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setChildRows([...childRows, { ...EMPTY_CHILD }])}
-                  className="mt-2 text-sm font-bold text-navy-600 hover:text-navy-900"
+                  className="mt-1 min-h-[44px] py-2 text-sm font-bold text-navy-600 hover:text-navy-900 transition-colors"
                 >
                   + Ajouter un autre enfant
                 </button>
               </div>
 
-              {error && <p className="text-red-600 text-sm">{error}</p>}
+              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-3.5 rounded-full bg-sun hover:bg-sun-dark text-navy-900 font-bold disabled:opacity-50"
+                aria-busy={submitting}
+                className="w-full min-h-[48px] py-3.5 rounded-full bg-sun hover:bg-sun-dark text-navy-900 font-bold disabled:opacity-50 transition-colors"
               >
-                {submitting ? 'Création du compte…' : 'Créer mon compte parent'}
+                {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
               <p className="text-[11px] text-navy-600/60 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
@@ -427,22 +449,19 @@ export default function LoginPage() {
         </div>
       </div>
 
-      <style jsx global>{`
-        .input-auth {
-          width: 100%;
-          border: 1px solid rgba(0, 78, 122, 0.18);
-          border-radius: 0.85rem;
-          padding: 0.7rem 0.95rem;
-          font-size: 0.9rem;
-          background: rgba(255, 255, 255, 0.8);
-          color: #022539;
-        }
-        .input-auth:focus {
-          outline: 2px solid #004e7a;
-          outline-offset: 0;
-        }
-      `}</style>
     </main>
+  );
+}
+
+// Petit spinner inline pour les boutons en action asynchrone
+function ButtonSpinner({ light = true }: { light?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-block w-4 h-4 mr-2 -mb-0.5 rounded-full border-2 animate-spin ${
+        light ? 'border-white/40 border-t-white' : 'border-navy-900/30 border-t-navy-900'
+      }`}
+    />
   );
 }
 

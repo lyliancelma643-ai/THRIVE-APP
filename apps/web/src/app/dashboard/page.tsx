@@ -29,24 +29,14 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated, user, router]);
 
-  if (isLoading || !user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-400">Redirection...</p>
-      </div>
-    );
-  }
-
+  // Page de transit uniquement : la redirection par rôle part dès que la
+  // session est connue. On affiche donc toujours le même état de redirection
+  // (pas de flash de contenu intermédiaire).
   return (
-    <main className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="bg-white rounded-2xl shadow p-8">
-          <h1 className="text-3xl font-bold mb-2">Bienvenue 👋</h1>
-          <p className="text-gray-600 mb-6">
-            {user.firstName} {user.lastName} — {user.role}
-          </p>
-          <p className="text-gray-400 text-sm">Espace parent — tableau de bord en construction.</p>
-        </div>
+    <main className="min-h-screen flex items-center justify-center bg-cream" aria-busy>
+      <div className="flex flex-col items-center gap-4" role="status" aria-label="Redirection">
+        <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
+        <p className="text-navy-600/60 text-sm font-medium">Redirection vers ton espace…</p>
       </div>
     </main>
   );

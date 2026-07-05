@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
 const NAV_ITEMS = [
@@ -16,7 +16,7 @@ const NAV_ITEMS = [
 export default function CoachLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
+  const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -44,15 +44,12 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
       {/* Mini-barre mobile */}
       <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white safe-top">
         <span className="flex items-center gap-2">
-          <BrandLogo className="h-7 w-auto" />
+          <BrandLogo className="w-7 h-7" />
           <span className="text-[10px] uppercase tracking-[0.2em] text-sage">Coach</span>
         </span>
         <button
-          onClick={async () => {
-            await signOut();
-            router.push('/login');
-          }}
-          className="text-xs text-navy-200/80"
+          onClick={() => logout()}
+          className="text-xs text-navy-200/80 hover:text-white min-h-[44px] px-2 -mr-2 transition-colors"
         >
           Quitter
         </button>
@@ -83,7 +80,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
       <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-navy-900 text-white flex-col z-40">
         <div className="px-6 pt-8 pb-6">
           <Link href="/coach/dashboard" className="block">
-            <BrandLogo className="h-10 w-auto" />
+            <BrandLogo className="w-10 h-10 shadow-card" />
             <span className="block text-[11px] uppercase tracking-[0.2em] text-sage mt-2">
               Espace coach
             </span>
@@ -116,11 +113,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
           </p>
           <p className="text-xs text-navy-200/60 truncate mb-3">{user.email}</p>
           <button
-            onClick={async () => {
-              await signOut();
-              router.push('/login');
-            }}
-            className="text-xs text-navy-200/80 hover:text-sun transition-colors"
+            onClick={() => logout()}
+            className="text-xs text-navy-200/80 hover:text-sun transition-colors min-h-[44px] px-2 -mx-2"
           >
             Se déconnecter
           </button>

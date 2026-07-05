@@ -41,7 +41,7 @@ function phaseOfSession(n: number | null): Phase {
 }
 
 export default function MySessionsPage() {
-  const { children, selectedChildId } = useChildStore();
+  const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
   const [sessions, setSessions] = useState<OneToOneSession[]>([]);
@@ -126,6 +126,18 @@ export default function MySessionsPage() {
       supabase.removeChannel(channel);
     };
   }, [selectedChildId, load]);
+
+  // La liste des enfants charge encore : squelette plutôt qu'un flash
+  // trompeur de l'état « Aucun profil enfant ».
+  if (!selectedChild && childrenLoading) {
+    return (
+      <div className="space-y-4" aria-busy role="status" aria-label="Chargement">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+        ))}
+      </div>
+    );
+  }
 
   if (!selectedChild) {
     return (

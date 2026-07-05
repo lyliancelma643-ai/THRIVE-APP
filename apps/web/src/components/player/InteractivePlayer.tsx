@@ -21,8 +21,12 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
   const videoRef = useRef<HTMLVideoElement>(null);
   const wistiaRef = useRef<WistiaHandle | null>(null);
   const runIdRef = useRef<string | null>(null);
+  const creatingRunRef = useRef(false);
   const answeredRef = useRef<Set<string>>(new Set());
   const stageRef = useRef<Stage>('playing');
+  const lastTimeRef = useRef(0);
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const [stage, setStage] = useState<Stage>('playing');
   const [activeInteraction, setActiveInteraction] = useState<InteractionPoint | null>(null);
@@ -31,6 +35,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [rpe, setRpe] = useState<number | null>(null);
+  const [syncError, setSyncError] = useState(false);
 
   useEffect(() => {
     stageRef.current = stage;
@@ -47,33 +52,42 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
     else videoRef.current?.pause();
   }, [wid]);
 
-  // Crée le run au montage
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from('video_session_runs')
-        .insert({
-          video_session_id: session.id,
-          child_id: childId,
-          parent_id: parentId,
-        })
-        .select('id')
-        .single();
-      if (!cancelled && data) runIdRef.current = data.id;
-    })();
-    return () => {
-      cancelled = true;
-    };
+  // Crée le run (une seule fois : la garde par ref évite le doublon du
+  // double-montage StrictMode et les re-runs de l'effet).
+  const ensureRun = useCallback(async () => {
+    if (runIdRef.current || creatingRunRef.current) return;
+    creatingRunRef.current = true;
+    const { data, error } = await supabase
+      .from('video_session_runs')
+      .insert({
+        video_session_id: session.id,
+        child_id: childId,
+        parent_id: parentId,
+      })
+      .select('id')
+      .single();
+    if (data) {
+      runIdRef.current = data.id;
+      setSyncError(false);
+    } else if (error) {
+      // Nouvel essai possible au prochain play
+      creatingRunRef.current = false;
+      setSyncError(true);
+    }
   }, [session.id, childId, parentId]);
+
+  useEffect(() => {
+    ensureRun();
+  }, [ensureRun]);
 
   // Sauvegarde périodique de la progression
   const saveProgress = useCallback(async (seconds: number) => {
     if (!runIdRef.current) return;
-    await supabase
+    const { error } = await supabase
       .from('video_session_runs')
       .update({ progress_seconds: Math.floor(seconds) })
       .eq('id', runIdRef.current);
+    if (error) setSyncError(true);
   }, []);
 
   useEffect(() => {
@@ -85,10 +99,36 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
     return () => clearInterval(interval);
   }, [saveProgress, isPlaying, wid]);
 
+  // Flush de la progression à la fermeture/sortie de page : sans lui, jusqu'à
+  // 10 s de progression étaient perdues à chaque sortie.
+  useEffect(() => {
+    const flush = () => {
+      if (lastTimeRef.current > 0) saveProgress(lastTimeRef.current);
+    };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flush();
+    };
+    window.addEventListener('pagehide', flush);
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      window.removeEventListener('pagehide', flush);
+      document.removeEventListener('visibilitychange', onVisibility);
+      flush();
+    };
+  }, [saveProgress]);
+
+  // Nettoyage du timer de feedback (sinon reprise de lecture sur player démonté)
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
+
   // Déclenche l'interaction au timecode atteint — appelé par Wistia et par <video>.
   const handleTime = useCallback(
     (currentTime: number) => {
       setProgress(currentTime);
+      lastTimeRef.current = currentTime;
       if (stageRef.current !== 'playing') return;
       const due = interactions.find(
         (i) => !answeredRef.current.has(i.id) && currentTime >= i.timecode_seconds
@@ -115,7 +155,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
         .eq('id', runIdRef.current)
         .single();
       const log = Array.isArray(data?.answers_log) ? data.answers_log : [];
-      await supabase
+      const { error } = await supabase
         .from('video_session_runs')
         .update({
           answers_log: [
@@ -130,10 +170,13 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
           ],
         })
         .eq('id', runIdRef.current);
+      if (error) setSyncError(true);
+    } else {
+      setSyncError(true);
     }
 
-    // Feedback bref puis reprise de la vidéo
-    setTimeout(() => {
+    // Feedback bref puis reprise de la vidéo (timer nettoyé au démontage)
+    feedbackTimerRef.current = setTimeout(() => {
       setActiveInteraction(null);
       setChosen(null);
       setStage('playing');
@@ -149,10 +192,13 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
   const handleRpe = async (value: number) => {
     setRpe(value);
     if (runIdRef.current) {
-      await supabase
+      const { error } = await supabase
         .from('video_session_runs')
         .update({ rpe: value, completed_at: new Date().toISOString() })
         .eq('id', runIdRef.current);
+      if (error) setSyncError(true);
+    } else {
+      setSyncError(true);
     }
     setStage('done');
     onCompleted?.();
@@ -177,7 +223,10 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
     `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
   return (
-    <div className="relative aspect-video rounded-2xl overflow-hidden bg-navy-900 shadow-card group">
+    <div
+      ref={containerRef}
+      className="relative aspect-video rounded-2xl overflow-hidden bg-navy-900 shadow-card group"
+    >
       {wid ? (
         <WistiaPlayer
           hashedId={wid}
@@ -186,7 +235,10 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
           }}
           onTime={handleTime}
           onEnded={handleEnded}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true);
+            ensureRun(); // nouvel essai si l'insert du run avait échoué
+          }}
           onPause={() => setIsPlaying(false)}
           onDuration={(d) => setDuration(d)}
         />
@@ -197,7 +249,10 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
           className="w-full h-full object-contain"
           onTimeUpdate={(e) => handleTime(e.currentTarget.currentTime)}
           onEnded={handleEnded}
-          onPlay={() => setIsPlaying(true)}
+          onPlay={() => {
+            setIsPlaying(true);
+            ensureRun();
+          }}
           onPause={() => setIsPlaying(false)}
           onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
           onClick={togglePlay}
@@ -205,32 +260,54 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
         />
       )}
 
+      {/* Bandeau discret si la progression ne se synchronise pas */}
+      {syncError && stage !== 'done' && (
+        <div className="absolute top-2 inset-x-2 z-20 flex justify-center pointer-events-none">
+          <p className="px-3 py-1.5 rounded-full bg-red-500/85 text-white text-[11px] font-semibold backdrop-blur-sm">
+            Progression non enregistrée — vérifie ta connexion
+          </p>
+        </div>
+      )}
+
       {/* Contrôles personnalisés — uniquement pour la balise <video>.
           Le player Wistia fournit ses propres contrôles. */}
       {!wid && stage === 'playing' && (
-        <div className="absolute inset-x-0 bottom-0 px-5 pb-4 pt-12 bg-gradient-to-t from-navy-900/90 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-          <div
-            className="h-1.5 rounded-full bg-white/20 cursor-pointer mb-3"
-            onClick={seek}
-          >
-            <div
-              className="h-full rounded-full bg-sun"
-              style={{ width: duration ? `${(progress / duration) * 100}%` : '0%' }}
-            />
+        <div className="absolute inset-x-0 bottom-0 px-4 md:px-5 pb-3 md:pb-4 pt-12 bg-gradient-to-t from-navy-900/90 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          {/* Zone de tap élargie autour de la barre de progression */}
+          <div className="py-3 -my-3 cursor-pointer" onClick={seek}>
+            <div className="h-1.5 rounded-full bg-white/20">
+              <div
+                className="h-full rounded-full bg-sun"
+                style={{ width: duration ? `${(progress / duration) * 100}%` : '0%' }}
+              />
+            </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 md:gap-4 mt-2">
             <button
               onClick={togglePlay}
-              className="w-9 h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold"
+              aria-label={isPlaying ? 'Mettre en pause' : 'Lire'}
+              className="w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold shrink-0"
             >
               {isPlaying ? '❚❚' : '▶'}
             </button>
-            <span className="text-white/90 text-xs font-medium">
+            <span className="text-white/90 text-xs font-medium tabular-nums shrink-0">
               {fmt(progress)} / {fmt(duration)}
             </span>
-            <span className="ml-auto text-sage text-xs">
+            <span className="ml-auto text-sage text-xs truncate hidden sm:block">
               Séance {session.session_number} · {session.title}
             </span>
+            <button
+              onClick={() => {
+                const el = containerRef.current;
+                if (!el) return;
+                if (document.fullscreenElement) document.exitFullscreen();
+                else el.requestFullscreen?.();
+              }}
+              aria-label="Plein écran"
+              className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors"
+            >
+              ⛶
+            </button>
           </div>
         </div>
       )}
@@ -249,26 +326,30 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* Overlay question A/B/C/D */}
       {stage === 'question' && activeInteraction && (
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
-          <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-4">
-            À toi de jouer !
-          </p>
-          <h3 className="font-display text-2xl md:text-3xl text-white text-center max-w-2xl mb-8">
-            {activeInteraction.question_text}
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
-            {activeInteraction.answers.map((a) => (
-              <button
-                key={a.key}
-                onClick={() => handleAnswer(a)}
-                className="flex items-center gap-3 p-4 rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20 hover:border-sun text-left transition-all group/answer"
-              >
-                <span className="w-9 h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center font-bold shrink-0">
-                  {a.key}
-                </span>
-                <span className="text-white text-sm md:text-base">{a.label}</span>
-              </button>
-            ))}
+        // Scrollable : sur mobile (conteneur 16:9 ≈ 193px de haut), le contenu
+        // dépasse forcément — sans scroll, des réponses seraient inaccessibles.
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl overflow-y-auto z-10">
+          <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
+            <p className="text-sun text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-4">
+              À toi de jouer !
+            </p>
+            <h3 className="font-display text-base sm:text-2xl md:text-3xl text-white text-center max-w-2xl mb-3 sm:mb-8">
+              {activeInteraction.question_text}
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3 w-full max-w-2xl">
+              {activeInteraction.answers.map((a) => (
+                <button
+                  key={a.key}
+                  onClick={() => handleAnswer(a)}
+                  className="flex items-center gap-3 p-2.5 sm:p-4 min-h-[44px] rounded-2xl bg-white/10 backdrop-blur-md hover:bg-white/20 border border-white/20 hover:border-sun text-left transition-all group/answer"
+                >
+                  <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-sun text-navy-900 flex items-center justify-center font-bold shrink-0">
+                    {a.key}
+                  </span>
+                  <span className="text-white text-sm md:text-base">{a.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -286,44 +367,48 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
 
       {/* RPE en fin de séance */}
       {stage === 'rpe' && (
-        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
-          <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-3">
-            Dernière question
-          </p>
-          <h3 className="font-display text-2xl text-white text-center mb-2">
-            C&apos;était difficile aujourd&apos;hui ?
-          </h3>
-          <p className="text-sage text-sm mb-8">0 = très facile · 10 = très difficile</p>
-          <div className="flex flex-wrap justify-center gap-2 max-w-xl">
-            {Array.from({ length: 11 }).map((_, i) => (
-              <button
-                key={i}
-                onClick={() => handleRpe(i)}
-                className="w-11 h-11 rounded-full bg-navy-800 hover:bg-sun hover:text-navy-900 text-white font-bold transition-colors"
-              >
-                {i}
-              </button>
-            ))}
+        <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl overflow-y-auto z-10">
+          <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
+            <p className="text-sun text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">
+              Dernière question
+            </p>
+            <h3 className="font-display text-lg sm:text-2xl text-white text-center mb-1 sm:mb-2">
+              C&apos;était difficile aujourd&apos;hui ?
+            </h3>
+            <p className="text-sage text-xs sm:text-sm mb-4 sm:mb-8">0 = très facile · 10 = très difficile</p>
+            <div className="flex flex-wrap justify-center gap-2 max-w-xl">
+              {Array.from({ length: 11 }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => handleRpe(i)}
+                  className="w-11 h-11 rounded-full bg-navy-800 hover:bg-sun hover:text-navy-900 text-white font-bold transition-colors"
+                >
+                  {i}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       )}
 
       {/* Écran final */}
       {stage === 'done' && (
-        <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 flex flex-col items-center justify-center p-8 text-center z-10">
-          <span className="w-20 h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-3xl mb-5">
-            ★
-          </span>
-          <h3 className="font-display text-3xl text-white mb-3">Séance terminée, bravo !</h3>
-          <p className="text-navy-100/85 max-w-md mb-2">
-            {session.life_skill
-              ? `Aujourd'hui, vous avez travaillé : ${session.life_skill.toLowerCase()}.`
-              : 'Belle séance parent-enfant.'}
-          </p>
-          <p className="text-sage text-sm max-w-md">
-            Suggestion à la maison : reparlez d&apos;un moment de la séance au souper, et
-            demandez à votre enfant ce qu&apos;il a préféré.
-          </p>
+        <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 overflow-y-auto z-10">
+          <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8 text-center">
+            <span className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl sm:text-3xl mb-3 sm:mb-5">
+              ★
+            </span>
+            <h3 className="font-display text-xl sm:text-3xl text-white mb-2 sm:mb-3">Séance terminée, bravo !</h3>
+            <p className="text-navy-100/85 max-w-md mb-2 text-sm sm:text-base">
+              {session.life_skill
+                ? `Aujourd'hui, vous avez travaillé : ${session.life_skill.toLowerCase()}.`
+                : 'Belle séance parent-enfant.'}
+            </p>
+            <p className="text-sage text-xs sm:text-sm max-w-md">
+              Suggestion à la maison : reparlez d&apos;un moment de la séance au souper, et
+              demandez à votre enfant ce qu&apos;il a préféré.
+            </p>
+          </div>
         </div>
       )}
     </div>

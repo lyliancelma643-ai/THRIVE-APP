@@ -94,7 +94,7 @@ export default function ComptePage() {
             <input
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/30 focus:border-sun/60 focus:outline-none transition-colors"
+              className="w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/15 text-white placeholder-white/30 focus:border-sun/60 focus:outline-none transition-colors"
               placeholder="Prénom"
               autoComplete="given-name"
             />
@@ -104,7 +104,7 @@ export default function ComptePage() {
             <input
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
-              className="w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/12 text-white placeholder-white/30 focus:border-sun/60 focus:outline-none transition-colors"
+              className="w-full h-12 px-4 rounded-xl bg-white/[0.06] border border-white/15 text-white placeholder-white/30 focus:border-sun/60 focus:outline-none transition-colors"
               placeholder="Nom"
               autoComplete="family-name"
             />
@@ -131,7 +131,7 @@ export default function ComptePage() {
         <h2 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-4">
           Compte
         </h2>
-        <dl className="divide-y divide-white/8 text-sm">
+        <dl className="divide-y divide-white/10 text-sm">
           <div className="flex items-center justify-between py-2.5">
             <dt className="text-white/55">Adresse e-mail</dt>
             <dd className="font-medium text-white truncate ml-4">{user?.email}</dd>
