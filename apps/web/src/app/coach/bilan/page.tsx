@@ -8,7 +8,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/stores/auth.store';
 import { fetchAssignedChildren, childAge, AssignedChild } from '@/lib/coach';
-import { AthleteIdentityEditor } from '@/components/AthleteIdentityEditor';
+import { AthleteWorkspace } from '@/components/coach/AthleteWorkspace';
 
 export default function CoachBilanPage() {
   const { user } = useAuthStore();
@@ -107,10 +107,11 @@ export default function CoachBilanPage() {
                     Synchronisé en direct avec l&apos;espace parent
                   </span>
                 </div>
-                <AthleteIdentityEditor
+                <AthleteWorkspace
                   key={selected.id}
                   childId={selected.id}
                   childName={selected.first_name}
+                  dateOfBirth={selected.date_of_birth}
                 />
               </div>
             ) : (

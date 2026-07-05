@@ -16,7 +16,7 @@ export type CoachSession = {
   child_id: string;
   session_number: number | null;
   title: string | null;
-  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'MISSED';
+  status: 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'MISSED' | 'POSTPONED';
   scheduled_at: string | null;
   completed_at: string | null;
   coach_notes: string | null;

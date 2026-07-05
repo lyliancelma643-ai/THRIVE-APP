@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { fetchAssignedChildren, childAge, AssignedChild, CoachSession } from '@/lib/coach';
+import { IncompleteBanner } from '@/components/coach/IncompleteBanner';
 
 export default function CoachDashboardPage() {
   const { user } = useAuthStore();
@@ -67,6 +68,8 @@ export default function CoachDashboardPage() {
         Bonjour {user?.firstName} 👋
       </h1>
       <p className="text-navy-600/70 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
+
+      <IncompleteBanner href="/coach/dossiers" />
 
       {/* Stats */}
       <div className="grid grid-cols-3 gap-2 md:gap-5 mb-8 md:mb-10">

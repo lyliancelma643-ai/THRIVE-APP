@@ -44,9 +44,11 @@ const EMPTY: Identity = {
 export function AthleteIdentityEditor({
   childId,
   childName,
+  onSaved,
 }: {
   childId: string;
   childName?: string;
+  onSaved?: () => void;
 }) {
   const { user } = useAuthStore();
   const [form, setForm] = useState<Identity>(EMPTY);
@@ -134,6 +136,7 @@ export function AthleteIdentityEditor({
       return;
     }
     setSavedAt(new Date().toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' }));
+    onSaved?.();
   };
 
   if (loading) {
