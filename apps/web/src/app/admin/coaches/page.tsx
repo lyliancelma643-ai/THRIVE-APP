@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Coach {
@@ -75,6 +76,13 @@ export default function AdminCoachesPage() {
   const [togglingId, setTogglingId] = useState<string | null>(null);
   // Erreur des actions de ligne (activer/désactiver), distincte du formulaire.
   const [rowError, setRowError] = useState('');
+
+  // Échap ferme la modale de création (sauf pendant l'enregistrement) —
+  // 3e sortie en plus du clic sur le fond et du bouton ✕.
+  useModalDismiss(
+    () => { if (!saving) { setShowModal(false); setError(''); } },
+    showModal,
+  );
 
   // ── Chargement des coaches ─────────────────────────────────────────────────
   const fetchCoaches = useCallback(async () => {
@@ -395,7 +403,7 @@ export default function AdminCoachesPage() {
               </div>
               <button
                 onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
-                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl transition-colors"
+                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl transition-colors"
                 aria-label="Fermer"
               >
                 ×

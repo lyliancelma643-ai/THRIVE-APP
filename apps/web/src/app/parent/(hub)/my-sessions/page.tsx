@@ -6,6 +6,7 @@ import { useChildStore } from '@/stores/child.store';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
 import { type Pack, asPack, canSeePremium, upgradeHint } from '@/lib/packs';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 type OneToOneSession = {
   id: string;
@@ -561,6 +562,9 @@ function BilanPanel({
   fallbackTitle: string | null;
   onClose: () => void;
 }) {
+  // Panneau (non plein écran) : Échap le referme, en plus du bouton ✕ et du
+  // re-clic sur la séance. Pas de verrou de scroll (le reste reste utilisable).
+  useModalDismiss(onClose, true, false);
   return (
     <div className="glass-navy rounded-2xl ring-1 ring-sage/40 max-h-[calc(100dvh-8rem)] overflow-y-auto">
       <div className="sticky top-0 z-10 flex items-start gap-3 p-6 pb-4 bg-navy-900/70 backdrop-blur-md border-b border-white/10">

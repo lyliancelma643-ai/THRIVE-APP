@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { AthleteIdentityEditor } from '@/components/AthleteIdentityEditor';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Child {
@@ -44,6 +45,14 @@ export default function AdminChildrenPage() {
   const [deleting, setDeleting]     = useState(false);
   const [deleteError, setDeleteError] = useState('');
   const [notice, setNotice]         = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+
+  // Échap ferme chaque modale (confirmation de suppression bloquée pendant la
+  // suppression) — 3e sortie en plus du fond cliquable et du bouton ✕/Annuler.
+  useModalDismiss(
+    () => { if (!deleting) setConfirmChild(null); },
+    !!confirmChild,
+  );
+  useModalDismiss(() => setIdentityChild(null), !!identityChild);
 
   const fetchChildren = useCallback(async () => {
     setIsLoading(true);
@@ -376,7 +385,7 @@ export default function AdminChildrenPage() {
               <button
                 onClick={() => setIdentityChild(null)}
                 aria-label="Fermer"
-                className="w-9 h-9 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer"
+                className="w-11 h-11 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
               >
                 ✕
               </button>

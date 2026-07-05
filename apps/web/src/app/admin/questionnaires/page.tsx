@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 interface Question {
   id: string;
@@ -23,6 +24,10 @@ export default function AdminQuestionnairesPage() {
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selected, setSelected] = useState<Questionnaire | null>(null);
+
+  // Échap referme le panneau détail (sur mobile il occupe l'écran) — 3e sortie
+  // en plus du bouton ✕ et, sur mobile, du retour à la liste.
+  useModalDismiss(() => setSelected(null), !!selected, false);
 
   useEffect(() => {
     supabase
@@ -127,13 +132,21 @@ export default function AdminQuestionnairesPage() {
             <div className="absolute top-0 right-0 w-32 h-32 bg-navy-100 rounded-full blur-3xl -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
             
             <div className="relative z-10">
+              {/* Retour à la liste — visible sur mobile où la liste est masquée */}
+              <button
+                onClick={() => setSelected(null)}
+                className="lg:hidden inline-flex items-center gap-1.5 mb-4 min-h-[44px] pr-3 text-sm font-semibold text-slate-500 hover:text-navy-700 transition-colors"
+              >
+                ← Retour à la liste
+              </button>
               <div className="flex justify-between items-start mb-6">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-700 flex items-center justify-center text-white text-2xl shadow-lg shadow-navy-500/30 mb-4">
                   📝
                 </div>
-                <button 
-                  onClick={() => setSelected(null)} 
-                  className="w-8 h-8 rounded-full bg-slate-100 text-slate-400 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"
+                <button
+                  onClick={() => setSelected(null)}
+                  aria-label="Fermer"
+                  className="w-11 h-11 rounded-full bg-slate-100 text-slate-400 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>

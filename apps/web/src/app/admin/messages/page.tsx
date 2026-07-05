@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 interface Profile {
   id: string;
@@ -37,6 +38,10 @@ export default function AdminMessagesPage() {
   const [msgLoading, setMsgLoading] = useState(false);
   const [search, setSearch] = useState('');
   const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Échap referme le fil ouvert (sur mobile il occupe l'écran) — 3e sortie en
+  // plus du bouton retour ← et du choix d'une autre conversation.
+  useModalDismiss(() => setSelected(null), !!selected, false);
 
   useEffect(() => {
     fetchConversations();

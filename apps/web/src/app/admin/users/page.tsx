@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
+import { useModalDismiss } from '@/lib/useModalDismiss';
 
 type Role = 'SUPER_ADMIN' | 'ADMIN' | 'COACH' | 'PARENT' | 'CHILD';
 
@@ -646,15 +647,29 @@ function Modal({
   onClose: () => void;
   children: React.ReactNode;
 }) {
+  // Sorties : clic sur le fond, bouton ✕, touche Échap (+ verrou du scroll)
+  useModalDismiss(onClose);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
       <div
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-bold">{title}</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-700 text-xl">×</button>
+          <button
+            onClick={onClose}
+            aria-label="Fermer"
+            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xl transition-colors"
+          >
+            ×
+          </button>
         </div>
         {children}
       </div>
