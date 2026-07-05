@@ -137,7 +137,25 @@ export default function LsssQuestionnairePage() {
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>
             {done || state.completed ? 'C’est fait' : 'Oups'}
           </h1>
-          <p style={{ opacity: 0.7, lineHeight: 1.5 }}>{msg}</p>
+          <p style={{ opacity: 0.7, lineHeight: 1.5, marginBottom: 28 }}>{msg}</p>
+          <a
+            href="/"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 52,
+              padding: '0 28px',
+              borderRadius: 16,
+              background: '#F9EB50',
+              color: '#06222a',
+              fontWeight: 700,
+              fontSize: 16,
+              textDecoration: 'none',
+            }}
+          >
+            Retour à l’accueil
+          </a>
         </div>
       </Shell>
     );
