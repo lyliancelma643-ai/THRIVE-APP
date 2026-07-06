@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuthStore, logout } from '@/stores/auth.store';
+import { getMfaStatus } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type NavItem = { href: string; label: string; icon: string; superAdminOnly?: boolean };
@@ -23,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/messages', label: 'Messages', icon: '💬' },
   { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
   { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
+  { href: '/settings/security', label: 'Sécurité', icon: '🔒' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -39,6 +41,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       router.push('/dashboard');
     }
   }, [isLoading, isAuthenticated, user, router]);
+
+  // Enforcement MFA sur la zone admin : si l'utilisateur a un facteur TOTP
+  // enrôlé mais une session encore en aal1, on exige le step-up avant l'accès.
+  // DORMANT tant qu'aucun facteur n'est enrôlé (needsStepUp reste false) →
+  // aucun risque de verrouiller les comptes actuels.
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return;
+    if (!user?.role || !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) return;
+    let cancelled = false;
+    getMfaStatus().then((s) => {
+      if (!cancelled && s.needsStepUp) {
+        router.replace('/mfa-verify?next=' + encodeURIComponent(pathname));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [isLoading, isAuthenticated, user, pathname, router]);
 
   if (isLoading || !user) {
     return (
