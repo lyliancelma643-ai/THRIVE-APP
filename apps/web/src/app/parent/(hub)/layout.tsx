@@ -106,7 +106,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 href={tab.href}
                 aria-current={active === i ? 'page' : undefined}
                 className={`flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
-                  active === i ? 'text-sun' : 'text-white/55 hover:text-white'
+                  active === i ? 'text-sun' : 'text-white/75 hover:text-white'
                 }`}
               >
                 <span className="text-lg leading-none">{tab.icon}</span>

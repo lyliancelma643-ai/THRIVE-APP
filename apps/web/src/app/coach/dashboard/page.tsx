@@ -45,15 +45,22 @@ export default function CoachDashboardPage() {
     load();
   }, [load]);
 
-  // Realtime : une assignation faite par l'admin apparaît en direct chez le coach
+  // Realtime : une assignation faite par l'admin apparaît en direct chez le coach.
+  // Refetch débouncé (400 ms) pour absorber les rafales d'événements.
   useEffect(() => {
     if (!user?.id) return;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { load(); }, 400);
+    };
     const channel = supabase
       .channel(`coach-dashboard-${user.id}`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'coach_assignments' }, () => load())
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, () => load())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'coach_assignments' }, schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, schedule)
       .subscribe();
     return () => {
+      if (timer) clearTimeout(timer);
       supabase.removeChannel(channel);
     };
   }, [user?.id, load]);
@@ -71,11 +78,19 @@ export default function CoachDashboardPage() {
 
       <IncompleteBanner href="/coach/dossiers" />
 
-      {/* Stats */}
+      {/* Stats — skeleton tant que le chargement n'a pas fini (évite le flash de zéros) */}
       <div className="grid grid-cols-3 gap-2 md:gap-5 mb-8 md:mb-10">
-        <StatCard value={children.length} label="Athlètes assignés" accent="bg-sun" />
-        <StatCard value={today.length} label="Séances aujourd'hui" accent="bg-sage" />
-        <StatCard value={upcoming.length} label="Séances à venir" accent="bg-navy-100" />
+        {loading ? (
+          Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 md:h-24 rounded-2xl bg-navy-100/60 animate-pulse" aria-hidden />
+          ))
+        ) : (
+          <>
+            <StatCard value={children.length} label="Athlètes assignés" accent="bg-sun" />
+            <StatCard value={today.length} label="Séances aujourd'hui" accent="bg-sage" />
+            <StatCard value={upcoming.length} label="Séances à venir" accent="bg-navy-100" />
+          </>
+        )}
       </div>
 
       {/* Prochaines séances */}

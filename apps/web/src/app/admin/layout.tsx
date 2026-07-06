@@ -6,25 +6,26 @@ import { useEffect } from 'react';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { getMfaStatus } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import { Icon, type IconName } from '@/components/ui';
 
-type NavItem = { href: string; label: string; icon: string; superAdminOnly?: boolean };
+type NavItem = { href: string; label: string; icon: IconName; superAdminOnly?: boolean };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/admin', label: 'Dashboard', icon: '📊' },
-  { href: '/admin/dossiers', label: 'Dossiers', icon: '🗂️' },
-  { href: '/admin/supervision', label: 'Supervision', icon: '🧭', superAdminOnly: true },
-  { href: '/admin/users', label: 'Comptes', icon: '👤' },
-  { href: '/admin/coaches', label: 'Coaches', icon: '🎯' },
-  { href: '/admin/families', label: 'Familles', icon: '👨‍👩‍👧‍👦' },
-  { href: '/admin/children', label: 'Enfants', icon: '🧒' },
-  { href: '/admin/assignments', label: 'Assignations', icon: '🤝' },
-  { href: '/admin/programs', label: 'Programmes', icon: '🏆' },
-  { href: '/admin/questionnaires', label: 'Questionnaires', icon: '📝' },
-  { href: '/admin/badges', label: 'Badges', icon: '🏅' },
-  { href: '/admin/messages', label: 'Messages', icon: '💬' },
-  { href: '/admin/notifications', label: 'Notifications', icon: '🔔' },
-  { href: '/admin/analytics', label: 'Analytics', icon: '📈' },
-  { href: '/settings/security', label: 'Sécurité', icon: '🔒' },
+  { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
+  { href: '/admin/dossiers', label: 'Dossiers', icon: 'folder' },
+  { href: '/admin/supervision', label: 'Supervision', icon: 'compass', superAdminOnly: true },
+  { href: '/admin/users', label: 'Comptes', icon: 'user' },
+  { href: '/admin/coaches', label: 'Coaches', icon: 'target' },
+  { href: '/admin/families', label: 'Familles', icon: 'users' },
+  { href: '/admin/children', label: 'Enfants', icon: 'child' },
+  { href: '/admin/assignments', label: 'Assignations', icon: 'link' },
+  { href: '/admin/programs', label: 'Programmes', icon: 'trophy' },
+  { href: '/admin/questionnaires', label: 'Questionnaires', icon: 'clipboard' },
+  { href: '/admin/badges', label: 'Badges', icon: 'award' },
+  { href: '/admin/messages', label: 'Messages', icon: 'message' },
+  { href: '/admin/notifications', label: 'Notifications', icon: 'bell' },
+  { href: '/admin/analytics', label: 'Analytics', icon: 'chart' },
+  { href: '/settings/security', label: 'Sécurité', icon: 'lock' },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -96,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   isActive ? 'bg-white text-navy-900 font-semibold' : 'text-navy-100/80 bg-navy-800'
                 }`}
               >
-                <span>{item.icon}</span>
+                <Icon name={item.icon} className="w-4 h-4 shrink-0" />
                 {item.label}
               </Link>
             );
@@ -123,7 +124,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     : 'text-navy-100/70 hover:bg-navy-800 hover:text-white'
                 }`}
               >
-                <span className="text-lg">{item.icon}</span>
+                <Icon name={item.icon} className="w-5 h-5 shrink-0" />
                 <span>{item.label}</span>
               </Link>
             );

@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import Link from 'next/link';
 import { IncompleteBanner } from '@/components/coach/IncompleteBanner';
+import { Badge, Icon, type IconName } from '@/components/ui';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface Stats {
@@ -26,18 +27,28 @@ interface Stats {
   }[];
 }
 
-const ROLE_STYLE: Record<string, string> = {
-  PARENT:      'bg-navy-100 text-navy-700',
-  COACH:       'bg-purple-100 text-purple-700',
-  ADMIN:       'bg-rose-100 text-rose-700',
-  SUPER_ADMIN: 'bg-slate-800 text-white',
+type BadgeTone = 'navy' | 'sage' | 'sun' | 'success' | 'warning' | 'danger' | 'neutral';
+
+const ROLE_TONE: Record<string, BadgeTone> = {
+  PARENT:      'navy',
+  COACH:       'sage',
+  ADMIN:       'danger',
+  SUPER_ADMIN: 'sun',
 };
 
-const STATUS_STYLE: Record<string, string> = {
-  pending:  'bg-yellow-100 text-yellow-700',
-  approved: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
+const STATUS_TONE: Record<string, BadgeTone> = {
+  pending:  'warning',
+  approved: 'success',
+  rejected: 'danger',
 };
+
+// Compte les lignes sans les rapatrier (head:true) — scalable à des milliers de séances.
+async function countRows(table: string, filters: Record<string, unknown> = {}): Promise<number> {
+  let q = supabase.from(table).select('id', { count: 'exact', head: true });
+  for (const [col, val] of Object.entries(filters)) q = q.eq(col, val);
+  const { count } = await q;
+  return count ?? 0;
+}
 
 // ── Composant ─────────────────────────────────────────────────────────────────────
 export default function AdminDashboardPage() {
@@ -46,26 +57,24 @@ export default function AdminDashboardPage() {
 
   const fetchStats = useCallback(async () => {
     const [
-      parentsRes,
-      familiesRes,
-      childrenRes,
-      coachesRes,
-      programsRes,
-      sessionsRes,
+      totalParents,
+      totalFamilies,
+      totalChildren,
+      totalCoaches,
+      totalPrograms,
+      activePrograms,
+      totalSessions,
+      completedSessions,
       recentRes,
     ] = await Promise.all([
-      // Tous les comptes PARENT (qu'ils aient ou non une famille)
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'PARENT'),
-      // Familles créées
-      supabase.from('families').select('id', { count: 'exact', head: true }),
-      // Enfants actifs
-      supabase.from('children').select('id', { count: 'exact', head: true }).eq('is_active', true),
-      // Coaches
-      supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('role', 'COACH'),
-      // Programmes
-      supabase.from('programs').select('id, status'),
-      // Séances
-      supabase.from('sessions').select('id, status'),
+      countRows('profiles', { role: 'PARENT' }),
+      countRows('families'),
+      countRows('children', { is_active: true }),
+      countRows('profiles', { role: 'COACH' }),
+      countRows('programs'),
+      countRows('programs', { status: 'ACTIVE' }),
+      countRows('sessions'),
+      countRows('sessions', { status: 'COMPLETED' }),
       // Inscriptions récentes (tous rôles, 8 derniers)
       supabase
         .from('profiles')
@@ -75,42 +84,48 @@ export default function AdminDashboardPage() {
     ]);
 
     setStats({
-      totalParents:      parentsRes.count    ?? 0,
-      totalFamilies:     familiesRes.count   ?? 0,
-      totalChildren:     childrenRes.count   ?? 0,
-      totalCoaches:      coachesRes.count    ?? 0,
-      totalPrograms:     programsRes.data?.length ?? 0,
-      activePrograms:    (programsRes.data ?? []).filter((p) => p.status === 'ACTIVE').length,
-      totalSessions:     sessionsRes.data?.length ?? 0,
-      completedSessions: (sessionsRes.data ?? []).filter((s) => s.status === 'COMPLETED').length,
-      recentSignups:     recentRes.data ?? [],
+      totalParents,
+      totalFamilies,
+      totalChildren,
+      totalCoaches,
+      totalPrograms,
+      activePrograms,
+      totalSessions,
+      completedSessions,
+      recentSignups: recentRes.data ?? [],
     });
     setIsLoading(false);
   }, []);
 
   useEffect(() => { fetchStats(); }, [fetchStats]);
 
-  // Realtime — toutes les tables clés
+  // Realtime — toutes les tables clés. Un refetch débouncé (400 ms) évite la
+  // rafale de requêtes quand plusieurs lignes changent d'un coup (import, batch).
   useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => { fetchStats(); }, 400);
+    };
     const ch = supabase
       .channel('admin-dashboard-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' },  fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' },  fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' },  fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' },  fetchStats)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' },  fetchStats)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' },  schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'families' },  schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'children' },  schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'programs' },  schedule)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' },  schedule)
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => { if (timer) clearTimeout(timer); supabase.removeChannel(ch); };
   }, [fetchStats]);
 
   // Skeleton pendant le chargement
   if (isLoading) return (
     <div className="max-w-7xl mx-auto animate-pulse">
-      <div className="h-10 bg-gray-100 rounded-2xl w-48 mb-3" />
-      <div className="h-5  bg-gray-100 rounded-xl  w-72 mb-10" />
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="h-10 bg-navy-100/60 rounded-2xl w-48 mb-3" />
+      <div className="h-5  bg-navy-100/60 rounded-xl  w-72 mb-10" />
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
         {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="bg-white rounded-[24px] p-6 h-36 shadow-sm border border-slate-100" />
+          <div key={i} className="bg-white rounded-2xl p-6 h-36 shadow-card" />
         ))}
       </div>
     </div>
@@ -122,130 +137,118 @@ export default function AdminDashboardPage() {
     ? Math.round((stats.completedSessions / stats.totalSessions) * 100)
     : 0;
 
-  const STAT_CARDS = [
-    { label: 'Parents inscrits',  value: stats.totalParents,    icon: '👨‍👩‍👧‍👦', href: '/admin/families', gradient: 'from-navy-500 to-navy-700',      shadow: 'shadow-navy-500/20'    },
-    { label: 'Familles créées',  value: stats.totalFamilies,   icon: '🏠',           href: '/admin/families', gradient: 'from-indigo-500 to-blue-500',   shadow: 'shadow-indigo-500/20'  },
-    { label: 'Enfants actifs',    value: stats.totalChildren,   icon: '🧒',           href: '/admin/children', gradient: 'from-emerald-500 to-teal-500', shadow: 'shadow-emerald-500/20' },
-    { label: 'Coaches',           value: stats.totalCoaches,    icon: '🎯',           href: '/admin/coaches',  gradient: 'from-purple-500 to-fuchsia-500',shadow: 'shadow-purple-500/20'  },
-    { label: 'Programmes',        value: stats.totalPrograms,   icon: '🏆',           href: '/admin/programs', gradient: 'from-amber-500 to-orange-500',  shadow: 'shadow-amber-500/20'   },
-    { label: 'Programmes actifs', value: stats.activePrograms,  icon: '▶️',           href: '/admin/programs', gradient: 'from-rose-500 to-pink-500',    shadow: 'shadow-rose-500/20'    },
-    { label: 'Séances totales',  value: stats.totalSessions,   icon: '📅',           href: '#',               gradient: 'from-slate-600 to-slate-800',  shadow: 'shadow-slate-500/20'   },
-    { label: 'Taux completion',   value: `${completionRate}%`,  icon: '📊',           href: '/admin/analytics',gradient: 'from-lime-500 to-green-600',   shadow: 'shadow-lime-500/20'    },
+  const STAT_CARDS: { label: string; value: number | string; icon: IconName; href: string; accent: string }[] = [
+    { label: 'Parents inscrits',  value: stats.totalParents,   icon: 'user',      href: '/admin/families', accent: 'bg-navy-600 text-white'  },
+    { label: 'Familles créées',   value: stats.totalFamilies,  icon: 'users',     href: '/admin/families', accent: 'bg-sage text-navy-900'   },
+    { label: 'Enfants actifs',    value: stats.totalChildren,  icon: 'child',     href: '/admin/children', accent: 'bg-sun text-navy-900'    },
+    { label: 'Coaches',           value: stats.totalCoaches,   icon: 'target',    href: '/admin/coaches',  accent: 'bg-navy-100 text-navy-700' },
+    { label: 'Programmes',        value: stats.totalPrograms,  icon: 'trophy',    href: '/admin/programs', accent: 'bg-navy-600 text-white'  },
+    { label: 'Programmes actifs', value: stats.activePrograms, icon: 'check',     href: '/admin/programs', accent: 'bg-sage text-navy-900'   },
+    { label: 'Séances totales',   value: stats.totalSessions,  icon: 'clipboard', href: '/admin/analytics', accent: 'bg-navy-100 text-navy-700' },
+    { label: 'Taux complétion',   value: `${completionRate}%`, icon: 'chart',     href: '/admin/analytics', accent: 'bg-sun text-navy-900'    },
   ];
 
   return (
     <div className="max-w-7xl mx-auto">
 
       {/* En-tête */}
-      <div className="mb-10 flex items-center justify-between">
+      <div className="mb-10 flex items-start justify-between gap-4">
         <div>
-          <h1 className="text-4xl font-extrabold text-slate-900 tracking-tight mb-2">Dashboard</h1>
-          <p className="text-slate-500 font-medium">Vue globale de la plateforme THRIVE — mise à jour en temps réel</p>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold text-navy-900 tracking-tight mb-2">Dashboard</h1>
+          <p className="text-navy-600/70 font-medium">Vue globale de la plateforme THRIVE — mise à jour en temps réel</p>
         </div>
         {/* Indicateur Realtime */}
-        <div className="flex items-center gap-2 text-sm text-green-600 font-medium bg-green-50 px-4 py-2 rounded-full">
-          <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-          Temps réel
+        <div className="flex items-center gap-2 text-sm text-navy-700 font-semibold bg-sage-light px-4 py-2 rounded-full shrink-0">
+          <span className="w-2 h-2 rounded-full bg-sage-dark animate-pulse" />
+          <span className="hidden sm:inline">Temps réel</span>
         </div>
       </div>
 
       <IncompleteBanner href="/admin/dossiers" />
 
       {/* Grille KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-12">
         {STAT_CARDS.map((card) => (
           <Link key={card.label} href={card.href} className="group outline-none">
-            <div className={`relative overflow-hidden bg-white rounded-[24px] p-6 shadow-sm border border-slate-100 hover:border-transparent transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${card.shadow}`}>
-              <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
-              <div className="flex justify-between items-start mb-4">
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${card.gradient} flex items-center justify-center text-2xl shadow-lg ${card.shadow} transform group-hover:scale-110 transition-transform duration-300`}>
-                  {card.icon}
-                </div>
+            <div className="bg-white rounded-2xl p-5 md:p-6 shadow-card hover:shadow-card-hover transition-all duration-300 hover:-translate-y-1">
+              <div className={`w-12 h-12 rounded-2xl ${card.accent} flex items-center justify-center mb-4 transform group-hover:scale-105 transition-transform duration-300`}>
+                <Icon name={card.icon} className="w-6 h-6" />
               </div>
-              <p className="text-4xl font-black text-slate-900 tracking-tight mb-1">{card.value}</p>
-              <p className="text-slate-500 font-medium text-sm">{card.label}</p>
+              <p className="font-display text-3xl md:text-4xl font-semibold text-navy-900 tracking-tight mb-1">{card.value}</p>
+              <p className="text-navy-600/70 font-medium text-sm">{card.label}</p>
             </div>
           </Link>
         ))}
       </div>
 
       {/* Inscriptions récentes */}
-      <div className="bg-white rounded-[24px] p-8 shadow-sm border border-slate-100 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-navy-50 rounded-full blur-3xl -mr-32 -mt-32 opacity-60" />
-        <div className="relative z-10">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-slate-900">Inscriptions récentes</h2>
-            <Link href="/admin/families" className="text-sm text-navy-600 hover:underline font-medium">
-              Voir tous →
-            </Link>
-          </div>
-
-          {stats.recentSignups.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-4xl mb-3">👋</p>
-              <p className="text-slate-400 font-medium">Aucune inscription pour le moment.</p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-left text-slate-400 text-xs font-semibold uppercase tracking-wider border-b border-slate-100">
-                    <th className="pb-4 px-4">Utilisateur</th>
-                    <th className="pb-4 px-4">Rôle</th>
-                    <th className="pb-4 px-4">Statut</th>
-                    <th className="pb-4 px-4 text-right">Inscription</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {stats.recentSignups.map((user) => (
-                    <tr key={user.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors">
-                      {/* Avatar + nom */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm shrink-0">
-                            {(user.first_name?.[0] ?? user.email[0]).toUpperCase()}
-                          </div>
-                          <div>
-                            <p className="text-sm font-semibold text-slate-900">
-                              {user.first_name && user.last_name
-                                ? `${user.first_name} ${user.last_name}`
-                                : user.email}
-                            </p>
-                            {user.first_name && (
-                              <p className="text-xs text-slate-400">{user.email}</p>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      {/* Rôle */}
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${
-                          ROLE_STYLE[user.role] ?? 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {user.role}
-                        </span>
-                      </td>
-                      {/* Statut */}
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          STATUS_STYLE[user.registration_status ?? ''] ?? 'bg-gray-100 text-gray-500'
-                        }`}>
-                          {user.registration_status ?? '—'}
-                        </span>
-                      </td>
-                      {/* Date */}
-                      <td className="py-4 px-4 text-right text-slate-500 text-sm font-medium">
-                        {new Date(user.created_at).toLocaleDateString('fr-FR', {
-                          day: 'numeric', month: 'long', year: 'numeric',
-                        })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+      <div className="bg-white rounded-2xl p-6 md:p-8 shadow-card">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-display text-2xl font-semibold text-navy-900">Inscriptions récentes</h2>
+          <Link href="/admin/families" className="text-sm text-navy-600 hover:text-navy-900 font-medium">
+            Voir tous →
+          </Link>
         </div>
+
+        {stats.recentSignups.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-navy-600/50 font-medium">Aucune inscription pour le moment.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <caption className="sr-only">Dernières inscriptions à la plateforme</caption>
+              <thead>
+                <tr className="text-left text-navy-500 text-xs font-semibold uppercase tracking-wider border-b border-navy-100">
+                  <th scope="col" className="pb-4 px-4">Utilisateur</th>
+                  <th scope="col" className="pb-4 px-4">Rôle</th>
+                  <th scope="col" className="pb-4 px-4">Statut</th>
+                  <th scope="col" className="pb-4 px-4 text-right">Inscription</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.recentSignups.map((user) => (
+                  <tr key={user.id} className="border-b border-navy-50 last:border-0 hover:bg-navy-50/50 transition-colors">
+                    {/* Avatar + nom */}
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-navy-600 flex items-center justify-center text-white font-bold text-sm shrink-0">
+                          {(user.first_name?.[0] ?? user.email[0]).toUpperCase()}
+                        </div>
+                        <div>
+                          <p className="text-sm font-semibold text-navy-900">
+                            {user.first_name && user.last_name
+                              ? `${user.first_name} ${user.last_name}`
+                              : user.email}
+                          </p>
+                          {user.first_name && (
+                            <p className="text-xs text-navy-500">{user.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    {/* Rôle */}
+                    <td className="py-4 px-4">
+                      <Badge tone={ROLE_TONE[user.role] ?? 'neutral'}>{user.role}</Badge>
+                    </td>
+                    {/* Statut */}
+                    <td className="py-4 px-4">
+                      <Badge tone={STATUS_TONE[user.registration_status ?? ''] ?? 'neutral'}>
+                        {user.registration_status ?? '—'}
+                      </Badge>
+                    </td>
+                    {/* Date */}
+                    <td className="py-4 px-4 text-right text-navy-500 text-sm font-medium">
+                      {new Date(user.created_at).toLocaleDateString('fr-CA', {
+                        day: 'numeric', month: 'long', year: 'numeric',
+                      })}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );

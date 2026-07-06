@@ -48,10 +48,14 @@
   button:not(:disabled):active {
     transform: scale(0.98);
   }
-  /* Navigation clavier : anneau visible uniquement au focus clavier */
+  /* Navigation clavier : anneau visible uniquement au focus clavier.
+     Bi-ton (jaune + halo marine) pour rester visible sur fond sombre (parent)
+     ET clair (login/coach/admin) — WCAG 2.2 SC 2.4.13 (Focus Appearance) :
+     le jaune seul sur du blanc/crème était trop peu contrasté. */
   :focus-visible {
-    outline: 2px solid rgba(249, 235, 80, 0.75);
+    outline: 2px solid #f9eb50;
     outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(2, 37, 57, 0.55);
   }
   /* iOS zoome automatiquement sur les champs < 16px : on force 16px sur mobile */
   @media (max-width: 768px) {

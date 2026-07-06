@@ -12,6 +12,16 @@ type ChildRow = { firstName: string; age: string; sport: string };
 
 const EMPTY_CHILD: ChildRow = { firstName: '', age: '', sport: '' };
 
+// Traduit les messages d'erreur techniques de Supabase en messages lisibles.
+function humanAuthError(msg: string): string {
+  if (/already|exist|registered/i.test(msg)) return 'Un compte existe déjà avec cet email.';
+  if (/invalid.*email|email.*invalid/i.test(msg)) return "L'adresse email n'est pas valide.";
+  if (/rate|too many/i.test(msg)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
+  if (/password/i.test(msg) && /weak|short|least|6|8/i.test(msg))
+    return 'Mot de passe trop faible (min. 8 caractères).';
+  return msg;
+}
+
 const SPORT_OPTIONS = [
   'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
   'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
@@ -101,7 +111,8 @@ export default function LoginPage() {
       const mfa = await getMfaStatus();
       router.push(mfa.needsStepUp ? '/mfa-verify?next=/dashboard' : '/dashboard');
     } catch (err: any) {
-      setError(err.message ?? 'Connexion impossible');
+      const msg = err?.message ?? 'Connexion impossible';
+      setError(/invalid login|credentials/i.test(msg) ? 'Email ou mot de passe incorrect.' : humanAuthError(msg));
     }
   };
 
@@ -117,33 +128,53 @@ export default function LoginPage() {
       return;
     }
     const children = childRows.filter((c) => c.firstName.trim() && c.age);
+    // L'app cible les 8-17 ans : on rejette tôt tout âge hors tranche (le
+    // libellé le promet, la validation doit l'appliquer).
+    const badAge = children.find((c) => {
+      const n = Number(c.age);
+      return !Number.isInteger(n) || n < 8 || n > 17;
+    });
+    if (badAge) {
+      setError(
+        `L'âge de ${badAge.firstName.trim() || "l'enfant"} doit être compris entre 8 et 17 ans.`
+      );
+      return;
+    }
     setError('');
     setSubmitting(true);
+
+    // ── Étape critique : compte parent + connexion. Un échec ici est bloquant. ──
+    let userId: string;
     try {
-      // 1. Compte parent (toujours PARENT, confirmé automatiquement côté Supabase)
       const { error: upErr } = await supabase.auth.signUp({
         email: mail.trim(),
         password: pwd,
         options: {
-          data: {
-            firstName: firstName.trim(),
-            lastName: lastName.trim(),
-            role: 'PARENT',
-          },
+          data: { firstName: firstName.trim(), lastName: lastName.trim(), role: 'PARENT' },
         },
       });
       if (upErr) throw upErr;
 
-      // 2. Connexion immédiate (le trigger DB a déjà confirmé l'email)
+      // Connexion immédiate (le trigger DB a déjà confirmé l'email)
       await signIn(mail.trim(), pwd);
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Connexion impossible après inscription');
+      userId = user.id;
+    } catch (err: any) {
+      setError(humanAuthError(err?.message ?? 'Inscription impossible'));
+      setSubmitting(false);
+      return;
+    }
 
-      // 3. Famille + enfants déclarés à l'inscription
+    // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
+    // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
+    // le parent dans l'app plutôt que de le coincer dans un cul-de-sac « compte
+    // existe déjà » au retry. Il ajoutera ses enfants via « + Ajouter un enfant ».
+    try {
       if (children.length > 0) {
         const { data: family, error: famErr } = await supabase
           .from('families')
-          .insert({ name: `Famille ${lastName.trim()}`, parent_id: user.id })
+          .insert({ name: `Famille ${lastName.trim()}`, parent_id: userId })
           .select('id')
           .single();
         if (famErr) throw famErr;
@@ -162,12 +193,11 @@ export default function LoginPage() {
         const { error: childErr } = await supabase.from('children').insert(rows);
         if (childErr) throw childErr;
       }
-
       router.push('/parent');
-    } catch (err: any) {
-      const msg = err?.message ?? 'Inscription impossible';
-      setError(/already|exist/i.test(msg) ? 'Un compte existe déjà avec cet email.' : msg);
-      setSubmitting(false);
+    } catch {
+      // Compte créé + session active : on entre dans l'app (les enfants pourront
+      // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
+      router.push('/parent?setup=children');
     }
   };
 
@@ -399,7 +429,7 @@ export default function LoginPage() {
                       />
                       <div className="flex gap-2">
                         <input
-                          type="number" min={4} max={17} placeholder="Âge"
+                          type="number" min={8} max={17} placeholder="Âge (8-17)"
                           inputMode="numeric"
                           className="input-auth w-24"
                           value={c.age}

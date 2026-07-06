@@ -204,7 +204,7 @@ export default function FitnessPage() {
         <h2 className="font-display text-3xl font-semibold text-white mb-2">
           Toutes les séances
         </h2>
-        <p className="text-white/55 mb-8">
+        <p className="text-white/75 mb-8">
           13 séances de 20 minutes par tranche d&apos;âge, à vivre parent et enfant.
         </p>
 
@@ -267,7 +267,7 @@ function FilterGroup({
 }) {
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <span className="text-xs font-bold uppercase tracking-wide text-white/45 shrink-0">{label}</span>
+      <span className="text-xs font-bold uppercase tracking-wide text-white/70 shrink-0">{label}</span>
       <div className="flex gap-1 p-1 rounded-full glass-navy overflow-x-auto scrollbar-hide overscroll-x-contain">
         {options.map((opt) => (
           <button
@@ -277,7 +277,7 @@ function FilterGroup({
             className={`px-4 py-2.5 min-h-[44px] rounded-full text-[13px] font-medium whitespace-nowrap shrink-0 transition-colors select-none ${
               value === opt.value
                 ? 'bg-sun text-navy-900 font-semibold'
-                : 'text-white/60 hover:bg-white/10 active:bg-white/10'
+                : 'text-white/75 hover:bg-white/10 active:bg-white/10'
             }`}
           >
             {opt.label}
