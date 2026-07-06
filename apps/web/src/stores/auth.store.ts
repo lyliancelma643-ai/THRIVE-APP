@@ -38,10 +38,11 @@ function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthToke
       email: supabaseSession.user.email ?? '',
       firstName: supabaseSession.user.user_metadata?.firstName,
       lastName: supabaseSession.user.user_metadata?.lastName,
-      // Autorité du rôle = app_metadata (non modifiable par l'utilisateur),
-      // repli sur user_metadata pour les sessions pas encore rafraîchies.
-      role: supabaseSession.user.app_metadata?.role
-        ?? supabaseSession.user.user_metadata?.role,
+      // Autorité du rôle = app_metadata UNIQUEMENT (non modifiable par
+      // l'utilisateur). Pas de repli sur user_metadata.role : ce champ est
+      // modifiable via auth.updateUser → un repli usurperait l'UI admin/coach.
+      // Vérifié : les 6 comptes ont app_metadata.role peuplé (aucun lockout).
+      role: supabaseSession.user.app_metadata?.role,
     },
     session: {
       accessToken: supabaseSession.access_token,
