@@ -2,6 +2,16 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+// Fallbacks alignés sur supabase-server.ts : les NEXT_PUBLIC_* peuvent être
+// absents du build (ex. plus de .env.local committé) → sans repli, createClient
+// recevrait undefined et throw ⇒ MIDDLEWARE_INVOCATION_FAILED sur TOUTE route
+// protégée. La clé anon est publique (protégée par la RLS), donc sûre en dur.
+const SUPABASE_URL =
+  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://kkdcgzvdmipmrgkawnky.supabase.co';
+const SUPABASE_ANON_KEY =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtrZGNnenZkbWlwbXJna2F3bmt5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NDMxNzcsImV4cCI6MjA5NzExOTE3N30.fI0EzwqjGpfWvBMhtk2qW8pETcDkWDmpbuRw9RpdAi4';
+
 const PROTECTED_PATHS = ['/dashboard', '/parent', '/coach', '/admin'];
 const ROLE_PATHS: Record<string, string[]> = {
   '/parent': ['PARENT', 'ADMIN', 'SUPER_ADMIN'],
@@ -21,13 +31,17 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  );
+  // Fail-closed : toute erreur (réseau, init client, token illisible) redirige
+  // vers /login au lieu de laisser le middleware crasher (500).
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let userData: Awaited<ReturnType<typeof supabase.auth.getUser>>;
+  try {
+    userData = await supabase.auth.getUser(accessToken);
+  } catch {
+    return NextResponse.redirect(new URL('/login', request.url));
+  }
 
-  const { data, error } = await supabase.auth.getUser(accessToken);
-
+  const { data, error } = userData;
   if (error || !data.user) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
