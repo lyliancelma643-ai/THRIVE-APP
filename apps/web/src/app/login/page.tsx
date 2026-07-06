@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
+import { getMfaStatus } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type Mode = 'signin' | 'signup' | 'forgot';
@@ -95,7 +96,10 @@ export default function LoginPage() {
     try {
       setError('');
       await signIn(email, password);
-      router.push('/dashboard');
+      // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
+      // Sinon (cas de tous les comptes sans MFA), redirection directe : dormant.
+      const mfa = await getMfaStatus();
+      router.push(mfa.needsStepUp ? '/mfa-verify?next=/dashboard' : '/dashboard');
     } catch (err: any) {
       setError(err.message ?? 'Connexion impossible');
     }
