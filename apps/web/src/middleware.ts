@@ -33,14 +33,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // Vérification du rôle selon le path.
-  // Source d'autorité : app_metadata.role (posé par les edge functions via la
-  // clé service, NON modifiable par l'utilisateur). Repli sur user_metadata.role
-  // le temps que les sessions existantes rafraîchissent leur JWT.
+  // Source d'autorité UNIQUE : app_metadata.role (posé par les edge functions
+  // via la clé service, NON modifiable par l'utilisateur).
+  // On NE retombe PAS sur user_metadata.role : ce champ est modifiable par
+  // l'utilisateur lui-même (auth.updateUser) → un repli dessus permettrait une
+  // escalade de privilèges verticale (se déclarer ADMIN pour franchir ce gate).
   const matchedPath = Object.keys(ROLE_PATHS).find((p) => pathname.startsWith(p));
   if (matchedPath) {
-    const userRole = (data.user.app_metadata?.role
-      ?? data.user.user_metadata?.role) as string;
-    if (!ROLE_PATHS[matchedPath].includes(userRole)) {
+    const userRole = data.user.app_metadata?.role as string | undefined;
+    if (!userRole || !ROLE_PATHS[matchedPath].includes(userRole)) {
       return NextResponse.redirect(new URL('/dashboard', request.url));
     }
   }
