@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
+import { useAccessStore } from '@/lib/access';
+import { FitnessConstructionNotice, LockedBanner, GreyedSection } from '@/components/parent/AccessGate';
 import {
   VideoSession,
   AgeGroup,
@@ -18,7 +20,7 @@ import { SessionCard } from '@/components/parent/SessionCard';
 const AGE_GROUPS: AgeGroup[] = ['8-11', '12-14', '15-17'];
 const PHASES: Phase[] = ['ANCRER', 'DEVELOPPER', 'INTEGRER'];
 
-export default function FitnessPage() {
+function FitnessPageInner() {
   const { children, selectedChildId } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
   const childAgeGroup = ageGroupFromBirthDate(selectedChild?.date_of_birth ?? null);
@@ -286,4 +288,32 @@ function FilterGroup({
       </div>
     </div>
   );
+}
+
+
+// ── Garde d'accès : flag serveur fitness_enabled (Super Admin) ───────────────
+// Flag OFF → « en construction » pour TOUS les comptes, quel que soit le statut.
+export default function FitnessPage() {
+  const { access, isLoading, refresh } = useAccessStore();
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  if (isLoading || !access) {
+    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+  }
+  if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
+  if (!access.unlocked) {
+    return (
+      <div className="space-y-8">
+        <LockedBanner />
+        <GreyedSection
+          title="Fitness"
+          subtitle="La bibliothèque de séances vidéo de votre enfant"
+        />
+      </div>
+    );
+  }
+  return <FitnessPageInner />;
 }

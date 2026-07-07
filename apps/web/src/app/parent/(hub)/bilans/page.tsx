@@ -5,6 +5,8 @@ import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
+import { useAccessStore } from '@/lib/access';
+import { BilanLockedPreview } from '@/components/parent/AccessGate';
 import {
   DocMeta,
   EmotionLog,
@@ -1315,7 +1317,7 @@ function BilanSkeleton() {
   );
 }
 
-export default function AthleteIdentityPage() {
+function AthleteIdentityPageInner() {
   const router = useRouter();
   const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
@@ -1558,4 +1560,20 @@ export default function AthleteIdentityPage() {
         )}
     </div>
   );
+}
+
+// ── Garde d'accès : aperçu grisé tant que le compte n'est pas activé ─────────
+// (titres visibles, contenu non cliquable — enforcement réel via RLS)
+export default function BilansPage() {
+  const { access, isLoading, refresh } = useAccessStore();
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  if (isLoading || !access) {
+    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+  }
+  if (!access.unlocked) return <BilanLockedPreview />;
+  return <AthleteIdentityPageInner />;
 }

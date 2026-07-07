@@ -1,10 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { BrandLogo } from '@/components/BrandLogo';
+import { useAccessStore } from '@/lib/access';
 
 // Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Fitness
 const TABS = [
@@ -23,7 +25,24 @@ function activeTabIndex(pathname: string): number {
 
 export default function ParentHubLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const active = activeTabIndex(pathname);
+  const { access, isLoading: accessLoading, refresh } = useAccessStore();
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  // Enfant OBLIGATOIRE : sans fiche enfant, le parcours est bloqué sur la
+  // création (select-profile). L'état est rechargé au retour.
+  useEffect(() => {
+    if (!accessLoading && access && !access.hasChild) {
+      router.replace('/parent/select-profile?required=1');
+    }
+  }, [accessLoading, access, router]);
+
+  // Compte en préparation : onglets visibles mais non cliquables (aperçu).
+  const locked = !accessLoading && access ? !access.unlocked : false;
 
   return (
     <div className="min-h-screen relative bg-gradient-to-b from-[#031b29] via-navy-900 to-[#01121b] text-white">
@@ -100,19 +119,33 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             }}
           />
           <div className="relative grid grid-cols-3 select-none">
-            {TABS.map((tab, i) => (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                aria-current={active === i ? 'page' : undefined}
-                className={`flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
-                  active === i ? 'text-sun' : 'text-white/75 hover:text-white'
-                }`}
-              >
-                <span className="text-lg leading-none">{tab.icon}</span>
-                <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
-              </Link>
-            ))}
+            {TABS.map((tab, i) =>
+              locked && active !== i ? (
+                // Compte en préparation : les autres sections restent visibles
+                // mais non cliquables (aperçu de ce qui attend l'utilisateur)
+                <span
+                  key={tab.href}
+                  aria-disabled
+                  title="Disponible après l'activation par votre coach"
+                  className="flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] text-white/35 cursor-not-allowed"
+                >
+                  <span className="text-lg leading-none">{tab.icon}</span>
+                  <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
+                </span>
+              ) : (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  aria-current={active === i ? 'page' : undefined}
+                  className={`flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
+                    active === i ? 'text-sun' : 'text-white/75 hover:text-white'
+                  }`}
+                >
+                  <span className="text-lg leading-none">{tab.icon}</span>
+                  <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
+                </Link>
+              ),
+            )}
           </div>
         </div>
       </nav>

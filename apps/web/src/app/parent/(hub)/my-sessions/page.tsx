@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
+import { useAccessStore } from '@/lib/access';
+import { SessionsLockedNotice } from '@/components/parent/AccessGate';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
 import { type Pack, asPack, canSeePremium, upgradeHint } from '@/lib/packs';
@@ -41,7 +43,7 @@ function phaseOfSession(n: number | null): Phase {
   return 'INTEGRER';
 }
 
-export default function MySessionsPage() {
+function MySessionsPageInner() {
   const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
@@ -613,4 +615,20 @@ function BilanReaderEmpty() {
       </p>
     </div>
   );
+}
+
+
+// ── Garde d'accès : message d'attente tant que le coach n'a pas validé ───────
+export default function MySessionsPage() {
+  const { access, isLoading, refresh } = useAccessStore();
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  if (isLoading || !access) {
+    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+  }
+  if (!access.unlocked) return <SessionsLockedNotice />;
+  return <MySessionsPageInner />;
 }

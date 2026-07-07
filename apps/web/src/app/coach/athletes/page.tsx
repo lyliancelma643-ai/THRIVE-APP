@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuthStore } from '@/stores/auth.store';
 import { fetchAssignedChildren, childAge, AssignedChild } from '@/lib/coach';
+import { PendingFamiliesPanel } from '@/components/coach/PendingFamiliesPanel';
 
 export default function CoachAthletesPage() {
   const { user } = useAuthStore();
@@ -24,6 +25,8 @@ export default function CoachAthletesPage() {
       <p className="text-navy-600/70 mb-8">
         Les enfants que l&apos;administrateur vous a confiés.
       </p>
+
+      {user?.id && <PendingFamiliesPanel coachId={user.id} />}
 
       {loading ? (
         <div className="space-y-3">

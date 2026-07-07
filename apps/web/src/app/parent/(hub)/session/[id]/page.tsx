@@ -13,8 +13,11 @@ import {
   themeAccent,
 } from '@/lib/catalog';
 import { InteractivePlayer } from '@/components/player/InteractivePlayer';
+import { useAccessStore } from '@/lib/access';
+import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
+import { useEffect as useEffectGate } from 'react';
 
-export default function SessionDetailPage() {
+function SessionDetailPageInner() {
   const params = useParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuthStore();
@@ -169,4 +172,20 @@ export default function SessionDetailPage() {
       </div>
     </div>
   );
+}
+
+
+// ── Garde d'accès : le lecteur appartient à l'univers Fitness ────────────────
+export default function SessionDetailPage() {
+  const { access, isLoading, refresh } = useAccessStore();
+
+  useEffectGate(() => {
+    refresh();
+  }, [refresh]);
+
+  if (isLoading || !access) {
+    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+  }
+  if (!access.fitnessEnabled || !access.unlocked) return <FitnessConstructionNotice />;
+  return <SessionDetailPageInner />;
 }

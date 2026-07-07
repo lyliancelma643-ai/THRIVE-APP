@@ -14,6 +14,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin', label: 'Dashboard', icon: 'dashboard' },
   { href: '/admin/dossiers', label: 'Dossiers', icon: 'folder' },
   { href: '/admin/supervision', label: 'Supervision', icon: 'compass', superAdminOnly: true },
+  { href: '/admin/validations', label: 'Validations', icon: 'check' },
+  { href: '/admin/roadmap', label: 'Roadmap', icon: 'flag' },
   { href: '/admin/users', label: 'Comptes', icon: 'user' },
   { href: '/admin/coaches', label: 'Coaches', icon: 'target' },
   { href: '/admin/families', label: 'Familles', icon: 'users' },
@@ -25,6 +27,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/messages', label: 'Messages', icon: 'message' },
   { href: '/admin/notifications', label: 'Notifications', icon: 'bell' },
   { href: '/admin/analytics', label: 'Analytics', icon: 'chart' },
+  { href: '/admin/reglages', label: 'Réglages', icon: 'lock', superAdminOnly: true },
   { href: '/settings/security', label: 'Sécurité', icon: 'lock' },
 ];
 

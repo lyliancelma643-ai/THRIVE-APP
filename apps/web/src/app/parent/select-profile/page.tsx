@@ -378,6 +378,12 @@ export default function SelectProfilePage() {
                 ? ' a bien été enregistré(e) comme parent. Un email lui a été envoyé pour choisir son mot de passe.'
                 : ' a bien été ajouté(e) à votre famille.'}
             </p>
+            {memberType === 'CHILD' && (
+              <p className="text-sm text-slate-500 max-w-sm mx-auto mb-2">
+                La fiche de votre enfant a bien été enregistrée. Elle est en cours de
+                validation par notre équipe avant l'ouverture complète de votre espace.
+              </p>
+            )}
             <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>
             <div className="flex flex-col gap-3">
               <button onClick={resetForms}

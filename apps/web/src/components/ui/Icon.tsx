@@ -22,7 +22,8 @@ export type IconName =
   | 'lock'
   | 'arrow-right'
   | 'plus'
-  | 'check';
+  | 'check'
+  | 'flag';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -104,6 +105,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   'arrow-right': <path d="M4 12h15M13 6l6 6-6 6" />,
   plus: <path d="M12 5v14M5 12h14" />,
   check: <path d="m5 12 5 5L20 7" />,
+  flag: <path d="M5 21V4m0 1h12l-2.5 4L17 13H5" />,
 };
 
 export function Icon({
