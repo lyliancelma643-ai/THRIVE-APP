@@ -295,7 +295,29 @@ export default function AdminRoadmapPage() {
                                   En cours
                                 </span>
                               )}
-                              {assignee ? (
+                              {isSuperAdmin ? (
+                                // Contrôle total Super Admin : attribution/retrait
+                                // directement sur la ligne, sans déplier la tâche
+                                <select
+                                  value={t.assignee ?? ''}
+                                  onChange={(e) => patch(t.id, { assignee: e.target.value || null })}
+                                  aria-label={`Attribuer « ${t.title} »`}
+                                  className={`text-[11px] font-medium px-2 py-0.5 rounded-full border-0 cursor-pointer focus:ring-2 focus:ring-navy-300 ${
+                                    t.assignee
+                                      ? 'bg-navy-50 text-navy-700'
+                                      : 'bg-amber-50 text-amber-700'
+                                  }`}
+                                >
+                                  <option value="">Non assignée</option>
+                                  {admins.map((a) => (
+                                    <option key={a.id} value={a.id}>
+                                      {nameOf(a)}
+                                      {a.role === 'SUPER_ADMIN' ? ' ★' : ''}
+                                      {a.id === me ? ' (moi)' : ''}
+                                    </option>
+                                  ))}
+                                </select>
+                              ) : assignee ? (
                                 <span className="text-[11px] font-medium px-2 py-0.5 rounded-full bg-navy-50 text-navy-700">
                                   {nameOf(assignee)}
                                   {t.assignee === me ? ' (moi)' : ''}
@@ -312,9 +334,20 @@ export default function AdminRoadmapPage() {
                               )}
                             </div>
 
-                            {/* Détail replié : description + actions avancées */}
+                            {/* Détail replié : titre, description + actions avancées */}
                             {isExpanded && (
                               <div className="mt-2 space-y-2">
+                                {editable && (
+                                  <input
+                                    defaultValue={t.title}
+                                    aria-label="Titre de la tâche"
+                                    onBlur={(e) => {
+                                      const v = e.target.value.trim();
+                                      if (v && v !== t.title) patch(t.id, { title: v });
+                                    }}
+                                    className="w-full text-sm font-semibold rounded-lg border border-slate-200 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-navy-300"
+                                  />
+                                )}
                                 {editable ? (
                                   <textarea
                                     defaultValue={t.description ?? ''}
@@ -359,20 +392,19 @@ export default function AdminRoadmapPage() {
                                     </>
                                   )}
                                   {/* Attribution : Super Admin assigne qui il veut */}
-                                  {isSuperAdmin && (
+                                  {/* Déplacer la tâche vers un autre horizon */}
+                                  {editable && (
                                     <select
-                                      value={t.assignee ?? ''}
+                                      value={t.horizon}
                                       onChange={(e) =>
-                                        patch(t.id, { assignee: e.target.value || null })
+                                        patch(t.id, { horizon: e.target.value as Horizon })
                                       }
-                                      aria-label="Attribuer à"
+                                      aria-label="Horizon"
                                       className="text-xs rounded-lg border border-slate-200 px-2 py-1.5 text-slate-600 bg-white"
                                     >
-                                      <option value="">Non assignée</option>
-                                      {admins.map((a) => (
-                                        <option key={a.id} value={a.id}>
-                                          {nameOf(a)}
-                                          {a.role === 'SUPER_ADMIN' ? ' ★' : ''}
+                                      {HORIZONS.map((opt) => (
+                                        <option key={opt.key} value={opt.key}>
+                                          {opt.label}
                                         </option>
                                       ))}
                                     </select>
