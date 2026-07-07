@@ -48,6 +48,11 @@ export default function AdminUsersPage() {
   // Parents ayant au moins un enfant → verrouillés sur le rôle PARENT.
   const [parentsWithChildren, setParentsWithChildren] = useState<Set<string>>(new Set());
   const [filter, setFilter] = useState<Role | 'ALL'>('ALL');
+  // Suppression DÉFINITIVE (Super Admin) : cible + confirmation par saisie de l'email
+  const [deleteTarget, setDeleteTarget] = useState<ProfileRow | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -226,6 +231,32 @@ export default function AdminUsersPage() {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Suppression définitive via l'edge function admin-delete-user (Super Admin).
+  // Libère l'adresse mail : la personne pourra recréer un compte ensuite.
+  const deleteAccount = async () => {
+    if (!deleteTarget || !session?.accessToken) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.accessToken}`,
+        },
+        body: JSON.stringify({ userId: deleteTarget.id }),
+      });
+      const out = await res.json();
+      if (!res.ok) throw new Error(out.error ?? 'Erreur inattendue');
+      setDeleteTarget(null);
+      setDeleteConfirm('');
+      await load();
+    } catch (e) {
+      setDeleteError(e instanceof Error ? e.message : 'Erreur inattendue');
+    }
+    setDeleting(false);
   };
 
   const createAccount = async (e: React.FormEvent) => {
@@ -480,17 +511,29 @@ export default function AdminUsersPage() {
                     </td>
                     <td className="px-5 py-3 text-right">
                       {!isSelf && p.role !== 'SUPER_ADMIN' && (
-                        <button
-                          onClick={() => stageActive(p)}
-                          disabled={saving}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${
-                            effActive
-                              ? 'bg-red-50 text-red-600 hover:bg-red-100'
-                              : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                          }`}
-                        >
-                          {effActive ? 'Désactiver' : 'Réactiver'}
-                        </button>
+                        <span className="inline-flex items-center gap-1.5">
+                          <button
+                            onClick={() => stageActive(p)}
+                            disabled={saving}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${
+                              effActive
+                                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {effActive ? 'Désactiver' : 'Réactiver'}
+                          </button>
+                          {isSuperAdmin && (
+                            <button
+                              onClick={() => { setDeleteTarget(p); setDeleteConfirm(''); setDeleteError(null); }}
+                              disabled={saving || deleting}
+                              title="Suppression définitive (libère l'adresse mail)"
+                              className="px-3 py-1.5 rounded-lg text-xs font-bold bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+                            >
+                              Supprimer
+                            </button>
+                          )}
+                        </span>
                       )}
                     </td>
                   </tr>
@@ -593,6 +636,51 @@ export default function AdminUsersPage() {
               L&apos;enfant apparaît immédiatement chez le parent et dans « Assignations ».
             </p>
           </form>
+        </Modal>
+      )}
+
+      {/* ── Modale : suppression DÉFINITIVE d'un compte (Super Admin) ── */}
+      {deleteTarget && (
+        <Modal title="Suppression définitive" onClose={() => setDeleteTarget(null)}>
+          <div className="space-y-4">
+            <div className="rounded-xl bg-red-50 border border-red-200 p-4 text-sm text-red-800">
+              <p className="font-bold mb-1">⚠ Action irréversible</p>
+              <p>
+                Le compte <span className="font-semibold">{deleteTarget.email}</span> (
+                {ROLE_META[deleteTarget.role].label}) et TOUTES ses données liées
+                (famille, enfants, bilans, messages…) seront définitivement supprimés.
+                L&apos;adresse mail sera libérée : la personne pourra recréer un compte ensuite.
+              </p>
+            </div>
+            <label className="block text-sm text-gray-600">
+              Pour confirmer, tape l&apos;adresse mail exacte :
+              <input
+                value={deleteConfirm}
+                onChange={(e) => setDeleteConfirm(e.target.value)}
+                placeholder={deleteTarget.email}
+                autoFocus
+                className="mt-1 w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300"
+              />
+            </label>
+            {deleteError && (
+              <p className="text-sm text-red-600">{deleteError}</p>
+            )}
+            <div className="flex gap-2">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-3 rounded-xl border-2 border-gray-200 font-semibold text-gray-600 hover:bg-gray-50"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={deleteAccount}
+                disabled={deleting || deleteConfirm.trim().toLowerCase() !== deleteTarget.email.toLowerCase()}
+                className="flex-1 py-3 rounded-xl bg-red-600 text-white font-bold hover:bg-red-700 disabled:opacity-40"
+              >
+                {deleting ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

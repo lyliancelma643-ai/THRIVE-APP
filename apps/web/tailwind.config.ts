@@ -6,6 +6,8 @@ import type { Config } from 'tailwindcss';
 // Jaune soleil #F9EB50 — énergie, optimisme, jeunesse (accent)
 // Vert-bleu sage #A7C4BC — sérénité, croissance, bien-être (secondaire)
 const config: Config = {
+  // Mode sombre par classe (opt-in par page — utilisé par la roadmap admin)
+  darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {
