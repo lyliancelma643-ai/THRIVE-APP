@@ -9,11 +9,13 @@
   "scripts": {
     "dev:mobile": "pnpm --filter mobile start",
     "dev:web": "pnpm --filter web dev",
-    "dev:backend": "pnpm --filter backend start:dev",
+    "dev:backend": "pnpm --filter @thrive/backend start:dev",
     "build:web": "pnpm --filter web build",
-    "build:backend": "pnpm --filter backend build",
-    "lint": "pnpm -r lint",
-    "typecheck": "pnpm -r typecheck",
+    "build:backend": "pnpm --filter @thrive/backend build",
+    "build:shared": "pnpm --filter @thrive/shared build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
     "prepare": "husky"
   },
   "devDependencies": {

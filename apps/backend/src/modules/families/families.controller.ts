@@ -4,6 +4,7 @@ import { FamiliesService } from './families.service';
 import { CurrentUser } from '../auth/decorators/current-user.decorator';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@thrive/shared';
+import { CreateFamilyDto } from './dto/CreateFamily.dto';
 
 @ApiTags('families')
 @ApiBearerAuth()
@@ -23,9 +24,9 @@ export class FamiliesController {
   @ApiOperation({ summary: 'Créer une famille' })
   create(
     @CurrentUser() user: Record<string, string>,
-    @Body() body: Record<string, string>,
+    @Body() body: CreateFamilyDto,
   ) {
-    return this.familiesService.create(user['id'], body as any);
+    return this.familiesService.create(user['id'], body);
   }
 
   @Get(':id')

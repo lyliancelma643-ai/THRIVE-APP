@@ -19,12 +19,15 @@ export default function CoachQuestionnairesScreen() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [questions, setQuestions] = useState([
-    { text: '', type: 'scale' as const, options: [] as string[] },
+    { text: '', type: 'scale' as const, options: [] as string[], order_index: 0 },
   ]);
   const [saving, setSaving] = useState(false);
 
   const addQuestion = () => {
-    setQuestions([...questions, { text: '', type: 'scale', options: [] }]);
+    setQuestions([
+      ...questions,
+      { text: '', type: 'scale', options: [], order_index: questions.length },
+    ]);
   };
 
   const updateQuestion = (index: number, field: string, value: string) => {
@@ -49,7 +52,7 @@ export default function CoachQuestionnairesScreen() {
       setShowModal(false);
       setTitle('');
       setDescription('');
-      setQuestions([{ text: '', type: 'scale', options: [] }]);
+      setQuestions([{ text: '', type: 'scale', options: [], order_index: 0 }]);
       Alert.alert('✅ Questionnaire créé !');
     } catch (e: any) {
       Alert.alert('Erreur', e.message);

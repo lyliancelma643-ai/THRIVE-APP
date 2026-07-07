@@ -2,13 +2,15 @@ import { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useRouter } from 'expo-router';
-import { NotificationService } from '@thrive/shared';
-import { useAuthStore } from '../stores/auth.store';
+import type { EventSubscription } from 'expo-modules-core';
+import { NotificationService } from '@thrive/shared/services/NotificationService';
+import { useAuthStore } from '../src/stores/auth.store';
+import { initPurchases } from '../src/services/purchases';
 
 export default function RootLayout() {
   const router = useRouter();
   const { isAuthenticated, hydrate } = useAuthStore();
-  const responseListener = useRef<Notifications.Subscription>();
+  const responseListener = useRef<EventSubscription | null>(null);
 
   useEffect(() => {
     hydrate();
@@ -18,8 +20,11 @@ export default function RootLayout() {
     if (!isAuthenticated) return;
 
     NotificationService.registerForPushNotifications();
+    // RevenueCat : no-op si clé absente ou module natif indisponible (Expo Go)
+    initPurchases(useAuthStore.getState().user?.id);
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response) => {
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(
+      (response: Notifications.NotificationResponse) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
 
       if (data.conversation_id) {
@@ -29,7 +34,8 @@ export default function RootLayout() {
       } else if (data.session_id) {
         router.push('/sessions');
       }
-    });
+    },
+    );
 
     return () => {
       responseListener.current?.remove();

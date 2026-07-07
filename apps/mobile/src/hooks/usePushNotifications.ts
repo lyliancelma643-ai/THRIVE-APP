@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
+import type { EventSubscription } from 'expo-modules-core';
 import { supabaseClient as supabase } from '@thrive/shared';
 
 // Configuration du comportement des notifications quand l'application est ouverte
@@ -10,19 +12,21 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
 export function usePushNotifications(userId?: string) {
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
-  const notificationListener = useRef<Notifications.EventSubscription>();
-  const responseListener = useRef<Notifications.EventSubscription>();
+  const notificationListener = useRef<EventSubscription | null>(null);
+  const responseListener = useRef<EventSubscription | null>(null);
 
   useEffect(() => {
     registerForPushNotificationsAsync().then(async (token) => {
       setExpoPushToken(token);
-      
+
       // Si un userId est fourni et qu'on a un token, on met à jour la base de données
       if (token && userId) {
         await supabase
@@ -33,32 +37,25 @@ export function usePushNotifications(userId?: string) {
     });
 
     // Écouteur quand une notification est reçue au premier plan
-    notificationListener.current = Notifications.addNotificationReceivedListener((notification: Notifications.Notification) => {
-      setNotification(notification);
+    notificationListener.current = Notifications.addNotificationReceivedListener((received) => {
+      setNotification(received);
     });
 
     // Écouteur quand l'utilisateur tape sur la notification
-    responseListener.current = Notifications.addNotificationResponseReceivedListener((response: Notifications.NotificationResponse) => {
-      console.log('Notification response:', response);
+    responseListener.current = Notifications.addNotificationResponseReceivedListener(() => {
       // TODO: Logique de navigation selon le type de notification (ex: router.push('/messages'))
     });
 
     return () => {
-      if (notificationListener.current) {
-        Notifications.removeNotificationSubscription(notificationListener.current);
-      }
-      if (responseListener.current) {
-        Notifications.removeNotificationSubscription(responseListener.current);
-      }
+      notificationListener.current?.remove();
+      responseListener.current?.remove();
     };
   }, [userId]);
 
   return { expoPushToken, notification };
 }
 
-async function registerForPushNotificationsAsync() {
-  let token;
-
+async function registerForPushNotificationsAsync(): Promise<string | undefined> {
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
@@ -68,30 +65,35 @@ async function registerForPushNotificationsAsync() {
     });
   }
 
-  if (Device.isDevice) {
-    const { status: existingStatus } = await Notifications.getPermissionsAsync();
-    let finalStatus = existingStatus;
-    
-    if (existingStatus !== 'granted') {
-      const { status } = await Notifications.requestPermissionsAsync();
-      finalStatus = status;
-    }
-    
-    if (finalStatus !== 'granted') {
-      console.log('Permission not granted to get push token for push notification!');
-      return;
-    }
-    
-    try {
-      const projectId = 'your-project-id'; // Normalement repris automatiquement si configuré dans app.json
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('Expo Push Token:', token);
-    } catch (e) {
-      console.log('Erreur récupération token push:', e);
-    }
-  } else {
-    console.log('Must use physical device for Push Notifications');
+  if (!Device.isDevice) {
+    console.warn('Push notifications : appareil physique requis.');
+    return undefined;
   }
 
-  return token;
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== 'granted') {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== 'granted') {
+    console.warn('Permission notifications push refusée.');
+    return undefined;
+  }
+
+  try {
+    // projectId lu depuis app.json (extra.eas.projectId) — jamais en dur
+    const projectId =
+      Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
+    const { data } = await Notifications.getExpoPushTokenAsync(
+      projectId ? { projectId } : undefined,
+    );
+    // Ne pas logger la valeur du token (identifiant sensible de l'appareil)
+    return data;
+  } catch (e) {
+    console.warn('Erreur récupération token push:', e);
+    return undefined;
+  }
 }

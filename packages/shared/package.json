@@ -6,9 +6,19 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.js",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.js"
+    },
+    "./services/NotificationService": {
+      "types": "./dist/services/NotificationService.d.ts",
+      "import": "./dist/services/NotificationService.js",
+      "require": "./dist/services/NotificationService.js"
+    },
+    "./hooks/useNotifications": {
+      "types": "./dist/hooks/useNotifications.d.ts",
+      "import": "./dist/hooks/useNotifications.js",
+      "require": "./dist/hooks/useNotifications.js"
     }
   },
   "scripts": {

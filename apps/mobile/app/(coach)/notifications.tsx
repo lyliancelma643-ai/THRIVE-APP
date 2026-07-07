@@ -3,7 +3,8 @@ import {
   View, Text, ScrollView, TouchableOpacity,
   StyleSheet, ActivityIndicator,
 } from 'react-native';
-import { useNotifications, type AppNotification } from '@thrive/shared';
+// Import par sous-chemin : useNotifications dépend d'Expo, exclu de l'index partagé
+import { useNotifications, type AppNotification } from '@thrive/shared/hooks/useNotifications';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
   MESSAGE: { icon: '💬', color: '#3B82F6' },

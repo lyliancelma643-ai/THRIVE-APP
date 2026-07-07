@@ -3,6 +3,7 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ChildrenService } from './children.service';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '@thrive/shared';
+import { CreateChildDto } from './dto/CreateChild.dto';
 
 @ApiTags('children')
 @ApiBearerAuth()
@@ -19,8 +20,8 @@ export class ChildrenController {
   @Post()
   @Roles(UserRole.PARENT, UserRole.ADMIN)
   @ApiOperation({ summary: 'Ajouter un enfant' })
-  create(@Body() body: Record<string, string>) {
-    return this.childrenService.create(body as any);
+  create(@Body() body: CreateChildDto) {
+    return this.childrenService.create(body);
   }
 
   @Get(':id')

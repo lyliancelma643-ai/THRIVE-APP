@@ -15,9 +15,14 @@ async function bootstrap() {
     }),
   );
 
-  // CORS
+  // CORS : front web (3001), backend/docs (3000), Expo web/dev (19006)
   app.enableCors({
-    origin: process.env.APP_URL || 'http://localhost:3001',
+    origin: [
+      process.env.APP_URL || 'http://localhost:3001',
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:19006',
+    ],
     credentials: true,
   });
 

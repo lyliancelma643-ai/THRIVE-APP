@@ -60,4 +60,5 @@ coverage/
 # Misc
 .turbo/
 .vercel
-.env*
+# NB : pas de `.env*` ici — il annulerait l'exception `!.env.example`
+# posée plus haut (les fichiers .env réels sont déjà couverts).

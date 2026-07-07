@@ -40,10 +40,10 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Token expiré ou invalide');
     }
 
-    // Récupérer le profil complet avec le rôle
+    // Récupérer le profil (identité + is_active uniquement)
     const { data: profile } = await this.supabase
       .from('profiles')
-      .select('id, email, first_name, last_name, role, is_active')
+      .select('id, email, first_name, last_name, is_active')
       .eq('id', data.user.id)
       .single();
 
@@ -56,7 +56,9 @@ export class JwtAuthGuard implements CanActivate {
       email: profile.email,
       firstName: profile.first_name,
       lastName: profile.last_name,
-      role: profile.role,
+      // Autorité du rôle = app_metadata (posé par les edge functions via la
+      // clé service, non modifiable par l'utilisateur) — PAS profiles.role.
+      role: data.user.app_metadata?.role,
       token,
     };
 

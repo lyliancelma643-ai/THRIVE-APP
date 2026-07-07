@@ -4,7 +4,7 @@ import {
   TextInput, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { supabase } from '@thrive/shared';
+import { supabaseClient as supabase } from '@thrive/shared';
 import { useQuestionnaires } from '@thrive/shared';
 import { useChildBadges } from '@thrive/shared';
 

@@ -3,6 +3,9 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 import { CurrentUser } from './decorators/current-user.decorator';
+import { LoginDto } from './dto/Login.dto';
+import { RegisterDto } from './dto/Register.dto';
+import { UpdateProfileDto } from './dto/UpdateProfile.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -13,14 +16,14 @@ export class AuthController {
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Info: login géré côté client Supabase' })
-  async login(@Body() body: Record<string, string>) {
-    return this.authService.login(body['email'], body['password']);
+  async login(@Body() body: LoginDto) {
+    return this.authService.login(body.email, body.password);
   }
 
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Info: register géré côté client Supabase' })
-  async register(@Body() body: Record<string, unknown>) {
+  async register(@Body() body: RegisterDto) {
     return this.authService.register(body);
   }
 
@@ -33,10 +36,10 @@ export class AuthController {
 
   @ApiBearerAuth()
   @Put('me')
-  @ApiOperation({ summary: 'Mettre à jour son propre profil' })
+  @ApiOperation({ summary: 'Mettre à jour son propre profil (champs whitelistés)' })
   async updateMe(
     @CurrentUser() user: Record<string, string>,
-    @Body() body: Record<string, unknown>,
+    @Body() body: UpdateProfileDto,
   ) {
     return this.authService.updateProfile(user['id'], body);
   }

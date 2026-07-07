@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
-import { supabase } from '../services/supabase';
+import { supabaseClient as supabase } from '@thrive/shared';
 
 type AuthStore = IAuthState & {
   hydrate: () => Promise<void>;
@@ -16,7 +16,9 @@ function mapSession(s: any): { user: IAuthUser; session: IAuthTokens } {
       email: s.user.email ?? '',
       firstName: s.user.user_metadata?.firstName,
       lastName: s.user.user_metadata?.lastName,
-      role: s.user.user_metadata?.role,
+      // Autorité du rôle = app_metadata (non modifiable par l'utilisateur) ;
+      // user_metadata.role serait falsifiable via auth.updateUser.
+      role: s.user.app_metadata?.role,
     },
     session: {
       accessToken: s.access_token,

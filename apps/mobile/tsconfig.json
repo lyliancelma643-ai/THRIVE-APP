@@ -13,6 +13,15 @@
       ],
       "@thrive/shared": [
         "../../packages/shared/src/index.ts"
+      ],
+      "@thrive/shared/*": [
+        "../../packages/shared/src/*"
+      ],
+      "expo-notifications": [
+        "./node_modules/expo-notifications"
+      ],
+      "expo-device": [
+        "./node_modules/expo-device"
       ]
     }
   },

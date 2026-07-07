@@ -1,0 +1,27 @@
+{
+  "expo": {
+    "name": "THRIVE",
+    "slug": "thrive-mobile",
+    "version": "1.0.0",
+    "scheme": "thrive",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "app.thrive.mobile"
+    },
+    "android": {
+      "package": "app.thrive.mobile"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-notifications"
+    ],
+    "experiments": {
+      "typedRoutes": false,
+      "tsconfigPaths": true
+    }
+  }
+}

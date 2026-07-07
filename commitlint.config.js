@@ -24,6 +24,18 @@ module.exports = {
         'backend',
         'ci',
         'deps',
+        // Scopes utilisés dans l'historique — alignement avec la pratique réelle
+        'ux',
+        'sécu',
+        'secu',
+        'db',
+        'coach',
+        'parent',
+        'bilans',
+        'packs',
+        'identity',
+        'admin',
+        'docs',
       ],
     ],
     'type-enum': [
