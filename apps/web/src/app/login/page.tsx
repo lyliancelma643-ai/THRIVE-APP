@@ -22,6 +22,14 @@ function humanAuthError(msg: string): string {
   return msg;
 }
 
+// URL du site vitrine (marketing). Configurable via NEXT_PUBLIC_SITE_URL ;
+// sinon site local (Vite, port 5173) en dev, site déployé en production.
+const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.NODE_ENV === 'production'
+    ? 'https://thrivesportpositive.com'
+    : 'http://localhost:5173');
+
 const SPORT_OPTIONS = [
   'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
   'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
@@ -216,6 +224,28 @@ export default function LoginPage() {
 
   return (
     <main className="min-h-screen bg-cream relative flex items-center justify-center p-4">
+      {/* Retour vers le site vitrine */}
+      <a
+        href={SITE_URL}
+        aria-label="Retourner au site Thrive Sport Positive"
+        className="absolute top-4 right-4 z-10 inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full bg-white/60 hover:bg-white/80 text-navy-600 hover:text-navy-900 text-sm font-bold shadow-card transition-colors"
+      >
+        <svg
+          aria-hidden
+          className="w-4 h-4"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <path d="M19 12H5" />
+          <path d="m12 19-7-7 7-7" />
+        </svg>
+        Retour au site
+      </a>
+
       {/* Halos de fond (liquid glass) */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-200/50 blur-3xl" />
