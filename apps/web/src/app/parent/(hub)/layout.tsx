@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { BrandLogo } from '@/components/BrandLogo';
@@ -25,7 +25,6 @@ function activeTabIndex(pathname: string): number {
 
 export default function ParentHubLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const active = activeTabIndex(pathname);
   const { access, isLoading: accessLoading, refresh } = useAccessStore();
 
@@ -33,13 +32,9 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     refresh();
   }, [refresh]);
 
-  // Enfant OBLIGATOIRE : sans fiche enfant, le parcours est bloqué sur la
-  // création (select-profile). L'état est rechargé au retour.
-  useEffect(() => {
-    if (!accessLoading && access && !access.hasChild) {
-      router.replace('/parent/select-profile?required=1');
-    }
-  }, [accessLoading, access, router]);
+  // L'ajout d'un enfant (ou d'un autre parent) se fait à la demande via le
+  // bouton « + Ajouter un enfant » de l'en-tête, jamais par une redirection
+  // automatique juste après la connexion.
 
   // Compte en préparation : onglets visibles mais non cliquables (aperçu).
   const locked = !accessLoading && access ? !access.unlocked : false;
