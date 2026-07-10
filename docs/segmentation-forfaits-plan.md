@@ -1,6 +1,16 @@
 # Plan d'exécution — Segmentation en 3 forfaits (matrice de droits)
 
-> **Statut : PHASE 0 LIVRÉE — EN ATTENTE DE VALIDATION EXPLICITE avant toute ligne de code de production.**
+> **Statut : EXÉCUTÉ le 2026-07-10 (plan validé, décisions A–I appliquées par défaut).**
+> Phases 1→7 livrées sur `feat/pricing-entitlements-matrix` (commits atomiques).
+> Migrations 038/039/041 **appliquées en prod** ; `generate-parent-report` v2 **déployée**.
+> Reste à faire au moment du merge/déploiement :
+> 1. Appliquer la migration **040** (lockdown `reports`) dans la même release que le front.
+> 2. Déployer `create-checkout-session` + `stripe-webhook` (verify_jwt OFF pour le webhook)
+>    après `supabase secrets set STRIPE_SECRET_KEY=… STRIPE_WEBHOOK_SECRET=…`
+>    et configurer l'endpoint webhook dans le dashboard Stripe.
+> 3. Régénérer les types partagés (`packages/shared/src/types/database.ts`) —
+>    non bloquant (les nouvelles tables sont requêtées sans typage strict).
+> Vérité analytics (Phase 8) : voir le récapitulatif en fin de fichier.
 > Branche de travail : `feat/pricing-entitlements-matrix` (jamais `main` directement).
 > Rapport de référence : [segmentation-forfaits.md](./segmentation-forfaits.md).
 > Base prod : THRIVE-CA `kkdcgzvdmipmrgkawnky` (`ca-central-1`). Vérifications Phase 0 faites le 2026-07-10 (code + prod).
@@ -315,3 +325,19 @@ dupliqués ; pas de contournement de `enforce_pack_change_authority` ; pas de ga
 UI-only ; pas de LLM ; pas de modification `apps/mobile`/`apps/backend`/Expo racine
 (sauf l'inbox coach signalé en ⚠️-I) ; pas de migration destructive ; pas d'atteinte
 à la conformité Loi 25 (sécurité, consentements, MFA, audit — non segmentables).
+
+---
+
+## 6. Phase 8 — Vérité analytics (état au 2026-07-10, après exécution)
+
+| Visuel du bilan | Source | État |
+| :-- | :-- | :-- |
+| Jauge globale « Compétences de vie » | `gauge_summary` (24 `skill_scores`) | **Réelle** — servie à tous les packs (DEFINER) |
+| Jauge par compétence (`by_skill`) | `gauge_summary` | **Réelle** — gated Avancé+ côté serveur, affichée dans la carte Compétences |
+| Courbe LSSS + delta | `lsss_progression` (43 items) | **Réelle** — gated Avancé+ dans la RPC |
+| Roue des émotions | `emotion_logs` (1 seule ligne) | **Majoritairement illustrative** : la roue et les pastilles Trac/Confiance/Détermination sont décoratives ; seule « dernière émotion » est réelle. Recommandation : saisie coach en séance, sinon état « en cours de collecte ». |
+| Journal de progression | `progress_log` (43 lignes) | Données réelles, **aucune UI parent ne l'affiche encore** — RLS posée (Avancé+), UI à créer. |
+| Bilan détaillé / observations | `reports` (legacy, via `session_report`) | **Réel** — filtré serveur par pack/séance |
+| Export CSV / PDF | flag `csvExport`/`pdfExport` | **Vendu au comparatif, pas encore d'UI d'export parent** — flag prêt, bouton à construire. |
+| Boîte à outils, focus word, fiche objectif, routine | `athlete_identity` | Réels dès que le coach les renseigne |
+| Synthèse IA | `aiSummary` | OFF partout — « à venir » au comparatif, zéro dépendance LLM |
