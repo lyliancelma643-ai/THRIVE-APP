@@ -1,13 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
 import { SessionsLockedNotice } from '@/components/parent/AccessGate';
+import { BilanCard, LockedText, ScoreGauge, UpgradeHintBar } from '@/components/parent/PackGate';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
-import { type Pack, asPack, canSeePremium, upgradeHint } from '@/lib/packs';
+import { usePlan } from '@/lib/entitlements';
+import { type Pack, canSeePremium } from '@/lib/packs';
 import { useModalDismiss } from '@/lib/useModalDismiss';
 
 type OneToOneSession = {
@@ -52,7 +54,8 @@ function MySessionsPageInner() {
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [pack, setPack] = useState<Pack>('ESSENTIEL');
+  // Droits du forfait de la famille — source unique côté client (matrice packs.ts)
+  const { pack } = usePlan(selectedChildId);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
@@ -62,7 +65,7 @@ function MySessionsPageInner() {
       setLoading(false);
       return;
     }
-    const [sessionsRes, reportsRes, assignmentRes, familyRes] = await Promise.all([
+    const [sessionsRes, reportsRes, assignmentRes] = await Promise.all([
       supabase
         .from('sessions')
         .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes')
@@ -79,11 +82,6 @@ function MySessionsPageInner() {
         .eq('child_id', selectedChildId)
         .eq('is_active', true)
         .limit(1),
-      supabase
-        .from('children')
-        .select('family:families (pack)')
-        .eq('id', selectedChildId)
-        .maybeSingle(),
     ]);
 
     setSessions((sessionsRes.data ?? []) as OneToOneSession[]);
@@ -93,9 +91,6 @@ function MySessionsPageInner() {
       ? assignment.profiles[0]
       : assignment?.profiles;
     setCoach((coachProfile as CoachInfo) ?? null);
-    const familyRel = (familyRes.data as any)?.family;
-    const famPack = Array.isArray(familyRel) ? familyRel[0]?.pack : familyRel?.pack;
-    setPack(asPack(famPack));
     setLoading(false);
   }, [selectedChildId]);
 
@@ -341,115 +336,10 @@ function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-/* Échelle de couleur des notes : vert (fort) → jaune (moyen) → gris (faible / sans couleur) */
-const NOTE_COLORS: Record<number, string> = {
-  5: '#34D399', // vert plein
-  4: '#A3E635', // vert-lime
-  3: '#F9EB50', // jaune (accent sun)
-  2: '#B7AE72', // jaune éteint
-  1: '#6B7280', // gris — « sans couleur »
-};
-
-/* Jauge circulaire incurvée — note /5 au centre, anneau coloré selon le niveau.
-   `locked` : anneau (couleurs + cercle) visible mais chiffre flouté (teaser d'upgrade). */
-function ScoreGauge({ note, max = 5, locked = false }: { note: number; max?: number; locked?: boolean }) {
-  const value = Math.max(0, Math.min(max, Math.round(note)));
-  const pct = (value / max) * 100;
-  const color = NOTE_COLORS[value] ?? '#6B7280';
-  return (
-    <div
-      className="relative w-16 h-16 shrink-0"
-      role="img"
-      aria-label={locked ? 'Note masquée — réservée aux packs supérieurs' : `Note ${value} sur ${max}`}
-    >
-      <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-        <circle
-          cx="18"
-          cy="18"
-          r="16"
-          fill="none"
-          stroke="rgba(255,255,255,0.10)"
-          strokeWidth="3.5"
-        />
-        <circle
-          cx="18"
-          cy="18"
-          r="16"
-          fill="none"
-          stroke={color}
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          pathLength={100}
-          strokeDasharray={`${pct} 100`}
-          className="transition-all duration-500"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span
-          className={`font-display font-bold text-white text-lg leading-none tabular-nums ${
-            locked ? 'blur-[6px] select-none' : ''
-          }`}
-          aria-hidden={locked}
-        >
-          {value}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* Carte de section interactive — réagit au survol (lift + halo accent, titre qui s'allume) */
-function BilanCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
 function fieldLabel(key: string): string {
   if (key === 'message du coach') return 'Message du coach';
   const k = key.replace(/_/g, ' ').trim();
   return k.charAt(0).toUpperCase() + k.slice(1);
-}
-
-/* Cadenas (SVG — pas d'emoji, cf. règles d'icônes) */
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/* Bandeau d'incitation à l'upgrade — affiché sur les sections verrouillées */
-function UpgradeHintBar({ pack }: { pack: Pack }) {
-  return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-3 py-2.5">
-      <LockIcon className="w-4 h-4 text-sun shrink-0 mt-0.5" />
-      <p className="text-xs leading-relaxed text-white/85">
-        <span className="font-semibold text-sun">Contenu réservé.</span> {upgradeHint(pack)}
-      </p>
-    </div>
-  );
-}
-
-/* Aperçu flouté d'un contenu texte verrouillé (aucune donnée réelle exposée) */
-function LockedText({ pack }: { pack: Pack }) {
-  return (
-    <div>
-      <div aria-hidden className="space-y-2 mb-3 blur-[5px] select-none pointer-events-none">
-        <div className="h-3 rounded bg-white/15 w-[95%]" />
-        <div className="h-3 rounded bg-white/15 w-[88%]" />
-        <div className="h-3 rounded bg-white/15 w-[72%]" />
-      </div>
-      <UpgradeHintBar pack={pack} />
-    </div>
-  );
 }
 
 /* Corps du bilan — 3 sections gérées par le pack de la famille ; partagé entre la
