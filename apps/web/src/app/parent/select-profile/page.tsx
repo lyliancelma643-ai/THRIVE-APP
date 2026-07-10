@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { PACK_LABELS, asPack, limit as planLimit, type Pack } from '@/lib/packs';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type MemberType = 'PARENT' | 'CHILD';
-type Step = 'choose' | 'form' | 'success';
+type Step = 'choose' | 'form' | 'success' | 'quota';
 
 const GENDER_OPTIONS = [
   { value: 'MALE',   label: 'Garçon' },
@@ -46,6 +48,10 @@ export default function SelectProfilePage() {
   const [error, setError]               = useState<string | null>(null);
   const [successName, setSuccessName]   = useState('');
   const [initLoading, setInitLoading]   = useState(true);
+  // Quotas du forfait (maxChildren / maxParents) — l'UI prévient, la base garantit
+  const [pack, setPack]                 = useState<Pack>('ESSENTIEL');
+  const [childCount, setChildCount]     = useState(0);
+  const [memberCount, setMemberCount]   = useState(1);
 
   // Formulaires
   const [parentForm, setParentForm] = useState({
@@ -67,15 +73,43 @@ export default function SelectProfilePage() {
 
       const { data: fam } = await supabase
         .from('families')
-        .select('id')
+        .select('id, pack')
         .eq('parent_id', user.id)
         .maybeSingle();
 
-      if (fam?.id) setFamilyId(fam.id);
+      if (fam?.id) {
+        setFamilyId(fam.id);
+        setPack(asPack(fam.pack));
+        // Compteurs de quotas (enfants actifs + comptes parents de la famille)
+        const [childrenRes, membersRes] = await Promise.all([
+          supabase
+            .from('children')
+            .select('id', { count: 'exact', head: true })
+            .eq('family_id', fam.id)
+            .eq('is_active', true),
+          supabase
+            .from('family_members')
+            .select('id', { count: 'exact', head: true })
+            .eq('family_id', fam.id),
+        ]);
+        setChildCount(childrenRes.count ?? 0);
+        setMemberCount(Math.max(membersRes.count ?? 1, 1));
+      }
       setInitLoading(false);
     };
     init();
   }, [router]);
+
+  // Quota atteint pour ce type de profil ? (null = illimité)
+  const quotaBlocked = (type: MemberType): boolean => {
+    if (!familyId) return false; // pas encore de famille : premier ajout toujours permis
+    if (type === 'CHILD') {
+      const max = planLimit(pack, 'maxChildren');
+      return max !== null && childCount >= max;
+    }
+    const max = planLimit(pack, 'maxParents');
+    return max !== null && memberCount >= max;
+  };
 
   const resetForms = () => {
     setStep('choose');
@@ -131,6 +165,17 @@ export default function SelectProfilePage() {
     );
     const data = await res.json();
     if (!res.ok) throw new Error(data?.error ?? 'Impossible de créer le compte.');
+
+    // Rattacher le co-parent à la famille (socle du quota maxParents — le
+    // trigger de la migration 039 revérifie côté base).
+    const newProfileId: string | undefined = data?.profile?.id;
+    if (familyId && newProfileId) {
+      const { error: memberErr } = await supabase
+        .from('family_members')
+        .insert({ family_id: familyId, profile_id: newProfileId, member_role: 'PARENT' });
+      if (memberErr) throw new Error(memberErr.message);
+      setMemberCount((n) => n + 1);
+    }
 
     // Le compte est créé avec un mot de passe temporaire jamais montré : on
     // envoie donc un email « définir mon mot de passe » au nouveau parent,
@@ -188,6 +233,7 @@ export default function SelectProfilePage() {
       is_active:     true,
     });
     if (childErr) throw new Error(childErr.message);
+    setChildCount((n) => n + 1);
     setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };
 
@@ -244,7 +290,11 @@ export default function SelectProfilePage() {
             ]).map(({ type, icon, label, desc, color, border }) => (
               <button
                 key={type}
-                onClick={() => { setMemberType(type); setError(null); setStep('form'); }}
+                onClick={() => {
+                  setMemberType(type);
+                  setError(null);
+                  setStep(quotaBlocked(type) ? 'quota' : 'form');
+                }}
                 className={`group bg-white rounded-2xl p-6 border-2 border-transparent ${border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left`}
               >
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-md mb-4 group-hover:scale-110 transition-transform`}>
@@ -254,6 +304,53 @@ export default function SelectProfilePage() {
                 <p className="text-slate-500 text-sm mt-1">{desc}</p>
               </button>
             ))}
+          </div>
+        )}
+
+        {/* ─── Quota du forfait atteint : proposer l'upgrade plutôt que le formulaire ─── */}
+        {step === 'quota' && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <button
+                onClick={() => { setStep('choose'); setMemberType(null); }}
+                aria-label="Retour au choix du profil"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+              >
+                ←
+              </button>
+              <div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  {memberType === 'CHILD' ? '🧒 Ajouter un enfant' : '👨‍👩‍👧 Ajouter un parent'}
+                </h2>
+                <p className="text-xs text-slate-400">Forfait {PACK_LABELS[pack]}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3.5 mb-6">
+              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" aria-hidden>
+                <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
+                <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+              <p className="text-sm text-navy-800 leading-relaxed">
+                <span className="font-semibold">
+                  Votre forfait {PACK_LABELS[pack]} inclut{' '}
+                  {memberType === 'CHILD'
+                    ? `${planLimit(pack, 'maxChildren')} profil${(planLimit(pack, 'maxChildren') ?? 0) > 1 ? 's' : ''} enfant`
+                    : `${planLimit(pack, 'maxParents')} compte${(planLimit(pack, 'maxParents') ?? 0) > 1 ? 's' : ''} parent`}
+                  .
+                </span>{' '}
+                Passez à un forfait supérieur pour{' '}
+                {memberType === 'CHILD'
+                  ? 'accompagner un enfant de plus'
+                  : 'ajouter un parent ou superviseur'}
+                .
+              </p>
+            </div>
+            <Link
+              href="/parent/upgrade"
+              className="block w-full text-center px-6 py-3 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
+            >
+              Voir les forfaits
+            </Link>
           </div>
         )}
 

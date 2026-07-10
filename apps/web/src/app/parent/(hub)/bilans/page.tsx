@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
+import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
 import {
   DocMeta,
@@ -245,12 +246,16 @@ function buildHtml(d: {
   myActions: string[];
   gaugeGlobal: number | null;
   gaugeDelta: number | null;
+  bySkill: Record<string, number>;
   lsssPoints: { moment: LsssMoment; value: number }[];
   nextSteps: { label: string; status: string; due_date: string | null }[];
   docIds: { contract?: string; letter?: string; certificate?: string };
   latestEmotion: string | null;
   statusByNum: Record<number, string>;
   certificateReady: boolean;
+  // Droits du forfait (matrice packs.ts) — pilotent les sections analytiques.
+  // Verrouillé = même carte, valeurs floutées + note d'upgrade (jamais de données réelles).
+  ent: { skillBreakdown: boolean; lsssCurve: boolean; emotionWheel: boolean };
 }) {
   const {
     firstName,
@@ -278,12 +283,14 @@ function buildHtml(d: {
     myActions,
     gaugeGlobal,
     gaugeDelta,
+    bySkill,
     lsssPoints,
     nextSteps,
     docIds,
     latestEmotion,
     statusByNum,
     certificateReady,
+    ent,
   } = d;
 
   const cur = Math.min(Math.max(completed, 0), 13);
@@ -296,6 +303,50 @@ function buildHtml(d: {
   const ain = (i: number) =>
     `animation:b-cardIn .6s cubic-bezier(.22,.61,.36,1) ${(0.05 + i * 0.06).toFixed(2)}s backwards;`;
   const hint = '<span class="b-hint bx">ⓘ</span>';
+
+  // ── Teasers de la matrice de droits (mêmes codes visuels que PackGate) ──
+  // Note d'upgrade : cadenas + accent sun, navigation via data-href (délégué).
+  const lockNote = (txt: string) =>
+    `<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 13px;border-radius:11px;background:rgba(249,235,80,.08);border:1px solid rgba(249,235,80,.3);">
+      <svg viewBox="0 0 24 24" fill="none" style="width:15px;height:15px;flex-shrink:0;margin-top:1px;color:#F9EB50;" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
+      <span style="font-weight:500;font-size:12px;line-height:1.5;color:rgba(234,243,241,.85);"><b style="color:#F9EB50;">Contenu réservé.</b> ${txt} <span class="b-hover" data-href="/parent/upgrade" style="color:#F9EB50;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer;">Voir les forfaits</span></span>
+    </div>`;
+
+  // Barres décoratives floutées (aucune donnée réelle) pour les visuels verrouillés
+  const lockedBars = `<div aria-hidden="true" style="filter:blur(5px);pointer-events:none;user-select:none;display:flex;align-items:flex-end;gap:8px;height:110px;padding:14px 4px 0;">${[35, 55, 45, 70, 60, 85, 78]
+    .map(
+      (h) =>
+        `<div style="flex:1;height:${h}%;border-radius:6px 6px 0 0;background:linear-gradient(180deg,rgba(167,196,188,.5),rgba(167,196,188,.12));"></div>`
+    )
+    .join('')}</div>`;
+
+  // ── Jauge par compétence + delta (skillBreakdown, Avancé+) ──
+  // Débloqué : moyennes réelles par famille de compétence (gauge_summary.by_skill).
+  // Verrouillé : lignes décoratives floutées + note d'upgrade. Sans donnée : rien.
+  const skillLabel = (k: string) => {
+    const t = k.replace(/[_-]/g, ' ').trim();
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  };
+  const skillRow = (label: string, v: number) =>
+    `<div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+      <span style="flex:1;min-width:0;font-weight:500;font-size:11px;color:rgba(234,243,241,.6);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(label)}</span>
+      <div style="width:64px;height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;flex-shrink:0;"><div style="width:${Math.max(0, Math.min(100, Math.round(v)))}%;height:100%;border-radius:4px;background:linear-gradient(90deg,#A7C4BC,#F9EB50);"></div></div>
+      <span class="disp" style="font-weight:600;font-size:11px;color:#eaf3f1;width:24px;text-align:right;flex-shrink:0;">${Math.round(v)}</span>
+    </div>`;
+  const skillEntries = Object.entries(bySkill);
+  const skillBreakdownHtml = ent.skillBreakdown
+    ? skillEntries.length
+      ? `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);">${skillEntries
+          .slice(0, 4)
+          .map(([k, v]) => skillRow(skillLabel(k), Number(v)))
+          .join('')}</div>`
+      : ''
+    : `<div style="margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.07);">
+        <div aria-hidden="true" style="filter:blur(5px);pointer-events:none;user-select:none;">${[68, 44, 81]
+          .map((v) => skillRow('Compétence', v))
+          .join('')}</div>
+        <div style="margin-top:10px;">${lockNote('Le détail par compétence et son évolution sont inclus dès le pack Avancé.')}</div>
+      </div>`;
 
   // ── Parcours : 13 nœuds — pilotés par le statut réel de chaque séance ──
   const hasStatus = Object.keys(statusByNum).length > 0;
@@ -482,6 +533,7 @@ function buildHtml(d: {
             ? `<span style="color:#A7C4BC;">${gaugeDelta >= 0 ? '+' : ''}${gaugeDelta} pts depuis le départ</span>`
             : 'Basé sur le questionnaire LSSS'
         }</p>
+        ${skillBreakdownHtml}
       </div>
     </div>
   </div>
@@ -495,16 +547,23 @@ function buildHtml(d: {
           <span class="disp" style="font-weight:600;font-size:18px;">Progression des compétences de vie</span>
         </div>
         <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">▦ LSSS · ${
-          lsssPoints.length ? `${lsssPoints.length} mesure${lsssPoints.length > 1 ? 's' : ''}` : 'à venir'
+          ent.lsssCurve
+            ? lsssPoints.length ? `${lsssPoints.length} mesure${lsssPoints.length > 1 ? 's' : ''}` : 'à venir'
+            : 'pack Avancé'
         }</span>
       </div>
-      <div style="display:flex;gap:12px;">
+      ${
+        ent.lsssCurve
+          ? `<div style="display:flex;gap:12px;">
         <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 26px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);text-align:right;width:34px;"><span>Élevé</span><span>Moyen</span><span>Bas</span></div>
         <div style="flex:1;min-width:0;">
           ${lsssGraphHtml(lsssPoints)}
           <div style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);"><span>S1</span><span>S3</span><span>S5</span><span>S7</span><span>S9</span><span>S11</span><span>S13</span></div>
         </div>
-      </div>
+      </div>`
+          : `${lockedBars}
+      <div style="margin-top:10px;">${lockNote('La courbe LSSS longitudinale (3 mesures scientifiques : S1 · S7 · S13) est incluse dès le pack Avancé.')}</div>`
+      }
     </div>
   </div>
 
@@ -648,15 +707,24 @@ function buildHtml(d: {
         <div class="b-wheelring" style="position:absolute;inset:0;border-radius:50%;background:conic-gradient(from -90deg,#F9EB50 0 25%,#A7C4BC 25% 50%,#6FA8B0 50% 75%,#cdbf78 75% 100%);-webkit-mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);mask:radial-gradient(circle at 50% 50%,transparent 44px,#000 45px);animation:b-spin 26s linear infinite;opacity:.92;"></div>
         <div style="position:absolute;top:-3px;left:50%;transform:translateX(-50%);width:11px;height:11px;border-radius:50%;background:#fff7c8;box-shadow:0 0 12px rgba(249,235,80,.8);"></div>
         <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">
-          <span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">${latestEmotion ? 'Identifiée' : 'À explorer'}</span>
-          <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;">${esc(latestEmotion || '—')}</span>
+          ${
+            ent.emotionWheel
+              ? `<span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">${latestEmotion ? 'Identifiée' : 'À explorer'}</span>
+          <span class="disp" style="font-weight:600;font-size:18px;color:#F9EB50;">${esc(latestEmotion || '—')}</span>`
+              : `<span style="font-weight:500;font-size:10px;color:rgba(234,243,241,.45);">Identifiée</span>
+          <span class="disp" aria-hidden="true" style="font-weight:600;font-size:18px;color:#F9EB50;filter:blur(6px);user-select:none;">Trac</span>`
+          }
         </div>
       </div>
-      <div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;">
+      ${
+        ent.emotionWheel
+          ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:6px;">
         <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(249,235,80,.1);border:1px solid rgba(249,235,80,.22);font-weight:500;font-size:11px;color:#F9EB50;"><span style="width:6px;height:6px;border-radius:50%;background:#F9EB50;"></span>Trac</span>
         <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(167,196,188,.1);border:1px solid rgba(167,196,188,.2);font-weight:500;font-size:11px;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
         <span class="b-emochip" style="display:inline-flex;align-items:center;gap:5px;padding:5px 10px;border-radius:9px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:11px;color:rgba(234,243,241,.7);"><span style="width:6px;height:6px;border-radius:50%;background:#cdbf78;"></span>Détermination</span>
-      </div>
+      </div>`
+          : lockNote('La roue des émotions et le suivi de séance en séance sont inclus dès le pack Avancé.')
+      }
     </div>
 
     <!-- S6 · ROUTINE PRÉ-TIR -->
@@ -1321,6 +1389,8 @@ function AthleteIdentityPageInner() {
   const router = useRouter();
   const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
+  // Droits du forfait — pilotent les sections analytiques (teaser si verrouillé)
+  const { can } = usePlan(selectedChildId);
 
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [completed, setCompleted] = useState(0);
@@ -1330,7 +1400,11 @@ function AthleteIdentityPageInner() {
 
   // Données réelles complémentaires du bilan
   const [statusByNum, setStatusByNum] = useState<Record<number, string>>({});
-  const [gauge, setGauge] = useState<{ global: number; sample_size: number } | null>(null);
+  const [gauge, setGauge] = useState<{
+    global: number;
+    sample_size: number;
+    by_skill: Record<string, number>;
+  } | null>(null);
   const [lsssPoints, setLsssPoints] = useState<{ moment: LsssMoment; value: number }[]>([]);
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
   const [emotions, setEmotions] = useState<EmotionLog[]>([]);
@@ -1402,7 +1476,11 @@ function AthleteIdentityPageInner() {
       fetchEmotionLogs(selectedChildId),
       fetchDocuments(selectedChildId),
     ]);
-    setGauge(g && g.sample_size > 0 ? { global: g.global, sample_size: g.sample_size } : null);
+    setGauge(
+      g && g.sample_size > 0
+        ? { global: g.global, sample_size: g.sample_size, by_skill: g.by_skill ?? {} }
+        : null
+    );
     setNextSteps(ns);
     setEmotions(em);
     setDocs(dc);
@@ -1512,6 +1590,7 @@ function AthleteIdentityPageInner() {
       lsssPoints.length >= 2
         ? lsssPoints[lsssPoints.length - 1].value - lsssPoints[0].value
         : null,
+    bySkill: gauge?.by_skill ?? {},
     lsssPoints,
     nextSteps: nextSteps.map((s) => ({ label: s.label, status: s.status, due_date: s.due_date })),
     docIds: {
@@ -1522,6 +1601,11 @@ function AthleteIdentityPageInner() {
     latestEmotion: emotions[0]?.emotion ?? null,
     statusByNum,
     certificateReady: identity?.certificate_ready ?? false,
+    ent: {
+      skillBreakdown: can('skillBreakdown'),
+      lsssCurve: can('lsssCurve'),
+      emotionWheel: can('emotionWheel'),
+    },
   });
 
   return (
