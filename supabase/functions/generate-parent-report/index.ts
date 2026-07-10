@@ -58,8 +58,17 @@ Deno.serve(async (req: Request) => {
       return fail("forbidden", "Vous n'êtes pas l'auteur de ce bilan", 403);
     }
 
-    // Niveau de détail selon le pack (modèle pack/entitlement à brancher) → défaut 2
-    const detailLevel = Number(body?.detail_level ?? 2);
+    // Niveau de détail piloté par le forfait de la famille (matrice `plans`) —
+    // jamais par la requête : le pack fait foi (Essentiel 1 · Avancé 2 · Performance 3).
+    const { data: fam } = await admin
+      .from("children").select("family:families(pack)").eq("id", cr.child_id).maybeSingle();
+    const famRel = (fam as { family?: unknown })?.family;
+    const pack = String(
+      (Array.isArray(famRel) ? famRel[0]?.pack : (famRel as { pack?: string })?.pack) ?? "ESSENTIEL",
+    );
+    const { data: plan } = await admin
+      .from("plans").select("limits").eq("code", pack).maybeSingle();
+    const detailLevel = Number((plan?.limits as { detailLevel?: number })?.detailLevel ?? 1);
 
     // Numéro de séance (pour le gabarit)
     let sessionNumber: number | null = null;
@@ -69,13 +78,18 @@ Deno.serve(async (req: Request) => {
       sessionNumber = sess?.session_number ?? null;
     }
 
-    // Gabarit éventuel ; sinon assemblage par défaut
-    const { data: tpl } = await admin
-      .from("report_templates").select("body_template")
+    // Gabarit éventuel : le gabarit premium du pack (report_templates.pack_level)
+    // prime sur le gabarit générique ; sinon assemblage par défaut
+    const { data: tpls } = await admin
+      .from("report_templates").select("body_template, pack_level")
       .eq("lang", lang)
       .eq("age_group", cr.age_group ?? "")
       .eq("session_number", sessionNumber ?? -1)
-      .limit(1).maybeSingle();
+      .or(`pack_level.eq.${pack},pack_level.is.null`);
+    const tpl =
+      (tpls ?? []).find((t) => t.pack_level === pack) ??
+      (tpls ?? []).find((t) => !t.pack_level) ??
+      null;
 
     // Assemblage de la version parent (sections filtrées par niveau de détail)
     const sections: Record<string, unknown> = {};
