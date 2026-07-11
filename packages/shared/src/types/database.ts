@@ -2009,9 +2009,11 @@ export type Database = {
           description: string | null
           id: string
           kind: string
+          lang: string
           moment: string | null
           program_id: string | null
           session_id: string | null
+          session_number: number | null
           status: Database["public"]["Enums"]["questionnaire_status"]
           title: string
           token_expires_at: string | null
@@ -2027,9 +2029,11 @@ export type Database = {
           description?: string | null
           id?: string
           kind?: string
+          lang?: string
           moment?: string | null
           program_id?: string | null
           session_id?: string | null
+          session_number?: number | null
           status?: Database["public"]["Enums"]["questionnaire_status"]
           title?: string
           token_expires_at?: string | null
@@ -2045,9 +2049,11 @@ export type Database = {
           description?: string | null
           id?: string
           kind?: string
+          lang?: string
           moment?: string | null
           program_id?: string | null
           session_id?: string | null
+          session_number?: number | null
           status?: Database["public"]["Enums"]["questionnaire_status"]
           title?: string
           token_expires_at?: string | null
@@ -2697,6 +2703,10 @@ export type Database = {
       lsss_send: { Args: { p_child: string; p_moment: string }; Returns: Json }
       lsss_submit: { Args: { p_answers: Json; p_token: string }; Returns: Json }
       notify_incomplete_dossiers: { Args: { p_days?: number }; Returns: number }
+      perma_progression: { Args: { p_child: string }; Returns: Json }
+      perma_send: { Args: { p_child: string; p_lang?: string; p_session: number }; Returns: Json }
+      questionnaire_get: { Args: { p_token: string }; Returns: Json }
+      questionnaire_submit: { Args: { p_answers: Json; p_token: string }; Returns: Json }
     }
     Enums: {
       age_group: "8-11" | "12-14" | "15-17"

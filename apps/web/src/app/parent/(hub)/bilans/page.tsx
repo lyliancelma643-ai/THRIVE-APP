@@ -17,6 +17,7 @@ import {
   fetchEmotionLogs,
   fetchGaugeSummary,
   fetchLsssProgression,
+  fetchPermaProgression,
   fetchNextSteps,
   programPct,
   signedDocUrl,
@@ -169,55 +170,77 @@ const CARD =
 const CHIP =
   'width:36px;height:36px;border-radius:11px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);display:grid;place-items:center;font-size:15px;';
 
-// Graphe de progression LSSS construit à partir des mesures réelles (skill_scores
-// agrégés par moment). 0-2 points → message d'attente ; sinon courbe + points.
-function lsssGraphHtml(points: { moment: LsssMoment; value: number }[]): string {
-  const X: Record<LsssMoment, number> = { BASELINE: 30, MID: 345, FINAL: 630 };
-  const LBL: Record<LsssMoment, string> = { BASELINE: 'Départ', MID: 'S7', FINAL: 'S13' };
+// Graphe de progression du BIEN-ÊTRE (PERMA), une mesure par séance (jusqu'à 13
+// points). 0 point → message d'attente ; sinon courbe chaude + points par séance.
+function permaGraphHtml(points: { session_number: number; value: number }[]): string {
+  const xOf = (s: number) => 30 + ((Math.max(1, Math.min(13, s)) - 1) / 12) * 600;
   const yOf = (v: number) => 20 + ((100 - Math.max(0, Math.min(100, v))) / 100) * 150;
-  const pts = [...points].sort((a, b) => X[a.moment] - X[b.moment]);
+  const pts = [...points].sort((a, b) => a.session_number - b.session_number);
 
   if (pts.length === 0) {
     return `<div style="position:relative;height:186px;display:flex;align-items:center;justify-content:center;text-align:center;">
-      <div style="max-width:280px;">
-        <div style="font-size:26px;opacity:.4;">⤢</div>
-        <p style="margin:8px 0 0;font-weight:500;font-size:13px;color:rgba(234,243,241,.55);">En attente de la première mesure LSSS. Le coach enverra le questionnaire à ${'l’enfant'} au bon moment du programme.</p>
+      <div style="max-width:300px;">
+        <div style="font-size:26px;opacity:.4;">☀️</div>
+        <p style="margin:8px 0 0;font-weight:500;font-size:13px;color:rgba(234,243,241,.55);">En attente de la première météo du bien-être. Le coach envoie un court questionnaire PERMA après chaque séance.</p>
       </div>
     </div>`;
   }
 
-  const coords = pts.map((p) => ({ x: X[p.moment], y: yOf(p.value), v: p.value, m: p.moment }));
+  const coords = pts.map((p) => ({ x: xOf(p.session_number), y: yOf(p.value), v: p.value, s: p.session_number }));
   const poly = coords.map((c) => `${c.x},${c.y}`).join(' ');
   const line =
     coords.length >= 2
-      ? `<polyline points="${poly}" fill="none" stroke="#A7C4BC" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:640;stroke-dashoffset:640;animation:b-drawLine 1.5s ease forwards .4s;"></polyline>`
+      ? `<polyline points="${poly}" fill="none" stroke="#F6B45A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke-dasharray:900;stroke-dashoffset:900;animation:b-drawLine 1.6s ease forwards .4s;"></polyline>`
       : '';
   const dots = coords
     .map(
       (c) =>
-        `<circle cx="${c.x}" cy="${c.y}" r="5.5" fill="#fff7c8" stroke="#F9EB50" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards .9s;"></circle>`
+        `<circle cx="${c.x}" cy="${c.y}" r="5" fill="#ffe6b8" stroke="#F6B45A" stroke-width="2.5" style="opacity:0;animation:b-fadeIn .4s ease forwards .9s;"></circle>`
     )
     .join('');
-  const labels = coords
-    .map(
-      (c) =>
-        `<span class="b-lchip bx" style="position:absolute;left:${((c.x / 660) * 100).toFixed(1)}%;top:${((c.y / 190) * 100).toFixed(1)}%;transform:translate(-50%,-150%);padding:3px 8px;border-radius:6px;background:rgba(249,235,80,.16);font-weight:700;font-size:11px;color:#F9EB50;white-space:nowrap;pointer-events:none;">${LBL[c.m]} · ${c.v}</span>`
-    )
+  // N'étiqueter que la première et la dernière mesure pour éviter la surcharge (jusqu'à 13 points).
+  const labelIdx = coords.length <= 1 ? [0] : [0, coords.length - 1];
+  const labels = labelIdx
+    .map((i) => {
+      const c = coords[i];
+      return `<span class="b-lchip bx" style="position:absolute;left:${((c.x / 660) * 100).toFixed(1)}%;top:${((c.y / 190) * 100).toFixed(1)}%;transform:translate(-50%,-150%);padding:3px 8px;border-radius:6px;background:rgba(246,180,90,.18);font-weight:700;font-size:11px;color:#F6B45A;white-space:nowrap;pointer-events:none;">S${c.s} · ${c.v}</span>`;
+    })
     .join('');
 
   return `<div style="position:relative;">
-    <div style="position:absolute;top:4px;bottom:4px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(167,196,188,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
+    <div style="position:absolute;top:4px;bottom:4px;left:0;width:2px;border-radius:1px;background:linear-gradient(180deg,transparent,rgba(246,180,90,.7),transparent);animation:b-scanX 8s linear infinite;pointer-events:none;"></div>
     <svg class="b-lsvg" viewBox="0 0 660 190" width="100%" height="186" preserveAspectRatio="none" style="display:block;">
-      <rect x="0" y="20" width="660" height="60" fill="rgba(167,196,188,.07)"></rect>
+      <rect x="0" y="20" width="660" height="60" fill="rgba(246,180,90,.07)"></rect>
       <line x1="0" y1="40" x2="660" y2="40" stroke="rgba(255,255,255,.05)"></line>
       <line x1="0" y1="104" x2="660" y2="104" stroke="rgba(255,255,255,.05)"></line>
       <line x1="0" y1="150" x2="660" y2="150" stroke="rgba(255,255,255,.05)"></line>
       ${line}
       ${dots}
     </svg>
-    <span class="b-lchip bx" style="position:absolute;left:8px;top:14%;padding:3px 8px;border-radius:6px;background:rgba(167,196,188,.12);font-weight:600;font-size:11px;color:rgba(167,196,188,.85);white-space:nowrap;pointer-events:none;">Zone cible</span>
+    <span class="b-lchip bx" style="position:absolute;left:8px;top:14%;padding:3px 8px;border-radius:6px;background:rgba(246,180,90,.12);font-weight:600;font-size:11px;color:rgba(246,180,90,.85);white-space:nowrap;pointer-events:none;">Zone cible</span>
     ${labels}
   </div>`;
+}
+
+// Mini-profil des 5 piliers PERMA (dernière mesure) — barres horizontales.
+function permaPillarsHtml(pillars: Record<string, number>): string {
+  const ORDER: [string, string][] = [
+    ['positive_emotion', 'Émotions positives'],
+    ['engagement', 'Engagement'],
+    ['relationships', 'Relations'],
+    ['meaning', 'Sens'],
+    ['accomplishment', 'Accomplissement'],
+  ];
+  const rows = ORDER.map(([k, label]) => {
+    const v = Math.max(0, Math.min(100, Math.round(pillars?.[k] ?? 0)));
+    const has = pillars?.[k] != null;
+    return `<div style="display:flex;align-items:center;gap:10px;">
+      <span style="width:118px;flex-shrink:0;font-weight:500;font-size:11px;color:rgba(234,243,241,.6);">${label}</span>
+      <span style="flex:1;height:7px;border-radius:4px;background:rgba(255,255,255,.06);overflow:hidden;"><span style="display:block;height:100%;width:${has ? v : 0}%;border-radius:4px;background:linear-gradient(90deg,#F6B45A,#F9EB50);"></span></span>
+      <span style="width:26px;text-align:right;font-weight:700;font-size:11px;color:${has ? '#F6B45A' : 'rgba(234,243,241,.3)'};">${has ? v : '—'}</span>
+    </div>`;
+  }).join('');
+  return `<div style="display:flex;flex-direction:column;gap:8px;margin-top:14px;">${rows}</div>`;
 }
 
 function buildHtml(d: {
@@ -248,6 +271,7 @@ function buildHtml(d: {
   gaugeDelta: number | null;
   bySkill: Record<string, number>;
   lsssPoints: { moment: LsssMoment; value: number }[];
+  permaPoints: { session_number: number; value: number; pillars: Record<string, number> }[];
   nextSteps: { label: string; status: string; due_date: string | null }[];
   docIds: { contract?: string; letter?: string; certificate?: string };
   latestEmotion: string | null;
@@ -285,6 +309,7 @@ function buildHtml(d: {
     gaugeDelta,
     bySkill,
     lsssPoints,
+    permaPoints,
     nextSteps,
     docIds,
     latestEmotion,
@@ -538,17 +563,17 @@ function buildHtml(d: {
     </div>
   </div>
 
-  <!-- LSSS · pleine largeur -->
+  <!-- PERMA · progression du bien-être · pleine largeur -->
   <div class="b-lsss">
-    <div class="bx b-clk" data-info="lsss" style="${CARD}${ain(3)}">${hint}
+    <div class="bx b-clk" data-info="perma" style="${CARD}${ain(3)}">${hint}
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;flex-wrap:wrap;">
         <div style="display:flex;align-items:center;gap:11px;">
-          <span class="bx" style="${CHIP}color:#A7C4BC;">⤢</span>
-          <span class="disp" style="font-weight:600;font-size:18px;">Progression des compétences de vie</span>
+          <span class="bx" style="${CHIP}color:#F6B45A;">☀️</span>
+          <span class="disp" style="font-weight:600;font-size:18px;">Progression du bien-être</span>
         </div>
-        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">▦ LSSS · ${
+        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">☀️ PERMA · ${
           ent.lsssCurve
-            ? lsssPoints.length ? `${lsssPoints.length} mesure${lsssPoints.length > 1 ? 's' : ''}` : 'à venir'
+            ? permaPoints.length ? `${permaPoints.length} séance${permaPoints.length > 1 ? 's' : ''}` : 'à venir'
             : 'pack Avancé'
         }</span>
       </div>
@@ -557,12 +582,14 @@ function buildHtml(d: {
           ? `<div style="display:flex;gap:12px;">
         <div style="display:flex;flex-direction:column;justify-content:space-between;padding:14px 0 26px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);text-align:right;width:34px;"><span>Élevé</span><span>Moyen</span><span>Bas</span></div>
         <div style="flex:1;min-width:0;">
-          ${lsssGraphHtml(lsssPoints)}
+          ${permaGraphHtml(permaPoints)}
           <div style="display:flex;justify-content:space-between;margin-top:8px;padding:0 4px;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);"><span>S1</span><span>S3</span><span>S5</span><span>S7</span><span>S9</span><span>S11</span><span>S13</span></div>
         </div>
-      </div>`
+      </div>
+      ${permaPoints.length ? permaPillarsHtml(permaPoints[permaPoints.length - 1].pillars) : ''}
+      <p style="margin:12px 0 0;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);line-height:1.4;">Bien-être ressenti après chaque séance — modèle PERMA (émotions positives, engagement, relations, sens, accomplissement).</p>`
           : `${lockedBars}
-      <div style="margin-top:10px;">${lockNote('La courbe LSSS longitudinale (3 mesures scientifiques : S1 · S7 · S13) est incluse dès le pack Avancé.')}</div>`
+      <div style="margin-top:10px;">${lockNote('La courbe de bien-être PERMA (mesurée après chaque séance : 5 piliers scientifiques) est incluse dès le pack Avancé.')}</div>`
       }
     </div>
   </div>
@@ -897,6 +924,33 @@ const CARD_INFO: Record<string, CardInfo> = {
       },
     ],
     tip: 'La régularité compte plus que la vitesse : mieux vaut une séance par semaine bien ancrée que trois séances pressées.',
+  },
+  perma: {
+    icon: '☀️',
+    badge: 'Après chaque séance',
+    title: 'Progression du bien-être',
+    tagline: 'La météo du bien-être de ton enfant, séance après séance.',
+    sections: [
+      {
+        label: "C'est quoi ?",
+        text: 'PERMA est un modèle scientifique du bien-être (Seligman, 2011 ; appliqué au sport des jeunes par Uusiautti et coll., 2017). Après chaque séance, ton enfant répond à un court questionnaire sur son ressenti.',
+      },
+      {
+        label: 'Les 5 piliers',
+        bullets: [
+          'Émotions positives — se sentir bien, de bonne humeur',
+          'Engagement — être concentré, pris dans l’activité',
+          'Relations — se sentir soutenu par le coach et l’équipe',
+          'Sens — trouver du sens à ce qu’on fait',
+          'Accomplissement — réussir et être fier de ses progrès',
+        ],
+      },
+      {
+        label: 'Comment ça marche ?',
+        text: "La mesure est prise après chaque séance : la courbe suit l'évolution du bien-être tout au long des 13 séances. Chaque point est la moyenne des 5 piliers. C'est très court (5 questions) pour rester agréable à remplir à chaque fois.",
+      },
+    ],
+    tip: 'Le bien-être et la performance vont ensemble : un enfant qui se sent bien apprend et progresse mieux.',
   },
   lsss: {
     icon: '⤢',
@@ -1406,6 +1460,9 @@ function AthleteIdentityPageInner() {
     by_skill: Record<string, number>;
   } | null>(null);
   const [lsssPoints, setLsssPoints] = useState<{ moment: LsssMoment; value: number }[]>([]);
+  const [permaPoints, setPermaPoints] = useState<
+    { session_number: number; value: number; pillars: Record<string, number> }[]
+  >([]);
   const [nextSteps, setNextSteps] = useState<NextStep[]>([]);
   const [emotions, setEmotions] = useState<EmotionLog[]>([]);
   const [docs, setDocs] = useState<DocMeta[]>([]);
@@ -1419,6 +1476,7 @@ function AthleteIdentityPageInner() {
       setStatusByNum({});
       setGauge(null);
       setLsssPoints([]);
+      setPermaPoints([]);
       setNextSteps([]);
       setEmotions([]);
       setDocs([]);
@@ -1469,13 +1527,21 @@ function AthleteIdentityPageInner() {
     const pend = (pendRes.data ?? [])[0] as any;
     setPendingLsss(pend ? { token: pend.access_token ?? null, moment: pend.moment ?? null } : null);
 
-    // Données non bloquantes (jauge, prochaines étapes, émotions, documents)
-    const [g, ns, em, dc] = await Promise.all([
+    // Données non bloquantes (jauge, bien-être PERMA, prochaines étapes, émotions, documents)
+    const [g, perma, ns, em, dc] = await Promise.all([
       fetchGaugeSummary(selectedChildId),
+      fetchPermaProgression(selectedChildId),
       fetchNextSteps(selectedChildId),
       fetchEmotionLogs(selectedChildId),
       fetchDocuments(selectedChildId),
     ]);
+    setPermaPoints(
+      (perma ?? []).map((p) => ({
+        session_number: p.session_number,
+        value: p.value,
+        pillars: (p.pillars ?? {}) as Record<string, number>,
+      }))
+    );
     setGauge(
       g && g.sample_size > 0
         ? { global: g.global, sample_size: g.sample_size, by_skill: g.by_skill ?? {} }
@@ -1592,6 +1658,7 @@ function AthleteIdentityPageInner() {
         : null,
     bySkill: gauge?.by_skill ?? {},
     lsssPoints,
+    permaPoints,
     nextSteps: nextSteps.map((s) => ({ label: s.label, status: s.status, due_date: s.due_date })),
     docIds: {
       contract: docIdByKind('CONTRACT'),

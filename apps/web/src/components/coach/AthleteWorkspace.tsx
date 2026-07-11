@@ -17,6 +17,7 @@ import { EmotionsEditor } from './EmotionsEditor';
 import { RoutineEditor } from './RoutineEditor';
 import { DocumentsManager } from './DocumentsManager';
 import { LsssPanel } from './LsssPanel';
+import { PermaPanel } from './PermaPanel';
 import { SessionsEditor } from './SessionsEditor';
 
 function Accordion({
@@ -182,8 +183,15 @@ export function AthleteWorkspace({
       </Accordion>
 
       <Accordion
+        title="Météo du bien-être (PERMA)"
+        subtitle="Envoi après chaque séance + courbe de bien-être (5 piliers)"
+      >
+        <PermaPanel childId={childId} />
+      </Accordion>
+
+      <Accordion
         title="Questionnaire LSSS"
-        subtitle="Envoi à l'enfant + résultats (compétences de vie)"
+        subtitle="Envoi aux séances 3 · 7 · 13 + résultats (compétences de vie)"
       >
         <LsssPanel childId={childId} />
       </Accordion>
