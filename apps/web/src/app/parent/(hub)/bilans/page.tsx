@@ -1467,6 +1467,9 @@ function AthleteIdentityPageInner() {
   const [emotions, setEmotions] = useState<EmotionLog[]>([]);
   const [docs, setDocs] = useState<DocMeta[]>([]);
   const [pendingLsss, setPendingLsss] = useState<{ token: string | null; moment: string | null } | null>(null);
+  const [pendingPerma, setPendingPerma] = useState<
+    { token: string | null; session_number: number | null } | null
+  >(null);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
@@ -1481,10 +1484,11 @@ function AthleteIdentityPageInner() {
       setEmotions([]);
       setDocs([]);
       setPendingLsss(null);
+      setPendingPerma(null);
       setLoading(false);
       return;
     }
-    const [sessionsRes, assignmentRes, identityRes, progRes, pendRes] = await Promise.all([
+    const [sessionsRes, assignmentRes, identityRes, progRes, pendRes, pendPermaRes] = await Promise.all([
       supabase.from('sessions').select('status, session_number').eq('child_id', selectedChildId),
       supabase
         .from('coach_assignments')
@@ -1508,6 +1512,14 @@ function AthleteIdentityPageInner() {
         .in('status', ['PENDING', 'IN_PROGRESS'])
         .order('created_at', { ascending: false })
         .limit(1),
+      supabase
+        .from('questionnaires')
+        .select('access_token, session_number, status')
+        .eq('child_id', selectedChildId)
+        .eq('kind', 'PERMA')
+        .in('status', ['PENDING', 'IN_PROGRESS'])
+        .order('created_at', { ascending: false })
+        .limit(1),
     ]);
 
     const sessions = (sessionsRes.data ?? []) as { status: string; session_number: number | null }[];
@@ -1526,6 +1538,13 @@ function AthleteIdentityPageInner() {
 
     const pend = (pendRes.data ?? [])[0] as any;
     setPendingLsss(pend ? { token: pend.access_token ?? null, moment: pend.moment ?? null } : null);
+
+    const pendPerma = (pendPermaRes.data ?? [])[0] as any;
+    setPendingPerma(
+      pendPerma
+        ? { token: pendPerma.access_token ?? null, session_number: pendPerma.session_number ?? null }
+        : null
+    );
 
     // Données non bloquantes (jauge, bien-être PERMA, prochaines étapes, émotions, documents)
     const [g, perma, ns, em, dc] = await Promise.all([
@@ -1693,6 +1712,30 @@ function AthleteIdentityPageInner() {
             <a
               href={`/q/${pendingLsss.token}`}
               className="shrink-0 px-4 py-2 rounded-full bg-[#F9EB50] text-[#06222a] text-sm font-bold"
+            >
+              Ouvrir
+            </a>
+          )}
+        </div>
+      )}
+      {pendingPerma && (
+        <div className="mx-4 md:mx-6 mt-4 mb-2 p-4 rounded-2xl bg-[#2e2410] border border-[#F6B45A]/40 flex items-center gap-3">
+          <span className="w-9 h-9 rounded-xl bg-[#F6B45A]/15 flex items-center justify-center text-[#F6B45A] shrink-0">
+            ☀️
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-[#eaf3f1]">
+              Météo du bien-être à compléter
+              {pendingPerma.session_number ? ` — séance ${pendingPerma.session_number}` : ''}
+            </p>
+            <p className="text-xs text-[#eaf3f1]/60">
+              {selectedChild.first_name} a une courte météo PERMA (5 questions) à remplir avec toi.
+            </p>
+          </div>
+          {pendingPerma.token && (
+            <a
+              href={`/q/${pendingPerma.token}`}
+              className="shrink-0 px-4 py-2 rounded-full bg-[#F6B45A] text-[#241a08] text-sm font-bold"
             >
               Ouvrir
             </a>
