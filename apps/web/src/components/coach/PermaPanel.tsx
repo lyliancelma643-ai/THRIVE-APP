@@ -1,8 +1,9 @@
 'use client';
 
-// Panneau PERMA (coach) : envoi de la « météo du bien-être » à l'enfant après
-// une séance donnée (1..13), langue au choix (FR/EN). Suit le statut par séance
-// et le score global. Mesure administrée à CHAQUE séance (≠ LSSS aux S3/7/13).
+// Panneau bien-être EPOCH (coach) : envoi du questionnaire EPOCH (Kern et al.
+// 2016) à l'enfant après une séance donnée (1..13), langue au choix (FR/EN).
+// Suit le statut par séance et le score global. Administré à CHAQUE séance
+// (≠ LSSS aux S3/7/13). Nommage technique perma_* conservé côté back.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
@@ -190,8 +191,9 @@ export function PermaPanel({ childId }: { childId: string }) {
 
       {loading && <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />}
       <p className="text-[11px] text-gray-400">
-        La météo PERMA (5 questions) est répondue par l&apos;enfant après chaque séance. Une notification
-        est envoyée au parent avec le lien. Les résultats alimentent la courbe de bien-être du bilan.
+        Le questionnaire EPOCH (20 questions, échelle « presque jamais » → « presque toujours ») est
+        répondu par l&apos;enfant après chaque séance. Une notification est envoyée au parent avec le
+        lien. Les résultats alimentent la courbe de bien-être du bilan.
       </p>
     </div>
   );

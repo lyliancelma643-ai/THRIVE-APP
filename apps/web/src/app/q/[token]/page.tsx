@@ -34,21 +34,41 @@ type LoadState = {
 
 type Lang = 'fr' | 'en';
 
-const SCALE: Record<Lang, { v: number; label: string }[]> = {
-  fr: [
-    { v: 1, label: 'Pas du tout' },
-    { v: 2, label: 'Un peu' },
-    { v: 3, label: 'Moyennement' },
-    { v: 4, label: 'Beaucoup' },
-    { v: 5, label: 'Tout à fait' },
-  ],
-  en: [
-    { v: 1, label: 'Not at all' },
-    { v: 2, label: 'A little' },
-    { v: 3, label: 'Somewhat' },
-    { v: 4, label: 'A lot' },
-    { v: 5, label: 'Completely' },
-  ],
+// EPOCH (kind PERMA) = échelle de fréquence officielle (Kern et al. 2016) ;
+// LSSS = échelle d'accord. Sélection selon le type de questionnaire.
+const SCALE: Record<'PERMA' | 'LSSS', Record<Lang, { v: number; label: string }[]>> = {
+  PERMA: {
+    fr: [
+      { v: 1, label: 'Presque jamais' },
+      { v: 2, label: 'Parfois' },
+      { v: 3, label: 'Souvent' },
+      { v: 4, label: 'Très souvent' },
+      { v: 5, label: 'Presque toujours' },
+    ],
+    en: [
+      { v: 1, label: 'Almost never' },
+      { v: 2, label: 'Sometimes' },
+      { v: 3, label: 'Often' },
+      { v: 4, label: 'Very often' },
+      { v: 5, label: 'Almost always' },
+    ],
+  },
+  LSSS: {
+    fr: [
+      { v: 1, label: 'Pas du tout' },
+      { v: 2, label: 'Un peu' },
+      { v: 3, label: 'Moyennement' },
+      { v: 4, label: 'Beaucoup' },
+      { v: 5, label: 'Tout à fait' },
+    ],
+    en: [
+      { v: 1, label: 'Not at all' },
+      { v: 2, label: 'A little' },
+      { v: 3, label: 'Somewhat' },
+      { v: 4, label: 'A lot' },
+      { v: 5, label: 'Completely' },
+    ],
+  },
 };
 
 type Tr = {
@@ -254,7 +274,7 @@ export default function QuestionnairePage() {
   }
 
   const kindLabel = isPerma
-    ? `THRIVE · PERMA${state.session_number ? ` · ${tr.session} ${state.session_number}` : ''}`
+    ? `THRIVE · EPOCH${state.session_number ? ` · ${tr.session} ${state.session_number}` : ''}`
     : 'THRIVE · LSSS';
 
   return (
@@ -316,7 +336,7 @@ export default function QuestionnairePage() {
               >
                 <p style={{ fontSize: 14, marginBottom: 12, lineHeight: 1.4 }}>{it.prompt}</p>
                 <div style={{ display: 'flex', gap: 6 }}>
-                  {SCALE[lang].map((s) => {
+                  {SCALE[isPerma ? 'PERMA' : 'LSSS'][lang].map((s) => {
                     const active = answers[it.id] === s.v;
                     return (
                       <button

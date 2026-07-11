@@ -181,7 +181,7 @@ function permaGraphHtml(points: { session_number: number; value: number }[]): st
     return `<div style="position:relative;height:186px;display:flex;align-items:center;justify-content:center;text-align:center;">
       <div style="max-width:300px;">
         <div style="font-size:26px;opacity:.4;">☀️</div>
-        <p style="margin:8px 0 0;font-weight:500;font-size:13px;color:rgba(234,243,241,.55);">En attente de la première météo du bien-être. Le coach envoie un court questionnaire PERMA après chaque séance.</p>
+        <p style="margin:8px 0 0;font-weight:500;font-size:13px;color:rgba(234,243,241,.55);">En attente du premier questionnaire de bien-être. Le coach envoie un court questionnaire EPOCH après chaque séance.</p>
       </div>
     </div>`;
   }
@@ -225,11 +225,11 @@ function permaGraphHtml(points: { session_number: number; value: number }[]): st
 // Mini-profil des 5 piliers PERMA (dernière mesure) — barres horizontales.
 function permaPillarsHtml(pillars: Record<string, number>): string {
   const ORDER: [string, string][] = [
-    ['positive_emotion', 'Émotions positives'],
     ['engagement', 'Engagement'],
-    ['relationships', 'Relations'],
-    ['meaning', 'Sens'],
-    ['accomplishment', 'Accomplissement'],
+    ['perseverance', 'Persévérance'],
+    ['optimism', 'Optimisme'],
+    ['connectedness', 'Connexion aux autres'],
+    ['happiness', 'Bonheur'],
   ];
   const rows = ORDER.map(([k, label]) => {
     const v = Math.max(0, Math.min(100, Math.round(pillars?.[k] ?? 0)));
@@ -571,7 +571,7 @@ function buildHtml(d: {
           <span class="bx" style="${CHIP}color:#F6B45A;">☀️</span>
           <span class="disp" style="font-weight:600;font-size:18px;">Progression du bien-être</span>
         </div>
-        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">☀️ PERMA · ${
+        <span class="bx" style="display:inline-flex;align-items:center;gap:7px;padding:8px 13px;border-radius:11px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);font-weight:500;font-size:12px;color:rgba(234,243,241,.65);">☀️ EPOCH · ${
           ent.lsssCurve
             ? permaPoints.length ? `${permaPoints.length} séance${permaPoints.length > 1 ? 's' : ''}` : 'à venir'
             : 'pack Avancé'
@@ -587,9 +587,9 @@ function buildHtml(d: {
         </div>
       </div>
       ${permaPoints.length ? permaPillarsHtml(permaPoints[permaPoints.length - 1].pillars) : ''}
-      <p style="margin:12px 0 0;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);line-height:1.4;">Bien-être ressenti après chaque séance — modèle PERMA (émotions positives, engagement, relations, sens, accomplissement).</p>`
+      <p style="margin:12px 0 0;font-weight:400;font-size:11px;color:rgba(234,243,241,.4);line-height:1.4;">Bien-être mesuré après chaque séance — échelle EPOCH (engagement, persévérance, optimisme, connexion aux autres, bonheur).</p>`
           : `${lockedBars}
-      <div style="margin-top:10px;">${lockNote('La courbe de bien-être PERMA (mesurée après chaque séance : 5 piliers scientifiques) est incluse dès le pack Avancé.')}</div>`
+      <div style="margin-top:10px;">${lockNote('La courbe de bien-être EPOCH (mesurée après chaque séance : 5 dimensions scientifiques) est incluse dès le pack Avancé.')}</div>`
       }
     </div>
   </div>
@@ -933,21 +933,21 @@ const CARD_INFO: Record<string, CardInfo> = {
     sections: [
       {
         label: "C'est quoi ?",
-        text: 'PERMA est un modèle scientifique du bien-être (Seligman, 2011 ; appliqué au sport des jeunes par Uusiautti et coll., 2017). Après chaque séance, ton enfant répond à un court questionnaire sur son ressenti.',
+        text: 'EPOCH est une échelle scientifique de bien-être validée pour les 10–18 ans (Kern, Benson, Steinberg & Steinberg, 2016). Après chaque séance, ton enfant répond à un court questionnaire sur son bien-être.',
       },
       {
-        label: 'Les 5 piliers',
+        label: 'Les 5 dimensions',
         bullets: [
-          'Émotions positives — se sentir bien, de bonne humeur',
-          'Engagement — être concentré, pris dans l’activité',
-          'Relations — se sentir soutenu par le coach et l’équipe',
-          'Sens — trouver du sens à ce qu’on fait',
-          'Accomplissement — réussir et être fier de ses progrès',
+          'Engagement — se plonger à fond dans ses activités',
+          'Persévérance — aller au bout de ce qu’on entreprend',
+          'Optimisme — voir l’avenir avec confiance',
+          'Connexion aux autres — se sentir entouré et soutenu',
+          'Bonheur — se sentir heureux, joyeux, s’amuser',
         ],
       },
       {
         label: 'Comment ça marche ?',
-        text: "La mesure est prise après chaque séance : la courbe suit l'évolution du bien-être tout au long des 13 séances. Chaque point est la moyenne des 5 piliers. C'est très court (5 questions) pour rester agréable à remplir à chaque fois.",
+        text: "La mesure est prise après chaque séance : la courbe suit l'évolution du bien-être tout au long des 13 séances. Chaque point est la moyenne des 5 dimensions (20 questions, échelle de « presque jamais » à « presque toujours »).",
       },
     ],
     tip: 'Le bien-être et la performance vont ensemble : un enfant qui se sent bien apprend et progresse mieux.',
@@ -1725,11 +1725,11 @@ function AthleteIdentityPageInner() {
           </span>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-[#eaf3f1]">
-              Météo du bien-être à compléter
+              Questionnaire bien-être à compléter
               {pendingPerma.session_number ? ` — séance ${pendingPerma.session_number}` : ''}
             </p>
             <p className="text-xs text-[#eaf3f1]/60">
-              {selectedChild.first_name} a une courte météo PERMA (5 questions) à remplir avec toi.
+              {selectedChild.first_name} a un court questionnaire de bien-être (EPOCH) à remplir avec toi.
             </p>
           </div>
           {pendingPerma.token && (

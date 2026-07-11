@@ -98,20 +98,22 @@ export const LSSS_MOMENT_LABEL: Record<LsssMoment, string> = {
   FINAL: 'Bilan final (S13)',
 };
 
-// ── PERMA (bien-être, mesuré à chaque séance) ──────────────────────────────
+// ── Bien-être EPOCH (Kern et al. 2016), mesuré à chaque séance ──────────────
+// 5 dimensions validées pour les 10–18 ans. (Nommage technique « perma_* »
+// conservé pour le sous-système ; le contenu et les libellés sont EPOCH.)
 export type PermaPillar =
-  | 'positive_emotion' | 'engagement' | 'relationships' | 'meaning' | 'accomplishment';
+  | 'engagement' | 'perseverance' | 'optimism' | 'connectedness' | 'happiness';
 
 export const PERMA_PILLAR_LABEL: Record<PermaPillar, string> = {
-  positive_emotion: 'Émotions positives',
   engagement: 'Engagement',
-  relationships: 'Relations',
-  meaning: 'Sens',
-  accomplishment: 'Accomplissement',
+  perseverance: 'Persévérance',
+  optimism: 'Optimisme',
+  connectedness: 'Connexion aux autres',
+  happiness: 'Bonheur',
 };
 
 export const PERMA_PILLAR_ORDER: PermaPillar[] = [
-  'positive_emotion', 'engagement', 'relationships', 'meaning', 'accomplishment',
+  'engagement', 'perseverance', 'optimism', 'connectedness', 'happiness',
 ];
 
 export type PermaPoint = {

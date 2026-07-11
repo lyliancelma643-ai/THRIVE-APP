@@ -183,8 +183,8 @@ export function AthleteWorkspace({
       </Accordion>
 
       <Accordion
-        title="Météo du bien-être (PERMA)"
-        subtitle="Envoi après chaque séance + courbe de bien-être (5 piliers)"
+        title="Bien-être (EPOCH)"
+        subtitle="Envoi après chaque séance + courbe de bien-être (5 dimensions)"
       >
         <PermaPanel childId={childId} />
       </Accordion>
