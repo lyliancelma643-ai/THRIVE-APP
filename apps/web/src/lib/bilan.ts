@@ -98,6 +98,29 @@ export const LSSS_MOMENT_LABEL: Record<LsssMoment, string> = {
   FINAL: 'Bilan final (S13)',
 };
 
+// ── PERMA (bien-être, mesuré à chaque séance) ──────────────────────────────
+export type PermaPillar =
+  | 'positive_emotion' | 'engagement' | 'relationships' | 'meaning' | 'accomplishment';
+
+export const PERMA_PILLAR_LABEL: Record<PermaPillar, string> = {
+  positive_emotion: 'Émotions positives',
+  engagement: 'Engagement',
+  relationships: 'Relations',
+  meaning: 'Sens',
+  accomplishment: 'Accomplissement',
+};
+
+export const PERMA_PILLAR_ORDER: PermaPillar[] = [
+  'positive_emotion', 'engagement', 'relationships', 'meaning', 'accomplishment',
+];
+
+export type PermaPoint = {
+  session_number: number;
+  created_at: string | null;
+  value: number;
+  pillars: Partial<Record<PermaPillar, number>>;
+};
+
 // ── Séances ────────────────────────────────────────────────────────────────
 export type SessionStatus =
   | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'MISSED' | 'POSTPONED';
@@ -183,6 +206,11 @@ export async function fetchGaugeSummary(
   return (data as any) ?? null;
 }
 
+export async function fetchPermaProgression(childId: string): Promise<PermaPoint[]> {
+  const { data } = await supabase.rpc('perma_progression', { p_child: childId });
+  return (data ?? []) as PermaPoint[];
+}
+
 // ── Documents : upload / signed url / delete ─────────────────────────────────
 function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(-80);
@@ -245,6 +273,21 @@ export async function sendLsss(
   moment: LsssMoment
 ): Promise<{ token?: string; path?: string; error?: string }> {
   const { data, error } = await supabase.rpc('lsss_send', { p_child: childId, p_moment: moment });
+  if (error) return { error: error.message };
+  return { token: (data as any)?.token, path: (data as any)?.path };
+}
+
+// ── PERMA : envoi par le coach (une séance donnée, langue au choix) ──────────
+export async function sendPerma(
+  childId: string,
+  sessionNumber: number,
+  lang: 'fr' | 'en' = 'fr'
+): Promise<{ token?: string; path?: string; error?: string }> {
+  const { data, error } = await supabase.rpc('perma_send', {
+    p_child: childId,
+    p_session: sessionNumber,
+    p_lang: lang,
+  });
   if (error) return { error: error.message };
   return { token: (data as any)?.token, path: (data as any)?.path };
 }
