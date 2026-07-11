@@ -291,6 +291,50 @@ function FilterGroup({
 }
 
 
+// ── Compte en préparation : aperçu réel des séances découverte (is_free) ─────
+// Les cartes sont affichées mais inertes (GreyedSection) : le parent voit ce
+// qui l'attend sans pouvoir lancer une séance avant l'activation.
+function LockedFitnessPreview() {
+  const [freeSessions, setFreeSessions] = useState<VideoSession[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('video_sessions')
+        .select('*')
+        .eq('is_active', true)
+        .eq('lang', 'fr')
+        .eq('is_free', true)
+        .order('session_number');
+      setFreeSessions((data ?? []) as VideoSession[]);
+    })();
+  }, []);
+
+  return (
+    <div className="space-y-8">
+      <LockedBanner />
+      {freeSessions.length > 0 && (
+        <GreyedSection
+          title="Séances découverte"
+          subtitle="Un aperçu offert du parcours — jouable dès l'activation de votre espace"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {freeSessions.map((s) => (
+              <div key={s.id} className="[&>a]:w-full">
+                <SessionCard session={s} />
+              </div>
+            ))}
+          </div>
+        </GreyedSection>
+      )}
+      <GreyedSection
+        title="Fitness"
+        subtitle="La bibliothèque de séances vidéo de votre enfant"
+      />
+    </div>
+  );
+}
+
 // ── Garde d'accès : flag serveur fitness_enabled (Super Admin) ───────────────
 // Flag OFF → « en construction » pour TOUS les comptes, quel que soit le statut.
 export default function FitnessPage() {
@@ -304,16 +348,6 @@ export default function FitnessPage() {
     return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
   }
   if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
-  if (!access.unlocked) {
-    return (
-      <div className="space-y-8">
-        <LockedBanner />
-        <GreyedSection
-          title="Fitness"
-          subtitle="La bibliothèque de séances vidéo de votre enfant"
-        />
-      </div>
-    );
-  }
+  if (!access.unlocked) return <LockedFitnessPreview />;
   return <FitnessPageInner />;
 }

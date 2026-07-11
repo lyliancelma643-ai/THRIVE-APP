@@ -15,11 +15,13 @@ const TABS = [
   { href: '/parent/fitness', label: 'Fitness', icon: '▦' },
 ];
 
-// Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness
+// Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;
+// la messagerie et la page forfaits vivent hors onglets (accès par le header).
 function activeTabIndex(pathname: string): number {
   const i = TABS.findIndex((t) => pathname.startsWith(t.href));
   if (i >= 0) return i;
   if (pathname.startsWith('/parent/session')) return 2;
+  if (pathname.startsWith('/parent/messages') || pathname.startsWith('/parent/upgrade')) return -1;
   return 0;
 }
 
@@ -73,6 +75,13 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
               +
             </Link>
             <ChildSwitcher />
+            <Link
+              href="/parent/messages"
+              aria-label="Messagerie avec le coach"
+              className="w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-lg text-white/75 hover:text-white transition-colors select-none"
+            >
+              ✉
+            </Link>
             {/* Séparateur discret entre le profil enfant et le compte utilisateur */}
             <span className="w-px h-6 bg-white/10 mx-0.5 hidden sm:block" aria-hidden />
             <UserMenu />
@@ -103,19 +112,23 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(255,255,255,0.04)',
             }}
           />
-          <div
-            aria-hidden
-            className="absolute top-1.5 bottom-1.5 left-1.5 rounded-[22px] bg-white/[0.14] border border-white/25 transition-transform duration-500"
-            style={{
-              width: 'calc((100% - 12px) / 3)',
-              transform: `translateX(${active * 100}%)`,
-              transitionTimingFunction: 'cubic-bezier(0.32, 1.35, 0.4, 1)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(0,0,0,0.35)',
-            }}
-          />
+          {active >= 0 && (
+            <div
+              aria-hidden
+              className="absolute top-1.5 bottom-1.5 left-1.5 rounded-[22px] bg-white/[0.14] border border-white/25 transition-transform duration-500"
+              style={{
+                width: 'calc((100% - 12px) / 3)',
+                transform: `translateX(${active * 100}%)`,
+                transitionTimingFunction: 'cubic-bezier(0.32, 1.35, 0.4, 1)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(0,0,0,0.35)',
+              }}
+            />
+          )}
           <div className="relative grid grid-cols-3 select-none">
             {TABS.map((tab, i) =>
-              locked && active !== i ? (
+              // Compte en préparation : hors onglets (active < 0), Bilan reste
+              // cliquable pour ne jamais enfermer l'utilisateur.
+              locked && (active >= 0 ? active !== i : i !== 0) ? (
                 // Compte en préparation : les autres sections restent visibles
                 // mais non cliquables (aperçu de ce qui attend l'utilisateur)
                 <span

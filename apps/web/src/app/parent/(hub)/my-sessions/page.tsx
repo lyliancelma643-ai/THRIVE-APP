@@ -1,13 +1,15 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
 import { SessionsLockedNotice } from '@/components/parent/AccessGate';
+import { BilanCard, LockedText, ScoreGauge, UpgradeHintBar } from '@/components/parent/PackGate';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
-import { type Pack, asPack, canSeePremium, upgradeHint } from '@/lib/packs';
+import { usePlan } from '@/lib/entitlements';
+import { type Pack } from '@/lib/packs';
 import { useModalDismiss } from '@/lib/useModalDismiss';
 
 type OneToOneSession = {
@@ -20,11 +22,19 @@ type OneToOneSession = {
   coach_notes: string | null;
 };
 
-type Report = {
-  id: string;
-  child_id: string;
-  content: Record<string, unknown> | null;
-  created_at: string;
+// Bilan de séance servi par le RPC filtré `session_report` (migration 039) :
+// le message arrive toujours, le bilan détaillé et les notes d'observations
+// uniquement si le pack le permet — le serveur n'expose jamais le reste.
+type SessionBilan = {
+  session_id: string;
+  session_number: number | null;
+  premium: boolean;
+  message: string | null;
+  has_bilan: boolean;
+  has_observations: boolean;
+  bilan: Record<string, unknown> | null;
+  observations: Record<string, number> | null;
+  observation_labels: string[] | null;
 };
 
 type CoachInfo = { first_name: string; last_name: string } | null;
@@ -48,54 +58,53 @@ function MySessionsPageInner() {
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
 
   const [sessions, setSessions] = useState<OneToOneSession[]>([]);
-  const [reports, setReports] = useState<Report[]>([]);
+  const [bilans, setBilans] = useState<Record<string, SessionBilan>>({});
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [pack, setPack] = useState<Pack>('ESSENTIEL');
+  // Droits du forfait de la famille — source unique côté client (matrice packs.ts)
+  const { pack } = usePlan(selectedChildId);
 
   const load = useCallback(async () => {
     if (!selectedChildId) {
       setSessions([]);
-      setReports([]);
+      setBilans({});
       setCoach(null);
       setLoading(false);
       return;
     }
-    const [sessionsRes, reportsRes, assignmentRes, familyRes] = await Promise.all([
+    const [sessionsRes, assignmentRes] = await Promise.all([
       supabase
         .from('sessions')
         .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes')
         .eq('child_id', selectedChildId)
         .order('session_number', { ascending: true, nullsFirst: false }),
       supabase
-        .from('reports')
-        .select('id, child_id, content, created_at')
-        .eq('child_id', selectedChildId)
-        .order('created_at', { ascending: false }),
-      supabase
         .from('coach_assignments')
         .select('coach_id, profiles:coach_id (first_name, last_name)')
         .eq('child_id', selectedChildId)
         .eq('is_active', true)
         .limit(1),
-      supabase
-        .from('children')
-        .select('family:families (pack)')
-        .eq('id', selectedChildId)
-        .maybeSingle(),
     ]);
 
-    setSessions((sessionsRes.data ?? []) as OneToOneSession[]);
-    setReports((reportsRes.data ?? []) as Report[]);
+    const loadedSessions = (sessionsRes.data ?? []) as OneToOneSession[];
+    setSessions(loadedSessions);
+
+    // Bilan filtré côté serveur pour chaque séance validée (jamais de lecture brute)
+    const completed = loadedSessions.filter((s) => s.status === 'COMPLETED');
+    const entries = await Promise.all(
+      completed.map(async (s) => {
+        const { data } = await supabase.rpc('session_report', { p_session: s.id });
+        return [s.id, (data as SessionBilan | null) ?? null] as const;
+      })
+    );
+    setBilans(Object.fromEntries(entries.filter(([, b]) => b !== null)) as Record<string, SessionBilan>);
+
     const assignment = (assignmentRes.data ?? [])[0] as any;
     const coachProfile = Array.isArray(assignment?.profiles)
       ? assignment.profiles[0]
       : assignment?.profiles;
     setCoach((coachProfile as CoachInfo) ?? null);
-    const familyRel = (familyRes.data as any)?.family;
-    const famPack = Array.isArray(familyRel) ? familyRel[0]?.pack : familyRel?.pack;
-    setPack(asPack(famPack));
     setLoading(false);
   }, [selectedChildId]);
 
@@ -167,13 +176,7 @@ function MySessionsPageInner() {
   const selectedSession = selectedId
     ? sessions.find((x) => x.id === selectedId) ?? null
     : null;
-  const selectedReport = selectedSession
-    ? reports.find(
-        (r) =>
-          (r.content as any)?.session_id === selectedSession.id ||
-          (r.content as any)?.session_number === selectedSession.session_number
-      ) ?? null
-    : null;
+  const selectedBilan = selectedSession ? bilans[selectedSession.id] ?? null : null;
   const selectedTpl = selectedSession
     ? THRIVE_SESSIONS.find((t) => t.num === selectedSession.session_number) ?? null
     : null;
@@ -220,16 +223,12 @@ function MySessionsPageInner() {
           const s = sessions.find((x) => x.session_number === tpl.num) ?? null;
           const isDone = s?.status === 'COMPLETED';
           const phase = phaseOfSession(tpl.num);
-          const report = isDone && s
-            ? reports.find(
-                (r) =>
-                  (r.content as any)?.session_id === s.id ||
-                  (r.content as any)?.session_number === s.session_number
-              ) ?? null
-            : null;
+          const bilan = isDone && s ? bilans[s.id] ?? null : null;
           const rowId = s?.id ?? `tpl-${tpl.num}`;
           const isSelected = selectedId === rowId;
-          const hasDetails = Boolean(report || (isDone && s?.coach_notes));
+          const hasDetails = Boolean(
+            bilan && (bilan.message || bilan.has_bilan || bilan.has_observations)
+          );
 
           return (
             <div
@@ -299,7 +298,7 @@ function MySessionsPageInner() {
               {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
               {isSelected && hasDetails && s && (
                 <div className="lg:hidden px-5 pb-5 pt-3 border-t border-white/10">
-                  <BilanDetails session={s} report={report} pack={pack} />
+                  <BilanDetails bilan={bilan} pack={pack} />
                 </div>
               )}
             </div>
@@ -314,7 +313,7 @@ function MySessionsPageInner() {
           {selectedSession ? (
             <BilanPanel
               session={selectedSession}
-              report={selectedReport}
+              bilan={selectedBilan}
               pack={pack}
               phaseLabel={PHASE_LABELS[phaseOfSession(selectedSession.session_number)]}
               fallbackTitle={selectedTpl?.title ?? null}
@@ -341,153 +340,30 @@ function EmptyState({ title, body }: { title: string; body: string }) {
   );
 }
 
-/* Échelle de couleur des notes : vert (fort) → jaune (moyen) → gris (faible / sans couleur) */
-const NOTE_COLORS: Record<number, string> = {
-  5: '#34D399', // vert plein
-  4: '#A3E635', // vert-lime
-  3: '#F9EB50', // jaune (accent sun)
-  2: '#B7AE72', // jaune éteint
-  1: '#6B7280', // gris — « sans couleur »
-};
-
-/* Jauge circulaire incurvée — note /5 au centre, anneau coloré selon le niveau.
-   `locked` : anneau (couleurs + cercle) visible mais chiffre flouté (teaser d'upgrade). */
-function ScoreGauge({ note, max = 5, locked = false }: { note: number; max?: number; locked?: boolean }) {
-  const value = Math.max(0, Math.min(max, Math.round(note)));
-  const pct = (value / max) * 100;
-  const color = NOTE_COLORS[value] ?? '#6B7280';
-  return (
-    <div
-      className="relative w-16 h-16 shrink-0"
-      role="img"
-      aria-label={locked ? 'Note masquée — réservée aux packs supérieurs' : `Note ${value} sur ${max}`}
-    >
-      <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-        <circle
-          cx="18"
-          cy="18"
-          r="16"
-          fill="none"
-          stroke="rgba(255,255,255,0.10)"
-          strokeWidth="3.5"
-        />
-        <circle
-          cx="18"
-          cy="18"
-          r="16"
-          fill="none"
-          stroke={color}
-          strokeWidth="3.5"
-          strokeLinecap="round"
-          pathLength={100}
-          strokeDasharray={`${pct} 100`}
-          className="transition-all duration-500"
-        />
-      </svg>
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span
-          className={`font-display font-bold text-white text-lg leading-none tabular-nums ${
-            locked ? 'blur-[6px] select-none' : ''
-          }`}
-          aria-hidden={locked}
-        >
-          {value}
-        </span>
-      </div>
-    </div>
-  );
-}
-
-/* Carte de section interactive — réagit au survol (lift + halo accent, titre qui s'allume) */
-function BilanCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <section className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
-        {title}
-      </h4>
-      {children}
-    </section>
-  );
-}
-
 function fieldLabel(key: string): string {
   if (key === 'message du coach') return 'Message du coach';
   const k = key.replace(/_/g, ' ').trim();
   return k.charAt(0).toUpperCase() + k.slice(1);
 }
 
-/* Cadenas (SVG — pas d'emoji, cf. règles d'icônes) */
-function LockIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden>
-      <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/* Bandeau d'incitation à l'upgrade — affiché sur les sections verrouillées */
-function UpgradeHintBar({ pack }: { pack: Pack }) {
-  return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-3 py-2.5">
-      <LockIcon className="w-4 h-4 text-sun shrink-0 mt-0.5" />
-      <p className="text-xs leading-relaxed text-white/85">
-        <span className="font-semibold text-sun">Contenu réservé.</span> {upgradeHint(pack)}
-      </p>
-    </div>
-  );
-}
-
-/* Aperçu flouté d'un contenu texte verrouillé (aucune donnée réelle exposée) */
-function LockedText({ pack }: { pack: Pack }) {
-  return (
-    <div>
-      <div aria-hidden className="space-y-2 mb-3 blur-[5px] select-none pointer-events-none">
-        <div className="h-3 rounded bg-white/15 w-[95%]" />
-        <div className="h-3 rounded bg-white/15 w-[88%]" />
-        <div className="h-3 rounded bg-white/15 w-[72%]" />
-      </div>
-      <UpgradeHintBar pack={pack} />
-    </div>
-  );
-}
-
-/* Corps du bilan — 3 sections gérées par le pack de la famille ; partagé entre la
-   lecture inline (mobile) et le panneau latéral (desktop).
+/* Corps du bilan — 3 sections servies par le RPC filtré `session_report` ;
+   partagé entre la lecture inline (mobile) et le panneau latéral (desktop).
    Message → tous les packs · Bilan détaillé + Observations → Performance (toutes
-   les séances) / Avancé (séances 3, 7, 13) / Essentiel (verrouillé). */
-function BilanDetails({
-  session,
-  report,
-  pack,
-}: {
-  session: OneToOneSession;
-  report: Report | null;
-  pack: Pack;
-}) {
-  const content = (report?.content ?? {}) as Record<string, unknown>;
-  const observations =
-    content.observations && typeof content.observations === 'object'
-      ? (content.observations as Record<string, number>)
-      : null;
-  const messageRaw =
-    session.coach_notes?.trim() ||
-    (typeof content['message du coach'] === 'string'
-      ? (content['message du coach'] as string).trim()
-      : '');
-  const message = messageRaw || null;
-  // Bilan détaillé = champs texte structurés (hors message / observations / méta)
-  const bilanFields = Object.entries(content).filter(
-    ([k, v]) =>
-      !['session_id', 'session_number', 'titre', 'observations', 'message du coach'].includes(k) &&
-      typeof v !== 'object' &&
-      v !== '' &&
-      v !== null
-  );
-
-  const premium = canSeePremium(pack, session.session_number);
-  const hasObs = !!observations && Object.keys(observations).length > 0;
-  const hasBilan = bilanFields.length > 0;
+   les séances) / Avancé (séances 3, 7, 13) / Essentiel (verrouillé).
+   Verrouillé : le serveur n'envoie que les libellés — les notes n'atteignent
+   jamais le client (le flou n'est plus un simple voile cosmétique). */
+function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack }) {
+  const premium = bilan?.premium ?? false;
+  const message = bilan?.message ?? null;
+  const bilanFields = Object.entries(bilan?.bilan ?? {});
+  const observations = bilan?.observations ?? null;
+  // Grille des observations : notes réelles si premium, sinon libellés seuls
+  // (jauge neutre floutée — aucune donnée réelle).
+  const obsEntries: [string, number][] = premium
+    ? Object.entries(observations ?? {}).map(([k, v]) => [k, Number(v)])
+    : (bilan?.observation_labels ?? []).map((label) => [label, 3]);
+  const hasBilan = bilan?.has_bilan ?? false;
+  const hasObs = bilan?.has_observations ?? false;
 
   return (
     <div className="space-y-3">
@@ -525,7 +401,7 @@ function BilanDetails({
             </div>
           )}
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {Object.entries(observations!).map(([ind, note]) => (
+            {obsEntries.map(([ind, note]) => (
               <div
                 key={ind}
                 className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
@@ -536,7 +412,7 @@ function BilanDetails({
                   }`}
                   aria-hidden={!premium}
                 >
-                  <ScoreGauge note={Number(note)} locked={!premium} />
+                  <ScoreGauge note={note} locked={!premium} />
                   <span className="text-[13px] font-semibold leading-snug text-white">{ind}</span>
                 </div>
               </div>
@@ -551,14 +427,14 @@ function BilanDetails({
 /* Lecteur de bilan — panneau latéral (≥ lg), scrollable avec en-tête collant */
 function BilanPanel({
   session,
-  report,
+  bilan,
   pack,
   phaseLabel,
   fallbackTitle,
   onClose,
 }: {
   session: OneToOneSession;
-  report: Report | null;
+  bilan: SessionBilan | null;
   pack: Pack;
   phaseLabel: string;
   fallbackTitle: string | null;
@@ -596,7 +472,7 @@ function BilanPanel({
         </button>
       </div>
       <div className="p-6 pt-4">
-        <BilanDetails session={session} report={report} pack={pack} />
+        <BilanDetails bilan={bilan} pack={pack} />
       </div>
     </div>
   );
