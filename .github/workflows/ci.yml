@@ -1,0 +1,45 @@
+# CI THRIVE — garde-fou avant le déploiement Vercel (auto sur main).
+# Périmètre : ce qui part en prod (packages/shared + apps/web).
+# L'app mobile Expo (non déployée) est volontairement hors CI tant que sa
+# résolution de types n'est pas stabilisée — la réintégrer le moment venu.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web:
+    name: Typecheck · Lint · Build (web)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # pnpm/action-setup lit la version épinglée dans "packageManager".
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build @thrive/shared
+        run: pnpm --filter @thrive/shared build
+
+      - name: Typecheck web
+        run: pnpm --filter web typecheck
+
+      - name: Lint web
+        run: pnpm --filter web lint
+
+      - name: Build web (production)
+        run: pnpm --filter web build
