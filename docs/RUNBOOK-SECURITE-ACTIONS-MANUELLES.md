@@ -23,13 +23,16 @@ Dashboard → Advisors → Security (ou via MCP `get_advisors`).
 
 ## 2. Enrôler la MFA (TOTP) des 3 comptes admin (5 min / compte)
 
-État au 2026-07-11 : **0 facteur enrôlé** sur les 3 comptes concernés :
+État au 2026-07-11 : **0 facteur enrôlé** sur les **3 comptes** concernés
+(1 SUPER_ADMIN + 2 ADMIN). Lister les comptes exacts (ne pas commiter les
+adresses en clair) :
 
-| Compte | Rôle |
-|---|---|
-| <super-admin> | SUPER_ADMIN |
-| <admin> | ADMIN |
-| <admin> | ADMIN |
+```sql
+select u.email, u.raw_app_meta_data->>'role' as role
+from auth.users u
+where u.raw_app_meta_data->>'role' in ('ADMIN','SUPER_ADMIN')
+order by role;
+```
 
 L'infrastructure est déjà en prod (branche `security/mfa-admin` mergée) :
 - Page d'enrôlement : **`/settings/security`** (QR code TOTP).
