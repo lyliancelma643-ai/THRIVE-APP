@@ -1,0 +1,141 @@
+{
+  "version": "4",
+  "specifiers": {
+    "jsr:@std/assert@1": "1.0.19",
+    "jsr:@std/internal@^1.0.12": "1.0.14"
+  },
+  "jsr": {
+    "@std/assert@1.0.19": {
+      "integrity": "eaada96ee120cb980bc47e040f82814d786fe8162ecc53c91d8df60b8755991e",
+      "dependencies": [
+        "jsr:@std/internal"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    }
+  },
+  "workspace": {
+    "packageJson": {
+      "dependencies": [
+        "npm:@commitlint/cli@19",
+        "npm:@commitlint/config-conventional@19",
+        "npm:@typescript-eslint/eslint-plugin@7",
+        "npm:@typescript-eslint/parser@7",
+        "npm:eslint-config-prettier@9",
+        "npm:eslint@^8.57.0",
+        "npm:husky@9",
+        "npm:lint-staged@15",
+        "npm:prettier@3",
+        "npm:typescript@~5.9.2"
+      ]
+    },
+    "members": {
+      "apps/backend": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@nestjs/cli@10",
+            "npm:@nestjs/common@10",
+            "npm:@nestjs/config@3",
+            "npm:@nestjs/core@10",
+            "npm:@nestjs/platform-express@10",
+            "npm:@nestjs/schematics@10",
+            "npm:@nestjs/swagger@7",
+            "npm:@nestjs/testing@10",
+            "npm:@supabase/supabase-js@^2.49.0",
+            "npm:@types/express@^4.17.17",
+            "npm:@types/node@^20.3.1",
+            "npm:class-transformer@~0.5.1",
+            "npm:class-validator@~0.14.1",
+            "npm:reflect-metadata@~0.1.13",
+            "npm:rxjs@^7.8.1",
+            "npm:typescript@^5.1.3"
+          ]
+        }
+      },
+      "apps/mobile": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@expo/ngrok@^4.1.3",
+            "npm:@react-native-async-storage/async-storage@2.2.0",
+            "npm:@react-navigation/native@^7.1.33",
+            "npm:@supabase/supabase-js@^2.105.4",
+            "npm:@types/react@~19.2.2",
+            "npm:expo-blur@~55.0.14",
+            "npm:expo-constants@~55.0.16",
+            "npm:expo-device@~55.0.17",
+            "npm:expo-font@~55.0.7",
+            "npm:expo-haptics@~55.0.14",
+            "npm:expo-linear-gradient@~55.0.14",
+            "npm:expo-linking@~55.0.15",
+            "npm:expo-notifications@~55.0.23",
+            "npm:expo-router@~55.0.14",
+            "npm:expo-secure-store@~55.0.14",
+            "npm:expo-splash-screen@~55.0.21",
+            "npm:expo-status-bar@~55.0.6",
+            "npm:expo-symbols@~55.0.8",
+            "npm:expo-web-browser@~55.0.16",
+            "npm:expo@~55.0.24",
+            "npm:lucide-react-native@^1.17.0",
+            "npm:nativewind@^4.2.4",
+            "npm:react-native-purchases-ui@^10.1.1",
+            "npm:react-native-purchases@^10.1.1",
+            "npm:react-native-reanimated@4.2.1",
+            "npm:react-native-safe-area-context@~5.6.2",
+            "npm:react-native-screens@4.23",
+            "npm:react-native-svg@15.15.3",
+            "npm:react-native-url-polyfill@3",
+            "npm:react-native-web@0.21",
+            "npm:react-native-worklets@0.7.4",
+            "npm:react-native@0.83.6",
+            "npm:react@19.2.0",
+            "npm:tailwindcss@^3.4.19",
+            "npm:typescript@~5.9.2",
+            "npm:zod@^3.23.0",
+            "npm:zustand@^5.0.13"
+          ]
+        }
+      },
+      "apps/web": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@hookform/resolvers@3",
+            "npm:@playwright/test@^1.49.0",
+            "npm:@sentry/nextjs@^10.65.0",
+            "npm:@serwist/next@^9.5.11",
+            "npm:@supabase/supabase-js@^2.107.0",
+            "npm:@tanstack/react-query@^5.101.2",
+            "npm:@types/node@20",
+            "npm:@types/react-dom@~19.2.2",
+            "npm:@types/react@~19.2.2",
+            "npm:autoprefixer@10",
+            "npm:eslint-config-next@15.5.20",
+            "npm:eslint@^8.57.1",
+            "npm:next@15.5.20",
+            "npm:postcss@8",
+            "npm:react-dom@19.2.0",
+            "npm:react-hook-form@7",
+            "npm:react@19.2.0",
+            "npm:serwist@^9.5.11",
+            "npm:tailwindcss@^3.4.19",
+            "npm:typescript@~5.9.2",
+            "npm:zod@^3.23.0",
+            "npm:zustand@^5.0.13"
+          ]
+        }
+      },
+      "packages/shared": {
+        "packageJson": {
+          "dependencies": [
+            "npm:@supabase/supabase-js@^2.49.0",
+            "npm:@types/node@^20.19.42",
+            "npm:@types/react@~19.2.17",
+            "npm:typescript@^5.4.0",
+            "npm:zod@^3.25.76",
+            "npm:zustand@5"
+          ]
+        }
+      }
+    }
+  }
+}
