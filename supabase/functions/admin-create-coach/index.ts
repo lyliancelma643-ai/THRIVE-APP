@@ -5,13 +5,14 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("admin-create-coach", async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -137,9 +138,10 @@ Deno.serve(async (req: Request) => {
 
   } catch (err: any) {
     console.error("[admin-create-coach] Erreur:", err);
+    await captureError(err);
     return new Response(
       JSON.stringify({ error: err.message ?? "Erreur interne" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
-});
+}));

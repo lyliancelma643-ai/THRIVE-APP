@@ -7,6 +7,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,7 +18,7 @@ const json = (body: unknown, status = 200) =>
 const fail = (code: string, message: string, status: number, details: unknown = null) =>
   json({ code, message, details }, status);
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("generate-parent-report", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -147,6 +148,7 @@ Deno.serve(async (req: Request) => {
 
     return json({ parent_report: result }, 201);
   } catch (e) {
+    await captureError(e);
     return fail("internal", e instanceof Error ? e.message : "Erreur interne", 500);
   }
-});
+}));

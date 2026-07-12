@@ -1,5 +1,8 @@
 'use client';
 
+import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
+
 // Page d'erreur globale (App Router) — attrape les exceptions de rendu
 // des Server/Client Components et offre une relance sans rechargement dur.
 export default function Error({
@@ -9,6 +12,10 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
   return (
     <main className="min-h-screen flex flex-col items-center justify-center bg-cream px-6 text-center">
       <p className="text-5xl mb-4" aria-hidden>

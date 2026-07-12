@@ -8,6 +8,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -42,7 +43,7 @@ async function verifyStripeSignature(
   return diff === 0;
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Méthode non autorisée" }, 405);
 
   try {
@@ -95,6 +96,7 @@ Deno.serve(async (req: Request) => {
 
     return json({ received: true }, 200);
   } catch (e) {
+    await captureError(e);
     return json({ error: e instanceof Error ? e.message : "Erreur interne" }, 500);
   }
-});
+}));

@@ -1,6 +1,7 @@
 // Edge Function : export-my-data (portabilité RGPD/Loi 25)
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,7 +15,7 @@ function json(body: unknown, status = 200, extra: Record<string, string> = {}) {
   });
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("export-my-data", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   try {
     const authHeader = req.headers.get("Authorization");
@@ -48,6 +49,7 @@ Deno.serve(async (req: Request) => {
       { "Content-Disposition": `attachment; filename="thrive-export-${user.id}.json"` },
     );
   } catch (e) {
+    await captureError(e);
     return json({ error: e instanceof Error ? e.message : "Erreur interne" }, 500);
   }
-});
+}));

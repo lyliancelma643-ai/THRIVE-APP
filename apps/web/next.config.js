@@ -7,6 +7,8 @@
 // Next.js n'est pas passé à une CSP à base de nonce — à durcir ensuite.
 const SUPABASE = 'https://*.supabase.co wss://*.supabase.co';
 const WISTIA = 'https://*.wistia.com https://*.wistia.net https://*.wistiastatic.com https://*.akamaihd.net';
+// Ingest Sentry (télémétrie erreurs) — couvre les DSN region-based (o123.ingest.us.sentry.io).
+const SENTRY = 'https://*.sentry.io';
 
 const csp = [
   `default-src 'self'`,
@@ -15,7 +17,7 @@ const csp = [
   `img-src 'self' data: blob: ${SUPABASE} ${WISTIA}`,
   `media-src 'self' blob: ${SUPABASE} ${WISTIA}`,
   `font-src 'self' data:`,
-  `connect-src 'self' ${SUPABASE} ${WISTIA}`,
+  `connect-src 'self' ${SUPABASE} ${WISTIA} ${SENTRY}`,
   `frame-src 'self' ${WISTIA}`,
   `worker-src 'self' blob:`,
   `object-src 'none'`,
@@ -58,4 +60,19 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+// ── Sentry ──
+// Le wrap n'est actif que si le DSN est présent (env Vercel) : sans lui, le
+// build reste strictement identique. L'upload des source maps exige en plus
+// SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT (sinon il est sauté).
+const { withSentryConfig } = require('@sentry/nextjs');
+
+module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
+  ? withSentryConfig(nextConfig, {
+      org: process.env.SENTRY_ORG,
+      project: process.env.SENTRY_PROJECT,
+      silent: true,
+      sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+      disableLogger: true,
+      widenClientFileUpload: true,
+    })
+  : nextConfig;

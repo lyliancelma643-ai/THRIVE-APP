@@ -7,6 +7,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,7 +19,7 @@ const fail = (code: string, message: string, status: number) => json({ code, mes
 
 const PACK_ORDER = ["ESSENTIEL", "AVANCE", "PERFORMANCE"];
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
@@ -96,6 +97,7 @@ Deno.serve(async (req: Request) => {
 
     return json({ url: session.url }, 200);
   } catch (e) {
+    await captureError(e);
     return fail("internal", e instanceof Error ? e.message : "Erreur interne", 500);
   }
-});
+}));

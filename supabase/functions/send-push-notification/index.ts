@@ -1,9 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 
-serve(async (req) => {
+serve(withSentry("send-push-notification", async (req) => {
   try {
     const { user_id, title, body, data } = await req.json()
 
@@ -47,6 +48,7 @@ serve(async (req) => {
 
     return new Response(JSON.stringify(result), { status: 200 })
   } catch (err) {
+    await captureError(err);
     return new Response(JSON.stringify({ error: String(err) }), { status: 500 })
   }
-})
+}))

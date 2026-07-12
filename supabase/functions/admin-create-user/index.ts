@@ -11,6 +11,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +25,7 @@ function json(body: unknown, status = 200) {
   });
 }
 
-Deno.serve(async (req: Request) => {
+Deno.serve(withSentry("admin-create-user", async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -129,6 +130,7 @@ Deno.serve(async (req: Request) => {
 
     return json({ profile }, 201);
   } catch (e) {
+    await captureError(e);
     return json({ error: e instanceof Error ? e.message : "Erreur interne" }, 500);
   }
-});
+}));
