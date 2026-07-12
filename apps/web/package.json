@@ -14,6 +14,7 @@
     "@sentry/nextjs": "^10.65.0",
     "@serwist/next": "^9.5.11",
     "@supabase/supabase-js": "^2.107.0",
+    "@tanstack/react-query": "^5.101.2",
     "@thrive/shared": "workspace:*",
     "next": "15.5.20",
     "react": "19.2.0",
