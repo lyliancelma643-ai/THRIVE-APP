@@ -60,14 +60,25 @@ const nextConfig = {
   },
 };
 
+// ── PWA (Serwist) ──
+// Génère public/sw.js depuis src/sw.ts : précache du shell, cache runtime,
+// fallback /offline, réception Web Push. Désactivé en dev (interfère avec HMR).
+const withSerwist = require('@serwist/next').default({
+  swSrc: 'src/sw.ts',
+  swDest: 'public/sw.js',
+  disable: process.env.NODE_ENV === 'development',
+});
+
 // ── Sentry ──
 // Le wrap n'est actif que si le DSN est présent (env Vercel) : sans lui, le
 // build reste strictement identique. L'upload des source maps exige en plus
 // SENTRY_AUTH_TOKEN + SENTRY_ORG + SENTRY_PROJECT (sinon il est sauté).
 const { withSentryConfig } = require('@sentry/nextjs');
 
+const configWithPwa = withSerwist(nextConfig);
+
 module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
-  ? withSentryConfig(nextConfig, {
+  ? withSentryConfig(configWithPwa, {
       org: process.env.SENTRY_ORG,
       project: process.env.SENTRY_PROJECT,
       silent: true,
@@ -75,4 +86,4 @@ module.exports = process.env.NEXT_PUBLIC_SENTRY_DSN
       disableLogger: true,
       widenClientFileUpload: true,
     })
-  : nextConfig;
+  : configWithPwa;

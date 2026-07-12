@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
+import { WebPushToggle } from '@/components/WebPushToggle';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -148,6 +149,9 @@ export default function ComptePage() {
           THRIVE ou à l&apos;administrateur.
         </p>
       </section>
+
+      {/* Notifications push (PWA — invisible si non supporté/configuré) */}
+      {user?.id && <WebPushToggle userId={user.id} />}
 
       {/* Déconnexion */}
       <section className="rounded-2xl border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
