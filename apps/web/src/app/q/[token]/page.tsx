@@ -6,6 +6,7 @@
 // SECURITY DEFINER questionnaire_get / questionnaire_submit (accessibles à anon).
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 
@@ -250,7 +251,7 @@ export default function QuestionnairePage() {
             {done || state.completed ? tr.done : tr.oops}
           </h1>
           <p style={{ opacity: 0.7, lineHeight: 1.5, marginBottom: 28 }}>{msg}</p>
-          <a
+          <Link
             href="/"
             style={{
               display: 'inline-flex',
@@ -267,7 +268,7 @@ export default function QuestionnairePage() {
             }}
           >
             {tr.home}
-          </a>
+          </Link>
         </div>
       </Shell>
     );

@@ -41,6 +41,9 @@ const securityHeaders = [
 ];
 
 const nextConfig = {
+  // Monorepo pnpm : fige la racine de traçage des fichiers (sinon Next remonte
+  // jusqu'à un lockfile hors du projet et se trompe de racine).
+  outputFileTracingRoot: require('path').join(__dirname, '../../'),
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
