@@ -9,39 +9,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { withSentry, captureError } from "../_shared/sentry.ts";
+import { isValidPlanCode, verifyStripeSignature } from "./verify.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
-
-const encoder = new TextEncoder();
-
-async function verifyStripeSignature(
-  payload: string,
-  header: string,
-  secret: string,
-): Promise<boolean> {
-  const parts = Object.fromEntries(
-    header.split(",").map((kv) => kv.split("=", 2) as [string, string]),
-  );
-  const timestamp = Number(parts.t);
-  const signature = parts.v1;
-  if (!timestamp || !signature) return false;
-  // Tolérance anti-rejeu : 5 minutes
-  if (Math.abs(Date.now() / 1000 - timestamp) > 300) return false;
-
-  const key = await crypto.subtle.importKey(
-    "raw", encoder.encode(secret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"],
-  );
-  const mac = await crypto.subtle.sign("HMAC", key, encoder.encode(`${timestamp}.${payload}`));
-  const expected = Array.from(new Uint8Array(mac))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-  // Comparaison à temps constant
-  if (expected.length !== signature.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ signature.charCodeAt(i);
-  return diff === 0;
-}
 
 Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Méthode non autorisée" }, 405);
@@ -64,7 +35,7 @@ Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
       const familyId = session?.metadata?.family_id;
       const planCode = session?.metadata?.plan_code;
       if (!familyId || !planCode) return json({ error: "Metadata incomplète" }, 400);
-      if (!["ESSENTIEL", "AVANCE", "PERFORMANCE"].includes(planCode)) {
+      if (!isValidPlanCode(planCode)) {
         return json({ error: "plan_code invalide" }, 400);
       }
 

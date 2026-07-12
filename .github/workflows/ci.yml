@@ -43,3 +43,41 @@ jobs:
 
       - name: Build web (production)
         run: pnpm --filter web build
+
+  e2e:
+    name: Playwright (parcours vitaux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build @thrive/shared
+        run: pnpm --filter @thrive/shared build
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      - name: Run E2E (build + start géré par Playwright)
+        run: pnpm --filter web test:e2e --project=chromium
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: apps/web/playwright-report/
+          retention-days: 7
+
+  edge-tests:
+    name: Deno (webhook Stripe)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Test signature Stripe
+        run: deno test supabase/functions/stripe-webhook/verify.test.ts
