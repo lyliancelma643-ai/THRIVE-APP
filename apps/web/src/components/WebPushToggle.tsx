@@ -6,6 +6,7 @@
 import { useEffect, useState } from 'react';
 import {
   getCurrentSubscription,
+  getVapidPublicKey,
   subscribeToWebPush,
   unsubscribeFromWebPush,
   webPushSupported,
@@ -20,6 +21,7 @@ export function WebPushToggle({ userId }: { userId: string }) {
     let cancelled = false;
     (async () => {
       if (!webPushSupported()) return;
+      if (!(await getVapidPublicKey())) return; // clé absente → toggle invisible
       if (Notification.permission === 'denied') {
         if (!cancelled) setState('denied');
         return;

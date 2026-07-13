@@ -269,29 +269,41 @@ export async function deleteDocument(doc: DocMeta): Promise<{ error?: string }> 
   return {};
 }
 
-// ── LSSS : envoi par le coach ────────────────────────────────────────────────
+// ── Envoi de questionnaires par le coach ─────────────────────────────────────
+// Un seul envoi possible par séance (PERMA) ou par moment (LSSS) : si le
+// questionnaire existe déjà, la RPC renvoie l'existant avec already_sent=true
+// (aucun doublon créé, aucune nouvelle notification).
+export type SendQuestionnaireResult = {
+  token?: string;
+  path?: string;
+  alreadySent?: boolean;
+  status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
+  error?: string;
+};
+
 export async function sendLsss(
   childId: string,
   moment: LsssMoment
-): Promise<{ token?: string; path?: string; error?: string }> {
+): Promise<SendQuestionnaireResult> {
   const { data, error } = await supabase.rpc('lsss_send', { p_child: childId, p_moment: moment });
   if (error) return { error: error.message };
-  return { token: (data as any)?.token, path: (data as any)?.path };
+  const d = data as any;
+  return { token: d?.token, path: d?.path, alreadySent: d?.already_sent === true, status: d?.status };
 }
 
-// ── PERMA : envoi par le coach (une séance donnée, langue au choix) ──────────
 export async function sendPerma(
   childId: string,
   sessionNumber: number,
   lang: 'fr' | 'en' = 'fr'
-): Promise<{ token?: string; path?: string; error?: string }> {
+): Promise<SendQuestionnaireResult> {
   const { data, error } = await supabase.rpc('perma_send', {
     p_child: childId,
     p_session: sessionNumber,
     p_lang: lang,
   });
   if (error) return { error: error.message };
-  return { token: (data as any)?.token, path: (data as any)?.path };
+  const d = data as any;
+  return { token: d?.token, path: d?.path, alreadySent: d?.already_sent === true, status: d?.status };
 }
 
 // ── % de complétion du programme (auto ou override coach) ────────────────────

@@ -1,16 +1,19 @@
 'use client';
 
 // Parcours des 13 séances — statut par séance (à venir / en cours / complétée /
-// manquée / reportée) + notes du coach + replanification. Crée le programme si
-// l'automatisation ne l'a pas fait.
+// manquée / reportée) + notes du coach + replanification + envoi du test
+// bien-être EPOCH de fin de séance (un seul envoi possible par séance).
+// Crée le programme si l'automatisation ne l'a pas fait.
 
 import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { CoachSession, THRIVE_SESSIONS } from '@/lib/coach';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
-import { SESSION_STATUS_META, SessionStatus } from '@/lib/bilan';
+import { SESSION_STATUS_META, SessionStatus, sendPerma } from '@/lib/bilan';
 import { Btn } from './ui';
+
+type TestState = { status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED'; access_token: string | null };
 
 const EDITABLE_STATUSES: SessionStatus[] = [
   'SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'MISSED', 'POSTPONED', 'CANCELLED',
@@ -33,14 +36,29 @@ export function SessionsEditor({
   const [openNotes, setOpenNotes] = useState<string | null>(null);
   const [reschedule, setReschedule] = useState<string | null>(null);
   const [newDate, setNewDate] = useState('');
+  const [tests, setTests] = useState<Record<number, TestState>>({});
+  const [sendingTest, setSendingTest] = useState<number | null>(null);
+  const [testLink, setTestLink] = useState<{ session: number; url: string } | null>(null);
 
   const load = useCallback(async () => {
-    const { data } = await supabase
-      .from('sessions')
-      .select('id, program_id, child_id, session_number, title, status, scheduled_at, completed_at, coach_notes')
-      .eq('child_id', childId)
-      .order('session_number');
+    const [{ data }, { data: qs }] = await Promise.all([
+      supabase
+        .from('sessions')
+        .select('id, program_id, child_id, session_number, title, status, scheduled_at, completed_at, coach_notes')
+        .eq('child_id', childId)
+        .order('session_number'),
+      supabase
+        .from('questionnaires')
+        .select('session_number, status, access_token')
+        .eq('child_id', childId)
+        .eq('kind', 'PERMA'),
+    ]);
     setSessions((data ?? []) as CoachSession[]);
+    const map: Record<number, TestState> = {};
+    for (const q of (qs ?? []) as ({ session_number: number | null } & TestState)[]) {
+      if (q.session_number != null) map[q.session_number] = q;
+    }
+    setTests(map);
     setLoading(false);
   }, [childId]);
 
@@ -109,6 +127,28 @@ export function SessionsEditor({
     onChange?.();
   };
 
+  // Test bien-être EPOCH de fin de séance : notification (in-app + push) au
+  // parent avec le lien enfant. La base garantit un seul envoi par séance.
+  const sendTest = async (s: CoachSession) => {
+    if (s.session_number == null) return;
+    setSendingTest(s.session_number);
+    setError('');
+    const res = await sendPerma(childId, s.session_number);
+    setSendingTest(null);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
+    if (res.alreadySent) {
+      setError(`Le test de la séance ${s.session_number} a déjà été envoyé — un seul envoi par séance.`);
+    }
+    if (res.path && typeof window !== 'undefined') {
+      setTestLink({ session: s.session_number, url: `${window.location.origin}${res.path}` });
+    }
+    await load();
+    onChange?.();
+  };
+
   const doReschedule = async (id: string) => {
     if (!newDate) return;
     await supabase.from('sessions').update({ scheduled_at: new Date(newDate).toISOString() }).eq('id', id);
@@ -147,6 +187,22 @@ export function SessionsEditor({
   return (
     <div className="space-y-2">
       {error && <p className="p-2 rounded-lg bg-red-50 text-red-700 text-sm">{error}</p>}
+      {testLink && (
+        <div className="p-2 rounded-lg bg-navy-50 text-[11px] break-all">
+          <p className="text-navy-700 mb-1">
+            Test bien-être envoyé au parent (séance {testLink.session}) — lien enfant :
+          </p>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 truncate">{testLink.url}</code>
+            <button
+              onClick={() => navigator.clipboard?.writeText(testLink.url).catch(() => undefined)}
+              className="text-navy-600 font-semibold cursor-pointer"
+            >
+              Copier
+            </button>
+          </div>
+        </div>
+      )}
       <p className="text-xs text-gray-500 mb-1">{completed}/13 séances complétées</p>
 
       {sessions.map((s) => {
@@ -186,6 +242,39 @@ export function SessionsEditor({
                   </option>
                 ))}
               </select>
+
+              {s.session_number != null &&
+                (() => {
+                  const t = tests[s.session_number];
+                  if (!t) {
+                    return (
+                      <button
+                        onClick={() => sendTest(s)}
+                        disabled={sendingTest === s.session_number}
+                        title="Envoie le test bien-être EPOCH de cette séance au parent (notification + lien enfant)"
+                        className="text-xs px-2 py-1.5 rounded-lg bg-sun/30 text-navy-800 font-semibold hover:bg-sun/50 cursor-pointer disabled:opacity-50"
+                      >
+                        {sendingTest === s.session_number ? 'Envoi…' : 'Test bien-être →'}
+                      </button>
+                    );
+                  }
+                  return (
+                    <span
+                      title={
+                        t.status === 'COMPLETED'
+                          ? 'Test bien-être complété par l’enfant'
+                          : 'Test envoyé — en attente de l’enfant (un seul envoi par séance)'
+                      }
+                      className={`text-xs px-2 py-1.5 rounded-lg font-semibold ${
+                        t.status === 'COMPLETED'
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-amber-100 text-amber-700'
+                      }`}
+                    >
+                      {t.status === 'COMPLETED' ? 'Test ✓' : 'Test envoyé ⏳'}
+                    </span>
+                  );
+                })()}
 
               <button
                 onClick={() => setOpenNotes(openNotes === s.id ? null : s.id)}

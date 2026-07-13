@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
+import { NotificationsBell } from '@/components/parent/NotificationsBell';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { BrandLogo } from '@/components/BrandLogo';
 import { useAccessStore } from '@/lib/access';
@@ -82,6 +83,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             >
               ✉
             </Link>
+            <NotificationsBell />
             {/* Séparateur discret entre le profil enfant et le compte utilisateur */}
             <span className="w-px h-6 bg-white/10 mx-0.5 hidden sm:block" aria-hidden />
             <UserMenu />

@@ -1,17 +1,30 @@
 // Abonnement Web Push côté client (PWA).
-// Prérequis : service worker actif (public/sw.js, généré en prod) et
-// NEXT_PUBLIC_VAPID_PUBLIC_KEY posée — sinon tout est no-op (dev inclus).
+// Prérequis : service worker actif (public/sw.js, généré en prod) et une clé
+// VAPID publique disponible — NEXT_PUBLIC_VAPID_PUBLIC_KEY si posée, sinon
+// lue en base via la RPC vapid_public_key (secret Vault, non sensible).
 import { supabaseClient as supabase } from '@thrive/shared';
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+let cachedVapidKey: string | null | undefined;
+
+/** Clé VAPID publique : env si présente, sinon RPC (mise en cache). */
+export async function getVapidPublicKey(): Promise<string | null> {
+  if (cachedVapidKey !== undefined) return cachedVapidKey;
+  const envKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+  if (envKey) {
+    cachedVapidKey = envKey;
+    return envKey;
+  }
+  const { data } = await supabase.rpc('vapid_public_key');
+  cachedVapidKey = typeof data === 'string' && data.length > 0 ? data : null;
+  return cachedVapidKey;
+}
 
 export function webPushSupported(): boolean {
   return (
     typeof window !== 'undefined' &&
     'serviceWorker' in navigator &&
     'PushManager' in window &&
-    'Notification' in window &&
-    Boolean(VAPID_PUBLIC_KEY)
+    'Notification' in window
   );
 }
 
@@ -41,6 +54,8 @@ export async function getCurrentSubscription(): Promise<PushSubscription | null>
 /** Demande la permission, s'abonne au push service et enregistre en base. */
 export async function subscribeToWebPush(userId: string): Promise<'ok' | 'denied' | 'unavailable'> {
   if (!webPushSupported()) return 'unavailable';
+  const vapidKey = await getVapidPublicKey();
+  if (!vapidKey) return 'unavailable';
   const reg = await getRegistration();
   if (!reg) return 'unavailable';
 
@@ -49,7 +64,7 @@ export async function subscribeToWebPush(userId: string): Promise<'ok' | 'denied
 
   const sub = await reg.pushManager.subscribe({
     userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY!),
+    applicationServerKey: urlBase64ToUint8Array(vapidKey),
   });
 
   const json = sub.toJSON();

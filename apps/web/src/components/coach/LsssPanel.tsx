@@ -114,9 +114,23 @@ export function LsssPanel({ childId }: { childId: string }) {
                   <span className="text-xs text-gray-400">Non envoyé</span>
                 )}
               </div>
-              <Btn variant="ghost" disabled={busy === m} onClick={() => send(m)}>
-                {busy === m ? 'Envoi…' : q ? 'Renvoyer' : 'Envoyer le questionnaire'}
-              </Btn>
+              {q ? (
+                q.status !== 'COMPLETED' && q.access_token ? (
+                  <button
+                    onClick={() =>
+                      typeof window !== 'undefined' &&
+                      setLinkFor({ moment: m, url: `${window.location.origin}/q/${q.access_token}` })
+                    }
+                    className="text-xs text-navy-600 font-semibold underline cursor-pointer"
+                  >
+                    Voir le lien
+                  </button>
+                ) : null
+              ) : (
+                <Btn variant="ghost" disabled={busy === m} onClick={() => send(m)}>
+                  {busy === m ? 'Envoi…' : 'Envoyer le questionnaire'}
+                </Btn>
+              )}
 
               {linkFor?.moment === m && (
                 <div className="mt-2 p-2 rounded-lg bg-navy-50 text-[11px] break-all">

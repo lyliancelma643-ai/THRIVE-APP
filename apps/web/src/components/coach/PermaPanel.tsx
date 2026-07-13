@@ -85,6 +85,9 @@ export function PermaPanel({ childId }: { childId: string }) {
       setError(res.error);
       return;
     }
+    if (res.alreadySent) {
+      setError(`Le test de la séance ${session} a déjà été envoyé — un seul envoi par séance.`);
+    }
     if (res.path && typeof window !== 'undefined') {
       setLink({ session, url: `${window.location.origin}${res.path}` });
     }
@@ -132,14 +135,43 @@ export function PermaPanel({ childId }: { childId: string }) {
             <option value="en">English</option>
           </select>
         </label>
-        <Btn variant="ghost" disabled={busy} onClick={send}>
-          {busy
-            ? 'Envoi…'
-            : latestBySession.get(session)
-            ? `Renvoyer (séance ${session})`
-            : `Envoyer (séance ${session})`}
-        </Btn>
+        {(() => {
+          const q = latestBySession.get(session);
+          if (!q) {
+            return (
+              <Btn variant="ghost" disabled={busy} onClick={send}>
+                {busy ? 'Envoi…' : `Envoyer (séance ${session})`}
+              </Btn>
+            );
+          }
+          return (
+            <span className="flex items-center gap-2 text-xs">
+              <span
+                className={`px-2.5 py-1.5 rounded-full font-semibold ${
+                  q.status === 'COMPLETED'
+                    ? 'bg-emerald-100 text-emerald-700'
+                    : 'bg-amber-100 text-amber-700'
+                }`}
+              >
+                {q.status === 'COMPLETED' ? 'Complété ✓' : 'Envoyé — en attente'}
+              </span>
+              {q.status !== 'COMPLETED' && q.access_token && typeof window !== 'undefined' && (
+                <button
+                  onClick={() =>
+                    setLink({ session, url: `${window.location.origin}/q/${q.access_token}` })
+                  }
+                  className="text-navy-600 font-semibold underline cursor-pointer"
+                >
+                  Voir le lien
+                </button>
+              )}
+            </span>
+          );
+        })()}
       </div>
+      <p className="text-[11px] text-gray-400 -mt-1">
+        Un seul envoi par séance : le test redevient disponible à la séance suivante.
+      </p>
 
       {link && (
         <div className="p-2 rounded-lg bg-navy-50 text-[11px] break-all">
