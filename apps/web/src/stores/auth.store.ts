@@ -52,9 +52,17 @@ function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthToke
   };
 }
 
+// Dédoublonnage des appels concurrents à hydrate(). La chaîne de connexion
+// monte plusieurs gardes coup sur coup (/login → /dashboard → layout d'espace),
+// chacune appelant hydrate() au montage. Sans cette garde, chaque appel relance
+// getSession() en parallèle et repasse l'UI en chargement. On partage un seul
+// appel en vol ; il est libéré dès résolution (dédoublonnage concurrent, pas de
+// cache dans le temps — chaque navigation revalide bien la session).
+let hydrateInFlight: Promise<void> | null = null;
+
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
       session: null,
       isAuthenticated: false,
@@ -64,32 +72,49 @@ export const useAuthStore = create<AuthStore>()(
       isLoading: true,
 
       hydrate: async () => {
-        set({ isLoading: true });
-        const { data, error } = await supabase.auth.getSession();
-        if (error || !data.session) {
-          set({ user: null, session: null, isAuthenticated: false, isLoading: false });
-          return;
-        }
-        const mapped = mapSession(data.session);
+        if (hydrateInFlight) return hydrateInFlight;
 
-        // Backstop désactivation : un compte banni peut conserver un JWT en
-        // cache valide jusqu'à ~1 h. On revérifie is_active au chargement et on
-        // coupe la session si le compte a été désactivé entre-temps.
-        const { data: prof } = await supabase
-          .from('profiles')
-          .select('is_active')
-          .eq('id', mapped.user.id)
-          .single();
-        if (prof && prof.is_active === false) {
-          markDisabledLogout();
-          await supabase.auth.signOut();
-          syncAuthCookie(null);
-          set({ user: null, session: null, isAuthenticated: false, isLoading: false });
-          return;
-        }
+        hydrateInFlight = (async () => {
+          // Ne repasse PAS en chargement si une session est déjà confirmée : la
+          // navigation entre espaces gardés (dashboard → parent) ne doit pas
+          // rebasculer sur le spinner — c'était la cause des re-blocages.
+          if (!get().isAuthenticated) set({ isLoading: true });
 
-        syncAuthCookie(data.session.access_token);
-        set({ ...mapped, isAuthenticated: true, isLoading: false });
+          const { data, error } = await supabase.auth.getSession();
+          if (error || !data.session) {
+            set({ user: null, session: null, isAuthenticated: false, isLoading: false });
+            return;
+          }
+          const mapped = mapSession(data.session);
+
+          // Session en main → on DÉBLOQUE l'UI immédiatement. Le rendu ne doit
+          // jamais attendre un aller-retour réseau supplémentaire (sinon un
+          // appel lent laisse le spinner tourner « dans le vide » jusqu'au refresh).
+          syncAuthCookie(data.session.access_token);
+          set({ ...mapped, isAuthenticated: true, isLoading: false });
+
+          // Backstop désactivation, HORS chemin critique (ne bloque plus le
+          // rendu) : un compte banni peut garder un JWT en cache valide jusqu'à
+          // ~1 h. On revérifie is_active en arrière-plan et on coupe la session
+          // si besoin. AccountSync fait par ailleurs la même revérif en réalité.
+          try {
+            const { data: prof } = await supabase
+              .from('profiles')
+              .select('is_active')
+              .eq('id', mapped.user.id)
+              .single();
+            if (prof && prof.is_active === false) {
+              markDisabledLogout();
+              await supabase.auth.signOut();
+              syncAuthCookie(null);
+              set({ user: null, session: null, isAuthenticated: false, isLoading: false });
+            }
+          } catch {
+            /* réseau indisponible : AccountSync assurera la réconciliation */
+          }
+        })().finally(() => { hydrateInFlight = null; });
+
+        return hydrateInFlight;
       },
 
       signIn: async (email, password) => {
