@@ -6,7 +6,7 @@ import { useAuthStore } from '@/stores/auth.store';
 import {
   Task, TaskHistoryEntry, AdminProfile, Horizon, Status, Priority, Category,
   HORIZONS, STATUSES, PRIORITIES, CATEGORIES,
-  fullName, fmtDate, isOverdue, horizonFromDeadline,
+  fullName, fmtDate, describeHistory, isOverdue, horizonFromDeadline,
   fetchTasks, fetchAdmins, fetchActivity,
 } from '@/lib/roadmap';
 import { TaskDetail } from '@/components/admin/roadmap/TaskDetail';
@@ -48,6 +48,11 @@ export default function AdminRoadmapPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
+  // Bannière « changements récents » : curseur « vu jusqu'à » persisté en base
+  // (admin_activity_seen, migration 049) → suivi cross-appareils.
+  const [seenAt, setSeenAt] = useState<string | null>(null);
+  const [seenReady, setSeenReady] = useState(false);
+
   // Filtres avancés
   const [q, setQ] = useState('');
   const [fStatus, setFStatus] = useState<Status | 'ALL'>('ALL');
@@ -83,6 +88,23 @@ export default function AdminRoadmapPage() {
     }
     setLoading(false);
   }, []);
+
+  // Curseur « vu » : chargé une fois la session connue
+  useEffect(() => {
+    if (!me) return;
+    let cancelled = false;
+    supabase
+      .from('admin_activity_seen')
+      .select('seen_at')
+      .eq('user_id', me)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setSeenAt(data?.seen_at ?? null);
+        setSeenReady(true);
+      }, () => { if (!cancelled) setSeenReady(true); });
+    return () => { cancelled = true; };
+  }, [me]);
 
   // Chargement + temps réel (tâches, historique) + rappel d'échéances
   useEffect(() => {
@@ -146,9 +168,68 @@ export default function AdminRoadmapPage() {
   const adminById = useMemo(() => Object.fromEntries(admins.map((a) => [a.id, a])), [admins]);
   const problemCount = tasks.filter((t) => t.problem).length;
 
+  // ── Changements non vus (faits par les AUTRES depuis mon dernier « Vu ») ──
+  const unseen = useMemo(() => {
+    if (!seenReady || !me) return [];
+    return activity.filter(
+      (h) => h.actor !== me && (!seenAt || h.created_at > seenAt),
+    );
+  }, [activity, seenAt, seenReady, me]);
+
+  const markSeen = async () => {
+    // Curseur = timestamp du changement le plus récent (horloge serveur, pas
+    // celle du client) ; tout ce qui arrivera après réapparaîtra.
+    const latest = activity[0]?.created_at;
+    if (!latest || !me) return;
+    setSeenAt(latest);
+    const { error: err } = await supabase
+      .from('admin_activity_seen')
+      .upsert({ user_id: me, seen_at: latest });
+    if (err) setError(err.message);
+  };
+
   return (
     <div className={dark ? 'dark' : ''}>
       <div className={`space-y-5 rounded-3xl transition-colors ${dark ? 'bg-[#0a1622] -m-4 p-4 md:-m-6 md:p-6 min-h-screen' : ''}`}>
+        {/* ── Case rouge : tout changement fait par les autres depuis mon dernier « Vu » ── */}
+        {unseen.length > 0 && (
+          <div
+            role="status"
+            className="rounded-2xl bg-red-50 dark:bg-red-500/10 border-2 border-red-300 dark:border-red-500/40 shadow-sm px-4 py-3"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-bold text-red-700 dark:text-red-300">
+                🔔 {unseen.length} changement{unseen.length > 1 ? 's' : ''} depuis ton dernier passage
+              </p>
+              <button
+                onClick={markSeen}
+                className="shrink-0 text-xs font-bold px-3.5 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
+              >
+                ✓ Vu
+              </button>
+            </div>
+            <ul className="mt-2 space-y-1">
+              {unseen.slice(0, 8).map((h) => (
+                <li key={h.id}>
+                  <button
+                    onClick={() => h.task_id && tasks.some((t) => t.id === h.task_id) && setOpenTaskId(h.task_id)}
+                    className="w-full text-left text-xs text-red-800 dark:text-red-200 rounded-lg px-2 py-1 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
+                  >
+                    <span className="font-semibold">{fullName(adminById[h.actor ?? ''])}</span>{' '}
+                    {describeHistory(h, adminById)}
+                    <span className="text-red-400 dark:text-red-300/60"> · « {h.task_title} » · {fmtDate(h.created_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </button>
+                </li>
+              ))}
+              {unseen.length > 8 && (
+                <li className="text-[11px] text-red-500 dark:text-red-300/70 px-2">
+                  + {unseen.length - 8} autre{unseen.length - 8 > 1 ? 's' : ''} changement{unseen.length - 8 > 1 ? 's' : ''}…
+                </li>
+              )}
+            </ul>
+          </div>
+        )}
+
         {/* ── En-tête : vues, chat, mode sombre ── */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
