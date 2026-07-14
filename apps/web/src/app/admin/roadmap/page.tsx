@@ -48,9 +48,11 @@ export default function AdminRoadmapPage() {
   const [chatOpen, setChatOpen] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
 
-  // Bannière « changements récents » : curseur « vu jusqu'à » persisté en base
-  // (admin_activity_seen, migration 049) → suivi cross-appareils.
+  // Bannière « changements récents » : curseur « vu jusqu'à » global
+  // (admin_activity_seen, migration 049) + rejets ligne par ligne
+  // (admin_activity_dismissed, migration 050). Persistés en base → cross-appareils.
   const [seenAt, setSeenAt] = useState<string | null>(null);
+  const [dismissedIds, setDismissedIds] = useState<Set<string>>(new Set());
   const [seenReady, setSeenReady] = useState(false);
 
   // Filtres avancés
@@ -89,20 +91,19 @@ export default function AdminRoadmapPage() {
     setLoading(false);
   }, []);
 
-  // Curseur « vu » : chargé une fois la session connue
+  // Curseur global + rejets individuels : chargés une fois la session connue
   useEffect(() => {
     if (!me) return;
     let cancelled = false;
-    supabase
-      .from('admin_activity_seen')
-      .select('seen_at')
-      .eq('user_id', me)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (cancelled) return;
-        setSeenAt(data?.seen_at ?? null);
-        setSeenReady(true);
-      }, () => { if (!cancelled) setSeenReady(true); });
+    Promise.all([
+      supabase.from('admin_activity_seen').select('seen_at').eq('user_id', me).maybeSingle(),
+      supabase.from('admin_activity_dismissed').select('history_id').eq('user_id', me),
+    ]).then(([seen, dism]) => {
+      if (cancelled) return;
+      setSeenAt(seen.data?.seen_at ?? null);
+      setDismissedIds(new Set((dism.data ?? []).map((d) => d.history_id as string)));
+      setSeenReady(true);
+    }, () => { if (!cancelled) setSeenReady(true); });
     return () => { cancelled = true; };
   }, [me]);
 
@@ -168,23 +169,36 @@ export default function AdminRoadmapPage() {
   const adminById = useMemo(() => Object.fromEntries(admins.map((a) => [a.id, a])), [admins]);
   const problemCount = tasks.filter((t) => t.problem).length;
 
-  // ── Changements non vus (faits par les AUTRES depuis mon dernier « Vu ») ──
+  // ── Changements non vus (faits par les AUTRES, au-dessus du curseur global,
+  //    et pas rejetés un par un) ──
   const unseen = useMemo(() => {
     if (!seenReady || !me) return [];
     return activity.filter(
-      (h) => h.actor !== me && (!seenAt || h.created_at > seenAt),
+      (h) => h.actor !== me && (!seenAt || h.created_at > seenAt) && !dismissedIds.has(h.id),
     );
-  }, [activity, seenAt, seenReady, me]);
+  }, [activity, seenAt, dismissedIds, seenReady, me]);
 
-  const markSeen = async () => {
-    // Curseur = timestamp du changement le plus récent (horloge serveur, pas
-    // celle du client) ; tout ce qui arrivera après réapparaîtra.
+  // « Vu » global : avance le curseur au changement le plus récent (efface tout)
+  // et purge les rejets individuels devenus inutiles (déjà sous le curseur).
+  const markAllSeen = async () => {
     const latest = activity[0]?.created_at;
     if (!latest || !me) return;
     setSeenAt(latest);
+    setDismissedIds(new Set());
     const { error: err } = await supabase
       .from('admin_activity_seen')
       .upsert({ user_id: me, seen_at: latest });
+    if (err) setError(err.message);
+    else await supabase.from('admin_activity_dismissed').delete().eq('user_id', me);
+  };
+
+  // « Vu » d'une ligne : masque seulement ce changement pour moi.
+  const dismissOne = async (historyId: string) => {
+    if (!me) return;
+    setDismissedIds((prev) => new Set(prev).add(historyId));
+    const { error: err } = await supabase
+      .from('admin_activity_dismissed')
+      .upsert({ user_id: me, history_id: historyId });
     if (err) setError(err.message);
   };
 
@@ -202,22 +216,31 @@ export default function AdminRoadmapPage() {
                 🔔 {unseen.length} changement{unseen.length > 1 ? 's' : ''} depuis ton dernier passage
               </p>
               <button
-                onClick={markSeen}
+                onClick={markAllSeen}
+                title="Tout marquer comme vu et vider la case"
                 className="shrink-0 text-xs font-bold px-3.5 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 transition-colors"
               >
-                ✓ Vu
+                ✓ Tout vu
               </button>
             </div>
             <ul className="mt-2 space-y-1">
               {unseen.slice(0, 8).map((h) => (
-                <li key={h.id}>
+                <li key={h.id} className="flex items-center gap-1.5">
                   <button
                     onClick={() => h.task_id && tasks.some((t) => t.id === h.task_id) && setOpenTaskId(h.task_id)}
-                    className="w-full text-left text-xs text-red-800 dark:text-red-200 rounded-lg px-2 py-1 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
+                    className="flex-1 min-w-0 text-left text-xs text-red-800 dark:text-red-200 rounded-lg px-2 py-1 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
                   >
                     <span className="font-semibold">{fullName(adminById[h.actor ?? ''])}</span>{' '}
                     {describeHistory(h, adminById)}
                     <span className="text-red-400 dark:text-red-300/60"> · « {h.task_title} » · {fmtDate(h.created_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                  </button>
+                  <button
+                    onClick={() => dismissOne(h.id)}
+                    title="Marquer ce changement comme vu"
+                    aria-label="Marquer ce changement comme vu"
+                    className="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
+                  >
+                    ✓ Vu
                   </button>
                 </li>
               ))}
