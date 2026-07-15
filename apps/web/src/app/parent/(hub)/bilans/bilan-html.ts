@@ -248,6 +248,10 @@ export function buildHtml(d: {
   latestEmotion: string | null;
   statusByNum: Record<number, string>;
   certificateReady: boolean;
+  // Personnalisation parent du passeport (photo à part, via avatarUrl signée).
+  nickname: string | null;
+  jerseyNumber: number | null;
+  accentColor: string; // hex issu des préréglages (lib/avatar.ts)
   // Droits du forfait (matrice packs.ts) — pilotent les sections analytiques.
   // Verrouillé = même carte, valeurs floutées + note d'upgrade (jamais de données réelles).
   ent: { skillBreakdown: boolean; lsssCurve: boolean; emotionWheel: boolean };
@@ -257,6 +261,9 @@ export function buildHtml(d: {
     fullName,
     initials,
     avatarUrl,
+    nickname,
+    jerseyNumber,
+    accentColor,
     age,
     sport,
     poste,
@@ -385,11 +392,21 @@ export function buildHtml(d: {
     nodes += `<div style="display:flex;flex-direction:column;align-items:center;gap:6px;">${circle}<span style="font-weight:${subWeight};font-size:9px;color:${subC};">${sub}</span></div>`;
   }
 
-  const avatar = avatarUrl
-    ? `<img src="${esc(avatarUrl)}" alt="" style="width:52px;height:52px;border-radius:15px;object-fit:cover;box-shadow:0 0 0 2px rgba(249,235,80,.4);">`
-    : `<span class="disp bx" style="width:52px;height:52px;border-radius:15px;background:linear-gradient(150deg,#0E6593,#00314C);box-shadow:0 0 0 2px rgba(249,235,80,.4);display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;">${esc(initials)}</span>`;
+  const ring = `box-shadow:0 0 0 2px ${esc(accentColor)}66;`;
+  const avatarInner = avatarUrl
+    ? `<img src="${esc(avatarUrl)}" alt="" style="width:52px;height:52px;border-radius:15px;object-fit:cover;${ring}">`
+    : `<span class="disp bx" style="width:52px;height:52px;border-radius:15px;background:linear-gradient(150deg,#0E6593,#00314C);${ring}display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;">${esc(initials)}</span>`;
+  // Badge numéro de maillot ancré sur la photo (personnalisation parent).
+  const avatar = `<span style="position:relative;display:inline-flex;flex-shrink:0;">${avatarInner}${
+    jerseyNumber != null
+      ? `<span class="bx" style="position:absolute;right:-7px;bottom:-7px;min-width:22px;height:22px;padding:0 5px;border-radius:8px;background:${esc(accentColor)};color:#06222a;font-weight:800;font-size:11px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.45);">${jerseyNumber}</span>`
+      : ''
+  }</span>`;
 
   const subLine = [age != null ? `${age} ans` : null, club].filter(Boolean).map(esc).join(' · ') || '—';
+  const nicknameHtml = nickname
+    ? `<div class="disp" style="font-style:italic;font-weight:500;font-size:13px;color:${esc(accentColor)};margin-top:1px;">« ${esc(nickname)} »</div>`
+    : '';
 
   const field = (label: string, value: string) =>
     `<div class="bx" style="padding:11px 13px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);"><div style="font-weight:500;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:rgba(234,243,241,.42);">${label}</div><div style="font-weight:600;font-size:14px;margin-top:3px;">${esc(value)}</div></div>`;
@@ -480,10 +497,11 @@ export function buildHtml(d: {
       <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px;">
         <span class="bx" style="${CHIP}color:#A7C4BC;">◷</span>
         <span class="disp" style="font-weight:600;font-size:18px;">Passeport athlète</span>
+        <span class="b-hover bx" data-action="edit-passport" role="button" aria-label="Personnaliser le passeport" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:11px;background:${esc(accentColor)}1f;border:1px solid ${esc(accentColor)}45;font-weight:600;font-size:12px;color:${esc(accentColor)};">✎ Personnaliser</span>
       </div>
-      <div style="display:flex;align-items:center;gap:13px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;gap:15px;margin-bottom:16px;">
         ${avatar}
-        <div><div class="disp" style="font-weight:600;font-size:19px;line-height:1.1;">${esc(fullName)}</div><div style="font-weight:400;font-size:12px;color:rgba(234,243,241,.5);margin-top:2px;">${subLine}</div></div>
+        <div style="min-width:0;"><div class="disp" style="font-weight:600;font-size:19px;line-height:1.1;">${esc(fullName)}</div>${nicknameHtml}<div style="font-weight:400;font-size:12px;color:rgba(234,243,241,.5);margin-top:2px;">${subLine}</div></div>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;">
         ${field('Sport', sport)}

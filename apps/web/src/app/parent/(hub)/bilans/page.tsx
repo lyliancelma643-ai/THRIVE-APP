@@ -3,14 +3,19 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
 import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
 import { DocMeta, programPct, signedDocUrl } from '@/lib/bilan';
+import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
 import { DESIGN_CSS, ageFromDob, buildHtml } from './bilan-html';
 import { CARD_INFO, InfoModal, BilanSkeleton } from './card-info';
 import { useBilanData } from './useBilanData';
+import { PassportEditModal } from './passport-edit';
+import { DetailModal, isDetailKey, type DetailKey } from './detail-modal';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Page « Carte d'identité » (zone bilan) — portage fidèle du design Claude
@@ -23,18 +28,38 @@ import { useBilanData } from './useBilanData';
 
 function AthleteIdentityPageInner() {
   const router = useRouter();
-  const { children, selectedChildId, isLoading: childrenLoading } = useChildStore();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { children, selectedChildId, isLoading: childrenLoading, loadChildren } = useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
   // Droits du forfait — pilotent les sections analytiques (teaser si verrouillé)
   const { can } = usePlan(selectedChildId);
 
   const [infoKey, setInfoKey] = useState<string | null>(null);
+  const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
   const { data, isPending } = useBilanData(selectedChildId);
 
-  // Clics délégués : [data-doc] télécharge (URL signée), [data-href] navigue,
-  // [data-info] ouvre la fiche d'explication.
+  // Photo de profil : children.avatar_url stocke un chemin storage (bucket
+  // privé child-avatars) → URL signée résolue ici. Les vieilles URL http
+  // passent telles quelles (resolveAvatarUrl gère les deux).
+  const { data: avatarUrl } = useQuery({
+    queryKey: ['child-avatar', selectedChild?.id, selectedChild?.avatar_url],
+    queryFn: () => resolveAvatarUrl(selectedChild?.avatar_url),
+    enabled: Boolean(selectedChild),
+    staleTime: 45 * 60_000, // l'URL signée vit 60 min
+  });
+
+  // Clics délégués : [data-action] ouvre l'édition du passeport, [data-doc]
+  // télécharge (URL signée), [data-href] navigue, [data-info] ouvre la fiche
+  // d'explication.
   const onClick = async (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
+    if (target.closest('[data-action="edit-passport"]')) {
+      e.stopPropagation();
+      setEditOpen(true);
+      return;
+    }
     const docId = target.closest('[data-doc]')?.getAttribute('data-doc');
     if (docId) {
       e.stopPropagation();
@@ -52,7 +77,18 @@ function AthleteIdentityPageInner() {
       return;
     }
     const key = target.closest('[data-info]')?.getAttribute('data-info');
-    if (key && CARD_INFO[key]) setInfoKey(key);
+    if (!key) return;
+    // Cartes « livrables » : d'abord la fiche détaillée avec les données de
+    // l'enfant en grand ; la flèche de la fiche mène à l'explication.
+    if (isDetailKey(key)) setDetailKey(key);
+    else if (CARD_INFO[key]) setInfoKey(key);
+  };
+
+  const openDoc = async (docId: string) => {
+    const doc = data?.docs.find((dd) => dd.id === docId);
+    if (!doc) return;
+    const url = await signedDocUrl(doc.storage_path, 120);
+    if (url) window.open(url, '_blank', 'noopener');
   };
 
   // Liste des enfants ou données du bilan encore en chargement : squelette
@@ -101,7 +137,10 @@ function AthleteIdentityPageInner() {
     firstName: selectedChild.first_name ?? '',
     fullName: `${selectedChild.first_name ?? ''}${selectedChild.last_name ? ' ' + selectedChild.last_name : ''}`.trim(),
     initials,
-    avatarUrl: selectedChild.avatar_url ?? null,
+    avatarUrl: avatarUrl ?? null,
+    nickname: selectedChild.nickname ?? null,
+    jerseyNumber: selectedChild.jersey_number ?? null,
+    accentColor: accentHex(selectedChild.accent_color),
     age,
     sport: identity?.sport || 'Hockey sur glace',
     poste: identity?.position || '—',
@@ -194,13 +233,68 @@ function AthleteIdentityPageInner() {
         </div>
       )}
       <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
-      {infoKey &&
-        CARD_INFO[infoKey] &&
+      {detailKey &&
         typeof document !== 'undefined' &&
         // Portal vers <body> : la modale (position:fixed) doit se référer à
         // l'écran, pas au conteneur de page animé (transform → bloc conteneur).
         createPortal(
+          <DetailModal
+            detailKey={detailKey}
+            d={{
+              firstName: selectedChild.first_name ?? '',
+              accent: accentHex(selectedChild.accent_color),
+              toolbox: identity?.toolbox ?? [],
+              focusWord: identity?.focus_word ?? null,
+              nextSteps,
+              sportStory: identity?.sport_story ?? null,
+              strengths: identity?.strengths ?? [],
+              seasonDream: identity?.season_dream ?? null,
+              sport: identity?.sport || 'Hockey sur glace',
+              poste: identity?.position || '—',
+              club: identity?.club ?? null,
+              smartGoal: identity?.smart_goal ?? null,
+              lifeSkillGoal: identity?.life_skill_goal ?? null,
+              myActions: identity?.my_actions ?? [],
+              pct: programPct(completed, 13, identity?.program_pct_override ?? null),
+              letter: identity?.letter ?? null,
+              completed,
+              certificateReady: identity?.certificate_ready ?? false,
+              docIds: {
+                contract: docIdByKind('CONTRACT'),
+                letter: docIdByKind('LETTER'),
+                certificate: docIdByKind('CERTIFICATE'),
+              },
+            }}
+            onClose={() => setDetailKey(null)}
+            // La fiche d'explication s'ouvre PAR-DESSUS la fiche détaillée
+            // (portail monté après → dernier dans <body> → au premier plan).
+            onExplain={() => setInfoKey(detailKey)}
+            onOpenDoc={openDoc}
+          />,
+          document.body
+        )}
+      {infoKey &&
+        CARD_INFO[infoKey] &&
+        typeof document !== 'undefined' &&
+        createPortal(
           <InfoModal info={CARD_INFO[infoKey]} onClose={() => setInfoKey(null)} />,
+          document.body
+        )}
+      {editOpen &&
+        typeof document !== 'undefined' &&
+        createPortal(
+          <PassportEditModal
+            child={selectedChild}
+            currentAvatarUrl={avatarUrl ?? null}
+            onClose={() => setEditOpen(false)}
+            onSaved={async () => {
+              setEditOpen(false);
+              // Nouveau chemin de photo → nouvelle URL signée, et re-lecture
+              // des colonnes de personnalisation dans le store enfants.
+              await queryClient.invalidateQueries({ queryKey: ['child-avatar'] });
+              if (user?.id) await loadChildren(user.id);
+            }}
+          />,
           document.body
         )}
     </div>

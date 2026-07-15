@@ -56,6 +56,9 @@ export interface ChildProfile {
   last_name: string | null;
   date_of_birth: string | null;
   avatar_url: string | null;
+  nickname: string | null;
+  jersey_number: number | null;
+  accent_color: string | null;
 }
 
 export const PHASE_LABELS: Record<Phase, string> = {
