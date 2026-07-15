@@ -8,6 +8,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabaseClient as supabase } from '@thrive/shared';
 
 type Item = {
@@ -142,6 +143,7 @@ const T: Record<Lang, Tr> = {
 export default function QuestionnairePage() {
   const params = useParams<{ token: string }>();
   const token = params?.token;
+  const queryClient = useQueryClient();
 
   const [state, setState] = useState<LoadState | null>(null);
   const [answers, setAnswers] = useState<Record<string, number>>({});
@@ -204,6 +206,10 @@ export default function QuestionnairePage() {
       return;
     }
     setDone(true);
+    // Le parent revient souvent au bilan juste après (flux notification →
+    // /q/<token> → bilan) : on invalide le cache partagé pour que la courbe
+    // EPOCH et la jauge LSSS intègrent la séance sans attendre l'expiration.
+    queryClient.invalidateQueries({ queryKey: ['bilan'] });
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
