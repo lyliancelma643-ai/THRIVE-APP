@@ -37,7 +37,7 @@ export default function AdminNotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'MESSAGE' | 'SESSION' | 'BADGE'>('all');
   const [showSendForm, setShowSendForm] = useState(false);
   const [profiles, setProfiles] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
-  const [form, setForm] = useState({ user_id: '', title: '', body: '', type: 'SYSTEM' });
+  const [form, setForm] = useState({ user_id: '', title: '', body: '', type: 'SYSTEM', path: '' });
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState('');
 
@@ -59,6 +59,11 @@ export default function AdminNotificationsPage() {
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.user_id || !form.title || sending) return;
+    const path = form.path.trim();
+    if (path && !path.startsWith('/')) {
+      setSendError('Le lien doit être un chemin interne commençant par « / » (ex. /parent/bilans).');
+      return;
+    }
     setSending(true);
     setSendError('');
     const { error: insErr } = await supabase.from('notifications').insert({
@@ -66,6 +71,8 @@ export default function AdminNotificationsPage() {
       type: form.type,
       title: form.title,
       body: form.body || null,
+      // Destination du clic ; sans lien, le trigger en base en dérive un
+      ...(path ? { data: { path } } : {}),
     });
     if (insErr) {
       // Échec : on garde la saisie, le formulaire reste ouvert
@@ -73,7 +80,7 @@ export default function AdminNotificationsPage() {
       setSending(false);
       return;
     }
-    setForm({ user_id: '', title: '', body: '', type: 'SYSTEM' });
+    setForm({ user_id: '', title: '', body: '', type: 'SYSTEM', path: '' });
     setShowSendForm(false);
     await fetchAll();
     setSending(false);
@@ -170,6 +177,15 @@ export default function AdminNotificationsPage() {
                 value={form.body}
                 onChange={(e) => setForm({ ...form, body: e.target.value })}
                 placeholder="Contenu optionnel"
+              />
+            </div>
+            <div>
+              <label className="text-sm text-gray-500 mb-1 block">Lien au clic (optionnel)</label>
+              <input
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                value={form.path}
+                onChange={(e) => setForm({ ...form, path: e.target.value })}
+                placeholder="/parent/bilans, /parent/messages, …"
               />
             </div>
           </div>

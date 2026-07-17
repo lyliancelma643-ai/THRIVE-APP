@@ -120,6 +120,9 @@ export const DESIGN_CSS = `
 @keyframes b-overlayIn{from{opacity:0;}to{opacity:1;}}
 @keyframes b-modalIn{from{opacity:0;transform:translateY(28px) scale(.97);}to{opacity:1;transform:translateY(0) scale(1);}}
 .bilan-root .b-clk{cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;}
+/* Surbrillance d'arrivée depuis une notification (?focus=<carte>) */
+@keyframes b-flash{0%,55%{box-shadow:0 0 0 3px rgba(249,235,80,.85),0 0 44px rgba(249,235,80,.4);}100%{box-shadow:0 0 0 3px rgba(249,235,80,0),0 0 44px rgba(249,235,80,0);}}
+.bilan-root .b-flash{animation:b-flash 2.4s ease-out 1;}
 .bilan-root .b-clk:hover{transform:translateY(-3px);box-shadow:0 26px 60px rgba(0,0,0,.45),0 0 0 1px rgba(249,235,80,.22),inset 0 1px 0 rgba(255,255,255,.05);}
 .bilan-root .b-clk:active{transform:translateY(-1px) scale(.995);}
 .bilan-root .b-hint{position:absolute;right:11px;bottom:9px;z-index:3;width:21px;height:21px;border-radius:50%;display:grid;place-items:center;font-size:11px;color:rgba(249,235,80,.75);background:rgba(249,235,80,.08);border:1px solid rgba(249,235,80,.22);opacity:.5;transition:opacity .2s ease,transform .2s ease;pointer-events:none;}

@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
@@ -28,9 +28,11 @@ import { DetailModal, isDetailKey, type DetailKey } from './detail-modal';
 
 function AthleteIdentityPageInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
-  const { children, selectedChildId, isLoading: childrenLoading, loadChildren } = useChildStore();
+  const { children, selectedChildId, isLoading: childrenLoading, loadChildren, selectChild } =
+    useChildStore();
   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
   // Droits du forfait — pilotent les sections analytiques (teaser si verrouillé)
   const { can } = usePlan(selectedChildId);
@@ -49,6 +51,40 @@ function AthleteIdentityPageInner() {
     enabled: Boolean(selectedChild),
     staleTime: 45 * 60_000, // l'URL signée vit 60 min
   });
+
+  // Arrivée depuis une notification : /parent/bilans?child=<id>&focus=<carte>
+  // → on bascule sur le bon enfant si besoin, puis on scrolle vers la carte
+  // [data-info=<focus>] et on la met en évidence, avant de nettoyer l'URL.
+  useEffect(() => {
+    const childParam = searchParams.get('child');
+    const focusParam = searchParams.get('focus');
+    if (!childParam && !focusParam) return;
+    if (childParam && childParam !== selectedChildId && children.some((c) => c.id === childParam)) {
+      selectChild(childParam);
+      return; // l'effet rejouera une fois les données du bon enfant chargées
+    }
+    if (!data) return; // la grille n'est pas encore rendue
+    const done = () => router.replace('/parent/bilans', { scroll: false });
+    if (!focusParam) {
+      done();
+      return;
+    }
+    // Scroll instantané (le scroll fluide est avorté par les re-renders et
+    // animations d'entrée de la grille) : on atterrit sur la carte, la
+    // surbrillance guide l'œil, puis on nettoie l'URL.
+    const t = setTimeout(() => {
+      const el = document.querySelector<HTMLElement>(
+        `.bilan-root [data-info="${CSS.escape(focusParam)}"]`
+      );
+      if (el) {
+        el.scrollIntoView({ behavior: 'instant', block: 'center' });
+        el.classList.add('b-flash');
+        el.addEventListener('animationend', () => el.classList.remove('b-flash'), { once: true });
+      }
+      done();
+    }, 350);
+    return () => clearTimeout(t);
+  }, [searchParams, data, selectedChildId, children, selectChild, router]);
 
   // Clics délégués : [data-action] ouvre l'édition du passeport, [data-doc]
   // télécharge (URL signée), [data-href] navigue, [data-info] ouvre la fiche
@@ -314,5 +350,10 @@ export default function BilansPage() {
     return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
   }
   if (!access.unlocked) return <BilanLockedPreview />;
-  return <AthleteIdentityPageInner />;
+  return (
+    // Suspense requis par useSearchParams (deep-link des notifications)
+    <Suspense fallback={<BilanSkeleton />}>
+      <AthleteIdentityPageInner />
+    </Suspense>
+  );
 }

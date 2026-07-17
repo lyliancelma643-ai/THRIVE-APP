@@ -3,23 +3,67 @@
 // Cloche de notifications du header parent : badge non-lus + panneau déroulant.
 // Alimentée par public.notifications (RLS : chacun voit les siennes) et mise à
 // jour en temps réel à l'insertion (ex. « Météo du bien-être à compléter »
-// envoyée par le coach en fin de séance). Un clic ouvre le lien porté par la
-// notification (data.path, ex. /q/<token>) et la marque lue.
+// envoyée par le coach en fin de séance). Un clic marque lue et navigue vers
+// la destination (data.path, sinon routage par type — voir notifTarget).
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 
+type NotifData = {
+  path?: string;
+  token?: string;
+  child_id?: string;
+  kind?: string;
+  subtype?: string;
+  session_number?: number | string;
+} & Record<string, unknown>;
+
 type Notif = {
   id: string;
   type: string;
   title: string;
   body: string | null;
-  data: { path?: string } | null;
+  data: NotifData | null;
   is_read: boolean;
   created_at: string;
 };
+
+// Destination du clic : data.path posé par la base (trigger mig. 053) en
+// priorité, sinon déduction par type/sous-type — même table de routage que
+// private.notification_default_path, pour que le clic soit TOUJOURS actif.
+function notifTarget(n: Notif): string {
+  const d = n.data ?? {};
+  if (typeof d.path === 'string' && d.path.startsWith('/')) return d.path;
+  const focus = (key: string) =>
+    `/parent/bilans?${typeof d.child_id === 'string' ? `child=${d.child_id}&` : ''}focus=${key}`;
+  switch (n.type) {
+    case 'QUESTIONNAIRE_PENDING':
+      return typeof d.token === 'string' ? `/q/${d.token}` : '/parent/bilans';
+    case 'QUESTIONNAIRE_COMPLETED':
+      return focus(d.kind === 'LSSS' ? 'competences' : 'perma');
+    case 'REPORT_READY':
+      return focus('parcours');
+    case 'PROGRESS_UPDATE': {
+      if (d.subtype === 'milestone') {
+        const s = Number(d.session_number);
+        return focus(s >= 13 ? 'certificat' : s >= 7 ? 'competences' : 'programme');
+      }
+      if (d.subtype === 'thrive_moment') return focus('parcours');
+      return focus('programme'); // streak & autres jalons d'engagement
+    }
+    case 'PROGRAM_UPDATED':
+      return d.subtype === 'renewal_window' ? '/parent/upgrade' : '/parent/bilans';
+    case 'MESSAGE':
+      return '/parent/messages';
+    case 'SESSION':
+    case 'SESSION_REMINDER':
+      return '/parent/my-sessions';
+    default:
+      return '/parent/bilans';
+  }
+}
 
 function timeAgo(iso: string): string {
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -95,9 +139,7 @@ export function NotificationsBell() {
   const openNotif = async (n: Notif) => {
     setOpen(false);
     if (!n.is_read) await markRead([n.id]);
-    const path = n.data?.path;
-    if (path && path.startsWith('/')) router.push(path);
-    else if (n.type === 'QUESTIONNAIRE_COMPLETED') router.push('/parent/bilans');
+    router.push(notifTarget(n));
   };
 
   if (!user?.id) return null;
