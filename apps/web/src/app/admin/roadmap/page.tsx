@@ -17,7 +17,9 @@ import { ChatPanel } from '@/components/admin/roadmap/ChatPanel';
 // ─────────────────────────────────────────────────────────────────────────────
 // Roadmap interne v2 — trois vues :
 //   · Organisation : colonnes par horizon (classement AUTO selon la deadline),
-//     regroupement visuel par groupe, priorités, ajout rapide.
+//     regroupement visuel par groupe, priorités, ajout rapide. Les tâches
+//     cochées finies quittent les colonnes et se rangent dans la section
+//     repliable « Terminées » en bas (décocher = rouvrir).
 //   · Calendrier : grille mensuelle triée, mêmes filtres.
 //   · Vue d'ensemble : tableau de bord géant (KPIs, retards, problèmes,
 //     charge d'équipe, flux d'activité live).
@@ -47,6 +49,7 @@ export default function AdminRoadmapPage() {
   const [dark, setDark] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [doneOpen, setDoneOpen] = useState(false);
 
   // Bannière « changements récents » : curseur « vu jusqu'à » global
   // (admin_activity_seen, migration 049) + rejets ligne par ligne
@@ -151,10 +154,12 @@ export default function AdminRoadmapPage() {
   };
 
   // ── Filtres ──
-  const filtered = useMemo(() => {
+  // `filtered` : tâches visibles dans les vues (le filtre « Terminées » s'applique
+  // au calendrier et à la vue d'ensemble). `doneTasks` : tâches finies pour la
+  // section « Terminées » de la vue Organisation — mêmes filtres, sauf showDone.
+  const { filtered, doneTasks } = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return tasks.filter((t) => {
-      if (!showDone && t.status === 'DONE') return false;
+    const matches = (t: Task) => {
       if (fStatus !== 'ALL' && t.status !== fStatus) return false;
       if (fPriority !== 'ALL' && t.priority !== fPriority) return false;
       if (fCategory !== 'ALL' && t.category !== fCategory) return false;
@@ -162,7 +167,14 @@ export default function AdminRoadmapPage() {
       if (fAssignee !== 'ALL' && fAssignee !== 'NONE' && t.assignee !== fAssignee) return false;
       if (needle && !`${t.title} ${t.description ?? ''}`.toLowerCase().includes(needle)) return false;
       return true;
-    });
+    };
+    const visible = tasks.filter(matches);
+    return {
+      filtered: visible.filter((t) => showDone || t.status !== 'DONE'),
+      doneTasks: visible
+        .filter((t) => t.status === 'DONE')
+        .sort((a, b) => (b.completed_at ?? b.updated_at).localeCompare(a.completed_at ?? a.updated_at)),
+    };
   }, [tasks, q, fStatus, fPriority, fCategory, fAssignee, showDone]);
 
   const openTask = openTaskId ? tasks.find((t) => t.id === openTaskId) ?? null : null;
@@ -339,15 +351,18 @@ export default function AdminRoadmapPage() {
               <option key={a.id} value={a.id}>{fullName(a)}{a.id === me ? ' (moi)' : ''}</option>
             ))}
           </select>
-          <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-300 select-none cursor-pointer ml-auto">
-            <input
-              type="checkbox"
-              checked={showDone}
-              onChange={(e) => setShowDone(e.target.checked)}
-              className="w-4 h-4 rounded accent-navy-600"
-            />
-            Terminées
-          </label>
+          {/* En vue Organisation, la section « Terminées » remplace ce filtre */}
+          {view !== 'BOARD' && (
+            <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-300 select-none cursor-pointer ml-auto">
+              <input
+                type="checkbox"
+                checked={showDone}
+                onChange={(e) => setShowDone(e.target.checked)}
+                className="w-4 h-4 rounded accent-navy-600"
+              />
+              Terminées
+            </label>
+          )}
         </div>
 
         {error && (
@@ -407,11 +422,13 @@ export default function AdminRoadmapPage() {
         ) : view === 'DASHBOARD' ? (
           <DashboardView tasks={filtered} activity={activity} admins={admins} onOpen={(t) => setOpenTaskId(t.id)} />
         ) : (
-          /* ── Vue Organisation : colonnes par horizon (classement auto) ── */
+          /* ── Vue Organisation : colonnes par horizon (classement auto) ──
+             Les tâches finies quittent les colonnes → section « Terminées » en bas. */
+          <>
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4 items-start">
             {HORIZONS.map((h) => {
               const list = filtered
-                .filter((t) => t.horizon === h.key)
+                .filter((t) => t.horizon === h.key && t.status !== 'DONE')
                 .sort((a, b) =>
                   PRIORITIES[a.priority].weight - PRIORITIES[b.priority].weight
                   || (a.deadline ?? '9999').localeCompare(b.deadline ?? '9999'));
@@ -443,8 +460,8 @@ export default function AdminRoadmapPage() {
                         <li key={t.id}>
                           <div
                             className={`group rounded-xl border border-transparent hover:border-slate-200 dark:hover:border-white/15 hover:shadow-sm transition-all px-2.5 py-2 ${
-                              t.status === 'DONE' ? 'opacity-55' : ''
-                            } ${t.problem ? 'bg-red-50/60 dark:bg-red-500/[0.07]' : ''}`}
+                              t.problem ? 'bg-red-50/60 dark:bg-red-500/[0.07]' : ''
+                            }`}
                           >
                             <div className="flex items-start gap-2.5">
                               <input
@@ -464,7 +481,7 @@ export default function AdminRoadmapPage() {
                                 onKeyDown={(e) => e.key === 'Enter' && setOpenTaskId(t.id)}
                                 className="flex-1 min-w-0 text-left cursor-pointer"
                               >
-                                <p className={`text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug ${t.status === 'DONE' ? 'line-through' : ''}`}>
+                                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 leading-snug">
                                   {t.problem && <span title="Problème signalé">⚠ </span>}
                                   {t.title}
                                 </p>
@@ -477,7 +494,7 @@ export default function AdminRoadmapPage() {
                                       {t.priority === 'HIGH' ? '↑ haute' : '↓ basse'}
                                     </span>
                                   )}
-                                  {t.status !== 'TODO' && t.status !== 'DONE' && (
+                                  {t.status !== 'TODO' && (
                                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${STATUSES[t.status].chip}`}>
                                       {STATUSES[t.status].label}
                                     </span>
@@ -496,17 +513,15 @@ export default function AdminRoadmapPage() {
                                       {fullName(adminById[t.assignee])}{t.assignee === me ? ' (moi)' : ''}
                                     </span>
                                   ) : (
-                                    t.status !== 'DONE' && (
-                                      <button
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          patch(t.id, { assignee: me, status: 'IN_PROGRESS' }).catch(() => {});
-                                        }}
-                                        className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sun text-navy-900 hover:bg-sun-dark"
-                                      >
-                                        Je m&apos;en occupe
-                                      </button>
-                                    )
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        patch(t.id, { assignee: me, status: 'IN_PROGRESS' }).catch(() => {});
+                                      }}
+                                      className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-sun text-navy-900 hover:bg-sun-dark"
+                                    >
+                                      Je m&apos;en occupe
+                                    </button>
                                   )}
                                 </div>
                               </div>
@@ -520,6 +535,71 @@ export default function AdminRoadmapPage() {
               );
             })}
           </div>
+
+          {/* ── Section « Terminées » : les tâches cochées finies se rangent ici ── */}
+          {doneTasks.length > 0 && (
+            <section className="rounded-2xl bg-emerald-50/60 dark:bg-emerald-500/[0.06] border border-emerald-100 dark:border-emerald-500/20 shadow-sm">
+              <button
+                onClick={() => setDoneOpen((o) => !o)}
+                aria-expanded={doneOpen}
+                className="w-full flex items-center justify-between gap-3 px-4 py-3.5 text-left"
+              >
+                <h2 className="font-bold text-emerald-700 dark:text-emerald-300">
+                  ✅ Terminées
+                  <span className="ml-2 inline-flex items-center justify-center min-w-[22px] h-[20px] px-1.5 rounded-full bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 text-[11px] align-middle">
+                    {doneTasks.length}
+                  </span>
+                </h2>
+                <span className="shrink-0 text-xs font-semibold text-emerald-600/80 dark:text-emerald-300/80">
+                  {doneOpen ? 'Replier ▲' : 'Afficher ▼'}
+                </span>
+              </button>
+              {doneOpen && (
+                <ul className="px-2.5 pb-2.5 grid md:grid-cols-2 gap-1.5">
+                  {doneTasks.map((t) => {
+                    const canToggle = isSuperAdmin || t.assignee === me;
+                    return (
+                      <li key={t.id}>
+                        <div className="flex items-start gap-2.5 rounded-xl bg-white/70 dark:bg-white/[0.04] border border-transparent hover:border-emerald-200 dark:hover:border-emerald-500/25 hover:shadow-sm transition-all px-2.5 py-2">
+                          <input
+                            type="checkbox"
+                            checked
+                            disabled={!canToggle}
+                            aria-label={`Rouvrir « ${t.title} »`}
+                            title="Décocher pour rouvrir la tâche"
+                            onChange={() => patch(t.id, { status: 'TODO' }).catch(() => {})}
+                            className="mt-0.5 w-[17px] h-[17px] rounded accent-emerald-600 disabled:opacity-40 cursor-pointer disabled:cursor-not-allowed"
+                          />
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            onClick={() => setOpenTaskId(t.id)}
+                            onKeyDown={(e) => e.key === 'Enter' && setOpenTaskId(t.id)}
+                            className="flex-1 min-w-0 text-left cursor-pointer"
+                          >
+                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-300 leading-snug line-through decoration-emerald-400/70">
+                              {t.title}
+                            </p>
+                            <div className="flex flex-wrap items-center gap-1 mt-1">
+                              <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CATEGORIES[t.category].chip}`}>
+                                {CATEGORIES[t.category].label}
+                              </span>
+                              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
+                                Terminée{t.completed_by ? ` par ${fullName(adminById[t.completed_by])}${t.completed_by === me ? ' (moi)' : ''}` : ''}
+                                {' · '}
+                                {fmtDate(t.completed_at ?? t.updated_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
+          </>
         )}
 
         {/* ── Détail de tâche ── */}
