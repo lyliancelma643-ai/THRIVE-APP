@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom';
 import { supabaseClient as supabase } from '@thrive/shared';
 import {
   Task, TaskComment, TaskAttachment, TaskHistoryEntry, AdminProfile,
-  Status, Priority, Category, STATUSES, PRIORITIES, CATEGORIES,
+  Status, Priority, Category, Recurrence, STATUSES, PRIORITIES, CATEGORIES, RECURRENCES,
   fullName, fmtDate, fmtDateTime, describeHistory, detectLinkLabel, isOverdue,
 } from '@/lib/roadmap';
 
@@ -311,6 +311,22 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                   <option key={p} value={p}>{PRIORITIES[p].label}</option>
                 ))}
               </select>
+            </label>
+            <label className="text-xs text-slate-400">
+              Récurrence
+              <select
+                value={task.recurrence ?? 'NONE'}
+                disabled={!isSuperAdmin || busy}
+                onChange={(e) => patch({ recurrence: e.target.value as Recurrence })}
+                className={inputCls + ' mt-1 disabled:opacity-60'}
+              >
+                {(Object.keys(RECURRENCES) as Recurrence[]).map((r) => (
+                  <option key={r} value={r}>{r === 'NONE' ? 'Pas de récurrence' : `🔁 ${RECURRENCES[r].label}`}</option>
+                ))}
+              </select>
+              <span className="block mt-1 text-[10px] text-slate-400">
+                Une fois terminée, la tâche se reprogramme automatiquement à l&apos;intervalle choisi.
+              </span>
             </label>
             <label className="text-xs text-slate-400">
               Échéance {isOverdue(task) && <span className="text-red-500 font-bold">· en retard</span>}

@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import {
-  Task, TaskHistoryEntry, AdminProfile, Horizon, Status, Priority, Category,
-  HORIZONS, STATUSES, PRIORITIES, CATEGORIES,
+  Task, TaskHistoryEntry, AdminProfile, Horizon, Status, Priority, Category, Recurrence,
+  HORIZONS, STATUSES, PRIORITIES, CATEGORIES, RECURRENCES,
   fullName, fmtDate, describeHistory, isOverdue, horizonFromDeadline,
   fetchTasks, fetchAdmins, fetchActivity,
 } from '@/lib/roadmap';
@@ -69,6 +69,7 @@ export default function AdminRoadmapPage() {
   // Ajout rapide
   const [draft, setDraft] = useState({
     title: '', deadline: '', category: 'GENERAL' as Category, priority: 'MEDIUM' as Priority,
+    recurrence: 'NONE' as Recurrence,
   });
 
   // Mode sombre mémorisé
@@ -145,11 +146,12 @@ export default function AdminRoadmapPage() {
       deadline: draft.deadline || null,
       category: draft.category,
       priority: draft.priority,
+      recurrence: draft.recurrence,
       horizon: horizonFromDeadline(draft.deadline || null, 'WEEK'),
       created_by: me,
     });
     if (err) setError(err.message);
-    setDraft({ title: '', deadline: '', category: 'GENERAL', priority: 'MEDIUM' });
+    setDraft({ title: '', deadline: '', category: 'GENERAL', priority: 'MEDIUM', recurrence: 'NONE' });
     await load();
   };
 
@@ -416,6 +418,17 @@ export default function AdminRoadmapPage() {
               <option key={p} value={p}>{PRIORITIES[p].label}</option>
             ))}
           </select>
+          <select
+            value={draft.recurrence}
+            onChange={(e) => setDraft({ ...draft, recurrence: e.target.value as Recurrence })}
+            className={selectCls}
+            aria-label="Récurrence"
+            title="Tâche récurrente : une fois terminée, elle se reprogramme automatiquement"
+          >
+            {(Object.keys(RECURRENCES) as Recurrence[]).map((r) => (
+              <option key={r} value={r}>{r === 'NONE' ? 'Pas de récurrence' : `🔁 ${RECURRENCES[r].label}`}</option>
+            ))}
+          </select>
           <input
             type="date"
             value={draft.deadline}
@@ -515,6 +528,14 @@ export default function AdminRoadmapPage() {
                                   {t.priority !== 'MEDIUM' && (
                                     <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${PRIORITIES[t.priority].chip}`}>
                                       {t.priority === 'HIGH' ? '↑ haute' : '↓ basse'}
+                                    </span>
+                                  )}
+                                  {t.recurrence && t.recurrence !== 'NONE' && (
+                                    <span
+                                      title={`${RECURRENCES[t.recurrence].label} — se reprogramme automatiquement une fois terminée`}
+                                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300"
+                                    >
+                                      🔁 {RECURRENCES[t.recurrence].short}
                                     </span>
                                   )}
                                   {t.status !== 'TODO' && (

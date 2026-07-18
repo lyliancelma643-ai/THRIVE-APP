@@ -11,6 +11,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 export type Horizon = 'WEEK' | 'MONTH' | 'QUARTER' | 'YEAR';
 export type Status = 'TODO' | 'IN_PROGRESS' | 'IN_REVIEW' | 'BLOCKED' | 'DONE';
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type Recurrence = 'NONE' | 'DAILY' | 'WEEKLY' | 'BIWEEKLY' | 'MONTHLY' | 'BIMONTHLY' | 'QUARTERLY';
 export type Category =
   | 'COACHING' | 'CONTENU' | 'DEVELOPPEMENT' | 'PRATIQUE'
   | 'URGENT' | 'MARKETING' | 'ADMINISTRATIF' | 'GENERAL';
@@ -25,6 +26,7 @@ export type Task = {
   assignee: string | null;
   category: Category;
   priority: Priority;
+  recurrence: Recurrence;
   problem: string | null;
   problem_by: string | null;
   problem_at: string | null;
@@ -108,6 +110,18 @@ export const PRIORITIES: Record<Priority, { label: string; chip: string; weight:
   LOW:    { label: 'Pas important',         chip: 'bg-slate-100 text-slate-500 dark:bg-slate-500/20 dark:text-slate-400', weight: 2 },
 };
 
+// Tâches récurrentes : à la complétion, un trigger (migration 054) crée la
+// prochaine occurrence avec l'échéance décalée de l'intervalle.
+export const RECURRENCES: Record<Recurrence, { label: string; short: string }> = {
+  NONE:      { label: 'Pas de récurrence',     short: '' },
+  DAILY:     { label: 'Chaque jour',           short: 'jour' },
+  WEEKLY:    { label: 'Chaque semaine',        short: 'semaine' },
+  BIWEEKLY:  { label: 'Toutes les 2 semaines', short: '2 sem.' },
+  MONTHLY:   { label: 'Chaque mois',           short: 'mois' },
+  BIMONTHLY: { label: 'Tous les 2 mois',       short: '2 mois' },
+  QUARTERLY: { label: 'Tous les 3 mois',       short: '3 mois' },
+};
+
 export const STATUSES: Record<Status, { label: string; chip: string; bar: string }> = {
   TODO:        { label: 'À faire',    chip: 'bg-slate-100 text-slate-600 dark:bg-slate-500/25 dark:text-slate-300', bar: 'bg-slate-400' },
   IN_PROGRESS: { label: 'En cours',   chip: 'bg-sun/70 text-navy-900 dark:bg-sun/30 dark:text-sun',                 bar: 'bg-sun-dark' },
@@ -176,6 +190,7 @@ export const HISTORY_FIELD_LABELS: Record<string, string> = {
   category: 'le groupe',
   deadline: "l'échéance",
   assignee: "l'attribution",
+  recurrence: 'la récurrence',
   problem: 'le problème',
 };
 
@@ -185,6 +200,7 @@ export function describeHistory(h: TaskHistoryEntry, admins: Record<string, Admi
     if (field === 'status') return STATUSES[v as Status]?.label ?? v;
     if (field === 'priority') return PRIORITIES[v as Priority]?.label ?? v;
     if (field === 'category') return CATEGORIES[v as Category]?.label ?? v;
+    if (field === 'recurrence') return RECURRENCES[v as Recurrence]?.label ?? v;
     if (field === 'assignee') return admins[v] ? fullName(admins[v]) : 'personne';
     if (field === 'deadline') return fmtDate(v);
     return v;
