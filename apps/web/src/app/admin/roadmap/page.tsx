@@ -180,6 +180,8 @@ export default function AdminRoadmapPage() {
   const openTask = openTaskId ? tasks.find((t) => t.id === openTaskId) ?? null : null;
   const adminById = useMemo(() => Object.fromEntries(admins.map((a) => [a.id, a])), [admins]);
   const problemCount = tasks.filter((t) => t.problem).length;
+  const myOpenCount = tasks.filter((t) => t.assignee === me && t.status !== 'DONE').length;
+  const mineOnly = fAssignee === me;
 
   // ── Changements non vus (faits par les AUTRES, au-dessus du curseur global,
   //    et pas rejetés un par un) ──
@@ -320,6 +322,27 @@ export default function AdminRoadmapPage() {
 
         {/* ── Filtres avancés ── */}
         <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/10 shadow-sm px-3 py-2.5">
+          {/* « Mes tâches » : bascule le filtre assigné sur moi / tous */}
+          <button
+            type="button"
+            onClick={() => setFAssignee(mineOnly ? 'ALL' : me)}
+            aria-pressed={mineOnly}
+            title={mineOnly ? 'Réafficher toutes les tâches' : "N'afficher que les tâches qui me sont assignées"}
+            className={`shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors ${
+              mineOnly
+                ? 'bg-navy-600 text-white shadow-sm'
+                : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/20'
+            }`}
+          >
+            👤 Mes tâches
+            {myOpenCount > 0 && (
+              <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] ${
+                mineOnly ? 'bg-white/25 text-white' : 'bg-navy-600 text-white'
+              }`}>
+                {myOpenCount}
+              </span>
+            )}
+          </button>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
