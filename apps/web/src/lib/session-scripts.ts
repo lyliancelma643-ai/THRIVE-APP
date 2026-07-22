@@ -21,6 +21,17 @@ export type SessionScript = {
 
 const DATA = scripts as unknown as Record<string, Record<string, SessionScript>>;
 
+// « 0:05–0:20 — Bloc 1 » -> plage en minutes depuis le début de séance [5, 20].
+// Partagé par le déroulé standard et le Mode Terrain.
+export function parseTimeRange(title: string): [number, number] | null {
+  const m = title.match(/^(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)/);
+  if (!m) return null;
+  return [
+    parseInt(m[1]) * 60 + parseInt(m[2]),
+    parseInt(m[3]) * 60 + parseInt(m[4]),
+  ];
+}
+
 export function getSessionScript(
   ageGroup: AgeGroup | null,
   sessionNumber: number | null

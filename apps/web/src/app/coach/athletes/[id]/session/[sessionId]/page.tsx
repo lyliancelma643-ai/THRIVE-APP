@@ -10,26 +10,13 @@ import { ageGroupFromBirthDate } from '@/lib/catalog';
 import {
   getSessionScript,
   fillParentTemplate,
+  parseTimeRange,
   SessionScript,
 } from '@/lib/session-scripts';
-
-type DraftState = {
-  checks: Record<string, boolean>;
-  ratings: Record<string, number>;
-  fields: Record<string, string>;
-  parentMsg: string;
-  startedAt?: number | null;
-};
-
-// "0:05–0:20 — Bloc 1" -> plage en minutes [5, 20]
-function parseTimeRange(title: string): [number, number] | null {
-  const m = title.match(/^(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)/);
-  if (!m) return null;
-  return [
-    parseInt(m[1]) * 60 + parseInt(m[2]),
-    parseInt(m[3]) * 60 + parseInt(m[4]),
-  ];
-}
+import { useSessionDraft } from '@/hooks/useSessionDraft';
+import { buildFieldModeSession } from '@/lib/field-mode/build';
+import { FIELD_MODE_ENABLED } from '@/lib/field-mode/flag';
+import { FieldModeShell } from '@/components/coach/field-mode';
 
 export default function CoachLiveSessionPage() {
   const params = useParams<{ id: string; sessionId: string }>();
@@ -42,22 +29,9 @@ export default function CoachLiveSessionPage() {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
 
-  const [checks, setChecks] = useState<Record<string, boolean>>({});
-  const [ratings, setRatings] = useState<Record<string, number>>({});
-  const [fields, setFields] = useState<Record<string, string>>({});
-  const [parentMsg, setParentMsg] = useState('');
-  const [startedAt, setStartedAt] = useState<number | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
-  const restoredRef = useRef(false);
-
-  // Tic du chrono (1 s)
-  useEffect(() => {
-    if (!startedAt) return;
-    const t = setInterval(() => setNowTick(Date.now()), 1000);
-    return () => clearInterval(t);
-  }, [startedAt]);
-
-  const draftKey = `thrive-seance-${params?.sessionId}`;
+  const [fieldMode, setFieldMode] = useState(false);
+  const exitAnchor = useRef<number | null>(null);
 
   useEffect(() => {
     if (!params?.id || !params?.sessionId) return;
@@ -86,53 +60,42 @@ export default function CoachLiveSessionPage() {
     [ageGroup, session?.session_number]
   );
 
-  // Pré-remplissage du message parent + restauration du brouillon
-  useEffect(() => {
-    if (!script || !child || restoredRef.current) return;
-    restoredRef.current = true;
-    try {
-      const saved = localStorage.getItem(draftKey);
-      if (saved) {
-        const d: DraftState = JSON.parse(saved);
-        setChecks(d.checks ?? {});
-        setRatings(d.ratings ?? {});
-        setFields(d.fields ?? {});
-        setStartedAt(d.startedAt ?? null);
-        setParentMsg(
-          d.parentMsg ||
-            fillParentTemplate(
-              script.parentTemplate,
-              child.first_name,
-              `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
-            )
-        );
-        return;
-      }
-    } catch {
-      /* brouillon illisible : on repart du modèle */
-    }
-    setParentMsg(
-      fillParentTemplate(
-        script.parentTemplate,
-        child.first_name,
-        `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
-      )
-    );
-  }, [script, child, user, draftKey]);
+  // Message parent pré-rempli depuis la méthode (modèle de la fiche).
+  const defaultParentMsg = useCallback(
+    () =>
+      script && child
+        ? fillParentTemplate(
+            script.parentTemplate,
+            child.first_name,
+            `${user?.firstName ?? ''} ${user?.lastName ?? ''}`.trim()
+          )
+        : '',
+    [script, child, user]
+  );
 
-  // Sauvegarde automatique du brouillon (rien ne se perd)
+  // Brouillon partagé par le mode standard et le Mode Terrain : un seul état,
+  // une seule clé de stockage, un seul envoi.
+  const {
+    checks, setChecks, toggleCheck,
+    ratings, setRatings, rate,
+    fields, setFields, setField,
+    parentMsg, setParentMsg,
+    startedAt, setStartedAt,
+    fieldPage, setFieldPage,
+    timers, setTimers,
+    clear: clearDraft,
+  } = useSessionDraft({
+    sessionId: params?.sessionId,
+    ready: !!script && !!child,
+    defaultParentMsg,
+  });
+
+  // Tic du chrono de séance (1 s)
   useEffect(() => {
-    if (!restoredRef.current) return;
-    const d: DraftState = { checks, ratings, fields, parentMsg, startedAt };
-    const timeout = setTimeout(() => {
-      try {
-        localStorage.setItem(draftKey, JSON.stringify(d));
-      } catch {
-        /* stockage plein : tant pis pour le brouillon */
-      }
-    }, 600);
-    return () => clearTimeout(timeout);
-  }, [checks, ratings, fields, parentMsg, startedAt, draftKey]);
+    if (!startedAt) return;
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [startedAt]);
 
   const ratedCount = Object.values(ratings).filter((v) => v > 0).length;
   const elapsedSec = startedAt ? Math.max(0, Math.floor((nowTick - startedAt) / 1000)) : 0;
@@ -232,13 +195,31 @@ export default function CoachLiveSessionPage() {
         /* moteur de bilans best-effort : le bilan legacy est déjà parti */
       }
 
-      localStorage.removeItem(draftKey);
+      clearDraft();
       router.push(`/coach/athletes/${child.id}?sent=1`);
     } catch (e: any) {
       setError(e?.message ?? "Erreur lors de l'envoi du bilan");
       setSending(false);
     }
-  }, [user, child, session, parentMsg, ratings, fields, draftKey, router]);
+  }, [user, child, session, parentMsg, ratings, fields, ageGroup, script, ratedCount, clearDraft, router]);
+
+  // Mode Terrain — même contenu, mêmes saisies, autre présentation.
+  const fieldSession = useMemo(
+    () => (script ? buildFieldModeSession(script) : null),
+    [script]
+  );
+
+  // Sortie du mode : on revient au mode standard au même endroit de la séance.
+  useEffect(() => {
+    if (fieldMode || exitAnchor.current === null) return;
+    const bi = exitAnchor.current;
+    exitAnchor.current = null;
+    requestAnimationFrame(() => {
+      const el = bi >= 0 ? document.getElementById(`sec-${bi}`) : null;
+      if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'auto' });
+    });
+  }, [fieldMode]);
 
   if (loading) {
     return (
@@ -292,6 +273,39 @@ export default function CoachLiveSessionPage() {
       </div>
 
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
+
+      {/* Entrée du Mode Terrain — plein écran, un temps par page, pensé pour
+          le bord de la glace. Le mode standard reste accessible à tout moment. */}
+      {FIELD_MODE_ENABLED && fieldSession && fieldSession.pages.length > 0 && (
+        <button
+          onClick={() => setFieldMode(true)}
+          className="w-full mb-4 min-h-[56px] py-4 rounded-2xl bg-sun hover:bg-sun-dark text-navy-900 font-bold text-base transition-colors flex items-center justify-center gap-2"
+        >
+          <span aria-hidden>⛸</span>
+          Mode terrain — {fieldSession.pages.length} temps, plein écran
+        </button>
+      )}
+
+      {FIELD_MODE_ENABLED && fieldMode && fieldSession && (
+        <FieldModeShell
+          session={fieldSession}
+          subtitle={`${child.first_name} · Séance ${session.session_number}`}
+          pageIndex={fieldPage}
+          onPageIndex={setFieldPage}
+          checks={checks}
+          ratings={ratings}
+          fields={fields}
+          timers={timers}
+          onToggleCheck={toggleCheck}
+          onRate={rate}
+          onField={setField}
+          onTimers={setTimers}
+          onExit={(blockIndex) => {
+            exitAnchor.current = blockIndex;
+            setFieldMode(false);
+          }}
+        />
+      )}
 
       {/* Chrono de séance */}
       {!isDone && !startedAt && (

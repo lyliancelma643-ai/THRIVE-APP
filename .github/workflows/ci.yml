@@ -41,6 +41,12 @@ jobs:
       - name: Lint web
         run: pnpm --filter web lint
 
+      # Couche de transformation du Mode Terrain : les 39 fiches de séance
+      # doivent produire des pages valides et des clés identiques au mode
+      # standard, sinon des saisies coach seraient perdues.
+      - name: Tests unitaires web
+        run: pnpm --filter web test
+
       - name: Build web (production)
         run: pnpm --filter web build
 
