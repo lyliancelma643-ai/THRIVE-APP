@@ -46,6 +46,9 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
   const isAssignee = task.assignee === me;
   const canStatus = isSuperAdmin || isAssignee;
   const canReportProblem = isSuperAdmin || isAssignee || task.created_by === me;
+  // Coffre privé : bascule réservée au Super Admin auteur de la tâche
+  // (RLS + trigger, migration 055). Une tâche privée n'est attribuable qu'à lui.
+  const canTogglePrivacy = isSuperAdmin && task.created_by === me;
 
   const [comments, setComments] = useState<TaskComment[]>([]);
   const [attachments, setAttachments] = useState<TaskAttachment[]>([]);
@@ -105,7 +108,8 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
     act(async () => {
       if (!commentBody.trim()) return;
       const { error: err } = await supabase.from('admin_task_comments').insert({
-        task_id: task.id, author: me, body: commentBody.trim(), mentions,
+        task_id: task.id, author: me, body: commentBody.trim(),
+        mentions: task.is_private ? [] : mentions,
       });
       if (err) throw new Error(err.message);
       setCommentBody('');
@@ -207,6 +211,40 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
               ✕
             </button>
           </div>
+
+          {/* Confidentialité : bandeau + bascule privé / partagé */}
+          {(task.is_private || canTogglePrivacy) && (
+            <div className={`mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl px-3 py-2 ${
+              task.is_private
+                ? 'bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30'
+                : 'bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/10'
+            }`}>
+              <p className={`text-xs font-semibold ${
+                task.is_private ? 'text-violet-700 dark:text-violet-300' : 'text-slate-500 dark:text-slate-400'
+              }`}>
+                {task.is_private
+                  ? '🔒 Tâche privée — toi seul la vois (ni les admins, ni les autres Super Admins)'
+                  : '🔓 Tâche partagée avec les administrateurs'}
+              </p>
+              {canTogglePrivacy && (
+                <button
+                  onClick={() => patch(task.is_private
+                    ? { is_private: false }
+                    // Partager plus tard reste possible ; l'attribution repart à zéro
+                    // car une tâche privée n'appartient qu'à son auteur.
+                    : { is_private: true, assignee: task.assignee === me ? me : null })}
+                  disabled={busy}
+                  className={`shrink-0 text-xs font-bold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-40 ${
+                    task.is_private
+                      ? 'bg-white dark:bg-white/10 text-violet-700 dark:text-violet-300 border border-violet-200 dark:border-violet-500/30 hover:bg-violet-100 dark:hover:bg-violet-500/20'
+                      : 'bg-violet-600 text-white hover:bg-violet-700'
+                  }`}
+                >
+                  {task.is_private ? 'Partager avec les admins' : '🔒 Rendre privée'}
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Statut : personnalisable par la personne en charge ou le Super Admin */}
           <div className="flex flex-wrap gap-1.5 mt-3">
@@ -351,7 +389,9 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                   className={inputCls + ' mt-1'}
                 >
                   <option value="">Non assignée</option>
-                  {admins.map((a) => (
+                  {/* Une tâche privée ne peut être confiée qu'à son auteur :
+                      l'attribuer ailleurs révélerait son titre. */}
+                  {(task.is_private ? admins.filter((a) => a.id === task.created_by) : admins).map((a) => (
                     <option key={a.id} value={a.id}>
                       {fullName(a)}{a.role === 'SUPER_ADMIN' ? ' ★' : ''}
                     </option>
@@ -494,20 +534,30 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                 className={inputCls}
               />
               <div className="flex flex-wrap items-center gap-1.5">
-                <span className="text-[10px] text-slate-400 mr-1">Mentionner :</span>
-                {admins.filter((a) => a.id !== me).map((a) => (
-                  <button
-                    key={a.id}
-                    onClick={() => toggleMention(a.id, fullName(a))}
-                    className={`text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
-                      mentions.includes(a.id)
-                        ? 'bg-navy-600 text-white'
-                        : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-200'
-                    }`}
-                  >
-                    @{fullName(a)}
-                  </button>
-                ))}
+                {/* Sur une tâche privée, mentionner quelqu'un lui enverrait un
+                    extrait de la note : la liste est retirée. */}
+                {task.is_private ? (
+                  <span className="text-[10px] text-violet-500 dark:text-violet-300/80">
+                    🔒 Notes privées — aucune mention possible
+                  </span>
+                ) : (
+                  <>
+                    <span className="text-[10px] text-slate-400 mr-1">Mentionner :</span>
+                    {admins.filter((a) => a.id !== me).map((a) => (
+                      <button
+                        key={a.id}
+                        onClick={() => toggleMention(a.id, fullName(a))}
+                        className={`text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors ${
+                          mentions.includes(a.id)
+                            ? 'bg-navy-600 text-white'
+                            : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-200'
+                        }`}
+                      >
+                        @{fullName(a)}
+                      </button>
+                    ))}
+                  </>
+                )}
                 <button
                   onClick={addComment}
                   disabled={busy || !commentBody.trim()}

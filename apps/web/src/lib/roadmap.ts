@@ -27,6 +27,9 @@ export type Task = {
   category: Category;
   priority: Priority;
   recurrence: Recurrence;
+  // Tâche privée du Super Admin : visible uniquement par son auteur
+  // (migration 055 — RLS + triggers ; l'UI ne fait que refléter).
+  is_private: boolean;
   problem: string | null;
   problem_by: string | null;
   problem_at: string | null;
@@ -191,6 +194,7 @@ export const HISTORY_FIELD_LABELS: Record<string, string> = {
   deadline: "l'échéance",
   assignee: "l'attribution",
   recurrence: 'la récurrence',
+  is_private: 'la confidentialité',
   problem: 'le problème',
 };
 
@@ -202,6 +206,7 @@ export function describeHistory(h: TaskHistoryEntry, admins: Record<string, Admi
     if (field === 'category') return CATEGORIES[v as Category]?.label ?? v;
     if (field === 'recurrence') return RECURRENCES[v as Recurrence]?.label ?? v;
     if (field === 'assignee') return admins[v] ? fullName(admins[v]) : 'personne';
+    if (field === 'is_private') return v === 'true' ? 'privée' : 'partagée';
     if (field === 'deadline') return fmtDate(v);
     return v;
   };

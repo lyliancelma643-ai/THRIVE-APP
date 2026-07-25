@@ -65,11 +65,13 @@ export default function AdminRoadmapPage() {
   const [fAssignee, setFAssignee] = useState<string>('ALL');
   const [fCategory, setFCategory] = useState<Category | 'ALL'>('ALL');
   const [showDone, setShowDone] = useState(true);
+  // Coffre privé : n'afficher que MES tâches privées (Super Admin uniquement).
+  const [privateOnly, setPrivateOnly] = useState(false);
 
   // Ajout rapide
   const [draft, setDraft] = useState({
     title: '', deadline: '', category: 'GENERAL' as Category, priority: 'MEDIUM' as Priority,
-    recurrence: 'NONE' as Recurrence,
+    recurrence: 'NONE' as Recurrence, isPrivate: false,
   });
 
   // Mode sombre mémorisé
@@ -147,11 +149,13 @@ export default function AdminRoadmapPage() {
       category: draft.category,
       priority: draft.priority,
       recurrence: draft.recurrence,
+      // Le mode privé est réservé au Super Admin (RLS + trigger, migration 055)
+      is_private: isSuperAdmin && draft.isPrivate,
       horizon: horizonFromDeadline(draft.deadline || null, 'WEEK'),
       created_by: me,
     });
     if (err) setError(err.message);
-    setDraft({ title: '', deadline: '', category: 'GENERAL', priority: 'MEDIUM', recurrence: 'NONE' });
+    setDraft({ title: '', deadline: '', category: 'GENERAL', priority: 'MEDIUM', recurrence: 'NONE', isPrivate: false });
     await load();
   };
 
@@ -167,6 +171,7 @@ export default function AdminRoadmapPage() {
       if (fCategory !== 'ALL' && t.category !== fCategory) return false;
       if (fAssignee === 'NONE' && t.assignee !== null) return false;
       if (fAssignee !== 'ALL' && fAssignee !== 'NONE' && t.assignee !== fAssignee) return false;
+      if (privateOnly && !t.is_private) return false;
       if (needle && !`${t.title} ${t.description ?? ''}`.toLowerCase().includes(needle)) return false;
       return true;
     };
@@ -177,13 +182,16 @@ export default function AdminRoadmapPage() {
         .filter((t) => t.status === 'DONE')
         .sort((a, b) => (b.completed_at ?? b.updated_at).localeCompare(a.completed_at ?? a.updated_at)),
     };
-  }, [tasks, q, fStatus, fPriority, fCategory, fAssignee, showDone]);
+  }, [tasks, q, fStatus, fPriority, fCategory, fAssignee, showDone, privateOnly]);
 
   const openTask = openTaskId ? tasks.find((t) => t.id === openTaskId) ?? null : null;
   const adminById = useMemo(() => Object.fromEntries(admins.map((a) => [a.id, a])), [admins]);
   const problemCount = tasks.filter((t) => t.problem).length;
   const myOpenCount = tasks.filter((t) => t.assignee === me && t.status !== 'DONE').length;
   const mineOnly = fAssignee === me;
+  // Les tâches privées ne sortent de la base que pour leur auteur (RLS 055) :
+  // ce compteur ne peut donc jamais refléter celles de quelqu'un d'autre.
+  const privateCount = tasks.filter((t) => t.is_private && t.status !== 'DONE').length;
 
   // ── Changements non vus (faits par les AUTRES, au-dessus du curseur global,
   //    et pas rejetés un par un) ──
@@ -275,7 +283,7 @@ export default function AdminRoadmapPage() {
             <h1 className="text-2xl font-bold text-navy-900 dark:text-white">Roadmap interne</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
               {isSuperAdmin
-                ? 'Contrôle total : attribution, édition, suppression, résolution des problèmes.'
+                ? 'Contrôle total : attribution, édition, suppression, résolution des problèmes — et tâches privées 🔒 que toi seul vois.'
                 : 'Prends une tâche libre, avance-la, signale un problème si tu bloques.'}
             </p>
           </div>
@@ -345,6 +353,29 @@ export default function AdminRoadmapPage() {
               </span>
             )}
           </button>
+          {/* « Privées » : coffre personnel du Super Admin — invisible aux autres admins */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setPrivateOnly((p) => !p)}
+              aria-pressed={privateOnly}
+              title={privateOnly ? 'Réafficher toutes les tâches' : "N'afficher que mes tâches privées (personne d'autre ne les voit)"}
+              className={`shrink-0 text-xs font-bold px-3.5 py-2 rounded-lg transition-colors ${
+                privateOnly
+                  ? 'bg-violet-600 text-white shadow-sm'
+                  : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-white/20'
+              }`}
+            >
+              🔒 Privées
+              {privateCount > 0 && (
+                <span className={`ml-1.5 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] ${
+                  privateOnly ? 'bg-white/25 text-white' : 'bg-violet-600 text-white'
+                }`}>
+                  {privateCount}
+                </span>
+              )}
+            </button>
+          )}
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
@@ -437,6 +468,24 @@ export default function AdminRoadmapPage() {
             title="La date classe automatiquement la tâche : semaine / mois / 3 mois / année"
             className={selectCls}
           />
+          {/* Coffre privé : réservé au Super Admin, personne d'autre ne verra la tâche */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setDraft({ ...draft, isPrivate: !draft.isPrivate })}
+              aria-pressed={draft.isPrivate}
+              title={draft.isPrivate
+                ? 'Tâche privée : visible uniquement par toi. Clique pour la partager avec les admins.'
+                : 'Rendre cette tâche privée : aucun autre administrateur ne la verra.'}
+              className={`shrink-0 text-xs font-bold px-3 py-2 rounded-lg border transition-colors ${
+                draft.isPrivate
+                  ? 'bg-violet-600 border-violet-600 text-white'
+                  : 'bg-white dark:bg-white/[0.06] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
+              }`}
+            >
+              {draft.isPrivate ? '🔒 Privée' : '🔓 Partagée'}
+            </button>
+          )}
           <button
             type="submit"
             disabled={!draft.title.trim()}
@@ -522,6 +571,14 @@ export default function AdminRoadmapPage() {
                                   {t.title}
                                 </p>
                                 <div className="flex flex-wrap items-center gap-1 mt-1">
+                                  {t.is_private && (
+                                    <span
+                                      title="Tâche privée — toi seul la vois"
+                                      className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+                                    >
+                                      🔒 Privée
+                                    </span>
+                                  )}
                                   <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CATEGORIES[t.category].chip}`}>
                                     {CATEGORIES[t.category].label}
                                   </span>
@@ -625,6 +682,14 @@ export default function AdminRoadmapPage() {
                               {t.title}
                             </p>
                             <div className="flex flex-wrap items-center gap-1 mt-1">
+                              {t.is_private && (
+                                <span
+                                  title="Tâche privée — toi seul la vois"
+                                  className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300"
+                                >
+                                  🔒
+                                </span>
+                              )}
                               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CATEGORIES[t.category].chip}`}>
                                 {CATEGORIES[t.category].label}
                               </span>

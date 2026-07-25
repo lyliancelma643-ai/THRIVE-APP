@@ -117,6 +117,7 @@ export function CalendarView({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Tas
                           }`}
                         >
                           <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[t.priority]}`} />
+                          {t.is_private && <span className="shrink-0" title="Tâche privée">🔒</span>}
                           <span className="truncate">{t.title}</span>
                         </button>
                       ))}
