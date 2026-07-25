@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useAuthStore, logout } from '@/stores/auth.store';
+import { Icon } from '@/components/ui';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -60,7 +61,7 @@ export function UserMenu() {
         aria-label="Se connecter"
         className="w-11 h-11 rounded-full glass-navy flex items-center justify-center text-white/80 hover:bg-white/10 active:scale-95 transition-all select-none"
       >
-        ⏻
+        <Icon name="power" className="w-5 h-5" />
       </Link>
     );
   }
@@ -119,7 +120,7 @@ export function UserMenu() {
                 role="menuitem"
                 className="flex items-center gap-3 px-4 py-3 min-h-[48px] text-sm text-white/80 hover:bg-white/10 active:bg-white/10 transition-colors"
               >
-                <span className="text-base w-5 text-center" aria-hidden>⚙</span>
+                <Icon name="settings" className="w-5 h-5 shrink-0" />
                 Paramètres du compte
               </Link>
 
@@ -129,7 +130,7 @@ export function UserMenu() {
                 role="menuitem"
                 className="flex items-center gap-3 w-full text-left px-4 py-3 min-h-[48px] text-sm font-semibold text-red-300 hover:bg-red-500/15 active:bg-red-500/20 transition-colors border-t border-white/10 disabled:opacity-60"
               >
-                <span className="text-base w-5 text-center" aria-hidden>⏻</span>
+                <Icon name="power" className="w-5 h-5 shrink-0" />
                 {signingOut ? 'Déconnexion…' : 'Se déconnecter'}
               </button>
             </div>

@@ -242,7 +242,7 @@ function MySessionsPageInner() {
               <button
                 disabled={!hasDetails}
                 aria-pressed={hasDetails ? isSelected : undefined}
-                className={`w-full flex items-center gap-4 p-5 text-left ${
+                className={`w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-5 text-left ${
                   hasDetails ? 'cursor-pointer' : 'cursor-default'
                 }`}
                 onClick={() => hasDetails && setSelectedId(isSelected ? null : rowId)}
@@ -256,7 +256,7 @@ function MySessionsPageInner() {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span
-                    className={`block font-semibold truncate ${
+                    className={`block font-semibold line-clamp-2 ${
                       isDone ? 'text-white' : 'text-white/55'
                     }`}
                   >
@@ -264,7 +264,7 @@ function MySessionsPageInner() {
                   </span>
                   <span
                     className={`block text-xs mt-0.5 ${
-                      isDone ? 'text-white/55' : 'text-white/35'
+                      isDone ? 'text-white/55' : 'text-white/45'
                     }`}
                   >
                     {PHASE_LABELS[phase]}
@@ -275,18 +275,28 @@ function MySessionsPageInner() {
                         month: 'long',
                       })}`}
                   </span>
+                  {/* Statut SOUS le titre sur mobile : à 375px le badge à droite
+                      écrasait le titre (« Diagn… »). Ici, le titre récupère toute
+                      la largeur. Sur écran large, il repasse à droite (ci-dessous). */}
+                  <span
+                    className={`sm:hidden inline-flex mt-2 px-3 py-1 rounded-full text-xs font-bold ${
+                      isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/60'
+                    }`}
+                  >
+                    {isDone ? 'Validée par le coach' : 'À venir'}
+                  </span>
                 </span>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-bold ${
-                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/45'
+                  className={`hidden sm:inline-flex shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
+                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/60'
                   }`}
                 >
                   {isDone ? 'Validée par le coach' : 'À venir'}
                 </span>
                 {hasDetails && (
                   <span
-                    className={`text-base leading-none transition-colors ${
-                      isSelected ? 'text-sun' : 'text-white/35'
+                    className={`shrink-0 self-center text-base leading-none transition-colors ${
+                      isSelected ? 'text-sun' : 'text-white/45'
                     }`}
                     aria-hidden
                   >

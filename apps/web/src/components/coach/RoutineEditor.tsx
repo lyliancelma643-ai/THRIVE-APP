@@ -73,11 +73,11 @@ export function RoutineEditor({ childId }: { childId: string }) {
               onChange={(e) =>
                 setSteps((xs) => xs.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))
               }
-              className="flex-1 border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+              className="flex-1 border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
             />
             <button
               onClick={() => setSteps((xs) => xs.filter((_, j) => j !== i))}
-              className="shrink-0 w-10 h-10 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 cursor-pointer"
+              className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 cursor-pointer"
               aria-label="Supprimer l'étape"
             >
               ✕

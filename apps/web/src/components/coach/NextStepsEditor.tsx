@@ -87,7 +87,7 @@ export function NextStepsEditor({ childId }: { childId: string }) {
           </div>
           <button
             onClick={() => remove(s.id)}
-            className="shrink-0 w-10 h-10 rounded-lg border border-gray-200 text-gray-400 hover:text-red-600 hover:border-red-200 cursor-pointer"
+            className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 hover:border-red-200 cursor-pointer"
             aria-label="Supprimer"
           >
             ✕

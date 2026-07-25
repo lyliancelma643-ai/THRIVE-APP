@@ -7,6 +7,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
+import { Icon } from '@/components/ui';
 
 export function ChildSwitcher() {
   const { user } = useAuthStore();
@@ -80,18 +81,21 @@ export function ChildSwitcher() {
         onClick={toggleMenu}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-2 pl-1.5 pr-3 h-11 rounded-full glass-navy hover:bg-white/10 transition-colors select-none"
+        className="flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-2 sm:pr-3 h-11 rounded-full glass-navy hover:bg-white/10 transition-colors select-none"
       >
         <span className="w-8 h-8 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold shrink-0">
           {selected?.first_name?.[0] ?? '?'}
         </span>
-        <span className="text-sm font-medium text-white max-w-[7rem] truncate">
+        {/* Prénom masqué sur mobile pour dégager le header (7 contrôles à 375px) :
+            l'initiale de l'avatar identifie déjà l'enfant, le prénom complet reste
+            visible dans le menu déroulant. */}
+        <span className="hidden sm:block text-sm font-medium text-white max-w-[7rem] truncate">
           {selected?.first_name}
         </span>
         <span
-          className={`text-white/50 text-[10px] transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+          className={`text-white/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
         >
-          ▾
+          <Icon name="chevron-down" className="w-4 h-4" />
         </span>
       </button>
 
@@ -126,12 +130,10 @@ export function ChildSwitcher() {
                 </span>
                 <span className="flex-1 truncate">{child.first_name}</span>
                 {child.id === selectedChildId && (
-                  <span className="text-sun text-xs" aria-hidden>
-                    ✓
-                  </span>
+                  <Icon name="check" className="w-4 h-4 text-sun shrink-0" />
                 )}
                 {ageGroupFromBirthDate(child.date_of_birth) && (
-                  <span className="text-[10px] text-white/45">
+                  <span className="text-[10px] text-white/60">
                     {ageGroupFromBirthDate(child.date_of_birth)} ans
                   </span>
                 )}

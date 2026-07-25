@@ -5,14 +5,15 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
+import { Icon, type IconName } from '@/components/ui';
 
-const NAV_ITEMS = [
-  { href: '/coach/dashboard', label: 'Tableau de bord', icon: '⌂' },
-  { href: '/coach/sessions', label: 'Séances', icon: '✓' },
-  { href: '/coach/athletes', label: 'Mes athlètes', icon: '★' },
-  { href: '/coach/bilan', label: 'Bilans', icon: '◈' },
-  { href: '/coach/dossiers', label: 'Suivi', icon: '◔' },
-  { href: '/coach/messages', label: 'Messages', icon: '✉' },
+const NAV_ITEMS: { href: string; label: string; icon: IconName }[] = [
+  { href: '/coach/dashboard', label: 'Tableau de bord', icon: 'home' },
+  { href: '/coach/sessions', label: 'Séances', icon: 'check' },
+  { href: '/coach/athletes', label: 'Mes athlètes', icon: 'star' },
+  { href: '/coach/bilan', label: 'Bilans', icon: 'sparkle' },
+  { href: '/coach/dossiers', label: 'Suivi', icon: 'pie' },
+  { href: '/coach/messages', label: 'Messages', icon: 'mail' },
 ];
 
 export default function CoachLayout({ children }: { children: React.ReactNode }) {
@@ -68,12 +69,16 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 flex flex-col items-center gap-0.5 py-2.5 text-[11px] font-medium ${
+              className={`flex-1 min-w-0 flex flex-col items-center gap-1 py-2 font-medium transition-colors ${
                 active ? 'text-sun' : 'text-navy-100/70'
               }`}
             >
-              <span className="text-lg leading-none">{item.icon}</span>
-              {item.label}
+              <Icon name={item.icon} className="w-[22px] h-[22px] shrink-0" />
+              {/* Hauteur de 2 lignes réservée : les libellés longs (« Tableau de
+                  bord », « Mes athlètes ») s'alignent avec les courts sur mobile. */}
+              <span className="min-h-[26px] flex items-center text-center text-[11px] leading-[1.05] px-0.5">
+                {item.label}
+              </span>
             </Link>
           );
         })}
@@ -102,7 +107,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
                     : 'text-navy-100/80 hover:bg-navy-800 hover:text-white'
                 }`}
               >
-                <span className="w-5 text-center text-base">{item.icon}</span>
+                <Icon name={item.icon} className="w-5 h-5 shrink-0" />
                 {item.label}
               </Link>
             );

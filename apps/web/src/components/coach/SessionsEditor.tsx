@@ -208,7 +208,7 @@ export function SessionsEditor({
       {sessions.map((s) => {
         const meta = SESSION_STATUS_META[s.status as SessionStatus] ?? SESSION_STATUS_META.SCHEDULED;
         return (
-          <div key={s.id} className="rounded-xl border border-gray-200 overflow-hidden">
+          <div key={s.id} className="rounded-xl border border-navy-100 overflow-hidden">
             <div className="flex flex-wrap items-center gap-2 p-3">
               <span
                 className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
@@ -234,7 +234,7 @@ export function SessionsEditor({
               <select
                 value={s.status}
                 onChange={(e) => setStatus(s, e.target.value as SessionStatus)}
-                className="border border-gray-200 rounded-lg px-2 py-1.5 text-xs bg-white cursor-pointer"
+                className="border border-navy-100 rounded-lg px-2 py-1.5 text-xs bg-white cursor-pointer"
               >
                 {EDITABLE_STATUSES.map((st) => (
                   <option key={st} value={st}>
@@ -291,25 +291,25 @@ export function SessionsEditor({
             </div>
 
             {openNotes === s.id && (
-              <div className="px-3 pb-3 border-t border-gray-100 pt-3">
+              <div className="px-3 pb-3 border-t border-navy-50 pt-3">
                 <textarea
                   defaultValue={s.coach_notes ?? ''}
                   onBlur={(e) => saveNotes(s.id, e.target.value)}
                   rows={2}
                   placeholder="Notes du coach pour cette séance…"
-                  className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+                  className="w-full border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
                 />
                 <p className="text-[11px] text-gray-400 mt-1">Enregistré automatiquement.</p>
               </div>
             )}
 
             {reschedule === s.id && (
-              <div className="px-3 pb-3 border-t border-gray-100 pt-3 flex flex-col sm:flex-row gap-2">
+              <div className="px-3 pb-3 border-t border-navy-50 pt-3 flex flex-col sm:flex-row gap-2">
                 <input
                   type="datetime-local"
                   value={newDate}
                   onChange={(e) => setNewDate(e.target.value)}
-                  className="border border-gray-200 rounded-lg px-3 py-2 text-sm"
+                  className="border border-navy-100 rounded-lg px-3 py-2 text-sm"
                 />
                 <Btn onClick={() => doReschedule(s.id)}>Enregistrer la date</Btn>
               </div>

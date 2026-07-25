@@ -93,7 +93,7 @@ export function LsssPanel({ childId }: { childId: string }) {
           const q = latestFor(m);
           const score = progression.find((p) => p.moment === m)?.value;
           return (
-            <div key={m} className="rounded-xl border border-gray-200 p-3">
+            <div key={m} className="rounded-xl border border-navy-100 p-3">
               <p className="text-sm font-semibold text-navy-900">{LSSS_MOMENT_LABEL[m]}</p>
               <div className="mt-2 mb-3 min-h-[46px]">
                 {loading ? (

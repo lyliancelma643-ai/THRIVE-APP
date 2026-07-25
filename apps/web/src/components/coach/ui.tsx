@@ -17,7 +17,7 @@ export function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 sm:p-5">
+    <div className="rounded-2xl border border-navy-100 bg-white p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h4 className="text-sm font-bold text-navy-900">{title}</h4>
@@ -51,7 +51,7 @@ export function TextInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10"
+        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
       />
     </label>
   );
@@ -78,7 +78,7 @@ export function TextArea({
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 resize-y"
+        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20 resize-y"
       />
     </label>
   );
@@ -101,7 +101,7 @@ export function Select({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-black/10"
+        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>

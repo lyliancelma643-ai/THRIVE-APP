@@ -108,13 +108,13 @@ export function PermaPanel({ childId }: { childId: string }) {
     <div className="space-y-3">
       {error && <p className="p-2 rounded-lg bg-red-50 text-red-700 text-sm">{error}</p>}
 
-      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-gray-200 p-3">
+      <div className="flex flex-wrap items-end gap-3 rounded-xl border border-navy-100 p-3">
         <label className="text-sm">
           <span className="block text-xs font-semibold text-navy-900 mb-1">Séance</span>
           <select
             value={session}
             onChange={(e) => setSession(Number(e.target.value))}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-navy-100 px-3 py-2 text-sm"
           >
             {SESSIONS.map((s) => (
               <option key={s} value={s}>
@@ -129,7 +129,7 @@ export function PermaPanel({ childId }: { childId: string }) {
           <select
             value={lang}
             onChange={(e) => setLang(e.target.value as 'fr' | 'en')}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-lg border border-navy-100 px-3 py-2 text-sm"
           >
             <option value="fr">Français</option>
             <option value="en">English</option>

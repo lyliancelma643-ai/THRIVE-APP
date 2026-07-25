@@ -34,6 +34,16 @@ const config: Config = {
           DEFAULT: '#A7C4BC',
           dark: '#7FA197',
         },
+        // Couleurs sémantiques — alias iso-valeur des tons Tailwind déjà employés
+        // dans l'app (Badge, boutons danger, pastilles d'état). Centralisées ici
+        // pour harmoniser succès/alerte/erreur sans changer le rendu existant.
+        success: { light: '#DCFCE7', DEFAULT: '#16A34A', dark: '#15803D' },
+        warning: { light: '#FEF3C7', DEFAULT: '#D97706', dark: '#B45309' },
+        danger: { light: '#FEE2E2', DEFAULT: '#DC2626', dark: '#B91C1C' },
+      },
+      borderRadius: {
+        // Rayon des champs de saisie (aligne input-auth : 0.85rem)
+        field: '0.85rem',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],

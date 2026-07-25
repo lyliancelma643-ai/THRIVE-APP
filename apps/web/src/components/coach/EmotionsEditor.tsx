@@ -63,7 +63,7 @@ export function EmotionsEditor({ childId }: { childId: string }) {
     <div className="space-y-3">
       {error && <p className="p-2 rounded-lg bg-red-50 text-red-700 text-sm">{error}</p>}
 
-      <div className="rounded-xl border border-gray-200 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
+      <div className="rounded-xl border border-navy-100 p-3 grid grid-cols-2 sm:grid-cols-4 gap-2 items-end">
         <Select
           label="Émotion"
           value={emotion}
@@ -97,7 +97,7 @@ export function EmotionsEditor({ childId }: { childId: string }) {
       ) : (
         <div className="space-y-2">
           {logs.map((l) => (
-            <div key={l.id} className="flex items-center gap-3 text-sm border border-gray-100 rounded-lg px-3 py-2">
+            <div key={l.id} className="flex items-center gap-3 text-sm border border-navy-50 rounded-lg px-3 py-2">
               <span className="font-semibold text-navy-900">{l.emotion}</span>
               {l.intensity != null && <span className="text-gray-400">{l.intensity}/5</span>}
               {l.session_number != null && (

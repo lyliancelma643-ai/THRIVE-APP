@@ -10,6 +10,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
+import { Icon } from '@/components/ui';
 
 type NotifData = {
   path?: string;
@@ -150,9 +151,9 @@ export function NotificationsBell() {
         type="button"
         aria-label={unread ? `Notifications — ${unread} non lue(s)` : 'Notifications'}
         onClick={() => setOpen((o) => !o)}
-        className="relative w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-lg text-white/75 hover:text-white transition-colors select-none cursor-pointer"
+        className="relative w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-white/75 hover:text-white transition-colors select-none cursor-pointer"
       >
-        ◉
+        <Icon name="bell" className="w-5 h-5" />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center">
             {unread > 9 ? '9+' : unread}
@@ -166,7 +167,7 @@ export function NotificationsBell() {
           style={{ background: 'rgba(3, 26, 40, 0.96)' }}
         >
           <div className="flex items-center justify-between px-4 pt-3 pb-2">
-            <p className="text-xs font-bold uppercase tracking-wide text-white/45">Notifications</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Notifications</p>
             {unread > 0 && (
               <button
                 onClick={() => markRead(items.filter((n) => !n.is_read).map((n) => n.id))}

@@ -23,7 +23,18 @@ export type IconName =
   | 'arrow-right'
   | 'plus'
   | 'check'
-  | 'flag';
+  | 'flag'
+  // Navigation Parent + Coach (remplacent les glyphes ◈ ★ ▦ ⌂ ◔ ✉ ⚙ ⏻)
+  | 'home'
+  | 'star'
+  | 'grid'
+  | 'sparkle'
+  | 'pie'
+  | 'mail'
+  | 'settings'
+  | 'power'
+  | 'chevron-down'
+  | 'chevron-up';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -106,6 +117,57 @@ const PATHS: Record<IconName, React.ReactNode> = {
   plus: <path d="M12 5v14M5 12h14" />,
   check: <path d="m5 12 5 5L20 7" />,
   flag: <path d="M5 21V4m0 1h12l-2.5 4L17 13H5" />,
+  // ◈ Bilan/Résumé → étincelle (registre « premium » Apple Forme)
+  sparkle: <path d="M12 3c.5 3.8 1.7 5 5.5 5.5-3.8.5-5 1.7-5.5 5.5-.5-3.8-1.7-5-5.5-5.5C10.3 8 11.5 6.8 12 3Z" />,
+  // ★ Mes séances / Mes athlètes → étoile
+  star: <path d="M12 3.5l2.6 5.35 5.9.86-4.27 4.16 1.01 5.88L12 17.02l-5.25 2.79 1.01-5.88L3.5 9.71l5.9-.86z" />,
+  // ▦ Fitness → grille de quatre tuiles
+  grid: (
+    <>
+      <rect x="4" y="4" width="7" height="7" rx="1.6" />
+      <rect x="13" y="4" width="7" height="7" rx="1.6" />
+      <rect x="4" y="13" width="7" height="7" rx="1.6" />
+      <rect x="13" y="13" width="7" height="7" rx="1.6" />
+    </>
+  ),
+  // ⌂ Tableau de bord → maison
+  home: (
+    <>
+      <path d="M4 11.5 12 4l8 7.5" />
+      <path d="M6 10.2V19a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-8.8" />
+      <path d="M10 20v-5h4v5" />
+    </>
+  ),
+  // ◔ Suivi → jauge / progression
+  pie: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 3v9h9" />
+    </>
+  ),
+  // ✉ Messages → enveloppe
+  mail: (
+    <>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3.5 7 8.5 6 8.5-6" />
+    </>
+  ),
+  // ⚙ Réglages → engrenage
+  settings: (
+    <>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a1.9 1.9 0 1 1-2.7 2.7l-.1-.1a1.6 1.6 0 0 0-1.8-.3 1.6 1.6 0 0 0-1 1.5V21a1.9 1.9 0 1 1-3.8 0v-.1a1.6 1.6 0 0 0-1-1.5 1.6 1.6 0 0 0-1.8.3l-.1.1a1.9 1.9 0 1 1-2.7-2.7l.1-.1a1.6 1.6 0 0 0 .3-1.8 1.6 1.6 0 0 0-1.5-1H3a1.9 1.9 0 1 1 0-3.8h.1a1.6 1.6 0 0 0 1.5-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1A1.9 1.9 0 1 1 6.9 4.6l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5V3a1.9 1.9 0 1 1 3.8 0v.1a1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a1.9 1.9 0 1 1 2.7 2.7l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1H21a1.9 1.9 0 1 1 0 3.8h-.1a1.6 1.6 0 0 0-1.5 1z" />
+    </>
+  ),
+  // ⏻ Déconnexion → symbole d'alimentation
+  power: (
+    <>
+      <path d="M12 4v8" />
+      <path d="M7.6 7.1a7 7 0 1 0 8.8 0" />
+    </>
+  ),
+  'chevron-down': <path d="m6 9 6 6 6-6" />,
+  'chevron-up': <path d="m6 15 6-6 6 6" />,
 };
 
 export function Icon({

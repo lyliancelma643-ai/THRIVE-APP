@@ -33,7 +33,7 @@ function Accordion({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-2xl bg-white border border-gray-200 overflow-hidden">
+    <div className="rounded-2xl bg-white border border-navy-100 overflow-hidden">
       <button
         onClick={() => setOpen((v) => !v)}
         className="w-full flex items-center justify-between gap-3 p-4 text-left cursor-pointer hover:bg-gray-50/50"
@@ -44,7 +44,7 @@ function Accordion({
         </div>
         <span className="text-gray-400 text-sm shrink-0">{open ? '▲' : '▼'}</span>
       </button>
-      {open && <div className="px-4 pb-4 border-t border-gray-100 pt-4">{children}</div>}
+      {open && <div className="px-4 pb-4 border-t border-navy-50 pt-4">{children}</div>}
     </div>
   );
 }

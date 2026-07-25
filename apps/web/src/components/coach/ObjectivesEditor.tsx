@@ -71,7 +71,7 @@ export function ObjectivesEditor({ childId }: { childId: string }) {
       )}
 
       {items.map((o) => (
-        <div key={o.id} className="rounded-xl border border-gray-200 p-3 space-y-3">
+        <div key={o.id} className="rounded-xl border border-navy-100 p-3 space-y-3">
           <div className="flex items-center gap-2">
             <span
               className={`text-[10px] font-bold uppercase px-2 py-1 rounded-full ${

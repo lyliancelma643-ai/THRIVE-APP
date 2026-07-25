@@ -7,13 +7,14 @@ import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
 import { NotificationsBell } from '@/components/parent/NotificationsBell';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { BrandLogo } from '@/components/BrandLogo';
+import { Icon, type IconName } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 
 // Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Fitness
-const TABS = [
-  { href: '/parent/bilans', label: 'Bilan', icon: '◈' },
-  { href: '/parent/my-sessions', label: 'Mes séances', icon: '★' },
-  { href: '/parent/fitness', label: 'Fitness', icon: '▦' },
+const TABS: { href: string; label: string; icon: IconName }[] = [
+  { href: '/parent/bilans', label: 'Bilan', icon: 'sparkle' },
+  { href: '/parent/my-sessions', label: 'Mes séances', icon: 'star' },
+  { href: '/parent/fitness', label: 'Fitness', icon: 'grid' },
 ];
 
 // Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;
@@ -56,7 +57,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between gap-2">
           <Link href="/parent/bilans" className="flex items-center gap-2 shrink-0 p-1 -m-1 select-none">
             <BrandLogo className="w-9 h-9 md:w-10 md:h-10 shadow-card" />
-            <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-white/40">
+            <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-white/60">
               Sport Positive
             </span>
           </Link>
@@ -79,9 +80,9 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             <Link
               href="/parent/messages"
               aria-label="Messagerie avec le coach"
-              className="w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-lg text-white/75 hover:text-white transition-colors select-none"
+              className="w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-white/75 hover:text-white transition-colors select-none"
             >
-              ✉
+              <Icon name="mail" className="w-5 h-5" />
             </Link>
             <NotificationsBell />
             {/* Séparateur discret entre le profil enfant et le compte utilisateur */}
@@ -137,9 +138,9 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   key={tab.href}
                   aria-disabled
                   title="Disponible après l'activation par votre coach"
-                  className="flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] text-white/35 cursor-not-allowed"
+                  className="flex flex-col items-center justify-center gap-1 py-2.5 min-h-[52px] rounded-[22px] text-white/35 cursor-not-allowed"
                 >
-                  <span className="text-lg leading-none">{tab.icon}</span>
+                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
                   <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
                 </span>
               ) : (
@@ -147,11 +148,11 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   key={tab.href}
                   href={tab.href}
                   aria-current={active === i ? 'page' : undefined}
-                  className={`flex flex-col items-center justify-center gap-0.5 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
+                  className={`flex flex-col items-center justify-center gap-1 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
                     active === i ? 'text-sun' : 'text-white/75 hover:text-white'
                   }`}
                 >
-                  <span className="text-lg leading-none">{tab.icon}</span>
+                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
                   <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
                 </Link>
               ),

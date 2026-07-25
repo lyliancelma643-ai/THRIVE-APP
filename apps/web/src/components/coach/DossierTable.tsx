@@ -91,15 +91,15 @@ export function DossierTable({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-gray-400 p-6 rounded-2xl bg-white border border-gray-100">
+        <p className="text-sm text-gray-400 p-6 rounded-2xl bg-white border border-navy-50">
           {filter === 'incomplete' ? 'Tous les dossiers sont complets 🎉' : 'Aucun dossier.'}
         </p>
       ) : (
-        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl border border-navy-50 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="text-left text-gray-400 text-xs uppercase tracking-wide border-b border-gray-100">
+                <tr className="text-left text-gray-400 text-xs uppercase tracking-wide border-b border-navy-50">
                   <th className="px-4 py-3">Athlète</th>
                   <th className="px-4 py-3">Coach</th>
                   {showAdmin && <th className="px-4 py-3">Admin</th>}
@@ -111,7 +111,7 @@ export function DossierTable({
               </thead>
               <tbody>
                 {shown.map((r) => (
-                  <tr key={r.child_id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50">
+                  <tr key={r.child_id} className="border-b border-navy-50 last:border-0 hover:bg-gray-50/50">
                     <td className="px-4 py-3 font-medium text-navy-900">
                       {r.first_name} {r.last_name ?? ''}
                     </td>

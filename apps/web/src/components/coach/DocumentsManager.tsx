@@ -99,7 +99,7 @@ export function DocumentsManager({ childId }: { childId: string }) {
         {KINDS.map((k) => {
           const existing = docs.filter((d) => d.kind === k.value);
           return (
-            <div key={k.value} className="rounded-xl border border-gray-200 p-3">
+            <div key={k.value} className="rounded-xl border border-navy-100 p-3">
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div>
                   <p className="text-sm font-semibold text-navy-900">{k.label}</p>
