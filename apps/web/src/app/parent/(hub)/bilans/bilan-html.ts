@@ -94,13 +94,13 @@ export const DESIGN_CSS = `
   .bilan-root .b-ct{font-size:13.5px!important;}
   .bilan-root .b-chip{width:28px!important;height:28px!important;font-size:12px!important;border-radius:9px!important;}
   .bilan-root .b-subl{margin-left:39px!important;}
-  .bilan-root .b-pct{font-size:40px!important;}
-  .bilan-root .b-pctchip{font-size:10.5px!important;padding:6px 9px!important;margin-top:10px!important;background:rgba(4,28,36,.6)!important;border-color:rgba(255,255,255,.15)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
-  .bilan-root .b-sun1{width:150px!important;height:150px!important;bottom:-58px!important;}
-  .bilan-root .b-sun2{width:40px!important;height:40px!important;bottom:-14px!important;}
+  .bilan-root .b-pct{font-size:64px!important;}
+  .bilan-root .b-pctsign{font-size:26px!important;}
+  .bilan-root .b-pctchip{font-size:10.5px!important;padding:6px 9px!important;margin-top:0!important;bottom:10px!important;background:rgba(4,28,36,.6)!important;border-color:rgba(255,255,255,.15)!important;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
   .bilan-root .b-lsss .b-clk{padding-bottom:26px!important;}
   .bilan-root .b-certbar{margin-right:24px!important;}
-  .bilan-root .b-gaugenum{font-size:23px!important;}
+  .bilan-root .b-gaugenum{font-size:31px!important;}
+  .bilan-root .b-gaugesign{font-size:17px!important;}
   .bilan-root .b-gaugecap{font-size:10.5px!important;}
   .bilan-root .b-lsvg{height:150px!important;}
   .bilan-root .b-lchip{font-size:9.5px!important;padding:2px 6px!important;}
@@ -466,7 +466,7 @@ export function buildHtml(d: {
     </div>`;
 
   return `
-<div class="bilan-root b-pad bx" style="position:relative;overflow:hidden;border-radius:28px;background:radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%);padding:22px 28px 34px;">
+<div class="bilan-root b-pad bx" style="position:relative;z-index:0;overflow:hidden;border-radius:28px;background:radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%);padding:22px 28px 34px;">
   <div style="position:absolute;top:-160px;left:8%;width:560px;height:560px;border-radius:50%;background:rgba(20,120,130,.16);filter:blur(90px);pointer-events:none;"></div>
   <div style="position:absolute;top:34%;right:-180px;width:480px;height:480px;border-radius:50%;background:rgba(167,196,188,.1);filter:blur(90px);pointer-events:none;"></div>
   <div style="position:absolute;bottom:-200px;left:38%;width:520px;height:520px;border-radius:50%;background:rgba(249,235,80,.05);filter:blur(90px);pointer-events:none;"></div>
@@ -475,22 +475,33 @@ export function buildHtml(d: {
        titre) : pas de carte, pas de bordure ni d'ombre, contenu centré. Reste
        cliquable (data-info="programme") comme lorsqu'il vivait dans la grille. -->
   <div class="b-head" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;margin-bottom:24px;">
-    <div class="b-clk b-hero" data-info="programme" style="position:relative;overflow:hidden;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 0 92px;${ain(0)}">
+    <div class="b-clk b-hero" data-info="programme" style="position:relative;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 0 min(38%,230px);${ain(0)}">
       <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
         <span class="bx b-chip" style="${CHIP}color:#F9EB50;">★</span>
         <span class="disp b-ct" style="font-weight:600;font-size:18px;">Programme complété</span>
       </div>
-      <div style="position:relative;z-index:2;display:flex;align-items:baseline;justify-content:center;gap:3px;margin-top:14px;">
-        <span class="disp b-pct" style="font-weight:700;font-size:72px;line-height:.9;">${pct}</span><span class="disp" style="font-weight:600;font-size:28px;color:rgba(234,243,241,.6);">%</span>
+      <div style="position:relative;z-index:2;display:flex;align-items:baseline;justify-content:center;gap:4px;margin-top:12px;">
+        <span class="disp b-pct" style="font-weight:700;font-size:104px;line-height:.88;">${pct}</span><span class="disp b-pctsign" style="font-weight:600;font-size:38px;color:rgba(234,243,241,.6);">%</span>
       </div>
-      <div class="b-pctchip" style="position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 15px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-weight:600;font-size:13px;color:rgba(234,243,241,.85);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;flex-shrink:0;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
-      <div class="b-sun1" style="position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.9) 0%, rgba(224,165,40,.55) 26%, rgba(120,90,20,.18) 48%, transparent 66%);filter:blur(2px);animation:b-breathe 4.6s ease-in-out infinite;"></div>
-      <div class="b-sun2" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-coreBreathe 4.6s ease-in-out infinite;"></div>
+      <!-- Compteur de séances ancré en bas à droite du bloc -->
+      <div class="b-pctchip" style="position:absolute;right:0;bottom:16px;z-index:3;display:inline-flex;align-items:center;gap:8px;padding:9px 15px;border-radius:12px;background:rgba(4,28,36,.72);border:1px solid rgba(255,255,255,.16);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);font-weight:600;font-size:13px;color:rgba(234,243,241,.92);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;flex-shrink:0;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
+      <!-- Soleil : son diamètre est la ligne horizontale du bas du bloc (moitié
+           haute visible, moitié basse rognée par overflow:hidden). Le conteneur
+           porte le positionnement, le disque interne la rotation — deux
+           transform séparées, sinon l'animation écraserait le centrage. -->
+      <div class="b-sunwrap1" style="position:absolute;bottom:0;left:50%;width:min(210%,1240px);aspect-ratio:1;transform:translate(-50%,50%);pointer-events:none;z-index:-1;">
+        <div class="b-sun1" style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.55) 0%, rgba(240,190,60,.34) 20%, rgba(224,165,40,.2) 34%, rgba(120,90,20,.09) 50%, transparent 68%);filter:blur(6px);animation:b-breatheC 4.6s ease-in-out infinite;"></div>
+      </div>
+      <div class="b-sunwrap2" style="position:absolute;bottom:0;left:50%;width:min(68%,410px);aspect-ratio:1;transform:translate(-50%,50%);pointer-events:none;z-index:-1;">
+        <div class="b-sun2" style="width:100%;height:100%;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-spin 90s linear infinite;"></div>
+      </div>
     </div>
     <!-- Le passeport athlète réduit à un seul bouton : il ouvre la fiche
          détaillée (data-info="identite"). Le crayon conserve l'accès à la
          personnalisation qui vivait dans la carte. -->
-    <div class="b-seg bx" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
+    <!-- Fond dense (et non le verre à 4 %) : le soleil passe derrière ce bouton,
+         un fond trop transparent laissait le jaune délaver le nom de l'athlète. -->
+    <div class="b-seg bx" style="position:relative;z-index:2;display:flex;align-items:center;gap:5px;background:rgba(4,28,36,.82);border:1px solid rgba(255,255,255,.14);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:15px;padding:5px;">
       <span class="b-hover b-clk" data-info="identite" role="button" style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:5px 12px 5px 5px;border-radius:11px;background:rgba(255,255,255,.06);justify-content:flex-start;">
         ${avatarSm}
         <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;min-width:0;flex:1;">
@@ -501,7 +512,7 @@ export function buildHtml(d: {
         </span>
         <span style="font-size:15px;color:rgba(234,243,241,.5);flex-shrink:0;">›</span>
       </span>
-      <span class="b-hover bx" data-action="edit-passport" role="button" aria-label="Personnaliser le passeport" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:${esc(accentColor)}1f;border:1px solid ${esc(accentColor)}45;font-size:14px;color:${esc(accentColor)};">✎</span>
+      <span class="b-hover bx" data-action="edit-passport" role="button" aria-label="Personnaliser le passeport" style="flex:0 0 auto;align-self:stretch;display:inline-flex;align-items:center;justify-content:center;width:44px;border-radius:11px;background:${esc(accentColor)}1f;border:1px solid ${esc(accentColor)}45;font-size:15px;color:${esc(accentColor)};">✎</span>
     </div>
   </div>
 
@@ -520,7 +531,7 @@ export function buildHtml(d: {
             <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="14" stroke-linecap="round"></path>
             <path d="M 20 100 A 80 80 0 0 1 180 100" fill="none" stroke="url(#b-gB)" stroke-width="14" stroke-linecap="round" stroke-dasharray="${gaugeGlobal != null ? Math.round((gaugeGlobal / 100) * 251) : 0} 251" style="transition:stroke-dasharray .8s ease;"></path>
           </svg>
-          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp b-gaugenum" style="font-weight:700;font-size:30px;line-height:1;">${gaugeGlobal != null ? gaugeGlobal : '—'}<span style="font-size:16px;color:rgba(234,243,241,.55);">${gaugeGlobal != null ? '%' : ''}</span></span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;"><span class="disp b-gaugenum" style="font-weight:700;font-size:40px;line-height:1;">${gaugeGlobal != null ? gaugeGlobal : '—'}<span class="b-gaugesign" style="font-size:21px;color:rgba(234,243,241,.7);">${gaugeGlobal != null ? '%' : ''}</span></span></div>
         </div>
         <p class="b-gaugecap" style="text-align:center;font-weight:400;font-size:12px;color:rgba(234,243,241,.55);margin:8px 0 0;">${
           gaugeGlobal == null
