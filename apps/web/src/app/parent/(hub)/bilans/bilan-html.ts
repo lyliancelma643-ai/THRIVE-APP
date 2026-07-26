@@ -396,23 +396,17 @@ export function buildHtml(d: {
   }
 
   const ring = `box-shadow:0 0 0 2px ${esc(accentColor)}66;`;
-  const avatarInner = avatarUrl
-    ? `<img src="${esc(avatarUrl)}" alt="" style="width:52px;height:52px;border-radius:15px;object-fit:cover;${ring}">`
-    : `<span class="disp bx" style="width:52px;height:52px;border-radius:15px;background:linear-gradient(150deg,#0E6593,#00314C);${ring}display:grid;place-items:center;font-weight:700;font-size:18px;color:#fff;">${esc(initials)}</span>`;
-  // Badge numéro de maillot ancré sur la photo (personnalisation parent).
-  const avatar = `<span style="position:relative;display:inline-flex;flex-shrink:0;">${avatarInner}${
+  // Avatar compact : le passeport est réduit au bouton d'en-tête.
+  // Le badge « numéro de maillot » suit, comme sur la grande photo.
+  const avatarSmInner = avatarUrl
+    ? `<img src="${esc(avatarUrl)}" alt="" style="width:34px;height:34px;border-radius:11px;object-fit:cover;${ring}">`
+    : `<span class="disp bx" style="width:34px;height:34px;border-radius:11px;background:linear-gradient(150deg,#0E6593,#00314C);${ring}display:grid;place-items:center;font-weight:700;font-size:13px;color:#fff;">${esc(initials)}</span>`;
+  const avatarSm = `<span style="position:relative;display:inline-flex;flex-shrink:0;">${avatarSmInner}${
     jerseyNumber != null
-      ? `<span class="bx" style="position:absolute;right:-7px;bottom:-7px;min-width:22px;height:22px;padding:0 5px;border-radius:8px;background:${esc(accentColor)};color:#06222a;font-weight:800;font-size:11px;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.45);">${jerseyNumber}</span>`
+      ? `<span class="bx" style="position:absolute;right:-5px;bottom:-5px;min-width:17px;height:17px;padding:0 4px;border-radius:6px;background:${esc(accentColor)};color:#06222a;font-weight:800;font-size:9px;display:grid;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.45);">${jerseyNumber}</span>`
       : ''
   }</span>`;
-
   const subLine = [age != null ? `${age} ans` : null, club].filter(Boolean).map(esc).join(' · ') || '—';
-  const nicknameHtml = nickname
-    ? `<div class="disp" style="font-style:italic;font-weight:500;font-size:13px;color:${esc(accentColor)};margin-top:1px;">« ${esc(nickname)} »</div>`
-    : '';
-
-  const field = (label: string, value: string) =>
-    `<div class="bx" style="padding:11px 13px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.06);"><div style="font-weight:500;font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:rgba(234,243,241,.42);">${label}</div><div style="font-weight:600;font-size:14px;margin-top:3px;">${esc(value)}</div></div>`;
 
   // ── Badges « renseigné / à venir » des outils ──
   const okBadge = (txt: string) =>
@@ -477,59 +471,44 @@ export function buildHtml(d: {
   <div style="position:absolute;top:34%;right:-180px;width:480px;height:480px;border-radius:50%;background:rgba(167,196,188,.1);filter:blur(90px);pointer-events:none;"></div>
   <div style="position:absolute;bottom:-200px;left:38%;width:520px;height:520px;border-radius:50%;background:rgba(249,235,80,.05);filter:blur(90px);pointer-events:none;"></div>
 
-  <!-- TITLE -->
-  <div class="b-head" style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:24px;flex-wrap:wrap;">
-    <div>
-      <h1 class="disp b-title" style="font-weight:600;font-size:46px;line-height:1;margin:0;letter-spacing:-.02em;">Carte d'identité</h1>
-      <p class="b-sub" style="font-weight:400;font-size:15px;color:rgba(234,243,241,.55);margin:12px 0 0;">Le passeport THRIVE de ${esc(firstName)} — identité d'athlète &amp; parcours des 13 séances.</p>
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:12px;">
-        <span style="display:inline-flex;align-items:center;gap:8px;padding:6px 12px;border-radius:10px;background:rgba(167,196,188,.08);border:1px solid rgba(167,196,188,.2);font-weight:600;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;animation:b-blink 2.2s ease-in-out infinite;"></span>Labo THRIVE · en direct</span>
-        <span style="font-weight:500;font-size:11px;color:rgba(234,243,241,.45);">ⓘ Touche une carte pour découvrir son explication</span>
+  <!-- EN-TÊTE — « Programme complété » posé à même le fond (remplace le bloc
+       titre) : pas de carte, pas de bordure ni d'ombre, contenu centré. Reste
+       cliquable (data-info="programme") comme lorsqu'il vivait dans la grille. -->
+  <div class="b-head" style="position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;margin-bottom:24px;">
+    <div class="b-clk b-hero" data-info="programme" style="position:relative;overflow:hidden;width:100%;display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 0 92px;${ain(0)}">
+      <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
+        <span class="bx b-chip" style="${CHIP}color:#F9EB50;">★</span>
+        <span class="disp b-ct" style="font-weight:600;font-size:18px;">Programme complété</span>
       </div>
+      <div style="position:relative;z-index:2;display:flex;align-items:baseline;justify-content:center;gap:3px;margin-top:14px;">
+        <span class="disp b-pct" style="font-weight:700;font-size:72px;line-height:.9;">${pct}</span><span class="disp" style="font-weight:600;font-size:28px;color:rgba(234,243,241,.6);">%</span>
+      </div>
+      <div class="b-pctchip" style="position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 15px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-weight:600;font-size:13px;color:rgba(234,243,241,.85);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;flex-shrink:0;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
+      <div class="b-sun1" style="position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.9) 0%, rgba(224,165,40,.55) 26%, rgba(120,90,20,.18) 48%, transparent 66%);filter:blur(2px);animation:b-breathe 4.6s ease-in-out infinite;"></div>
+      <div class="b-sun2" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-coreBreathe 4.6s ease-in-out infinite;"></div>
     </div>
-    <div class="b-seg bx" style="display:flex;align-items:center;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
-      <span class="b-hover" data-href="/parent/my-sessions" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;background:rgba(255,255,255,.06);font-weight:600;font-size:14px;color:#eaf3f1;">⤓ Voir le passeport</span>
-      <span class="b-hover" data-href="/parent/fitness" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:11px;font-weight:500;font-size:14px;color:rgba(234,243,241,.65);">▦ Fitness</span>
+    <!-- Le passeport athlète réduit à un seul bouton : il ouvre la fiche
+         détaillée (data-info="identite"). Le crayon conserve l'accès à la
+         personnalisation qui vivait dans la carte. -->
+    <div class="b-seg bx" style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:5px;">
+      <span class="b-hover b-clk" data-info="identite" role="button" style="flex:1;min-width:0;display:flex;align-items:center;gap:10px;padding:5px 12px 5px 5px;border-radius:11px;background:rgba(255,255,255,.06);justify-content:flex-start;">
+        ${avatarSm}
+        <span style="display:flex;flex-direction:column;align-items:flex-start;line-height:1.2;min-width:0;flex:1;">
+          <span class="disp" style="font-weight:600;font-size:14px;color:#eaf3f1;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(fullName)}</span>
+          <span style="font-weight:400;font-size:11px;color:rgba(234,243,241,.55);max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${
+            nickname ? `<span style="font-style:italic;color:${esc(accentColor)};">« ${esc(nickname)} »</span> · ` : ''
+          }${subLine}</span>
+        </span>
+        <span style="font-size:15px;color:rgba(234,243,241,.5);flex-shrink:0;">›</span>
+      </span>
+      <span class="b-hover bx" data-action="edit-passport" role="button" aria-label="Personnaliser le passeport" style="flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;background:${esc(accentColor)}1f;border:1px solid ${esc(accentColor)}45;font-size:14px;color:${esc(accentColor)};">✎</span>
     </div>
   </div>
 
-  <!-- ROW 1 -->
-  <div class="b-row1">
-    <!-- Passeport athlète -->
-    <div class="bx b-clk" data-info="passeport" style="${CARD}${ain(0)}">${hint}
-      <div style="display:flex;align-items:center;gap:11px;margin-bottom:18px;">
-        <span class="bx" style="${CHIP}color:#A7C4BC;">◷</span>
-        <span class="disp" style="font-weight:600;font-size:18px;">Passeport athlète</span>
-        <span class="b-hover bx" data-action="edit-passport" role="button" aria-label="Personnaliser le passeport" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 13px;border-radius:11px;background:${esc(accentColor)}1f;border:1px solid ${esc(accentColor)}45;font-weight:600;font-size:12px;color:${esc(accentColor)};">✎ Personnaliser</span>
-      </div>
-      <div style="display:flex;align-items:center;gap:15px;margin-bottom:16px;">
-        ${avatar}
-        <div style="min-width:0;"><div class="disp" style="font-weight:600;font-size:19px;line-height:1.1;">${esc(fullName)}</div>${nicknameHtml}<div style="font-weight:400;font-size:12px;color:rgba(234,243,241,.5);margin-top:2px;">${subLine}</div></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:16px;">
-        ${field('Sport', sport)}
-        ${field('Poste', poste)}
-        ${field('Coach', coachLast)}
-        ${field('Forces', force1)}
-      </div>
-      <div class="b-hover" data-href="/parent/my-sessions" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;border-radius:13px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);font-weight:600;font-size:13px;color:rgba(234,243,241,.8);">Voir toutes les séances →</div>
-    </div>
-
-    <!-- Duo : Programme complété · Compétences de vie (côte à côte à toutes les tailles) -->
-    <div class="b-duo">
-      <div class="bx b-clk" data-info="programme" style="${CARD}overflow:hidden;${ain(1)}">${hint}
-        <div style="display:flex;align-items:center;gap:11px;position:relative;z-index:2;">
-          <span class="bx b-chip" style="${CHIP}color:#F9EB50;">★</span>
-          <span class="disp b-ct" style="font-weight:600;font-size:18px;">Programme complété</span>
-        </div>
-        <div style="position:relative;z-index:2;display:flex;align-items:baseline;gap:3px;margin-top:18px;">
-          <span class="disp b-pct" style="font-weight:700;font-size:60px;line-height:.9;">${pct}</span><span class="disp" style="font-weight:600;font-size:24px;color:rgba(234,243,241,.6);">%</span>
-        </div>
-        <div class="b-pctchip" style="position:relative;z-index:2;display:inline-flex;align-items:center;gap:8px;margin-top:14px;padding:9px 15px;border-radius:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);font-weight:600;font-size:13px;color:rgba(234,243,241,.85);"><span style="width:7px;height:7px;border-radius:50%;background:#F9EB50;flex-shrink:0;"></span>${completed}/13 séances${completed < 13 ? ' · en cours' : ' · terminé'}</div>
-        <div class="b-sun1" style="position:absolute;bottom:-46px;left:50%;transform:translateX(-50%);width:230px;height:230px;border-radius:50%;background:radial-gradient(circle at 50% 38%, rgba(249,235,80,.9) 0%, rgba(224,165,40,.55) 26%, rgba(120,90,20,.18) 48%, transparent 66%);filter:blur(2px);animation:b-breathe 4.6s ease-in-out infinite;"></div>
-        <div class="b-sun2" style="position:absolute;bottom:18px;left:50%;transform:translateX(-50%);width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 42% 36%, #fff7c8, #F9EB50 42%, #d9a423 78%);animation:b-coreBreathe 4.6s ease-in-out infinite;"></div>
-      </div>
-
+  <!-- ROW 1 — la carte « Passeport athlète » est devenue le bouton d'en-tête -->
+  <div class="b-row1" style="grid-template-columns:1fr;">
+    <!-- Compétences de vie (« Programme complété » a rejoint l'en-tête) -->
+    <div class="b-duo" style="grid-template-columns:1fr;">
       <div class="bx b-clk" data-info="competences" style="${CARD}display:flex;flex-direction:column;justify-content:space-between;${ain(2)}">${hint}
         <div style="display:flex;align-items:center;gap:11px;margin-bottom:6px;">
           <span class="bx b-chip" style="${CHIP}color:#A7C4BC;">✓</span>
