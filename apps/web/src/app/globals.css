@@ -93,6 +93,16 @@
   .animate-page-in {
     animation: page-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
   }
+  /* Entrée en cascade « Nuit calme » : --om-d porte le retard de l'élément. */
+  .animate-om-up {
+    animation: om-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both var(--om-d, 0s);
+  }
+  .animate-om-fade {
+    animation: om-fade 0.5s ease both var(--om-d, 0s);
+  }
+  .animate-om-ring {
+    animation: om-ring 2.6s ease-in-out infinite;
+  }
 }
 
 @keyframes page-in {
@@ -106,7 +116,127 @@
   }
 }
 
+/* ─── Direction « Nuit calme » (espace parent) ────────────────────────────────
+   Quatre animations seulement, toutes en CSS pur. Le principe de la direction
+   est qu'un écran n'a jamais plus d'un effet en cours : une entrée en cascade
+   (om-up / om-fade), une barre qui se remplit (om-growx), et un unique anneau
+   qui respire sur l'élément « en cours » (om-ring). Aucun halo, aucune lueur. */
+@keyframes om-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes om-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes om-growx {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+@keyframes om-ring {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(249, 235, 80, 0.34);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(249, 235, 80, 0);
+  }
+}
+
 @layer components {
+  /* ─── Primitives « Nuit calme » — espace parent ────────────────────────────
+     Direction 2a : surfaces plates, un seul accent (#F9EB50), pas de bordure ni
+     d'ombre sur les cartes. Ces classes remplacent le verre (.glass-navy) sur
+     les trois écrans parent et leur chrome. */
+  .nc-card {
+    background: #0c2029;
+    border-radius: 22px;
+    padding: 20px;
+  }
+  /* Rangée de liste (séance, étape…) — même surface, rayon plus court */
+  .nc-row {
+    background: #0c2029;
+    border-radius: 18px;
+  }
+  /* Rangée « à venir » : pas de surface, un simple contour */
+  .nc-row-idle {
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 18px;
+  }
+  /* Étiquette de section — le seul niveau de titre secondaire de la direction */
+  .nc-eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(234, 243, 241, 0.55);
+  }
+  /* Barre de progression : 6 px, remplissage d'une seule couleur (jamais un dégradé) */
+  .nc-track {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.09);
+    overflow: hidden;
+  }
+  .nc-fill {
+    height: 100%;
+    border-radius: 3px;
+    transform-origin: left;
+    animation: om-growx 1.1s cubic-bezier(0.22, 0.61, 0.36, 1) both 0.35s;
+  }
+  /* Bouton rond 44 px du header (contour discret) */
+  .nc-iconbtn {
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    display: grid;
+    place-items: center;
+    color: rgba(234, 243, 241, 0.8);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .nc-iconbtn:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #f7f5f2;
+  }
+  /* Filtre en pastille — actif = accent plein, inactif = contour */
+  .nc-pill {
+    height: 40px;
+    padding: 0 16px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: rgba(234, 243, 241, 0.8);
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+  .nc-pill:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+  .nc-pill[aria-pressed='true'] {
+    background: #f9eb50;
+    border-color: #f9eb50;
+    color: #022539;
+    font-weight: 600;
+  }
+
   /* Liquid glass / glassmorphisme — section parent */
   .glass {
     background: rgba(255, 255, 255, 0.55);

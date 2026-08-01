@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { ACCESS_MESSAGES } from '@/lib/access';
+import { Icon, type IconName } from '@/components/ui';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Habillage « accès en préparation » du hub parent : aperçus grisés (titres
@@ -11,14 +12,16 @@ import { ACCESS_MESSAGES } from '@/lib/access';
 
 export function LockedBanner({ message }: { message?: string }) {
   return (
-    <div className="glass-navy rounded-2xl px-5 py-4 md:px-6 md:py-5 mb-6 border border-sun/20">
+    <div className="nc-card ring-1 ring-sun/[0.22] mb-6 animate-om-up">
       <div className="flex items-start gap-3">
-        <span className="text-xl mt-0.5 select-none" aria-hidden>
-          ✦
+        <span className="w-10 h-10 rounded-xl bg-sun/10 flex items-center justify-center text-sun shrink-0">
+          <Icon name="sparkle" className="w-5 h-5" />
         </span>
         <div>
-          <p className="font-semibold text-white/95">Votre espace se prépare</p>
-          <p className="text-sm text-white/70 mt-1 leading-relaxed max-w-xl">
+          <p className="font-display text-[19px] font-semibold text-night-ink">
+            Votre espace se prépare
+          </p>
+          <p className="text-[15px] leading-[1.55] text-[rgba(234,243,241,0.72)] mt-1 max-w-xl text-pretty">
             {message ?? ACCESS_MESSAGES.welcomeLocked}
           </p>
         </div>
@@ -39,15 +42,46 @@ export function GreyedSection({
 }) {
   return (
     <section className="select-none">
-      <h2 className="text-lg md:text-xl font-bold text-white/85">{title}</h2>
-      {subtitle && <p className="text-sm text-white/45 mt-0.5">{subtitle}</p>}
+      <h2 className="font-display text-[22px] font-semibold text-night-ink">{title}</h2>
+      {subtitle && (
+        <p className="text-sm text-[rgba(234,243,241,0.6)] mt-0.5">{subtitle}</p>
+      )}
       {/* inert bloque aussi le focus clavier sur les aperçus */}
-      <div className="mt-3 opacity-35 grayscale pointer-events-none" aria-hidden inert>
-        {children ?? (
-          <div className="rounded-2xl bg-white/[0.06] border border-white/10 h-28 md:h-32" />
-        )}
+      <div className="mt-3 opacity-40 grayscale pointer-events-none" aria-hidden inert>
+        {children ?? <div className="rounded-[22px] bg-night-surface h-28 md:h-32" />}
       </div>
     </section>
+  );
+}
+
+// Écran d'attente plein page — même grammaire pour « séances » et « fitness ».
+function NoticeScreen({
+  icon,
+  tone,
+  title,
+  body,
+}: {
+  icon: IconName;
+  tone: 'sun' | 'sage';
+  title: string;
+  body: string;
+}) {
+  return (
+    <div className="max-w-xl mx-auto text-center py-16 md:py-24 animate-om-up">
+      <div
+        className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center ${
+          tone === 'sun' ? 'bg-sun/10 text-sun' : 'bg-sage/10 text-sage'
+        }`}
+      >
+        <Icon name={icon} className="w-6 h-6" />
+      </div>
+      <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold text-night-ink">
+        {title}
+      </h1>
+      <p className="mt-3 text-[15px] leading-[1.6] text-[rgba(234,243,241,0.72)] text-pretty">
+        {body}
+      </p>
+    </div>
   );
 }
 
@@ -74,24 +108,22 @@ export function BilanLockedPreview() {
 
 export function SessionsLockedNotice() {
   return (
-    <div className="max-w-xl mx-auto text-center py-16 md:py-24 px-4">
-      <div className="w-16 h-16 mx-auto rounded-full bg-sun/15 border border-sun/25 flex items-center justify-center text-2xl select-none" aria-hidden>
-        ★
-      </div>
-      <h1 className="mt-6 text-xl md:text-2xl font-bold text-white/95">Vos séances arrivent</h1>
-      <p className="mt-3 text-white/70 leading-relaxed">{ACCESS_MESSAGES.sessionsLocked}</p>
-    </div>
+    <NoticeScreen
+      icon="star"
+      tone="sun"
+      title="Vos séances arrivent"
+      body={ACCESS_MESSAGES.sessionsLocked}
+    />
   );
 }
 
 export function FitnessConstructionNotice() {
   return (
-    <div className="max-w-xl mx-auto text-center py-16 md:py-24 px-4">
-      <div className="w-16 h-16 mx-auto rounded-full bg-sage/15 border border-sage/25 flex items-center justify-center text-2xl select-none" aria-hidden>
-        ▦
-      </div>
-      <h1 className="mt-6 text-xl md:text-2xl font-bold text-white/95">En construction</h1>
-      <p className="mt-3 text-white/70 leading-relaxed">{ACCESS_MESSAGES.fitnessConstruction}</p>
-    </div>
+    <NoticeScreen
+      icon="grid"
+      tone="sage"
+      title="En construction"
+      body={ACCESS_MESSAGES.fitnessConstruction}
+    />
   );
 }

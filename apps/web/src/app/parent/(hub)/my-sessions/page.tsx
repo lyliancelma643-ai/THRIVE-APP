@@ -11,6 +11,7 @@ import { THRIVE_SESSIONS } from '@/lib/coach';
 import { usePlan } from '@/lib/entitlements';
 import { type Pack } from '@/lib/packs';
 import { useModalDismiss } from '@/lib/useModalDismiss';
+import { Icon } from '@/components/ui';
 
 type OneToOneSession = {
   id: string;
@@ -38,14 +39,6 @@ type SessionBilan = {
 };
 
 type CoachInfo = { first_name: string; last_name: string } | null;
-
-const STATUS_STYLES: Record<OneToOneSession['status'], { label: string; cls: string }> = {
-  SCHEDULED: { label: 'Planifiée', cls: 'bg-navy-50 text-navy-600' },
-  IN_PROGRESS: { label: 'En cours', cls: 'bg-sun text-navy-900' },
-  COMPLETED: { label: 'Terminée', cls: 'bg-sage text-navy-900' },
-  CANCELLED: { label: 'Annulée', cls: 'bg-red-100 text-red-700' },
-  MISSED: { label: 'Manquée', cls: 'bg-red-50 text-red-500' },
-};
 
 function phaseOfSession(n: number | null): Phase {
   if (!n || n <= 2) return 'ANCRER';
@@ -143,9 +136,9 @@ function MySessionsPageInner() {
   // trompeur de l'état « Aucun profil enfant ».
   if (!selectedChild && childrenLoading) {
     return (
-      <div className="space-y-4" aria-busy role="status" aria-label="Chargement">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+      <div className="space-y-2" aria-busy role="status" aria-label="Chargement">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 rounded-[18px] bg-night-surface animate-pulse" />
         ))}
       </div>
     );
@@ -162,9 +155,9 @@ function MySessionsPageInner() {
 
   if (loading) {
     return (
-      <div className="space-y-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+      <div className="space-y-2">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="h-16 rounded-[18px] bg-night-surface animate-pulse" />
         ))}
       </div>
     );
@@ -185,43 +178,54 @@ function MySessionsPageInner() {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
       {/* Colonne gauche — le programme de séances */}
       <div>
-      <h1 className="font-display text-3xl font-semibold text-white mb-2">Mes séances</h1>
-      <p className="text-white/55 mb-8">
-        Le programme 1:1 de {selectedChild.first_name}
-        {coach ? (
-          <>
-            {' '}avec <span className="font-medium text-white">{coach.first_name} {coach.last_name}</span>, coach THRIVE
-          </>
-        ) : null}
-        . Mise à jour automatique après chaque séance.
-      </p>
+      <div className="animate-om-up" style={{ ['--om-d' as string]: '0.04s' }}>
+        <h1 className="font-display text-[34px] leading-[1.1] font-semibold text-night-ink mb-2">
+          Mes séances
+        </h1>
+        <p className="text-[15px] leading-[1.55] text-[rgba(234,243,241,0.72)] text-pretty">
+          Le programme 1:1 de {selectedChild.first_name}
+          {coach ? (
+            <>
+              {' '}avec{' '}
+              <span className="font-semibold text-night-ink">
+                {coach.first_name} {coach.last_name}
+              </span>
+              , coach THRIVE
+            </>
+          ) : null}
+          . Mise à jour automatique après chaque séance.
+        </p>
+      </div>
 
-      {/* Jauge de progression */}
-      <div className="mb-10 p-6 rounded-2xl glass-navy text-white">
-        <div className="flex items-center justify-between mb-3">
-          <span className="font-display text-lg">Progression du programme</span>
-          <span className="text-sun font-bold">{completedCount} / 13</span>
+      {/* Jauge de progression — posée à même le fond, sans carte */}
+      <div className="mt-7 animate-om-up" style={{ ['--om-d' as string]: '0.1s' }}>
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[15px] font-semibold text-[rgba(234,243,241,0.8)]">
+            Progression du programme
+          </span>
+          <span className="font-display text-[17px] font-semibold text-sun">
+            {completedCount} / 13
+          </span>
         </div>
-        <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-sage to-sun transition-all"
-            style={{ width: `${(completedCount / 13) * 100}%` }}
-          />
+        <div className="nc-track mt-3">
+          <div className="nc-fill bg-sun" style={{ width: `${(completedCount / 13) * 100}%` }} />
         </div>
         {sessions.length === 0 && (
-          <p className="text-xs text-navy-100/70 mt-3">
+          <p className="text-[13px] text-[rgba(234,243,241,0.55)] mt-3">
             Les séances s&apos;activeront dès qu&apos;un coach THRIVE sera attribué à{' '}
             {selectedChild.first_name}.
           </p>
         )}
       </div>
 
-      {/* Les 13 séances : grisées tant que le coach n'a pas validé,
-          éclairées dès la validation (mise à jour en direct) */}
-      <div className="space-y-3">
-        {THRIVE_SESSIONS.map((tpl) => {
+      {/* Les 13 séances : contour seul tant que le coach n'a pas validé, surface
+          pleine dès la validation, anneau d'accent sur la séance en cours. */}
+      <div className="mt-8 flex flex-col gap-2">
+        {THRIVE_SESSIONS.map((tpl, i) => {
           const s = sessions.find((x) => x.session_number === tpl.num) ?? null;
           const isDone = s?.status === 'COMPLETED';
+          const isCurrent = s?.status === 'IN_PROGRESS';
+          const isOff = s?.status === 'MISSED' || s?.status === 'CANCELLED';
           const phase = phaseOfSession(tpl.num);
           const bilan = isDone && s ? bilans[s.id] ?? null : null;
           const rowId = s?.id ?? `tpl-${tpl.num}`;
@@ -229,85 +233,88 @@ function MySessionsPageInner() {
           const hasDetails = Boolean(
             bilan && (bilan.message || bilan.has_bilan || bilan.has_observations)
           );
+          // Ligne de contexte : « Phase 2 — Développer · lundi 4 mai · validée »
+          const meta = [
+            PHASE_LABELS[phase],
+            s?.scheduled_at
+              ? new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
+                  weekday: 'long',
+                  day: 'numeric',
+                  month: 'long',
+                })
+              : null,
+            isDone ? 'validée' : isCurrent ? 'en cours' : isOff ? (s?.status === 'MISSED' ? 'manquée' : 'annulée') : 'à venir',
+          ]
+            .filter(Boolean)
+            .join(' · ');
 
           return (
             <div
               key={rowId}
-              className={`rounded-2xl overflow-hidden transition-all duration-500 ${
-                isDone
-                  ? 'glass-navy ring-1 ring-sage/40'
-                  : 'bg-navy-900/50 backdrop-blur-md opacity-80'
-              } ${isSelected ? 'ring-2 ring-sun/70' : ''}`}
+              className={`overflow-hidden animate-om-up ${
+                isDone || isCurrent ? 'nc-row' : 'nc-row-idle'
+              } ${isSelected ? 'rounded-[20px] ring-1 ring-sun/30' : ''} ${
+                isCurrent && !isSelected ? 'ring-1 ring-sun/[0.22]' : ''
+              }`}
+              style={{ ['--om-d' as string]: `${(0.16 + i * 0.04).toFixed(2)}s` }}
             >
               <button
                 disabled={!hasDetails}
                 aria-pressed={hasDetails ? isSelected : undefined}
-                className={`w-full flex items-start sm:items-center gap-3 sm:gap-4 p-4 sm:p-5 text-left ${
+                className={`w-full flex items-center gap-3.5 px-4 py-[15px] text-left ${
                   hasDetails ? 'cursor-pointer' : 'cursor-default'
                 }`}
                 onClick={() => hasDetails && setSelectedId(isSelected ? null : rowId)}
               >
                 <span
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-semibold shrink-0 ${
-                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/50'
+                  className={`w-[34px] h-[34px] rounded-full flex items-center justify-center font-display text-[15px] font-bold shrink-0 ${
+                    isDone
+                      ? 'bg-sage text-[#06222A]'
+                      : isCurrent
+                        ? 'bg-sun text-[#06222A] animate-om-ring'
+                        : isOff
+                          ? 'border border-red-400/40 text-red-300/80'
+                          : 'border border-white/[0.16] text-[rgba(234,243,241,0.6)] font-semibold'
                   }`}
                 >
-                  {isDone ? '✓' : tpl.num}
+                  {isDone ? <Icon name="check" className="w-4 h-4" strokeWidth={2.6} /> : tpl.num}
                 </span>
-                <span className="min-w-0 flex-1">
+                <span className="min-w-0 flex-1 flex flex-col gap-[3px]">
                   <span
-                    className={`block font-semibold line-clamp-2 ${
-                      isDone ? 'text-white' : 'text-white/55'
+                    className={`font-display text-[17px] font-semibold leading-[1.25] line-clamp-2 ${
+                      isDone || isCurrent ? 'text-night-ink' : 'text-[rgba(234,243,241,0.72)]'
                     }`}
                   >
                     {s?.title ?? tpl.title}
                   </span>
                   <span
-                    className={`block text-xs mt-0.5 ${
-                      isDone ? 'text-white/55' : 'text-white/45'
+                    className={`text-[13px] ${
+                      isCurrent
+                        ? 'font-semibold text-sun'
+                        : isDone
+                          ? 'text-[rgba(234,243,241,0.62)]'
+                          : 'text-[rgba(234,243,241,0.5)]'
                     }`}
                   >
-                    {PHASE_LABELS[phase]}
-                    {s?.scheduled_at &&
-                      ` · ${new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
-                        weekday: 'long',
-                        day: 'numeric',
-                        month: 'long',
-                      })}`}
+                    {meta}
                   </span>
-                  {/* Statut SOUS le titre sur mobile : à 375px le badge à droite
-                      écrasait le titre (« Diagn… »). Ici, le titre récupère toute
-                      la largeur. Sur écran large, il repasse à droite (ci-dessous). */}
-                  <span
-                    className={`sm:hidden inline-flex mt-2 px-3 py-1 rounded-full text-xs font-bold ${
-                      isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/60'
-                    }`}
-                  >
-                    {isDone ? 'Validée par le coach' : 'À venir'}
-                  </span>
-                </span>
-                <span
-                  className={`hidden sm:inline-flex shrink-0 px-3 py-1 rounded-full text-xs font-bold ${
-                    isDone ? 'bg-sage text-navy-900' : 'bg-white/10 text-white/60'
-                  }`}
-                >
-                  {isDone ? 'Validée par le coach' : 'À venir'}
                 </span>
                 {hasDetails && (
                   <span
-                    className={`shrink-0 self-center text-base leading-none transition-colors ${
-                      isSelected ? 'text-sun' : 'text-white/45'
+                    className={`shrink-0 transition-transform duration-200 ${
+                      isSelected ? 'text-sun rotate-90' : 'text-[rgba(234,243,241,0.45)]'
                     }`}
                     aria-hidden
                   >
-                    ›
+                    <Icon name="chevron-right" className="w-[18px] h-[18px]" />
                   </span>
                 )}
               </button>
 
               {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
               {isSelected && hasDetails && s && (
-                <div className="lg:hidden px-5 pb-5 pt-3 border-t border-white/10">
+                <div className="lg:hidden px-4 pb-[18px] pt-1 animate-om-fade">
+                  <div className="h-px bg-white/[0.08] mb-3.5" />
                   <BilanDetails bilan={bilan} pack={pack} />
                 </div>
               )}
@@ -340,12 +347,12 @@ function MySessionsPageInner() {
 
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
-    <div className="max-w-xl mx-auto text-center py-20">
-      <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center text-2xl text-sun">
-        ★
+    <div className="max-w-xl mx-auto text-center py-20 animate-om-up">
+      <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-sun/10 flex items-center justify-center text-sun">
+        <Icon name="star" className="w-6 h-6" />
       </div>
-      <h2 className="font-display text-2xl font-semibold text-white mb-3">{title}</h2>
-      <p className="text-white/55">{body}</p>
+      <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">{title}</h2>
+      <p className="text-[rgba(234,243,241,0.68)]">{body}</p>
     </div>
   );
 }
@@ -376,11 +383,13 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
   const hasObs = bilan?.has_observations ?? false;
 
   return (
-    <div className="space-y-3">
+    <div className="flex flex-col gap-3.5">
       {/* Message du coach — inclus dans tous les packs */}
       {message && (
         <BilanCard title="Message du coach">
-          <p className="text-sm text-white/80 whitespace-pre-line leading-relaxed">{message}</p>
+          <p className="text-[15px] leading-[1.6] text-[rgba(234,243,241,0.86)] whitespace-pre-line text-pretty">
+            {message}
+          </p>
         </BilanCard>
       )}
 
@@ -388,11 +397,13 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
       {hasBilan && (
         <BilanCard title="Bilan du coach">
           {premium ? (
-            <div className="space-y-2">
+            <div className="flex flex-col gap-2.5">
               {bilanFields.map(([key, value]) => (
-                <div key={key} className="text-sm">
-                  <span className="font-medium text-white">{fieldLabel(key)} : </span>
-                  <span className="text-white/75">{String(value)}</span>
+                <div key={key} className="flex flex-col gap-0.5">
+                  <span className="text-[13px] text-[rgba(234,243,241,0.55)]">
+                    {fieldLabel(key)}
+                  </span>
+                  <span className="text-[15px] font-medium text-night-ink">{String(value)}</span>
                 </div>
               ))}
             </div>
@@ -414,16 +425,18 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
             {obsEntries.map(([ind, note]) => (
               <div
                 key={ind}
-                className="rounded-xl border border-white/10 bg-white/[0.03] p-3 transition-colors hover:border-white/25 hover:bg-white/[0.06]"
+                className="rounded-2xl bg-white/[0.03] px-2.5 py-3.5 transition-colors hover:bg-white/[0.06]"
               >
                 <div
                   className={`flex flex-col items-center text-center gap-2 ${
-                    premium ? '' : 'blur-[7px] select-none pointer-events-none'
+                    premium ? '' : 'blur-[6px] select-none pointer-events-none'
                   }`}
                   aria-hidden={!premium}
                 >
                   <ScoreGauge note={note} locked={!premium} />
-                  <span className="text-[13px] font-semibold leading-snug text-white">{ind}</span>
+                  <span className="text-[13px] font-semibold leading-snug text-night-ink">
+                    {ind}
+                  </span>
                 </div>
               </div>
             ))}
@@ -454,19 +467,19 @@ function BilanPanel({
   // re-clic sur la séance. Pas de verrou de scroll (le reste reste utilisable).
   useModalDismiss(onClose, true, false);
   return (
-    <div className="glass-navy rounded-2xl ring-1 ring-sage/40 max-h-[calc(100dvh-8rem)] overflow-y-auto">
-      <div className="sticky top-0 z-10 flex items-start gap-3 p-6 pb-4 bg-navy-900/70 backdrop-blur-md border-b border-white/10">
-        <span className="w-10 h-10 rounded-full bg-sage text-navy-900 flex items-center justify-center font-display font-semibold shrink-0">
-          {session.session_number ?? '✓'}
+    <div className="bg-night-surface rounded-[22px] max-h-[calc(100dvh-8rem)] overflow-y-auto animate-om-fade">
+      <div className="sticky top-0 z-10 flex items-start gap-3.5 px-5 pt-5 pb-4 bg-night-surface">
+        <span className="w-[34px] h-[34px] rounded-full bg-sage text-[#06222A] flex items-center justify-center font-display text-[15px] font-bold shrink-0">
+          {session.session_number ?? <Icon name="check" className="w-4 h-4" strokeWidth={2.6} />}
         </span>
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-lg font-semibold text-white leading-tight">
+          <h3 className="font-display text-[19px] font-semibold text-night-ink leading-[1.25]">
             {session.title ?? fallbackTitle ?? 'Séance'}
           </h3>
-          <p className="text-xs text-white/55 mt-0.5">
+          <p className="text-[13px] text-[rgba(234,243,241,0.62)] mt-0.5">
             {phaseLabel}
             {session.completed_at &&
-              ` · Validée le ${new Date(session.completed_at).toLocaleDateString('fr-CA', {
+              ` · validée le ${new Date(session.completed_at).toLocaleDateString('fr-CA', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
@@ -476,12 +489,13 @@ function BilanPanel({
         <button
           onClick={onClose}
           aria-label="Fermer le bilan"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-white/50 hover:text-white hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-[rgba(234,243,241,0.45)] hover:text-night-ink hover:bg-white/[0.06] transition-colors shrink-0 cursor-pointer"
         >
           ✕
         </button>
       </div>
-      <div className="p-6 pt-4">
+      <div className="px-5 pb-5">
+        <div className="h-px bg-white/[0.08] mb-4" />
         <BilanDetails bilan={bilan} pack={pack} />
       </div>
     </div>
@@ -491,12 +505,12 @@ function BilanPanel({
 /* État vide du lecteur — invite à sélectionner une séance */
 function BilanReaderEmpty() {
   return (
-    <div className="glass-navy rounded-2xl p-10 text-center border border-white/5">
-      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-white/10 flex items-center justify-center text-xl text-sun">
-        ✉
+    <div className="rounded-[22px] border border-white/[0.07] p-10 text-center">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-sun/10 flex items-center justify-center text-sun">
+        <Icon name="mail" className="w-5 h-5" />
       </div>
-      <h3 className="font-display text-lg font-semibold text-white mb-2">Lecteur de bilan</h3>
-      <p className="text-sm text-white/55">
+      <h3 className="font-display text-lg font-semibold text-night-ink mb-2">Lecteur de bilan</h3>
+      <p className="text-sm text-[rgba(234,243,241,0.62)]">
         Sélectionne une séance validée à gauche pour lire le bilan rédigé par le coach.
       </p>
     </div>
@@ -513,7 +527,7 @@ export default function MySessionsPage() {
   }, [refresh]);
 
   if (isLoading || !access) {
-    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+    return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!access.unlocked) return <SessionsLockedNotice />;
   return <MySessionsPageInner />;

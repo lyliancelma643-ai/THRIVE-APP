@@ -44,120 +44,87 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const locked = !accessLoading && access ? !access.unlocked : false;
 
   return (
-    <div className="min-h-screen relative bg-gradient-to-b from-[#031b29] via-navy-900 to-[#01121b] text-white">
-      {/* Halos ambiants — profondeur premium type Apple TV (atténués sur fond sombre) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-500/20 blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-sage/10 blur-3xl" />
-        <div className="absolute -bottom-40 left-1/4 w-[28rem] h-[28rem] rounded-full bg-sun/[0.07] blur-3xl" />
-      </div>
-
-      {/* Barre haute allégée : logo + profils. La navigation vit en bas, comme Apple Forme. */}
-      <header className="sticky top-0 z-40 px-2 pt-2 md:px-4 md:pt-4 safe-top">
-        <div className="glass-navy rounded-2xl max-w-7xl mx-auto px-3 py-2 md:px-5 md:py-2.5 flex items-center justify-between gap-2">
-          <Link href="/parent/bilans" className="flex items-center gap-2 shrink-0 p-1 -m-1 select-none">
-            <BrandLogo className="w-9 h-9 md:w-10 md:h-10 shadow-card" />
-            <span className="hidden lg:block text-[10px] uppercase tracking-[0.2em] text-white/60">
-              Sport Positive
-            </span>
-          </Link>
+    // « Nuit calme » : un aplat unique, ni dégradé ni halo. La profondeur vient
+    // uniquement du contraste entre le fond (#06161E) et les cartes (#0C2029).
+    <div className="min-h-screen bg-night-bg text-night-body">
+      {/* Barre haute posée à même le fond : logo + enfant à gauche, actions à
+          droite. Plus de carte de verre — juste un filet en bas au défilement. */}
+      <header className="sticky top-0 z-40 bg-night-bg safe-top">
+        <div className="max-w-7xl mx-auto px-5 md:px-6 py-3 flex items-center justify-between gap-3 animate-om-fade">
+          <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <Link href="/parent/bilans" className="shrink-0 select-none" aria-label="Accueil THRIVE">
+              <BrandLogo className="w-8 h-8" />
+            </Link>
+            <ChildSwitcher />
+          </div>
 
           <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
             <Link
               href="/parent/select-profile"
-              className="hidden md:flex items-center gap-1.5 px-4 py-2.5 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
+              className="hidden md:inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant
             </Link>
-            <Link
-              href="/parent/select-profile"
-              aria-label="Ajouter un enfant"
-              className="md:hidden w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl font-bold active:scale-95 transition-transform select-none"
-            >
-              +
-            </Link>
-            <ChildSwitcher />
+            {/* Sur mobile, la maquette ne garde que deux actions à droite : le
+                « + Ajouter un enfant » vit alors dans le menu du sélecteur
+                d'enfant (« + Gérer les profils »), même destination. */}
             <Link
               href="/parent/messages"
               aria-label="Messagerie avec le coach"
-              className="w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-white/75 hover:text-white transition-colors select-none"
+              className="nc-iconbtn select-none"
             >
               <Icon name="mail" className="w-5 h-5" />
             </Link>
             <NotificationsBell />
-            {/* Séparateur discret entre le profil enfant et le compte utilisateur */}
-            <span className="w-px h-6 bg-white/10 mx-0.5 hidden sm:block" aria-hidden />
             <UserMenu />
           </div>
         </div>
       </header>
 
-      <main className="relative max-w-7xl mx-auto px-4 md:px-6 py-6 md:py-8 pb-32 md:pb-36">
+      <main className="max-w-7xl mx-auto px-5 md:px-6 pt-1 pb-32 md:pb-36">
         {/* Chaque changement d'onglet ré-anime le contenu (fondu + glissement iOS) */}
         <div key={pathname} className="animate-page-in">
           {children}
         </div>
       </main>
 
-      {/* Tab bar liquid glass (Apple Forme) : bulle de verre qui glisse sous l'onglet actif */}
+      {/* Tab bar pleine largeur, posée sur un aplat : pas de verre, pas de bulle
+          glissante — l'onglet actif se signale par la seule couleur d'accent. */}
       <nav
         aria-label="Navigation principale"
-        className="fixed bottom-0 inset-x-0 z-50 px-4 pointer-events-none"
-        style={{ paddingBottom: 'max(14px, env(safe-area-inset-bottom))' }}
+        className="fixed bottom-0 inset-x-0 z-50 bg-night-nav border-t border-white/[0.08]"
+        style={{ paddingBottom: 'max(20px, env(safe-area-inset-bottom))' }}
       >
-        <div className="pointer-events-auto relative max-w-md mx-auto rounded-[28px] glass-navy p-1.5 shadow-[0_18px_50px_rgba(0,10,20,0.55)]">
-          {/* Reflet spéculaire du verre */}
-          <div
-            aria-hidden
-            className="absolute inset-0 rounded-[28px] pointer-events-none"
-            style={{
-              boxShadow:
-                'inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -1px 0 rgba(255,255,255,0.04)',
-            }}
-          />
-          {active >= 0 && (
-            <div
-              aria-hidden
-              className="absolute top-1.5 bottom-1.5 left-1.5 rounded-[22px] bg-white/[0.14] border border-white/25 transition-transform duration-500"
-              style={{
-                width: 'calc((100% - 12px) / 3)',
-                transform: `translateX(${active * 100}%)`,
-                transitionTimingFunction: 'cubic-bezier(0.32, 1.35, 0.4, 1)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.3), 0 6px 18px rgba(0,0,0,0.35)',
-              }}
-            />
+        <div className="max-w-md mx-auto grid grid-cols-3 pt-2.5 select-none">
+          {TABS.map((tab, i) =>
+            // Compte en préparation : hors onglets (active < 0), Bilan reste
+            // cliquable pour ne jamais enfermer l'utilisateur.
+            locked && (active >= 0 ? active !== i : i !== 0) ? (
+              // Compte en préparation : les autres sections restent visibles
+              // mais non cliquables (aperçu de ce qui attend l'utilisateur)
+              <span
+                key={tab.href}
+                aria-disabled
+                title="Disponible après l'activation par votre coach"
+                className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] text-white/30 cursor-not-allowed"
+              >
+                <Icon name={tab.icon} className="w-[22px] h-[22px]" />
+                <span className="text-xs font-semibold">{tab.label}</span>
+              </span>
+            ) : (
+              <Link
+                key={tab.href}
+                href={tab.href}
+                aria-current={active === i ? 'page' : undefined}
+                className={`flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] transition-colors duration-200 active:scale-95 ${
+                  active === i ? 'text-sun' : 'text-[rgba(234,243,241,0.62)] hover:text-night-ink'
+                }`}
+              >
+                <Icon name={tab.icon} className="w-[22px] h-[22px]" />
+                <span className="text-xs font-semibold">{tab.label}</span>
+              </Link>
+            ),
           )}
-          <div className="relative grid grid-cols-3 select-none">
-            {TABS.map((tab, i) =>
-              // Compte en préparation : hors onglets (active < 0), Bilan reste
-              // cliquable pour ne jamais enfermer l'utilisateur.
-              locked && (active >= 0 ? active !== i : i !== 0) ? (
-                // Compte en préparation : les autres sections restent visibles
-                // mais non cliquables (aperçu de ce qui attend l'utilisateur)
-                <span
-                  key={tab.href}
-                  aria-disabled
-                  title="Disponible après l'activation par votre coach"
-                  className="flex flex-col items-center justify-center gap-1 py-2.5 min-h-[52px] rounded-[22px] text-white/35 cursor-not-allowed"
-                >
-                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
-                  <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
-                </span>
-              ) : (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  aria-current={active === i ? 'page' : undefined}
-                  className={`flex flex-col items-center justify-center gap-1 py-2.5 min-h-[52px] rounded-[22px] transition-all duration-300 active:scale-95 ${
-                    active === i ? 'text-sun' : 'text-white/75 hover:text-white'
-                  }`}
-                >
-                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
-                  <span className="text-[11px] font-semibold tracking-wide">{tab.label}</span>
-                </Link>
-              ),
-            )}
-          </div>
         </div>
       </nav>
     </div>

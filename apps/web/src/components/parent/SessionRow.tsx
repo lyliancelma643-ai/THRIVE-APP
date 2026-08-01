@@ -14,12 +14,18 @@ export function SessionRow({ title, subtitle, sessions, completedIds }: Props) {
   if (sessions.length === 0) return null;
 
   return (
-    <section className="mb-10">
-      <div className="mb-4">
-        <h2 className="font-display text-xl font-semibold text-white">{title}</h2>
-        {subtitle && <p className="text-sm text-white/50 mt-0.5">{subtitle}</p>}
+    // Le carrousel déborde jusqu'aux bords de l'écran (marge négative), le titre
+    // reste aligné sur la gouttière de 20 px du reste de la page.
+    <section className="mt-9 animate-om-up" style={{ ['--om-d' as string]: '0.16s' }}>
+      <div className="mb-3.5">
+        <h2 className="font-display text-[22px] font-semibold text-night-ink">{title}</h2>
+        {subtitle && (
+          <p className="text-sm text-[rgba(234,243,241,0.68)] mt-0.5">{subtitle}</p>
+        )}
       </div>
-      <div className="flex gap-4 overflow-x-auto scrollbar-hide overscroll-x-contain snap-x snap-mandatory -mx-1 px-1 pb-2">
+      {/* `scroll-pl-5` est indispensable : sans lui, l'accroche (snap-start) cale
+          la première vignette sur le bord du conteneur et mange la gouttière. */}
+      <div className="flex gap-3.5 overflow-x-auto scrollbar-hide overscroll-x-contain snap-x scroll-pl-5 md:scroll-pl-0 -mx-5 px-5 md:mx-0 md:px-0 pb-1">
         {sessions.map((s) => (
           <SessionCard key={s.id} session={s} completed={completedIds?.has(s.id)} />
         ))}

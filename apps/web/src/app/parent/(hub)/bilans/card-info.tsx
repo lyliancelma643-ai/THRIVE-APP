@@ -567,16 +567,18 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
 // l'état vide pendant que la liste des enfants charge encore.
 export function BilanSkeleton() {
   return (
-    <div className="-mx-4 md:-mx-6 -my-6 md:-my-8" aria-busy role="status" aria-label="Chargement du bilan">
-      <div className="animate-pulse rounded-[28px] p-5 md:p-7 bg-[#03161b]/60 border border-white/5">
-        <div className="h-9 md:h-11 w-2/3 max-w-xs rounded-xl bg-white/10 mb-3" />
-        <div className="h-4 w-1/2 max-w-sm rounded bg-white/[0.07] mb-6" />
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10" />
-          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10" />
-          <div className="h-64 rounded-[22px] bg-white/[0.05] border border-white/10 hidden md:block" />
+    <div aria-busy role="status" aria-label="Chargement du bilan">
+      <div className="animate-pulse">
+        <div className="h-3 w-40 rounded bg-white/[0.09] mb-4" />
+        <div className="h-20 w-44 rounded-2xl bg-white/[0.07] mb-4" />
+        <div className="h-1.5 w-full rounded-full bg-white/[0.09] mb-7" />
+        <div className="h-[72px] rounded-[18px] bg-night-surface mb-3" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="h-56 rounded-[22px] bg-night-surface" />
+          <div className="h-56 rounded-[22px] bg-night-surface" />
+          <div className="h-56 rounded-[22px] bg-night-surface hidden md:block" />
         </div>
-        <div className="h-44 rounded-[22px] bg-white/[0.05] border border-white/10 mt-3 md:mt-4" />
+        <div className="h-44 rounded-[22px] bg-night-surface mt-3" />
       </div>
     </div>
   );

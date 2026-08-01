@@ -59,7 +59,7 @@ export function UserMenu() {
       <Link
         href="/login"
         aria-label="Se connecter"
-        className="w-11 h-11 rounded-full glass-navy flex items-center justify-center text-white/80 hover:bg-white/10 active:scale-95 transition-all select-none"
+        className="nc-iconbtn active:scale-95 transition-transform select-none"
       >
         <Icon name="power" className="w-5 h-5" />
       </Link>
@@ -79,7 +79,7 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menu du compte"
-        className="w-11 h-11 rounded-full bg-navy-700 ring-1 ring-white/20 text-white flex items-center justify-center text-sm font-bold hover:ring-white/40 active:scale-95 transition-all select-none"
+        className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all select-none"
       >
         {initials}
       </button>
@@ -95,12 +95,12 @@ export function UserMenu() {
             />
             <div
               role="menu"
-              className="fixed z-[70] w-64 rounded-2xl glass-navy overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              className="fixed z-[70] w-64 rounded-2xl bg-night-surface ring-1 ring-white/[0.08] overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
               {/* En-tête : identité */}
               <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                <span className="w-11 h-11 rounded-full bg-navy-700 ring-1 ring-white/20 text-white flex items-center justify-center text-sm font-bold shrink-0">
+                <span className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold shrink-0">
                   {initials}
                 </span>
                 <div className="min-w-0">

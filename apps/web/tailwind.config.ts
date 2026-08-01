@@ -25,6 +25,16 @@ const config: Config = {
           900: '#022539',
         },
         cream: '#F7F5F2',
+        // Direction « Nuit calme » — palette de l'espace parent (design Tour 2a).
+        // Fonds plats, un seul accent (sun), zéro halo : les surfaces ne sont
+        // plus du verre teinté mais trois valeurs fixes.
+        night: {
+          bg: '#06161E', // fond de page
+          surface: '#0C2029', // cartes et rangées
+          nav: '#0A1C24', // barre d'onglets
+          ink: '#F7F5F2', // texte fort (titres, chiffres)
+          body: '#EAF3F1', // texte courant
+        },
         sun: {
           DEFAULT: '#F9EB50',
           dark: '#E0D232',

@@ -9,6 +9,7 @@ import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
 import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
+import { Icon } from '@/components/ui';
 import { DocMeta, programPct, signedDocUrl } from '@/lib/bilan';
 import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
 import { DESIGN_CSS, ageFromDob, buildHtml } from './bilan-html';
@@ -135,12 +136,12 @@ function AthleteIdentityPageInner() {
 
   if (!selectedChild) {
     return (
-      <div className="max-w-xl mx-auto text-center py-20">
-        <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-white/10 flex items-center justify-center text-2xl text-sun">
-          ◈
+      <div className="max-w-xl mx-auto text-center py-20 animate-om-up">
+        <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-sun/10 flex items-center justify-center text-sun">
+          <Icon name="sparkle" className="w-6 h-6" />
         </div>
-        <h2 className="font-display text-2xl font-semibold text-white mb-3">Aucun profil enfant</h2>
-        <p className="text-white/55">
+        <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">Aucun profil enfant</h2>
+        <p className="text-[rgba(234,243,241,0.68)]">
           Ajoute un enfant pour découvrir sa carte d&apos;identité d&apos;athlète THRIVE.
         </p>
       </div>
@@ -221,23 +222,25 @@ function AthleteIdentityPageInner() {
   });
 
   return (
-    <div className="-mx-4 md:-mx-6 -my-6 md:-my-8">
+    <div>
       <style dangerouslySetInnerHTML={{ __html: DESIGN_CSS }} />
+      {/* Rappels de questionnaire — même grammaire que les cartes : aplat,
+          un seul accent, pas de bordure colorée superflue. */}
       {pendingLsss && (
-        <div className="mx-4 md:mx-6 mt-4 mb-2 p-4 rounded-2xl bg-[#0a3a44] border border-[#F9EB50]/30 flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[#F9EB50]/15 flex items-center justify-center text-[#F9EB50] shrink-0">
-            ✎
+        <div className="mb-3 p-4 rounded-[18px] bg-night-surface ring-1 ring-sun/25 flex items-center gap-3 animate-om-up">
+          <span className="w-10 h-10 rounded-xl bg-sun/10 flex items-center justify-center text-sun shrink-0">
+            <Icon name="clipboard" className="w-5 h-5" />
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#eaf3f1]">Questionnaire LSSS en attente</p>
-            <p className="text-xs text-[#eaf3f1]/60">
+            <p className="text-[15px] font-semibold text-night-ink">Questionnaire LSSS en attente</p>
+            <p className="text-[13px] text-[rgba(234,243,241,0.62)]">
               {selectedChild.first_name} a un questionnaire à compléter avec toi.
             </p>
           </div>
           {pendingLsss.token && (
             <a
               href={`/q/${pendingLsss.token}`}
-              className="shrink-0 px-4 py-2 rounded-full bg-[#F9EB50] text-[#06222a] text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-sun text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>
@@ -245,23 +248,23 @@ function AthleteIdentityPageInner() {
         </div>
       )}
       {pendingPerma && (
-        <div className="mx-4 md:mx-6 mt-4 mb-2 p-4 rounded-2xl bg-[#2e2410] border border-[#F6B45A]/40 flex items-center gap-3">
-          <span className="w-9 h-9 rounded-xl bg-[#F6B45A]/15 flex items-center justify-center text-[#F6B45A] shrink-0">
-            ☀️
+        <div className="mb-3 p-4 rounded-[18px] bg-night-surface ring-1 ring-sage/30 flex items-center gap-3 animate-om-up">
+          <span className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center text-sage shrink-0">
+            <Icon name="chart" className="w-5 h-5" />
           </span>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-[#eaf3f1]">
+            <p className="text-[15px] font-semibold text-night-ink">
               Questionnaire bien-être à compléter
               {pendingPerma.session_number ? ` — séance ${pendingPerma.session_number}` : ''}
             </p>
-            <p className="text-xs text-[#eaf3f1]/60">
+            <p className="text-[13px] text-[rgba(234,243,241,0.62)]">
               {selectedChild.first_name} a un court questionnaire de bien-être (EPOCH) à remplir avec toi.
             </p>
           </div>
           {pendingPerma.token && (
             <a
               href={`/q/${pendingPerma.token}`}
-              className="shrink-0 px-4 py-2 rounded-full bg-[#F6B45A] text-[#241a08] text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-sage text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>
@@ -347,7 +350,7 @@ export default function BilansPage() {
   }, [refresh]);
 
   if (isLoading || !access) {
-    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+    return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!access.unlocked) return <BilanLockedPreview />;
   return (

@@ -151,7 +151,7 @@ export function NotificationsBell() {
         type="button"
         aria-label={unread ? `Notifications — ${unread} non lue(s)` : 'Notifications'}
         onClick={() => setOpen((o) => !o)}
-        className="relative w-11 h-11 rounded-full glass-navy hover:bg-white/10 flex items-center justify-center text-white/75 hover:text-white transition-colors select-none cursor-pointer"
+        className="relative nc-iconbtn select-none cursor-pointer"
       >
         <Icon name="bell" className="w-5 h-5" />
         {unread > 0 && (
@@ -163,7 +163,7 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70vh] overflow-y-auto rounded-2xl glass-navy shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
+          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70vh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-white/[0.08] shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
           style={{ background: 'rgba(3, 26, 40, 0.96)' }}
         >
           <div className="flex items-center justify-between px-4 pt-3 pb-2">

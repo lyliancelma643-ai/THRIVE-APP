@@ -34,7 +34,10 @@ export type IconName =
   | 'settings'
   | 'power'
   | 'chevron-down'
-  | 'chevron-up';
+  | 'chevron-up'
+  | 'chevron-right'
+  | 'play'
+  | 'download';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -168,6 +171,11 @@ const PATHS: Record<IconName, React.ReactNode> = {
   ),
   'chevron-down': <path d="m6 9 6 6 6-6" />,
   'chevron-up': <path d="m6 15 6-6 6 6" />,
+  'chevron-right': <path d="m9 6 6 6-6 6" />,
+  // ▶ Lecture — pleine, seule icône « remplie » du jeu (bouton primaire)
+  play: <path d="M8 5.5v13l11-6.5z" fill="currentColor" strokeLinejoin="round" />,
+  // ⤓ Téléchargement d'un livrable (contrat, lettre, certificat)
+  download: <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />,
 };
 
 export function Icon({

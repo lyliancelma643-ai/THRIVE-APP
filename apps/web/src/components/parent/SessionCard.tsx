@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { VideoSession, themeAccent, formatDuration } from '@/lib/catalog';
+import { VideoSession, formatDuration } from '@/lib/catalog';
+import { Icon } from '@/components/ui';
 
 type Props = {
   session: VideoSession;
@@ -9,63 +10,62 @@ type Props = {
   completed?: boolean;
 };
 
+// Direction « Nuit calme » : la vignette porte l'image, le texte vit SOUS elle
+// (et non en surimpression). Pas de dégradé de thème, pas d'ombre — un aplat
+// #0C2029 quand l'image manque, et le sage pour la ligne de contexte.
 export function SessionCard({ session, size = 'md', completed = false }: Props) {
-  const accent = themeAccent(session.theme);
-  const width = size === 'lg' ? 'w-80' : 'w-64';
+  const width = size === 'lg' ? 'w-[264px]' : 'w-[230px]';
 
   return (
     <Link
       href={`/parent/session/${session.id}`}
       className={`${width} shrink-0 group snap-start select-none`}
     >
-      <div
-        className={`relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${accent.glow} shadow-card group-hover:shadow-card-hover group-hover:scale-[1.02] group-active:scale-[0.98] transition-all duration-200`}
-      >
+      <div className="relative aspect-video rounded-[18px] overflow-hidden bg-night-surface">
         {session.thumbnail_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={session.thumbnail_url}
-            alt={session.title}
+            alt=""
             draggable={false}
             className="absolute inset-0 w-full h-full object-cover"
           />
         ) : (
-          <span className="absolute -right-2 -bottom-6 font-display text-[7rem] leading-none text-white/10 select-none">
-            {session.session_number}
-          </span>
+          <span
+            aria-hidden
+            className="absolute inset-0"
+            style={{
+              background:
+                'repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 10px,rgba(255,255,255,0) 10px 20px)',
+            }}
+          />
         )}
 
-        <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide ${accent.chip}`}>
-            {session.theme}
+        {session.is_free && (
+          <span className="absolute top-2.5 left-2.5 px-2.5 h-6 inline-flex items-center rounded-full bg-sun text-navy-900 text-[11px] font-bold">
+            Gratuit
           </span>
-          {session.is_free && (
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-white/90 text-navy-900">
-              Gratuit
-            </span>
-          )}
-        </div>
+        )}
 
         {completed && (
-          <span className="absolute top-3 right-3 w-6 h-6 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xs font-bold">
-            ✓
+          <span className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-sage text-navy-900 flex items-center justify-center">
+            <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.6} />
           </span>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-navy-900/90 to-transparent">
-          <p className="text-[11px] text-sage font-medium mb-0.5">
-            Séance {session.session_number} · {formatDuration(session.duration_minutes)} · {session.age_group} ans
-          </p>
-          <h3 className="text-white font-semibold leading-snug">{session.title}</h3>
-        </div>
-
-        {/* Bouton play au survol */}
-        <span className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <span className="w-12 h-12 rounded-full bg-sun text-navy-900 flex items-center justify-center text-lg shadow-card">
-            ▶
+        {/* Bouton de lecture au survol — la seule surimpression conservée */}
+        <span className="absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
+          <span className="w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center">
+            <Icon name="play" className="w-4 h-4" />
           </span>
         </span>
       </div>
+
+      <p className="mt-3 mb-0.5 text-[13px] font-semibold text-sage">
+        Séance {session.session_number} · {formatDuration(session.duration_minutes)}
+      </p>
+      <p className="text-base font-semibold leading-[1.35] text-night-ink">{session.title}</p>
+      <p className="mt-0.5 text-[13px] text-[rgba(234,243,241,0.5)]">{session.age_group} ans</p>
     </Link>
   );
 }

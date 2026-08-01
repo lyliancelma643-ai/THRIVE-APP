@@ -28,7 +28,7 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
   const color = NOTE_COLORS[value] ?? '#6B7280';
   return (
     <div
-      className="relative w-16 h-16 shrink-0"
+      className="relative w-14 h-14 shrink-0"
       role="img"
       aria-label={locked ? 'Note masquée — réservée aux packs supérieurs' : `Note ${value} sur ${max}`}
     >
@@ -39,7 +39,7 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
           r="16"
           fill="none"
           stroke="rgba(255,255,255,0.10)"
-          strokeWidth="3.5"
+          strokeWidth="3"
         />
         <circle
           cx="18"
@@ -47,7 +47,7 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
           r="16"
           fill="none"
           stroke={color}
-          strokeWidth="3.5"
+          strokeWidth="3"
           strokeLinecap="round"
           pathLength={100}
           strokeDasharray={`${pct} 100`}
@@ -68,13 +68,12 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
   );
 }
 
-/* Carte de section interactive — réagit au survol (lift + halo accent, titre qui s'allume) */
+/* Section d'un bilan de séance — direction « Nuit calme » : pas de carte dans la
+   carte. Une étiquette en capitales, puis le contenu à même la surface. */
 export function BilanCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="group rounded-xl border border-white/10 bg-white/[0.03] p-4 transition-all duration-200 hover:border-sun/40 hover:bg-white/[0.06] hover:shadow-lg hover:shadow-navy-900/40 motion-safe:hover:-translate-y-0.5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-2 transition-colors group-hover:text-sun">
-        {title}
-      </h4>
+    <section>
+      <h4 className="nc-eyebrow mb-2.5">{title}</h4>
       {children}
     </section>
   );
@@ -94,11 +93,11 @@ export function LockIcon({ className }: { className?: string }) {
    `hint` permet d'adapter le message à la fonctionnalité (défaut : bilans). */
 export function UpgradeHintBar({ pack, hint }: { pack: Pack; hint?: string }) {
   return (
-    <div className="flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-3 py-2.5">
+    <div className="flex items-start gap-2.5 rounded-[14px] border border-sun/[0.28] bg-sun/[0.07] px-3.5 py-3">
       <LockIcon className="w-4 h-4 text-sun shrink-0 mt-0.5" />
-      <p className="text-xs leading-relaxed text-white/85">
+      <p className="text-sm leading-[1.5] text-[rgba(234,243,241,0.88)]">
         <span className="font-semibold text-sun">Contenu réservé.</span> {hint ?? upgradeHint(pack)}{' '}
-        <Link href="/parent/upgrade" className="font-semibold text-sun underline decoration-sun/40 underline-offset-2 hover:decoration-sun">
+        <Link href="/parent/upgrade" className="font-semibold text-sun underline underline-offset-2">
           Voir les forfaits
         </Link>
       </p>

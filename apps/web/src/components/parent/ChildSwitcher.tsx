@@ -9,6 +9,18 @@ import { useChildStore } from '@/stores/child.store';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
 import { Icon } from '@/components/ui';
 
+// Âge exact (et non la tranche) : l'en-tête « Nuit calme » affiche « Léa · 12 ans ».
+function ageFromDob(dob: string | null | undefined): number | null {
+  if (!dob) return null;
+  const d = new Date(dob);
+  if (Number.isNaN(d.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - d.getFullYear();
+  const m = now.getMonth() - d.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < d.getDate())) age -= 1;
+  return age >= 0 && age < 120 ? age : null;
+}
+
 export function ChildSwitcher() {
   const { user } = useAuthStore();
   const { children, selectedChildId, selectChild, loadChildren, isLoading } = useChildStore();
@@ -60,7 +72,7 @@ export function ChildSwitcher() {
   const selected = children.find((c) => c.id === selectedChildId) ?? null;
 
   if (isLoading && children.length === 0) {
-    return <div className="h-10 w-32 rounded-full glass-navy animate-pulse" />;
+    return <div className="h-5 w-28 rounded-full bg-white/10 animate-pulse" />;
   }
 
   if (children.length === 0) {
@@ -74,27 +86,25 @@ export function ChildSwitcher() {
     );
   }
 
+  const age = ageFromDob(selected?.date_of_birth);
+
   return (
-    <div className="relative">
+    <div className="relative min-w-0 flex-1">
+      {/* « Nuit calme » : le sélecteur n'est plus une pastille de verre mais la
+          ligne d'identité de l'en-tête — « Léa · 12 ans », discrète et cliquable. */}
       <button
         ref={triggerRef}
         onClick={toggleMenu}
         aria-expanded={open}
         aria-haspopup="menu"
-        className="flex items-center gap-1.5 sm:gap-2 pl-1.5 pr-2 sm:pr-3 h-11 rounded-full glass-navy hover:bg-white/10 transition-colors select-none"
+        aria-label="Changer d'enfant"
+        className="flex items-center gap-0.5 w-full min-w-0 h-11 -mx-1 px-1 text-[13px] font-semibold tracking-[0.02em] text-[rgba(234,243,241,0.62)] hover:text-night-ink transition-colors select-none"
       >
-        <span className="w-8 h-8 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold shrink-0">
-          {selected?.first_name?.[0] ?? '?'}
-        </span>
-        {/* Prénom masqué sur mobile pour dégager le header (7 contrôles à 375px) :
-            l'initiale de l'avatar identifie déjà l'enfant, le prénom complet reste
-            visible dans le menu déroulant. */}
-        <span className="hidden sm:block text-sm font-medium text-white max-w-[7rem] truncate">
+        <span className="truncate">
           {selected?.first_name}
+          {age != null ? ` · ${age} ans` : ''}
         </span>
-        <span
-          className={`text-white/60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
-        >
+        <span className={`shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}>
           <Icon name="chevron-down" className="w-4 h-4" />
         </span>
       </button>
@@ -111,7 +121,7 @@ export function ChildSwitcher() {
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed z-[70] w-60 rounded-2xl glass-navy overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              className="fixed z-[70] w-60 rounded-2xl bg-night-surface ring-1 ring-white/[0.08] overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
             {children.map((child) => (
