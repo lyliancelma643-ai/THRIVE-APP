@@ -43,7 +43,8 @@ export function Thread({
   bodyClassName?: string;
 }) {
   const t = TONES[tone];
-  const thread = useConversation(conversationId, myId);
+  // Un fil en lecture seule est une SUPERVISION : on n'y laisse aucune trace.
+  const thread = useConversation(conversationId, myId, { silent: readOnly });
 
   return (
     <div className={`flex flex-col min-h-0 ${t.panel} ${className}`}>

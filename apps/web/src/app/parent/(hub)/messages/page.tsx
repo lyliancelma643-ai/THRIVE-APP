@@ -234,9 +234,16 @@ function ListView({
         </button>
         <span className="flex-1 min-w-0 flex flex-col">
           <span className="font-display text-[22px] font-semibold text-ink">Messages</span>
-          <span className="text-[12.5px] text-soft">
-            {totalUnread > 0 ? `${totalUnread} non lu${totalUnread > 1 ? 's' : ''}` : 'Tout est lu'}
-            {childName ? ` · dossier de ${childName}` : ''}
+          <span className="flex items-center gap-1.5 text-[12.5px] text-soft">
+            {totalUnread > 0 && (
+              <span className="w-2 h-2 rounded-full bg-accent shrink-0" aria-hidden />
+            )}
+            <span>
+              {totalUnread > 0
+                ? `${totalUnread} message${totalUnread > 1 ? 's' : ''} non lu${totalUnread > 1 ? 's' : ''}`
+                : 'Tout est lu'}
+              {childName ? ` · dossier de ${childName}` : ''}
+            </span>
           </span>
         </span>
       </header>

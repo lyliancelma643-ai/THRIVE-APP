@@ -9,6 +9,10 @@
 //   • « Supervision » : les échanges coach ↔ parent, en LECTURE SEULE. C'est un
 //     choix, pas une limite d'UI : la RLS interdit à un admin d'écrire dans un
 //     fil coach (personne ne parle à la place du coach).
+//   • « Toutes les conversations » (super-admin seul) : accès intégral aux deux
+//     natures de fil, en LECTURE SILENCIEUSE — aucun accusé « Lu » n'est renvoyé,
+//     ni au parent, ni au coach, ni aux autres admins. Le serveur le garantit :
+//     un non-participant n'écrit jamais de marque de lecture (migration 057).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
@@ -24,7 +28,7 @@ import {
   type ConversationSummary,
 } from '@/lib/messaging';
 
-type Tab = 'support' | 'supervision';
+type Tab = 'support' | 'supervision' | 'all';
 type Filter = 'todo' | 'all' | 'closed';
 
 const FILTERS: { key: Filter; label: string }[] = [
@@ -38,24 +42,31 @@ function AdminMessagesInner() {
   const params = useSearchParams();
   const { user } = useAuthStore();
 
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const [tab, setTab] = useState<Tab>('support');
   const [filter, setFilter] = useState<Filter>('todo');
   const [support, setSupport] = useState<ConversationSummary[]>([]);
   const [supervision, setSupervision] = useState<ConversationSummary[]>([]);
+  const [all, setAll] = useState<ConversationSummary[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(params.get('c'));
   const [search, setSearch] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const [s, v] = await Promise.all([
+    // La vue d'ensemble est le privilège du super-admin : la RPC refuse le
+    // scope `all` aux autres, on ne la demande donc que pour lui.
+    const [s, v, a] = await Promise.all([
       listConversations('support'),
       listConversations('supervision'),
+      isSuperAdmin ? listConversations('all') : Promise.resolve([]),
     ]);
     setSupport(s);
     setSupervision(v);
+    setAll(a);
     setIsLoading(false);
-  }, []);
+  }, [isSuperAdmin]);
 
   useEffect(() => {
     load();
@@ -73,7 +84,10 @@ function AdminMessagesInner() {
 
   useModalDismiss(() => setSelectedId(null), !!selectedId, false);
 
-  const rows = tab === 'support' ? support : supervision;
+  const rows = tab === 'support' ? support : tab === 'supervision' ? supervision : all;
+  // Hors du guichet support, on ne fait que LIRE : aucun accusé de lecture
+  // n'est renvoyé (la RPC l'impose aussi côté serveur — migration 057).
+  const supervising = tab !== 'support';
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -88,7 +102,7 @@ function AdminMessagesInner() {
     );
   }, [rows, tab, filter, search]);
 
-  const selected = [...support, ...supervision].find((c) => c.id === selectedId) ?? null;
+  const selected = [...support, ...supervision, ...all].find((c) => c.id === selectedId) ?? null;
 
   const open = (id: string) => {
     setSelectedId(id);
@@ -110,13 +124,26 @@ function AdminMessagesInner() {
 
   const isMine = selected?.assigned_admin_id === user?.id;
   const totalTodo = support.filter((c) => c.status === 'OPEN' && c.unread_count > 0).length;
+  // Ce qui m'attend VRAIMENT : la file du support. La supervision des fils
+  // coach ne doit jamais allumer de pastille — ce ne sont pas mes messages.
+  const totalUnread = support.reduce((n, c) => n + c.unread_count, 0);
 
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-1">Messagerie</h1>
+        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-1">
+          Messagerie
+          {totalUnread > 0 && (
+            <span className="ml-3 align-middle inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-navy-600 text-white text-xs font-bold">
+              <span className="w-2 h-2 rounded-full bg-sun" aria-hidden />
+              {totalUnread} non lu{totalUnread > 1 ? 's' : ''}
+            </span>
+          )}
+        </h1>
         <p className="text-slate-500 font-medium">
-          Le guichet support et la supervision des échanges coach ↔ parent.
+          {totalUnread > 0
+            ? 'Des demandes attendent une réponse dans le guichet support.'
+            : 'Le guichet support et la supervision des échanges coach ↔ parent.'}
         </p>
       </div>
 
@@ -152,6 +179,20 @@ function AdminMessagesInner() {
         >
           Supervision
         </button>
+        {isSuperAdmin && (
+          <button
+            type="button"
+            onClick={() => chooseTab('all')}
+            title="Accès intégral, en lecture silencieuse"
+            className={`h-10 px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+              tab === 'all'
+                ? 'bg-slate-900 text-white'
+                : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+            }`}
+          >
+            Toutes les conversations
+          </button>
+        )}
 
         <span className="flex-1" />
 
@@ -175,6 +216,12 @@ function AdminMessagesInner() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-16rem)]">
         <div className={`${selectedId ? 'hidden lg:flex' : 'flex'} flex-col min-h-0`}>
+          {supervising && (
+            <p className="mb-3 px-3 py-2 rounded-xl bg-slate-100 text-[11px] leading-snug text-slate-500">
+              <b className="text-slate-700">Lecture silencieuse.</b> Consulter ces fils ne laisse
+              aucune trace : ni accusé « Lu » chez le parent ou le coach, ni notification.
+            </p>
+          )}
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -214,8 +261,12 @@ function AdminMessagesInner() {
                   : `Coach ${selected.coach_name ?? '—'}${selected.child_name ? ` · ${selected.child_name}` : ''}`
               }
               placeholder="Répondre au parent…"
-              readOnly={selected.kind === 'COACH'}
-              readOnlyHint="Supervision — lecture seule : personne n’écrit à la place du coach."
+              readOnly={selected.kind === 'COACH' || supervising}
+              readOnlyHint={
+                selected.kind === 'COACH'
+                  ? 'Supervision — lecture seule : personne n’écrit à la place du coach.'
+                  : 'Vue d’ensemble — lecture seule. Répondez depuis l’onglet « Support client ».'
+              }
               className="flex-1 min-h-[26rem]"
               actions={
                 <>

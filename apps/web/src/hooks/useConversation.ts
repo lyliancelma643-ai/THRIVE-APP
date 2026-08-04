@@ -67,8 +67,15 @@ function isLocal(id: string): boolean {
 
 export function useConversation(
   conversationId: string | null,
-  myId: string | undefined
+  myId: string | undefined,
+  /**
+   * `silent` : consultation sans trace (supervision super-admin). Le fil est lu
+   * normalement, mais aucun accusé « Lu » n'est renvoyé à l'interlocuteur.
+   * Doublé d'un garde-fou serveur — cf. migration 057.
+   */
+  options: { silent?: boolean } = {}
 ): UseConversation {
+  const silent = options.silent ?? false;
   const [messages, setMessages] = useState<ThreadItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(false);
@@ -105,12 +112,12 @@ export function useConversation(
       setReads(r);
       setHasMore(page.length === PAGE_SIZE);
       setIsLoading(false);
-      await markConversationRead(conversationId);
+      await markConversationRead(conversationId, silent);
     })();
     return () => {
       cancelled = true;
     };
-  }, [conversationId]);
+  }, [conversationId, silent]);
 
   // ── Temps réel : messages + accusés de lecture ─────────────────────────────
   useEffect(() => {
@@ -142,7 +149,7 @@ export function useConversation(
           });
           // Un message reçu pendant que l'onglet est ouvert est un message lu.
           if (incoming.sender_id !== myId && document.visibilityState === 'visible') {
-            markConversationRead(conversationId);
+            markConversationRead(conversationId, silent);
           }
         }
       )
@@ -176,7 +183,7 @@ export function useConversation(
       setTyping(false);
       supabase.removeChannel(channel);
     };
-  }, [conversationId, myId]);
+  }, [conversationId, myId, silent]);
 
   // Retour sur l'onglet : on rattrape ce qui est arrivé pendant l'absence.
   useEffect(() => {
@@ -189,11 +196,11 @@ export function useConversation(
           return [...page, ...pending];
         });
       });
-      markConversationRead(conversationId);
+      markConversationRead(conversationId, silent);
     };
     document.addEventListener('visibilitychange', onVisible);
     return () => document.removeEventListener('visibilitychange', onVisible);
-  }, [conversationId]);
+  }, [conversationId, silent]);
 
   // ── Historique ─────────────────────────────────────────────────────────────
   const loadMore = useCallback(async () => {

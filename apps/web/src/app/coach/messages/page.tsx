@@ -66,13 +66,16 @@ function CoachMessagesInner() {
       <h1 className="text-2xl font-bold text-navy-900 mb-1">
         Messages
         {totalUnread > 0 && (
-          <span className="ml-2 align-middle inline-flex min-w-[22px] h-[22px] px-1.5 rounded-full bg-navy-600 text-white text-xs font-bold items-center justify-center">
-            {totalUnread}
+          <span className="ml-3 align-middle inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-navy-600 text-white text-xs font-bold">
+            <span className="w-2 h-2 rounded-full bg-sun" aria-hidden />
+            {totalUnread} non lu{totalUnread > 1 ? 's' : ''}
           </span>
         )}
       </h1>
       <p className="text-sm text-navy-600/60 mb-6">
-        Vos échanges directs avec les parents, entre les séances.
+        {totalUnread > 0
+          ? 'Des parents attendent votre réponse.'
+          : 'Vos échanges directs avec les parents, entre les séances.'}
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-14rem)]">

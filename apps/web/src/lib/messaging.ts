@@ -26,7 +26,12 @@ export const ATTACHMENT_MIME_TYPES = [
 
 export type ConversationKind = 'COACH' | 'SUPPORT';
 export type ConversationStatus = 'OPEN' | 'CLOSED';
-export type ConversationScope = 'mine' | 'support' | 'supervision';
+export type ConversationScope =
+  | 'mine'
+  | 'support'
+  | 'supervision'
+  /** Vue d'ensemble : toutes les conversations, réservée au super-admin. */
+  | 'all';
 
 export type ConversationSummary = {
   id: string;
@@ -211,8 +216,21 @@ export async function deleteMessage(messageId: string): Promise<{ error?: Messag
 
 // ── État de lecture ──────────────────────────────────────────────────────────
 
-export async function markConversationRead(conversationId: string): Promise<void> {
-  await supabase.rpc('mark_conversation_read', { p_conversation_id: conversationId });
+/**
+ * Marque le fil comme lu. `silent` = consultation sans laisser de trace
+ * (supervision) : aucun accusé « Lu » n'apparaît chez l'interlocuteur.
+ *
+ * Le serveur tranche de toute façon : un non-participant n'écrit jamais de
+ * marque de lecture, quoi qu'envoie le client (migration 057).
+ */
+export async function markConversationRead(
+  conversationId: string,
+  silent = false
+): Promise<void> {
+  await supabase.rpc('mark_conversation_read', {
+    p_conversation_id: conversationId,
+    p_silent: silent,
+  });
 }
 
 export type ConversationRead = { user_id: string; last_read_at: string };
