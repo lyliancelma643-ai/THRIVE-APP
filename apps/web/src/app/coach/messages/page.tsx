@@ -1,231 +1,153 @@
 'use client';
 
-import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import { supabaseClient as supabase } from '@thrive/shared';
+// ─────────────────────────────────────────────────────────────────────────────
+// Boîte de réception du coach : un fil par famille suivie (forfait Performance).
+// Liste à gauche, conversation à droite ; sur mobile, la liste laisse la place
+// au fil dès qu'on en ouvre un (retour ← ou Échap pour revenir).
+//
+// Les fils apparaissent dès qu'un parent écrit : c'est lui qui ouvre le
+// guichet. Le coach peut aussi démarrer la conversation depuis la fiche d'un
+// athlète (bouton « Écrire au parent »).
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
+import { useModalDismiss } from '@/lib/useModalDismiss';
+import { useConversationsRealtime } from '@/hooks/useConversation';
+import { ConversationList, Thread } from '@/components/messaging';
+import { Icon } from '@/components/ui';
+import { listConversations, type ConversationSummary } from '@/lib/messaging';
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Inbox coach — pendant minimal de la messagerie parent (forfait Performance).
-// Le coach voit ses conversations et répond ; les parents dont le forfait
-// n'ouvre pas la messagerie n'apparaissent simplement pas (aucune conversation).
-// ─────────────────────────────────────────────────────────────────────────────
-
-type Conversation = {
-  id: string;
-  parent_id: string;
-  child_id: string | null;
-  last_message_at: string | null;
-  parent: { first_name: string; last_name: string } | null;
-  child: { first_name: string } | null;
-};
-
-type Msg = {
-  id: string;
-  conversation_id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-};
-
-export default function CoachMessagesPage() {
+function CoachMessagesInner() {
+  const router = useRouter();
+  const params = useSearchParams();
   const { user } = useAuthStore();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Msg[]>([]);
-  const [draft, setDraft] = useState('');
-  const [sending, setSending] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const endRef = useRef<HTMLDivElement>(null);
 
-  const loadConversations = useCallback(async () => {
-    if (!user?.id) return;
-    const { data } = await supabase
-      .from('conversations')
-      .select(
-        'id, parent_id, child_id, last_message_at, parent:parent_id (first_name, last_name), child:child_id (first_name)'
-      )
-      .eq('coach_id', user.id)
-      .order('last_message_at', { ascending: false });
-    const rows = ((data ?? []) as any[]).map((c) => ({
-      ...c,
-      parent: Array.isArray(c.parent) ? c.parent[0] ?? null : c.parent,
-      child: Array.isArray(c.child) ? c.child[0] ?? null : c.child,
-    })) as Conversation[];
+  const [conversations, setConversations] = useState<ConversationSummary[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(params.get('c'));
+  const [search, setSearch] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+
+  const load = useCallback(async () => {
+    const rows = await listConversations('mine');
     setConversations(rows);
-    setLoading(false);
-  }, [user?.id]);
-
-  useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
-
-  const loadMessages = useCallback(async (conversationId: string) => {
-    const { data } = await supabase
-      .from('messages')
-      .select('id, conversation_id, sender_id, content, created_at')
-      .eq('conversation_id', conversationId)
-      .order('created_at', { ascending: true });
-    setMessages((data ?? []) as Msg[]);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (!selectedId) return;
-    loadMessages(selectedId);
-    const channel = supabase
-      .channel(`coach-messages-${selectedId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${selectedId}` },
-        (payload) => {
-          const msg = payload.new as Msg;
-          setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
-        }
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedId, loadMessages]);
+    load();
+  }, [load]);
 
-  useEffect(() => {
-    endRef.current?.scrollIntoView({ block: 'end' });
-  }, [messages.length]);
+  useConversationsRealtime(load);
 
-  const send = async (e: FormEvent) => {
-    e.preventDefault();
-    const content = draft.trim();
-    if (!content || !selectedId || !user?.id || sending) return;
-    setSending(true);
-    const { data, error } = await supabase
-      .from('messages')
-      .insert({ conversation_id: selectedId, sender_id: user.id, content })
-      .select('id, conversation_id, sender_id, content, created_at')
-      .single();
-    if (!error && data) {
-      setMessages((prev) => (prev.some((m) => m.id === data.id) ? prev : [...prev, data as Msg]));
-      setDraft('');
-      await supabase
-        .from('conversations')
-        .update({ last_message_at: new Date().toISOString() })
-        .eq('id', selectedId);
-    }
-    setSending(false);
+  // Échap referme le fil ouvert (sur mobile il occupe tout l'écran).
+  useModalDismiss(() => setSelectedId(null), !!selectedId, false);
+
+  const open = (id: string) => {
+    setSelectedId(id);
+    if (params.get('c')) router.replace('/coach/messages');
+    load();
   };
 
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return conversations;
+    return conversations.filter((c) =>
+      `${c.counterpart_name ?? ''} ${c.child_name ?? ''}`.toLowerCase().includes(q)
+    );
+  }, [conversations, search]);
+
   const selected = conversations.find((c) => c.id === selectedId) ?? null;
+  const totalUnread = conversations.reduce((n, c) => n + c.unread_count, 0);
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-navy-900 mb-1">Messages</h1>
+      <h1 className="text-2xl font-bold text-navy-900 mb-1">
+        Messages
+        {totalUnread > 0 && (
+          <span className="ml-2 align-middle inline-flex min-w-[22px] h-[22px] px-1.5 rounded-full bg-navy-600 text-white text-xs font-bold items-center justify-center">
+            {totalUnread}
+          </span>
+        )}
+      </h1>
       <p className="text-sm text-navy-600/60 mb-6">
-        Les échanges directs avec les parents (forfait Performance).
+        Vos échanges directs avec les parents, entre les séances.
       </p>
 
-      {loading ? (
-        <div className="h-40 rounded-2xl bg-white shadow-card animate-pulse" aria-hidden />
-      ) : conversations.length === 0 ? (
-        <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
-          Aucune conversation pour l&apos;instant. Les parents au forfait Performance peuvent vous
-          écrire depuis leur espace.
-        </p>
-      ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          {/* Liste des conversations */}
-          <div className="space-y-2">
-            {conversations.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setSelectedId(c.id)}
-                className={`w-full text-left flex items-center gap-3 p-4 rounded-2xl bg-white shadow-card hover:shadow-card-hover transition-shadow ${
-                  c.id === selectedId ? 'ring-2 ring-navy-400' : ''
-                }`}
-              >
-                <span className="w-9 h-9 rounded-full bg-navy-600 text-white flex items-center justify-center text-sm font-bold shrink-0">
-                  {c.parent?.first_name?.[0] ?? '?'}
-                </span>
-                <span className="min-w-0">
-                  <span className="block text-sm font-semibold text-navy-900 truncate">
-                    {c.parent ? `${c.parent.first_name} ${c.parent.last_name}` : 'Parent'}
-                  </span>
-                  <span className="block text-xs text-navy-600/60 truncate">
-                    {c.child ? `Parent de ${c.child.first_name}` : 'Famille THRIVE'}
-                  </span>
-                </span>
-              </button>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-14rem)]">
+        {/* Liste — plein écran sur mobile tant qu'aucun fil n'est ouvert */}
+        <div className={`${selectedId ? 'hidden lg:flex' : 'flex'} flex-col min-h-0`}>
+          <div className="relative mb-3">
+            <input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Chercher un parent, un athlète…"
+              aria-label="Chercher une conversation"
+              className="w-full h-11 pl-4 pr-4 rounded-2xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-navy-400"
+            />
           </div>
-
-          {/* Fil de la conversation sélectionnée */}
-          <div className="lg:col-span-2">
-            {selected ? (
-              <div className="rounded-2xl bg-white shadow-card flex flex-col">
-                <div className="px-5 py-4 border-b border-slate-100">
-                  <p className="text-sm font-semibold text-navy-900">
-                    {selected.parent
-                      ? `${selected.parent.first_name} ${selected.parent.last_name}`
-                      : 'Parent'}
-                  </p>
-                </div>
-                <div className="flex-1 overflow-y-auto p-5 space-y-3 min-h-[14rem] max-h-[50vh]" aria-live="polite">
-                  {messages.length === 0 && (
-                    <p className="text-sm text-navy-600/50 text-center py-8">
-                      Aucun message dans cette conversation.
-                    </p>
-                  )}
-                  {messages.map((m) => {
-                    const mine = m.sender_id === user?.id;
-                    return (
-                      <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
-                        <div
-                          className={`max-w-[80%] px-4 py-2.5 text-sm leading-relaxed whitespace-pre-line ${
-                            mine
-                              ? 'bg-navy-600 text-white rounded-2xl rounded-br-md'
-                              : 'bg-slate-100 text-slate-800 rounded-2xl rounded-bl-md'
-                          }`}
-                        >
-                          {m.content}
-                          <span
-                            className={`block text-[10px] mt-1 ${mine ? 'text-white/60' : 'text-slate-400'}`}
-                          >
-                            {new Date(m.created_at).toLocaleString('fr-CA', {
-                              day: 'numeric',
-                              month: 'short',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                  <div ref={endRef} />
-                </div>
-                <form onSubmit={send} className="flex items-center gap-2 p-4 border-t border-slate-100">
-                  <input
-                    type="text"
-                    value={draft}
-                    onChange={(e) => setDraft(e.target.value)}
-                    placeholder="Répondre…"
-                    aria-label="Répondre"
-                    className="flex-1 min-w-0 h-11 px-4 rounded-full border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
-                  />
-                  <button
-                    type="submit"
-                    disabled={!draft.trim() || sending}
-                    className="shrink-0 px-5 h-11 rounded-full bg-navy-600 text-white text-sm font-bold hover:bg-navy-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Envoyer
-                  </button>
-                </form>
-              </div>
-            ) : (
-              <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
-                Sélectionnez une conversation pour lire et répondre.
-              </p>
-            )}
+          <div className="flex-1 overflow-y-auto pr-1">
+            <ConversationList
+              conversations={filtered}
+              tone="light"
+              selectedId={selectedId}
+              onSelect={open}
+              isLoading={isLoading}
+              emptyLabel={
+                search
+                  ? 'Aucune conversation ne correspond à cette recherche.'
+                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent vous écrire depuis leur espace.'
+              }
+            />
           </div>
         </div>
-      )}
+
+        {/* Fil */}
+        <div className={`${selectedId ? 'flex' : 'hidden lg:flex'} lg:col-span-2 flex-col min-h-0`}>
+          {selected ? (
+            <Thread
+              conversationId={selected.id}
+              myId={user?.id}
+              tone="light"
+              title={selected.counterpart_name ?? 'Parent'}
+              subtitle={selected.child_name ? `Parent de ${selected.child_name}` : 'Famille THRIVE'}
+              placeholder="Répondre…"
+              className="flex-1 min-h-[26rem]"
+              actions={
+                <button
+                  type="button"
+                  onClick={() => setSelectedId(null)}
+                  aria-label="Retour à la liste des conversations"
+                  className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                >
+                  <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
+                </button>
+              }
+              emptyState={
+                <p className="text-sm text-slate-400 text-center py-10">
+                  Aucun message dans cette conversation.
+                </p>
+              }
+            />
+          ) : (
+            <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-card">
+              <p className="text-sm text-navy-600/60">
+                Sélectionnez une conversation pour lire et répondre.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+export default function CoachMessagesPage() {
+  return (
+    // Suspense requis par useSearchParams (deep-link ?c= des notifications)
+    <Suspense fallback={<div className="p-8 max-w-6xl mx-auto h-64 animate-pulse bg-white rounded-3xl" />}>
+      <CoachMessagesInner />
+    </Suspense>
   );
 }

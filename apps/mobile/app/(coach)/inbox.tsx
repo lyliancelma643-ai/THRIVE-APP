@@ -19,11 +19,12 @@ export default function CoachInboxScreen() {
   };
 
   const filtered = conversations.filter((c) => {
-    const name = `${c.other.first_name} ${c.other.last_name}`.toLowerCase();
+    const name = `${c.counterpart_name ?? ''} ${c.child_name ?? ''}`.toLowerCase();
     return name.includes(search.toLowerCase());
   });
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return '';
     const d = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
@@ -33,8 +34,10 @@ export default function CoachInboxScreen() {
     return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
   };
 
-  const getInitials = (firstName: string, lastName: string) =>
-    `${firstName[0] ?? ''}${lastName[0] ?? ''}`.toUpperCase();
+  const getInitials = (name?: string | null) => {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return parts.length ? (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase() : '?';
+  };
 
   return (
     <View style={styles.container}>
@@ -72,21 +75,21 @@ export default function CoachInboxScreen() {
             <TouchableOpacity
               key={conv.id}
               style={styles.row}
-              onPress={() => router.push(`/(coach)/chat/${conv.id}?receiverId=${conv.participant_1 === conv.other.id ? conv.participant_1 : conv.participant_2}`)}
+              onPress={() => router.push(`/(coach)/chat/${conv.id}?name=${conv.counterpart_name ?? 'Parent'}`)}
             >
               <View style={styles.avatar}>
                 <Text style={styles.avatarText}>
-                  {getInitials(conv.other.first_name, conv.other.last_name)}
+                  {getInitials(conv.counterpart_name)}
                 </Text>
               </View>
               <View style={styles.rowContent}>
                 <View style={styles.rowTop}>
-                  <Text style={styles.name}>{conv.other.first_name} {conv.other.last_name}</Text>
+                  <Text style={styles.name}>{conv.counterpart_name ?? 'Parent'}</Text>
                   <Text style={styles.time}>{formatTime(conv.last_message_at)}</Text>
                 </View>
                 <View style={styles.rowBottom}>
                   <Text style={styles.lastMsg} numberOfLines={1}>
-                    {conv.last_message ?? 'Nouvelle conversation'}
+                    {conv.last_message_preview ?? 'Nouvelle conversation'}
                   </Text>
                   {conv.unread_count > 0 && (
                     <View style={styles.badge}>

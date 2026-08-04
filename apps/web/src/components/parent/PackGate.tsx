@@ -38,7 +38,7 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
           cy="18"
           r="16"
           fill="none"
-          stroke="rgba(255,255,255,0.10)"
+          stroke="var(--line2)"
           strokeWidth="3"
         />
         <circle
@@ -56,7 +56,7 @@ export function ScoreGauge({ note, max = 5, locked = false }: { note: number; ma
       </svg>
       <div className="absolute inset-0 flex items-center justify-center">
         <span
-          className={`font-display font-bold text-white text-lg leading-none tabular-nums ${
+          className={`font-display font-bold text-ink text-lg leading-none tabular-nums ${
             locked ? 'blur-[6px] select-none' : ''
           }`}
           aria-hidden={locked}
@@ -94,10 +94,10 @@ export function LockIcon({ className }: { className?: string }) {
 export function UpgradeHintBar({ pack, hint }: { pack: Pack; hint?: string }) {
   return (
     <div className="flex items-start gap-2.5 rounded-[14px] border border-sun/[0.28] bg-sun/[0.07] px-3.5 py-3">
-      <LockIcon className="w-4 h-4 text-sun shrink-0 mt-0.5" />
-      <p className="text-sm leading-[1.5] text-[rgba(234,243,241,0.88)]">
-        <span className="font-semibold text-sun">Contenu réservé.</span> {hint ?? upgradeHint(pack)}{' '}
-        <Link href="/parent/upgrade" className="font-semibold text-sun underline underline-offset-2">
+      <LockIcon className="w-4 h-4 text-accent-ink shrink-0 mt-0.5" />
+      <p className="text-sm leading-[1.5] text-body">
+        <span className="font-semibold text-accent-ink">Contenu réservé.</span> {hint ?? upgradeHint(pack)}{' '}
+        <Link href="/parent/upgrade" className="font-semibold text-accent-ink underline underline-offset-2">
           Voir les forfaits
         </Link>
       </p>
@@ -110,9 +110,9 @@ export function LockedText({ pack, hint }: { pack: Pack; hint?: string }) {
   return (
     <div>
       <div aria-hidden className="space-y-2 mb-3 blur-[5px] select-none pointer-events-none">
-        <div className="h-3 rounded bg-white/15 w-[95%]" />
-        <div className="h-3 rounded bg-white/15 w-[88%]" />
-        <div className="h-3 rounded bg-white/15 w-[72%]" />
+        <div className="h-3 rounded bg-chip w-[95%]" />
+        <div className="h-3 rounded bg-chip w-[88%]" />
+        <div className="h-3 rounded bg-chip w-[72%]" />
       </div>
       <UpgradeHintBar pack={pack} hint={hint} />
     </div>

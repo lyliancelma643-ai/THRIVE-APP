@@ -441,9 +441,9 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
             width: 44,
             height: 44,
             borderRadius: 14,
-            background: 'rgba(255,255,255,.06)',
-            border: '1px solid rgba(255,255,255,.12)',
-            color: 'rgba(234,243,241,.75)',
+            background: 'var(--chip)',
+            border: '1px solid var(--line2)',
+            color: 'var(--text3)',
             fontSize: 16,
             cursor: 'pointer',
             display: 'grid',
@@ -463,7 +463,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
               display: 'grid',
               placeItems: 'center',
               fontSize: 17,
-              color: '#F9EB50',
+              color: 'var(--accent-ink)',
               flexShrink: 0,
             }}
           >
@@ -477,7 +477,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
               border: '1px solid rgba(249,235,80,.28)',
               fontWeight: 600,
               fontSize: 11,
-              color: '#F9EB50',
+              color: 'var(--accent-ink)',
             }}
           >
             {info.badge}
@@ -486,7 +486,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
         <h2 className="disp" style={{ margin: '0 0 6px', fontWeight: 600, fontSize: 26, lineHeight: 1.1 }}>
           {info.title}
         </h2>
-        <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: 'rgba(234,243,241,.6)' }}>
+        <p style={{ margin: '0 0 18px', fontSize: 13.5, lineHeight: 1.5, color: 'var(--text3)' }}>
           {info.tagline}
         </p>
         {info.sections.map((s) => (
@@ -496,8 +496,8 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
               marginBottom: 12,
               padding: '14px 16px',
               borderRadius: 14,
-              background: 'rgba(255,255,255,.03)',
-              border: '1px solid rgba(255,255,255,.07)',
+              background: 'var(--surface-sub)',
+              border: '1px solid var(--line)',
             }}
           >
             <div
@@ -513,14 +513,14 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
               {s.label}
             </div>
             {s.text && (
-              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'rgba(234,243,241,.85)' }}>{s.text}</p>
+              <p style={{ margin: 0, fontSize: 13.5, lineHeight: 1.6, color: 'var(--text2)' }}>{s.text}</p>
             )}
             {s.bullets && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 7, marginTop: s.text ? 8 : 0 }}>
                 {s.bullets.map((b) => (
                   <div key={b} style={{ display: 'flex', gap: 9, alignItems: 'baseline' }}>
-                    <span style={{ color: '#F9EB50', fontSize: 11, flexShrink: 0 }}>✦</span>
-                    <span style={{ fontSize: 13, lineHeight: 1.55, color: 'rgba(234,243,241,.85)' }}>{b}</span>
+                    <span style={{ color: 'var(--accent-ink)', fontSize: 11, flexShrink: 0 }}>✦</span>
+                    <span style={{ fontSize: 13, lineHeight: 1.55, color: 'var(--text2)' }}>{b}</span>
                   </div>
                 ))}
               </div>
@@ -540,7 +540,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
               marginTop: 4,
             }}
           >
-            <span style={{ fontSize: 15, flexShrink: 0, color: '#F9EB50', lineHeight: 1.3 }}>⌂</span>
+            <span style={{ fontSize: 15, flexShrink: 0, color: 'var(--accent-ink)', lineHeight: 1.3 }}>⌂</span>
             <div>
               <div
                 style={{
@@ -548,13 +548,13 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
                   fontSize: 10.5,
                   letterSpacing: '.06em',
                   textTransform: 'uppercase',
-                  color: '#F9EB50',
+                  color: 'var(--accent-ink)',
                   marginBottom: 4,
                 }}
               >
                 À la maison
               </div>
-              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'rgba(234,243,241,.88)' }}>{info.tip}</p>
+              <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: 'var(--text2)' }}>{info.tip}</p>
             </div>
           </div>
         )}
@@ -569,9 +569,9 @@ export function BilanSkeleton() {
   return (
     <div aria-busy role="status" aria-label="Chargement du bilan">
       <div className="animate-pulse">
-        <div className="h-3 w-40 rounded bg-white/[0.09] mb-4" />
-        <div className="h-20 w-44 rounded-2xl bg-white/[0.07] mb-4" />
-        <div className="h-1.5 w-full rounded-full bg-white/[0.09] mb-7" />
+        <div className="h-3 w-40 rounded bg-chip mb-4" />
+        <div className="h-20 w-44 rounded-2xl bg-chip mb-4" />
+        <div className="h-1.5 w-full rounded-full bg-chip mb-7" />
         <div className="h-[72px] rounded-[18px] bg-night-surface mb-3" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="h-56 rounded-[22px] bg-night-surface" />

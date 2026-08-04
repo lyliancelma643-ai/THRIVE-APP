@@ -79,7 +79,7 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menu du compte"
-        className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all select-none"
+        className="w-11 h-11 rounded-full bg-navy-500 text-ink flex items-center justify-center text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all select-none"
       >
         {initials}
       </button>
@@ -95,19 +95,19 @@ export function UserMenu() {
             />
             <div
               role="menu"
-              className="fixed z-[70] w-64 rounded-2xl bg-night-surface ring-1 ring-white/[0.08] overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              className="fixed z-[70] w-64 rounded-2xl bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
               {/* En-tête : identité */}
-              <div className="flex items-center gap-3 px-4 py-4 border-b border-white/10">
-                <span className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold shrink-0">
+              <div className="flex items-center gap-3 px-4 py-4 border-b border-line">
+                <span className="w-11 h-11 rounded-full bg-navy-500 text-ink flex items-center justify-center text-[13px] font-bold shrink-0">
                   {initials}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-white truncate">{fullName}</p>
-                  <p className="text-[11px] text-white/50 truncate">{user.email}</p>
+                  <p className="text-sm font-semibold text-ink truncate">{fullName}</p>
+                  <p className="text-[11px] text-faint truncate">{user.email}</p>
                   {user.role && (
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-white/10 text-[10px] font-semibold text-white/70 uppercase tracking-wide">
+                    <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-chip text-[10px] font-semibold text-soft uppercase tracking-wide">
                       {ROLE_LABELS[user.role] ?? user.role}
                     </span>
                   )}
@@ -118,7 +118,7 @@ export function UserMenu() {
                 href="/parent/compte"
                 onClick={() => setOpen(false)}
                 role="menuitem"
-                className="flex items-center gap-3 px-4 py-3 min-h-[48px] text-sm text-white/80 hover:bg-white/10 active:bg-white/10 transition-colors"
+                className="flex items-center gap-3 px-4 py-3 min-h-[48px] text-sm text-body hover:bg-chip active:bg-chip transition-colors"
               >
                 <Icon name="settings" className="w-5 h-5 shrink-0" />
                 Paramètres du compte
@@ -128,7 +128,7 @@ export function UserMenu() {
                 onClick={handleLogout}
                 disabled={signingOut}
                 role="menuitem"
-                className="flex items-center gap-3 w-full text-left px-4 py-3 min-h-[48px] text-sm font-semibold text-red-300 hover:bg-red-500/15 active:bg-red-500/20 transition-colors border-t border-white/10 disabled:opacity-60"
+                className="flex items-center gap-3 w-full text-left px-4 py-3 min-h-[48px] text-sm font-semibold text-red-300 hover:bg-red-500/15 active:bg-red-500/20 transition-colors border-t border-line disabled:opacity-60"
               >
                 <Icon name="power" className="w-5 h-5 shrink-0" />
                 {signingOut ? 'Déconnexion…' : 'Se déconnecter'}

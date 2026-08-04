@@ -70,12 +70,12 @@ function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
   }
   if (v === false) {
     return (
-      <span className="text-white/25" aria-label="Non inclus">
+      <span className="text-faint" aria-label="Non inclus">
         —
       </span>
     );
   }
-  return <span className={soon ? 'text-white/45 italic' : 'text-white/80'}>{v}</span>;
+  return <span className={soon ? 'text-faint italic' : 'text-body'}>{v}</span>;
 }
 
 export default function UpgradePage() {
@@ -120,18 +120,18 @@ export default function UpgradePage() {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="font-display text-3xl font-semibold text-white mb-2">Les forfaits THRIVE</h1>
-      <p className="text-white/55 mb-8 max-w-2xl">
+      <h1 className="font-display text-3xl font-semibold text-ink mb-2">Les forfaits THRIVE</h1>
+      <p className="text-soft mb-8 max-w-2xl">
         Chaque forfait reprend tout le précédent et va plus loin — plus de profondeur, plus de
         suivi, plus d&apos;accès à votre coach. Paiement unique pour le parcours de 13 séances.
       </p>
 
       {notice && (
         <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-4 py-3">
-          <span className="text-sun mt-0.5 select-none" aria-hidden>
+          <span className="text-accent-ink mt-0.5 select-none" aria-hidden>
             ✦
           </span>
-          <p className="text-sm leading-relaxed text-white/85">{notice}</p>
+          <p className="text-sm leading-relaxed text-body">{notice}</p>
         </div>
       )}
 
@@ -144,12 +144,12 @@ export default function UpgradePage() {
             <section
               key={p}
               className={`glass-navy rounded-2xl p-6 flex flex-col ${
-                isCurrent ? 'ring-2 ring-sage/60' : 'ring-1 ring-white/10'
+                isCurrent ? 'ring-2 ring-sage/60' : 'ring-1 ring-line'
               }`}
             >
               <div className="mb-5">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="font-display text-xl font-semibold text-white">
+                  <h2 className="font-display text-xl font-semibold text-ink">
                     {PACK_LABELS[p]}
                   </h2>
                   {isCurrent && (
@@ -158,11 +158,11 @@ export default function UpgradePage() {
                     </span>
                   )}
                 </div>
-                <p className="text-sun font-display text-3xl font-semibold mt-2">
+                <p className="text-accent-ink font-display text-3xl font-semibold mt-2">
                   {PACK_PRICES[p]}
-                  <span className="text-sm text-white/45 font-sans font-normal"> · parcours complet</span>
+                  <span className="text-sm text-faint font-sans font-normal"> · parcours complet</span>
                 </p>
-                <p className="text-sm text-white/55 mt-2 leading-relaxed">{PACK_TAGLINES[p]}</p>
+                <p className="text-sm text-soft mt-2 leading-relaxed">{PACK_TAGLINES[p]}</p>
               </div>
 
               <ul className="space-y-2.5 flex-1">
@@ -173,7 +173,7 @@ export default function UpgradePage() {
                       key={row.label}
                       className="flex items-start justify-between gap-3 text-[13px] leading-snug"
                     >
-                      <span className={v === false ? 'text-white/35' : 'text-white/75'}>
+                      <span className={v === false ? 'text-faint' : 'text-body'}>
                         {row.label}
                       </span>
                       <span className="shrink-0 font-medium">
@@ -184,21 +184,21 @@ export default function UpgradePage() {
                 })}
               </ul>
 
-              <div className="mt-6 pt-5 border-t border-white/10">
+              <div className="mt-6 pt-5 border-t border-line">
                 {isCurrent ? (
-                  <span className="block w-full text-center px-6 py-3 rounded-full bg-white/[0.06] border border-white/10 text-sm font-bold text-white/45 select-none">
+                  <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-faint select-none">
                     Forfait actuel
                   </span>
                 ) : isUpgrade ? (
                   <button
                     onClick={() => checkout(p)}
                     disabled={pendingPack !== null}
-                    className="block w-full text-center px-6 py-3 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 disabled:opacity-50 disabled:cursor-wait transition-all"
+                    className="block w-full text-center px-6 py-3 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 disabled:opacity-50 disabled:cursor-wait transition-all"
                   >
                     {pendingPack === p ? 'Redirection…' : `Passer au pack ${PACK_LABELS[p]}`}
                   </button>
                 ) : (
-                  <span className="block w-full text-center px-6 py-3 rounded-full border border-white/10 text-sm font-medium text-white/35 select-none">
+                  <span className="block w-full text-center px-6 py-3 rounded-full border border-line text-sm font-medium text-faint select-none">
                     Inclus dans votre forfait
                   </span>
                 )}
@@ -208,7 +208,7 @@ export default function UpgradePage() {
         })}
       </div>
 
-      <p className="text-xs text-white/35 mt-8 max-w-2xl leading-relaxed">
+      <p className="text-xs text-faint mt-8 max-w-2xl leading-relaxed">
         Le changement de forfait s&apos;applique immédiatement après le paiement, pour toute la
         famille. Les bilans déjà reçus sont régénérés à la profondeur de votre nouveau forfait par
         votre coach. Prix en dollars canadiens, taxes en sus le cas échéant.

@@ -155,10 +155,10 @@ function FitnessPageInner() {
               <h1 className="font-display text-[32px] md:text-5xl text-night-ink font-semibold leading-[1.12] mb-2">
                 {nextSession.title}
               </h1>
-              <p className="text-[15px] md:text-lg leading-[1.5] text-[rgba(234,243,241,0.8)] mb-5">
+              <p className="text-[15px] md:text-lg leading-[1.5] text-body mb-5">
                 {nextSession.subtitle}
               </p>
-              <span className="inline-flex items-center gap-2 h-[52px] px-6 rounded-full bg-sun text-navy-900 font-bold text-base group-hover:bg-sun-dark transition-colors">
+              <span className="inline-flex items-center gap-2 h-[52px] px-6 rounded-full bg-accent text-navy-900 font-bold text-base group-hover:bg-sun-dark transition-colors">
                 <Icon name="play" className="w-[18px] h-[18px]" />
                 {completedIds.size > 0 ? 'Continuer la séance' : 'Lancer la séance'}
               </span>
@@ -171,16 +171,16 @@ function FitnessPageInner() {
       {sessions.length > 0 && (
         <div className="mt-7 animate-om-up" style={{ ['--om-d' as string]: '0.1s' }}>
           <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[15px] font-semibold text-[rgba(234,243,241,0.8)]">
+            <span className="text-[15px] font-semibold text-body">
               Parcours 20 minutes{selectedChild ? ` de ${selectedChild.first_name}` : ''}
             </span>
-            <span className="font-display text-[17px] font-semibold text-sun">
+            <span className="font-display text-[17px] font-semibold text-accent-ink">
               {completedIds.size} / {sessions.length}
             </span>
           </div>
           <div className="nc-track mt-3">
             <div
-              className="nc-fill bg-sun"
+              className="nc-fill bg-accent"
               style={{ width: `${(completedIds.size / Math.max(sessions.length, 1)) * 100}%` }}
             />
           </div>
@@ -212,7 +212,7 @@ function FitnessPageInner() {
         <h2 className="font-display text-[22px] md:text-3xl font-semibold text-night-ink mb-1.5">
           Toutes les séances
         </h2>
-        <p className="text-sm md:text-[15px] leading-[1.5] text-[rgba(234,243,241,0.68)] mb-4">
+        <p className="text-sm md:text-[15px] leading-[1.5] text-soft mb-4">
           13 séances de 20 minutes par tranche d&apos;âge, à vivre parent et enfant.
         </p>
 
@@ -253,7 +253,7 @@ function FitnessPageInner() {
         </div>
 
         {filtered.length === 0 && (
-          <p className="text-[rgba(234,243,241,0.55)] text-sm py-12 text-center">
+          <p className="text-soft text-sm py-12 text-center">
             Aucune séance ne correspond à ces filtres.
           </p>
         )}

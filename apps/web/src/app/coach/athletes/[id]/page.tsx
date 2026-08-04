@@ -7,6 +7,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { childAge, AssignedChild } from '@/lib/coach';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
 import { AthleteWorkspace } from '@/components/coach/AthleteWorkspace';
+import { WriteToParentButton } from '@/components/coach/WriteToParentButton';
 
 export default function CoachAthletePage() {
   const params = useParams<{ id: string }>();
@@ -51,7 +52,7 @@ export default function CoachAthletePage() {
         ← Mes athlètes
       </Link>
 
-      <div className="flex items-center gap-4 mt-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4 mt-4 mb-6">
         <span className="w-14 h-14 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl font-bold">
           {child.first_name[0]}
         </span>
@@ -63,6 +64,11 @@ export default function CoachAthletePage() {
             {childAge(child.date_of_birth) ?? '–'} ans (groupe {ageGroup}) · {child.sport ?? 'Hockey'}
           </p>
         </div>
+        <WriteToParentButton
+          childId={child.id}
+          childName={child.first_name}
+          className="sm:ml-auto"
+        />
       </div>
 
       <AthleteWorkspace

@@ -12,7 +12,7 @@ type Props = {
 
 // Direction « Nuit calme » : la vignette porte l'image, le texte vit SOUS elle
 // (et non en surimpression). Pas de dégradé de thème, pas d'ombre — un aplat
-// #0C2029 quand l'image manque, et le sage pour la ligne de contexte.
+// var(--surface) quand l'image manque, et le sage pour la ligne de contexte.
 export function SessionCard({ session, size = 'md', completed = false }: Props) {
   const width = size === 'lg' ? 'w-[264px]' : 'w-[230px]';
 
@@ -42,7 +42,7 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
         )}
 
         {session.is_free && (
-          <span className="absolute top-2.5 left-2.5 px-2.5 h-6 inline-flex items-center rounded-full bg-sun text-navy-900 text-[11px] font-bold">
+          <span className="absolute top-2.5 left-2.5 px-2.5 h-6 inline-flex items-center rounded-full bg-accent text-navy-900 text-[11px] font-bold">
             Gratuit
           </span>
         )}
@@ -55,7 +55,7 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
 
         {/* Bouton de lecture au survol — la seule surimpression conservée */}
         <span className="absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
-          <span className="w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center">
+          <span className="w-11 h-11 rounded-full bg-accent text-navy-900 flex items-center justify-center">
             <Icon name="play" className="w-4 h-4" />
           </span>
         </span>
@@ -65,7 +65,7 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
         Séance {session.session_number} · {formatDuration(session.duration_minutes)}
       </p>
       <p className="text-base font-semibold leading-[1.35] text-night-ink">{session.title}</p>
-      <p className="mt-0.5 text-[13px] text-[rgba(234,243,241,0.5)]">{session.age_group} ans</p>
+      <p className="mt-0.5 text-[13px] text-faint">{session.age_group} ans</p>
     </Link>
   );
 }

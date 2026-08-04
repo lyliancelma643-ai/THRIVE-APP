@@ -62,11 +62,11 @@ const LABEL: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: '.05em',
   textTransform: 'uppercase',
-  color: 'rgba(234,243,241,.45)',
+  color: 'var(--text4)',
   marginBottom: 8,
 };
 
-const EMPTY: React.CSSProperties = { color: 'rgba(234,243,241,.45)', fontSize: 15 };
+const EMPTY: React.CSSProperties = { color: 'var(--text4)', fontSize: 15 };
 
 function Section({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -87,7 +87,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
           <span className="disp" style={{ fontWeight: 700, fontSize: 44, lineHeight: 1 }}>
             {d.toolbox.length}
           </span>
-          <span style={{ fontSize: 15, color: 'rgba(234,243,241,.5)' }}>/6 outils collectés</span>
+          <span style={{ fontSize: 15, color: 'var(--text4)' }}>/6 outils collectés</span>
         </div>
         {d.toolbox.length ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -99,9 +99,9 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
                   background: 'rgba(167,196,188,.07)', border: '1px solid rgba(167,196,188,.18)',
                 }}
               >
-                <div style={{ fontWeight: 600, fontSize: 17, color: '#eaf3f1' }}>{t.tool}</div>
+                <div style={{ fontWeight: 600, fontSize: 17, color: 'var(--text2)' }}>{t.tool}</div>
                 {t.context && (
-                  <div style={{ fontSize: 14, color: 'rgba(234,243,241,.6)', marginTop: 4, lineHeight: 1.5 }}>
+                  <div style={{ fontSize: 14, color: 'var(--text3)', marginTop: 4, lineHeight: 1.5 }}>
                     {t.context}
                   </div>
                 )}
@@ -119,7 +119,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               background: `${accent}14`, border: `1px solid ${accent}33`,
             }}
           >
-            <span style={{ fontSize: 12, color: 'rgba(234,243,241,.55)' }}>Focus word</span>
+            <span style={{ fontSize: 12, color: 'var(--text3)' }}>Focus word</span>
             <span className="disp" style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 22, color: accent }}>
               {d.focusWord}
             </span>
@@ -140,22 +140,22 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               key={i}
               style={{
                 display: 'flex', alignItems: 'center', gap: 14, padding: '15px 16px', borderRadius: 15,
-                background: done ? 'rgba(167,196,188,.09)' : 'rgba(255,255,255,.035)',
+                background: done ? 'rgba(167,196,188,.09)' : 'var(--surface-sub)',
                 border: done ? '1px solid rgba(167,196,188,.2)' : '1px solid rgba(255,255,255,.08)',
               }}
             >
               <span
                 style={{
                   width: 40, height: 40, borderRadius: 12, flexShrink: 0,
-                  background: 'rgba(255,255,255,.06)', display: 'grid', placeItems: 'center',
+                  background: 'var(--chip)', display: 'grid', placeItems: 'center',
                   color: done ? '#A7C4BC' : accent, fontSize: 17,
                 }}
               >
                 {icon}
               </span>
               <div style={{ minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: 16, lineHeight: 1.4, color: '#eaf3f1' }}>{s.label}</div>
-                <div style={{ fontSize: 12.5, color: 'rgba(234,243,241,.5)', marginTop: 2 }}>
+                <div style={{ fontWeight: 600, fontSize: 16, lineHeight: 1.4, color: 'var(--text2)' }}>{s.label}</div>
+                <div style={{ fontSize: 12.5, color: 'var(--text4)', marginTop: 2 }}>
                   {done ? 'Terminé' : s.status === 'doing' ? 'En cours' : 'À venir'}
                   {s.due_date
                     ? ` · ${new Date(s.due_date).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long' })}`
@@ -182,7 +182,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
           ].map(([l, v]) => (
             <div
               key={l}
-              style={{ padding: '12px 14px', borderRadius: 14, background: 'rgba(255,255,255,.03)', border: '1px solid rgba(255,255,255,.07)' }}
+              style={{ padding: '12px 14px', borderRadius: 14, background: 'var(--line)', border: '1px solid var(--line)' }}
             >
               <div style={{ ...LABEL, marginBottom: 3 }}>{l}</div>
               <div style={{ fontWeight: 600, fontSize: 16 }}>{v}</div>
@@ -191,7 +191,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
         </div>
         <Section label="Histoire sportive">
           {d.sportStory ? (
-            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: 'rgba(234,243,241,.9)', whiteSpace: 'pre-line' }}>
+            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.65, color: 'var(--text2)', whiteSpace: 'pre-line' }}>
               {d.sportStory}
             </p>
           ) : (
@@ -228,7 +228,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               “
             </span>
             <div style={{ ...LABEL, color: `${accent}b3`, marginBottom: 4 }}>Rêve de saison</div>
-            <p className="disp" style={{ margin: 0, fontStyle: 'italic', fontSize: 19, lineHeight: 1.45, color: '#eaf3f1' }}>
+            <p className="disp" style={{ margin: 0, fontStyle: 'italic', fontSize: 19, lineHeight: 1.45, color: 'var(--text2)' }}>
               {d.seasonDream}
             </p>
           </div>
@@ -250,13 +250,13 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
             “
           </span>
           <div style={{ ...LABEL, marginBottom: 5 }}>Objectif SMART</div>
-          <p className="disp" style={{ margin: 0, fontWeight: 500, fontSize: 21, lineHeight: 1.4, color: '#eaf3f1' }}>
+          <p className="disp" style={{ margin: 0, fontWeight: 500, fontSize: 21, lineHeight: 1.4, color: 'var(--text2)' }}>
             {d.smartGoal || 'Objectif SMART à co-construire avec le coach.'}
           </p>
         </div>
         {d.lifeSkillGoal && (
           <Section label="Objectif life skill">
-            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: 'rgba(234,243,241,.9)' }}>{d.lifeSkillGoal}</p>
+            <p style={{ margin: 0, fontSize: 16, lineHeight: 1.55, color: 'var(--text2)' }}>{d.lifeSkillGoal}</p>
           </Section>
         )}
         {d.myActions.length > 0 && (
@@ -265,17 +265,17 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               {d.myActions.map((a, i) => (
                 <div key={i} style={{ display: 'flex', gap: 11, alignItems: 'baseline' }}>
                   <span style={{ color: accent, fontSize: 15, flexShrink: 0 }}>✓</span>
-                  <span style={{ fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: 'rgba(234,243,241,.9)' }}>{a}</span>
+                  <span style={{ fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: 'var(--text2)' }}>{a}</span>
                 </div>
               ))}
             </div>
           </Section>
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-          <span style={{ fontSize: 13, color: 'rgba(234,243,241,.55)' }}>Progression du parcours</span>
+          <span style={{ fontSize: 13, color: 'var(--text3)' }}>Progression du parcours</span>
           <span className="disp" style={{ fontWeight: 600, fontSize: 17, color: accent }}>{d.pct}%</span>
         </div>
-        <div style={{ height: 10, borderRadius: 5, background: 'rgba(255,255,255,.07)', overflow: 'hidden' }}>
+        <div style={{ height: 10, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
           <div style={{ width: `${d.pct}%`, height: '100%', borderRadius: 5, background: `linear-gradient(90deg,#A7C4BC,${accent})` }} />
         </div>
       </>
@@ -297,7 +297,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               {d.focusWord}
             </div>
             <div style={{ ...LABEL, marginTop: 16, marginBottom: 0 }}>Mot-ancre actif de {d.firstName}</div>
-            <p style={{ margin: '18px auto 0', maxWidth: 380, fontSize: 14.5, lineHeight: 1.6, color: 'rgba(234,243,241,.6)' }}>
+            <p style={{ margin: '18px auto 0', maxWidth: 380, fontSize: 14.5, lineHeight: 1.6, color: 'var(--text3)' }}>
               Choisi à la séance S9, ce mot ramène l’attention au bon endroit dans les moments importants —
               avant un match, un examen, un moment de pression.
             </p>
@@ -331,19 +331,19 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
               style={{
                 zIndex: 1, flexShrink: 0, width: 38, height: 38, borderRadius: '50%',
                 background: i === 0 ? `radial-gradient(circle at 40% 35%,#fff7c8,${d.accent} 70%)` : i === 3 ? 'rgba(255,255,255,.06)' : 'radial-gradient(circle at 40% 35%,#dff0ea,#A7C4BC 70%)',
-                border: i === 3 ? '1px solid rgba(255,255,255,.16)' : 'none',
-                color: i === 3 ? '#eaf3f1' : '#06222a',
+                border: i === 3 ? '1px solid var(--line2)' : 'none',
+                color: i === 3 ? 'var(--text2)' : '#06222a',
                 display: 'grid', placeItems: 'center', fontWeight: 700, fontSize: 15,
               }}
             >
               {n}
             </span>
-            <span style={{ fontWeight: i === 3 ? 700 : 500, fontSize: 17, color: i === 3 ? '#eaf3f1' : 'rgba(234,243,241,.88)' }}>
+            <span style={{ fontWeight: i === 3 ? 700 : 500, fontSize: 17, color: i === 3 ? 'var(--text2)' : 'var(--text2)' }}>
               {txt}
             </span>
           </div>
         ))}
-        <p style={{ margin: '8px 0 0', fontSize: 13.5, lineHeight: 1.55, color: 'rgba(234,243,241,.55)' }}>
+        <p style={{ margin: '8px 0 0', fontSize: 13.5, lineHeight: 1.55, color: 'var(--text3)' }}>
           Travaillée à la séance S6, cette routine se répète à l’identique avant chaque geste
           important pour installer calme et constance.
         </p>
@@ -356,16 +356,16 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
       <div
         style={{
           borderRadius: 16, padding: '22px 22px 24px',
-          background: 'linear-gradient(160deg,rgba(255,255,255,.055),rgba(255,255,255,.02))',
-          border: '1px solid rgba(255,255,255,.09)',
+          background: 'linear-gradient(160deg,var(--chip),rgba(255,255,255,.02))',
+          border: '1px solid var(--line)',
         }}
       >
-        <div className="disp" style={{ fontStyle: 'italic', fontSize: 15, color: 'rgba(234,243,241,.6)', marginBottom: 14 }}>
+        <div className="disp" style={{ fontStyle: 'italic', fontSize: 15, color: 'var(--text3)', marginBottom: 14 }}>
           Chère {d.firstName},
         </div>
         <p
           className="disp"
-          style={{ margin: 0, fontStyle: 'italic', fontSize: 17, lineHeight: 1.7, color: '#eaf3f1', whiteSpace: 'pre-line' }}
+          style={{ margin: 0, fontStyle: 'italic', fontSize: 17, lineHeight: 1.7, color: 'var(--text2)', whiteSpace: 'pre-line' }}
         >
           {d.letter}
         </p>
@@ -379,16 +379,16 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
   const remaining = Math.max(13 - d.completed, 0);
   return (
     <>
-      <p style={{ margin: '0 0 20px', fontSize: 15.5, lineHeight: 1.6, color: 'rgba(234,243,241,.75)' }}>
+      <p style={{ margin: '0 0 20px', fontSize: 15.5, lineHeight: 1.6, color: 'var(--text3)' }}>
         Reconnaissance officielle de fin de parcours de {d.firstName} — débloquée à la dernière séance.
       </p>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
-        <span style={{ fontSize: 14, color: 'rgba(234,243,241,.6)' }}>{d.completed}/13 séances</span>
-        <span className="disp" style={{ fontWeight: 600, fontSize: 16, color: 'rgba(234,243,241,.8)' }}>
+        <span style={{ fontSize: 14, color: 'var(--text3)' }}>{d.completed}/13 séances</span>
+        <span className="disp" style={{ fontWeight: 600, fontSize: 16, color: 'var(--text3)' }}>
           {remaining ? `${remaining} restantes` : 'Parcours complété 🎉'}
         </span>
       </div>
-      <div style={{ height: 11, borderRadius: 6, background: 'rgba(255,255,255,.07)', overflow: 'hidden' }}>
+      <div style={{ height: 11, borderRadius: 6, background: 'var(--line)', overflow: 'hidden' }}>
         <div
           style={{
             width: `${Math.round((Math.min(d.completed, 13) / 13) * 100)}%`, height: '100%',
@@ -438,8 +438,8 @@ export function DetailModal({
           aria-label="Fermer"
           style={{
             position: 'absolute', top: 12, right: 12, width: 44, height: 44, borderRadius: 14,
-            background: 'rgba(255,255,255,.06)', border: '1px solid rgba(255,255,255,.12)',
-            color: 'rgba(234,243,241,.75)', fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
+            background: 'var(--chip)', border: '1px solid var(--line2)',
+            color: 'var(--text3)', fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
           }}
         >
           ✕
@@ -457,7 +457,7 @@ export function DetailModal({
           </span>
           <div style={{ minWidth: 0 }}>
             <h2 className="disp" style={{ margin: 0, fontWeight: 600, fontSize: 22, lineHeight: 1.15 }}>{meta.title}</h2>
-            <div style={{ fontSize: 12, color: 'rgba(234,243,241,.5)', marginTop: 3 }}>
+            <div style={{ fontSize: 12, color: 'var(--text4)', marginTop: 3 }}>
               {d.firstName} · {meta.session}
             </div>
           </div>

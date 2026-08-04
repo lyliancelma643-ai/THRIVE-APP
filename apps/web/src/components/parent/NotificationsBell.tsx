@@ -16,6 +16,7 @@ type NotifData = {
   path?: string;
   token?: string;
   child_id?: string;
+  conversation_id?: string;
   kind?: string;
   subtype?: string;
   session_number?: number | string;
@@ -57,7 +58,11 @@ function notifTarget(n: Notif): string {
     case 'PROGRAM_UPDATED':
       return d.subtype === 'renewal_window' ? '/parent/upgrade' : '/parent/bilans';
     case 'MESSAGE':
-      return '/parent/messages';
+    case 'MESSAGE_RECEIVED':
+      // Ouvre le BON fil (coach ou support) plutôt que la liste — cf. migration 056.
+      return typeof d.conversation_id === 'string'
+        ? `/parent/messages?c=${d.conversation_id}`
+        : '/parent/messages';
     case 'SESSION':
     case 'SESSION_REMINDER':
       return '/parent/my-sessions';
@@ -155,7 +160,7 @@ export function NotificationsBell() {
       >
         <Icon name="bell" className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-accent text-navy-900 text-[10px] font-bold flex items-center justify-center">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
@@ -163,40 +168,40 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70vh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-white/[0.08] shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
-          style={{ background: 'rgba(3, 26, 40, 0.96)' }}
+          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70vh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-line shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
+          style={{ background: 'var(--surface)' }}
         >
           <div className="flex items-center justify-between px-4 pt-3 pb-2">
-            <p className="text-xs font-bold uppercase tracking-wide text-white/60">Notifications</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-soft">Notifications</p>
             {unread > 0 && (
               <button
                 onClick={() => markRead(items.filter((n) => !n.is_read).map((n) => n.id))}
-                className="text-[11px] text-sun font-semibold cursor-pointer"
+                className="text-[11px] text-accent-ink font-semibold cursor-pointer"
               >
                 Tout marquer lu
               </button>
             )}
           </div>
           {items.length === 0 ? (
-            <p className="px-4 pb-4 text-sm text-white/50">Aucune notification pour le moment.</p>
+            <p className="px-4 pb-4 text-sm text-faint">Aucune notification pour le moment.</p>
           ) : (
             <ul className="pb-2">
               {items.map((n) => (
                 <li key={n.id}>
                   <button
                     onClick={() => openNotif(n)}
-                    className={`w-full text-left px-4 py-2.5 hover:bg-white/5 transition-colors cursor-pointer ${
+                    className={`w-full text-left px-4 py-2.5 hover:bg-surface-sub transition-colors cursor-pointer ${
                       n.is_read ? 'opacity-60' : ''
                     }`}
                   >
                     <span className="flex items-start gap-2">
-                      {!n.is_read && <span className="mt-1.5 w-2 h-2 rounded-full bg-sun shrink-0" />}
+                      {!n.is_read && <span className="mt-1.5 w-2 h-2 rounded-full bg-accent shrink-0" />}
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-white truncate">{n.title}</span>
+                        <span className="block text-sm font-semibold text-ink truncate">{n.title}</span>
                         {n.body && (
-                          <span className="block text-xs text-white/60 line-clamp-2">{n.body}</span>
+                          <span className="block text-xs text-soft line-clamp-2">{n.body}</span>
                         )}
-                        <span className="block text-[10px] text-white/35 mt-0.5">
+                        <span className="block text-[10px] text-faint mt-0.5">
                           {timeAgo(n.created_at)}
                         </span>
                       </span>

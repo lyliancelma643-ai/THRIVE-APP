@@ -21,7 +21,7 @@ const FIELD_LABEL: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: '.05em',
   textTransform: 'uppercase',
-  color: 'rgba(234,243,241,.5)',
+  color: 'var(--text4)',
   display: 'block',
   marginBottom: 7,
 };
@@ -32,9 +32,9 @@ const INPUT: React.CSSProperties = {
   minHeight: 48,
   padding: '0 14px',
   borderRadius: 13,
-  background: 'rgba(255,255,255,.05)',
-  border: '1px solid rgba(255,255,255,.12)',
-  color: '#eaf3f1',
+  background: 'var(--surface-sub)',
+  border: '1px solid var(--line2)',
+  color: 'var(--text2)',
   fontSize: 15,
   outline: 'none',
 };
@@ -136,8 +136,8 @@ export function PassportEditModal({
           aria-label="Fermer"
           style={{
             position: 'absolute', top: 12, right: 12, width: 44, height: 44,
-            borderRadius: 14, background: 'rgba(255,255,255,.06)',
-            border: '1px solid rgba(255,255,255,.12)', color: 'rgba(234,243,241,.75)',
+            borderRadius: 14, background: 'var(--line)',
+            border: '1px solid var(--line2)', color: 'var(--text3)',
             fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
           }}
         >
@@ -191,7 +191,7 @@ export function PassportEditModal({
               onClick={() => fileRef.current?.click()}
               style={{
                 minHeight: 44, padding: '0 16px', borderRadius: 12, border: 'none',
-                background: 'rgba(255,255,255,.08)', color: '#eaf3f1',
+                background: 'var(--chip)', color: 'var(--text2)',
                 fontWeight: 600, fontSize: 13, cursor: 'pointer',
               }}
             >
@@ -202,7 +202,7 @@ export function PassportEditModal({
                 onClick={() => { setFile(null); setRemovePhoto(true); }}
                 style={{
                   minHeight: 36, padding: '0 16px', borderRadius: 12, border: 'none',
-                  background: 'transparent', color: 'rgba(234,243,241,.55)',
+                  background: 'transparent', color: 'var(--text3)',
                   fontWeight: 500, fontSize: 12, cursor: 'pointer', textAlign: 'left',
                 }}
               >
@@ -277,14 +277,14 @@ export function PassportEditModal({
           disabled={saving}
           style={{
             width: '100%', minHeight: 52, borderRadius: 15, border: 'none',
-            background: saving ? 'rgba(255,255,255,.12)' : hex,
-            color: saving ? 'rgba(234,243,241,.5)' : '#06222a',
+            background: saving ? 'var(--chip)' : hex,
+            color: saving ? 'var(--text4)' : '#06222a',
             fontWeight: 700, fontSize: 15, cursor: saving ? 'wait' : 'pointer',
           }}
         >
           {saving ? 'Enregistrement…' : 'Enregistrer'}
         </button>
-        <p style={{ textAlign: 'center', fontSize: 11, color: 'rgba(234,243,241,.4)', margin: '12px 0 0' }}>
+        <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text4)', margin: '12px 0 0' }}>
           La photo reste privée : visible uniquement par la famille, le coach et l’équipe THRIVE.
         </p>
       </div>

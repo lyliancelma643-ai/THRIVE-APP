@@ -1,265 +1,286 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { supabaseClient as supabase } from '@thrive/shared';
+// ─────────────────────────────────────────────────────────────────────────────
+// Messagerie côté THRIVE — deux métiers, deux onglets :
+//
+//   • « Support client » : la file des demandes parents. On répond, on prend en
+//     charge (le fil n'alerte alors plus que soi), on marque résolu. Un nouveau
+//     message d'un parent rouvre automatiquement un ticket clos.
+//   • « Supervision » : les échanges coach ↔ parent, en LECTURE SEULE. C'est un
+//     choix, pas une limite d'UI : la RLS interdit à un admin d'écrire dans un
+//     fil coach (personne ne parle à la place du coach).
+// ─────────────────────────────────────────────────────────────────────────────
+
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuthStore } from '@/stores/auth.store';
 import { useModalDismiss } from '@/lib/useModalDismiss';
+import { useConversationsRealtime } from '@/hooks/useConversation';
+import { ConversationList, Thread } from '@/components/messaging';
+import { Icon } from '@/components/ui';
+import {
+  listConversations,
+  setSupportState,
+  type ConversationSummary,
+} from '@/lib/messaging';
 
-interface Profile {
-  id: string;
-  first_name: string;
-  last_name: string;
-  role: string;
-}
+type Tab = 'support' | 'supervision';
+type Filter = 'todo' | 'all' | 'closed';
 
-interface ConvRow {
-  id: string;
-  participant_1: string;
-  participant_2: string;
-  last_message_at: string;
-  p1: Profile;
-  p2: Profile;
-  last_message?: string;
-  message_count: number;
-}
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'todo', label: 'À traiter' },
+  { key: 'all', label: 'Toutes' },
+  { key: 'closed', label: 'Résolues' },
+];
 
-interface Message {
-  id: string;
-  sender_id: string;
-  content: string;
-  created_at: string;
-  status: string;
-}
+function AdminMessagesInner() {
+  const router = useRouter();
+  const params = useSearchParams();
+  const { user } = useAuthStore();
 
-export default function AdminMessagesPage() {
-  const [conversations, setConversations] = useState<ConvRow[]>([]);
-  const [selected, setSelected] = useState<ConvRow | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [msgLoading, setMsgLoading] = useState(false);
+  const [tab, setTab] = useState<Tab>('support');
+  const [filter, setFilter] = useState<Filter>('todo');
+  const [support, setSupport] = useState<ConversationSummary[]>([]);
+  const [supervision, setSupervision] = useState<ConversationSummary[]>([]);
+  const [selectedId, setSelectedId] = useState<string | null>(params.get('c'));
   const [search, setSearch] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
 
-  // Échap referme le fil ouvert (sur mobile il occupe l'écran) — 3e sortie en
-  // plus du bouton retour ← et du choix d'une autre conversation.
-  useModalDismiss(() => setSelected(null), !!selected, false);
-
-  useEffect(() => {
-    fetchConversations();
+  const load = useCallback(async () => {
+    const [s, v] = await Promise.all([
+      listConversations('support'),
+      listConversations('supervision'),
+    ]);
+    setSupport(s);
+    setSupervision(v);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
-    if (selected) fetchMessages(selected.id);
-  }, [selected]);
+    load();
+  }, [load]);
 
+  useConversationsRealtime(load);
+
+  // Deep-link d'une notification : on bascule sur l'onglet qui contient le fil.
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    const deep = params.get('c');
+    if (!deep || isLoading) return;
+    if (supervision.some((c) => c.id === deep)) setTab('supervision');
+    else if (support.some((c) => c.id === deep)) setTab('support');
+  }, [params, isLoading, support, supervision]);
 
-  const fetchConversations = async () => {
-    const { data } = await supabase
-      .from('conversations')
-      .select(`
-        *,
-        p1:profiles!conversations_participant_1_fkey(id, first_name, last_name, role),
-        p2:profiles!conversations_participant_2_fkey(id, first_name, last_name, role)
-      `)
-      .order('last_message_at', { ascending: false });
+  useModalDismiss(() => setSelectedId(null), !!selectedId, false);
 
-    if (!data) { setIsLoading(false); return; }
+  const rows = tab === 'support' ? support : supervision;
 
-    // Une seule requête pour tous les derniers messages + compteurs (au lieu
-    // de 2 requêtes par conversation : la liste chargeait en N+1).
-    const ids = data.map((c: any) => c.id);
-    const { data: allMsgs } = ids.length
-      ? await supabase
-          .from('messages')
-          .select('conversation_id, content, created_at')
-          .in('conversation_id', ids)
-          .order('created_at', { ascending: false })
-      : { data: [] as any[] };
-    const lastByConv: Record<string, string> = {};
-    const countByConv: Record<string, number> = {};
-    for (const m of allMsgs ?? []) {
-      countByConv[m.conversation_id] = (countByConv[m.conversation_id] ?? 0) + 1;
-      if (!(m.conversation_id in lastByConv)) lastByConv[m.conversation_id] = m.content;
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    let list = rows;
+    if (tab === 'support') {
+      if (filter === 'todo') list = list.filter((c) => c.status === 'OPEN');
+      if (filter === 'closed') list = list.filter((c) => c.status === 'CLOSED');
     }
-    const enriched = data.map((c: any) => ({
-      ...c,
-      last_message: lastByConv[c.id],
-      message_count: countByConv[c.id] ?? 0,
-    }));
-    setConversations(enriched);
-    setIsLoading(false);
+    if (!q) return list;
+    return list.filter((c) =>
+      `${c.parent_name ?? ''} ${c.coach_name ?? ''} ${c.child_name ?? ''}`.toLowerCase().includes(q)
+    );
+  }, [rows, tab, filter, search]);
+
+  const selected = [...support, ...supervision].find((c) => c.id === selectedId) ?? null;
+
+  const open = (id: string) => {
+    setSelectedId(id);
+    if (params.get('c')) router.replace('/admin/messages');
   };
 
-  const fetchMessages = async (convId: string) => {
-    setMsgLoading(true);
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .eq('conversation_id', convId)
-      .order('created_at', { ascending: true });
-    setMessages(data ?? []);
-    setMsgLoading(false);
+  const chooseTab = (next: Tab) => {
+    setTab(next);
+    setSelectedId(null);
   };
 
-  const filtered = conversations.filter((c) => {
-    const names = `${c.p1?.first_name ?? ''} ${c.p1?.last_name ?? ''} ${c.p2?.first_name ?? ''} ${c.p2?.last_name ?? ''}`.toLowerCase();
-    return names.includes(search.toLowerCase());
-  });
+  const act = async (patch: { status?: 'OPEN' | 'CLOSED'; assign?: boolean }) => {
+    if (!selected || busy) return;
+    setBusy(true);
+    await setSupportState(selected.id, patch);
+    await load();
+    setBusy(false);
+  };
 
-  const formatTime = (s: string) => new Date(s).toLocaleString('fr-CA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-  const getInitials = (f: string, l: string) => `${f?.[0]??''}${l?.[0]??''}`.toUpperCase();
+  const isMine = selected?.assigned_admin_id === user?.id;
+  const totalTodo = support.filter((c) => c.status === 'OPEN' && c.unread_count > 0).length;
 
   return (
-    <div className="max-w-7xl mx-auto h-[calc(100vh-6rem)]">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-2">Messagerie 💬</h1>
-        <p className="text-slate-500 font-medium">Supervision des échanges entre parents et coachs</p>
+    <div className="max-w-7xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-1">Messagerie</h1>
+        <p className="text-slate-500 font-medium">
+          Le guichet support et la supervision des échanges coach ↔ parent.
+        </p>
       </div>
 
-      <div className="flex gap-6 h-[calc(100%-6rem)]">
-        {/* Liste conversations — plein écran sur mobile, 1/3 sur desktop */}
-        <div className={`${selected ? 'hidden lg:flex' : 'flex'} w-full lg:w-1/3 flex-col bg-white rounded-[24px] shadow-sm border border-slate-100 overflow-hidden`}>
-          <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-              <input
-                className="w-full bg-white border border-slate-200 focus:border-navy-500 focus:ring-4 focus:ring-navy-500/10 rounded-2xl pl-11 pr-4 py-3.5 text-sm font-medium transition-all outline-none"
-                placeholder="Chercher une conversation..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-3 space-y-2">
-            {isLoading ? (
-              <div className="flex items-center justify-center h-32">
-                <div className="w-8 h-8 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            ) : filtered.length === 0 ? (
-              <p className="text-slate-400 text-sm text-center py-10 font-medium">Aucune conversation trouvée.</p>
-            ) : filtered.map((conv) => (
-              <button
-                key={conv.id}
-                onClick={() => setSelected(conv)}
-                className={`w-full text-left p-4 rounded-2xl transition-all duration-300 border ${
-                  selected?.id === conv.id 
-                    ? 'bg-navy-600 text-white border-navy-600 shadow-md shadow-navy-500/20' 
-                    : 'bg-white text-slate-900 border-transparent hover:bg-slate-50 hover:border-slate-200'
-                }`}
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold shadow-inner ${
-                    selected?.id === conv.id ? 'bg-navy-500 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}>
-                    {getInitials(conv.p1?.first_name ?? '', conv.p1?.last_name ?? '')}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className={`font-bold text-sm truncate mb-0.5 ${selected?.id === conv.id ? 'text-white' : 'text-slate-900'}`}>
-                      {conv.p1?.first_name ?? '?'} <span className="opacity-50 font-normal mx-1">↔️</span> {conv.p2?.first_name ?? '?'}
-                    </p>
-                    <p className={`text-xs truncate font-medium ${
-                      selected?.id === conv.id ? 'text-navy-100' : 'text-slate-500'
-                    }`}>{conv.last_message ?? 'Nouvelle conversation'}</p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      selected?.id === conv.id ? 'bg-navy-500 text-white' : 'bg-slate-100 text-slate-500'
-                    }`}>{conv.message_count} msg</span>
-                  </div>
-                </div>
-              </button>
-            ))}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <button
+          type="button"
+          onClick={() => chooseTab('support')}
+          className={`h-10 px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+            tab === 'support'
+              ? 'bg-navy-600 text-white'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          Support client
+          {totalTodo > 0 && (
+            <span
+              className={`ml-2 inline-flex min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold items-center justify-center ${
+                tab === 'support' ? 'bg-white text-navy-700' : 'bg-navy-600 text-white'
+              }`}
+            >
+              {totalTodo}
+            </span>
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => chooseTab('supervision')}
+          className={`h-10 px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer ${
+            tab === 'supervision'
+              ? 'bg-navy-600 text-white'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+          }`}
+        >
+          Supervision
+        </button>
+
+        <span className="flex-1" />
+
+        {tab === 'support' &&
+          FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => setFilter(f.key)}
+              aria-pressed={filter === f.key}
+              className={`h-9 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
+                filter === f.key
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-16rem)]">
+        <div className={`${selectedId ? 'hidden lg:flex' : 'flex'} flex-col min-h-0`}>
+          <input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Chercher un parent, un coach, un athlète…"
+            aria-label="Chercher une conversation"
+            className="w-full h-11 px-4 mb-3 rounded-2xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-navy-400"
+          />
+          <div className="flex-1 overflow-y-auto pr-1">
+            <ConversationList
+              conversations={filtered}
+              tone="light"
+              selectedId={selectedId}
+              onSelect={open}
+              isLoading={isLoading}
+              emptyLabel={
+                tab === 'support'
+                  ? 'Aucune demande dans cette vue.'
+                  : 'Aucun échange coach ↔ parent pour l’instant.'
+              }
+            />
           </div>
         </div>
 
-        {/* Fenêtre messages — masquée sur mobile tant qu'aucune conversation n'est ouverte */}
-        <div className={`${selected ? 'flex' : 'hidden lg:flex'} flex-1 bg-white rounded-[24px] shadow-sm border border-slate-100 flex-col overflow-hidden relative`}>
-          {!selected ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-slate-50/50">
+        <div className={`${selectedId ? 'flex' : 'hidden lg:flex'} lg:col-span-2 flex-col min-h-0`}>
+          {selected ? (
+            <Thread
+              key={selected.id}
+              conversationId={selected.id}
+              myId={user?.id}
+              tone="light"
+              title={selected.parent_name ?? selected.counterpart_name ?? 'Parent'}
+              subtitle={
+                selected.kind === 'SUPPORT'
+                  ? `Support · ${selected.status === 'CLOSED' ? 'résolu' : 'en cours'}${
+                      selected.assigned_admin_id ? (isMine ? ' · pris en charge par vous' : ' · pris en charge') : ''
+                    }`
+                  : `Coach ${selected.coach_name ?? '—'}${selected.child_name ? ` · ${selected.child_name}` : ''}`
+              }
+              placeholder="Répondre au parent…"
+              readOnly={selected.kind === 'COACH'}
+              readOnlyHint="Supervision — lecture seule : personne n’écrit à la place du coach."
+              className="flex-1 min-h-[26rem]"
+              actions={
+                <>
+                  {selected.kind === 'SUPPORT' && (
+                    <>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => act({ assign: !isMine })}
+                        className="h-9 px-3 rounded-full text-xs font-semibold border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 cursor-pointer"
+                      >
+                        {isMine ? 'Relâcher' : 'Prendre en charge'}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => act({ status: selected.status === 'CLOSED' ? 'OPEN' : 'CLOSED' })}
+                        className="h-9 px-3 rounded-full text-xs font-semibold bg-navy-600 text-white hover:bg-navy-700 disabled:opacity-50 cursor-pointer"
+                      >
+                        {selected.status === 'CLOSED' ? 'Rouvrir' : 'Marquer résolu'}
+                      </button>
+                    </>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedId(null)}
+                    aria-label="Retour à la liste des conversations"
+                    className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                  >
+                    <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
+                  </button>
+                </>
+              }
+              emptyState={
+                <p className="text-sm text-slate-400 text-center py-10">
+                  {selected.kind === 'SUPPORT'
+                    ? 'Le parent n’a pas encore écrit. Vous pouvez ouvrir l’échange.'
+                    : 'Aucun message échangé dans ce fil.'}
+                </p>
+              }
+            />
+          ) : (
+            <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-sm border border-slate-100">
               <div className="text-center">
-                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm mx-auto mb-6">
-                  <span className="text-5xl">💬</span>
-                </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">Aucune conversation sélectionnée</h3>
-                <p className="text-slate-500">Cliquez sur une conversation pour voir l'historique.</p>
+                <span className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 grid place-items-center text-slate-400">
+                  <Icon name="message" className="w-7 h-7" />
+                </span>
+                <p className="text-base font-bold text-slate-900 mb-1">Aucune conversation ouverte</p>
+                <p className="text-sm text-slate-500">
+                  Choisissez une conversation dans la liste pour l’afficher ici.
+                </p>
               </div>
             </div>
-          ) : (
-            <>
-              {/* Header Chat */}
-              <div className="px-4 lg:px-8 py-5 border-b border-slate-100 bg-white/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
-                <div className="flex items-center gap-3 lg:gap-4 min-w-0">
-                  <button
-                    onClick={() => setSelected(null)}
-                    aria-label="Retour à la liste des conversations"
-                    className="lg:hidden w-11 h-11 shrink-0 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
-                  >
-                    ←
-                  </button>
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-navy-500 to-navy-700 text-white flex items-center justify-center text-sm font-bold shadow-md">
-                    {getInitials(selected.p1?.first_name ?? '', selected.p1?.last_name ?? '')}
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-base lg:text-lg truncate">
-                      {selected.p1?.first_name ?? '?'} {selected.p1?.last_name ?? ''}
-                      <span className="mx-2 text-slate-300 font-normal">↔️</span>
-                      {selected.p2?.first_name ?? '?'} {selected.p2?.last_name ?? ''}
-                    </p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-                      <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                        {selected.message_count} messages échangés
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Chat History */}
-              <div className="flex-1 overflow-y-auto p-4 lg:p-8 space-y-6 bg-slate-50/30">
-                {msgLoading ? (
-                  <div className="flex items-center justify-center h-full">
-                    <div className="w-8 h-8 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                ) : messages.map((msg, index) => {
-                  const isSenderP1 = msg.sender_id === selected.p1?.id;
-                  const prevMsg = index > 0 ? messages[index - 1] : null;
-                  const showHeader = !prevMsg || prevMsg.sender_id !== msg.sender_id;
-
-                  return (
-                    <div key={msg.id} className={`flex flex-col ${isSenderP1 ? 'items-start' : 'items-end'}`}>
-                      {showHeader && (
-                        <span className="text-xs font-bold text-slate-400 mb-1.5 px-1">
-                          {isSenderP1 ? `${selected.p1?.first_name ?? '?'} ${selected.p1?.last_name ?? ''}` : `${selected.p2?.first_name ?? '?'} ${selected.p2?.last_name ?? ''}`}
-                        </span>
-                      )}
-                      <div className={`max-w-md relative group ${
-                        isSenderP1 
-                          ? 'bg-white border border-slate-200 text-slate-800 rounded-2xl rounded-tl-sm' 
-                          : 'bg-navy-600 text-white rounded-2xl rounded-tr-sm shadow-md shadow-navy-500/20'
-                      } px-5 py-3.5`}>
-                        <p className="text-[15px] leading-relaxed">{msg.content}</p>
-                        <div className={`flex items-center gap-1 mt-2 text-[10px] font-bold ${
-                          isSenderP1 ? 'text-slate-400 justify-start' : 'text-navy-200 justify-end'
-                        }`}>
-                          <span>{new Date(msg.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
-                          {msg.status === 'READ' && !isSenderP1 && (
-                            <svg className="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-                <div ref={bottomRef} className="h-4" />
-              </div>
-            </>
           )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function AdminMessagesPage() {
+  return (
+    // Suspense requis par useSearchParams (deep-link ?c= des notifications)
+    <Suspense fallback={<div className="max-w-7xl mx-auto h-64 rounded-3xl bg-white animate-pulse" />}>
+      <AdminMessagesInner />
+    </Suspense>
   );
 }

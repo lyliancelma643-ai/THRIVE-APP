@@ -72,14 +72,14 @@ export function ChildSwitcher() {
   const selected = children.find((c) => c.id === selectedChildId) ?? null;
 
   if (isLoading && children.length === 0) {
-    return <div className="h-5 w-28 rounded-full bg-white/10 animate-pulse" />;
+    return <div className="h-5 w-28 rounded-full bg-chip animate-pulse" />;
   }
 
   if (children.length === 0) {
     return (
       <Link
         href="/parent/select-profile"
-        className="px-4 py-2 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
+        className="px-4 py-2 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
       >
         + Ajouter un enfant
       </Link>
@@ -98,7 +98,7 @@ export function ChildSwitcher() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Changer d'enfant"
-        className="flex items-center gap-0.5 w-full min-w-0 h-11 -mx-1 px-1 text-[13px] font-semibold tracking-[0.02em] text-[rgba(234,243,241,0.62)] hover:text-night-ink transition-colors select-none"
+        className="flex items-center gap-0.5 w-full min-w-0 h-11 -mx-1 px-1 text-[13px] font-semibold tracking-[0.02em] text-soft hover:text-night-ink transition-colors select-none"
       >
         <span className="truncate">
           {selected?.first_name}
@@ -121,7 +121,7 @@ export function ChildSwitcher() {
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed z-[70] w-60 rounded-2xl bg-night-surface ring-1 ring-white/[0.08] overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              className="fixed z-[70] w-60 rounded-2xl bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
             {children.map((child) => (
@@ -131,8 +131,8 @@ export function ChildSwitcher() {
                   selectChild(child.id);
                   setOpen(false);
                 }}
-                className={`w-full flex items-center gap-2.5 px-4 py-3 min-h-[48px] text-sm text-left hover:bg-white/10 active:bg-white/10 transition-colors ${
-                  child.id === selectedChildId ? 'font-bold text-white' : 'text-white/70'
+                className={`w-full flex items-center gap-2.5 px-4 py-3 min-h-[48px] text-sm text-left hover:bg-chip active:bg-chip transition-colors ${
+                  child.id === selectedChildId ? 'font-bold text-ink' : 'text-soft'
                 }`}
               >
                 <span className="w-8 h-8 rounded-full bg-sage text-navy-900 flex items-center justify-center text-xs font-bold shrink-0">
@@ -140,10 +140,10 @@ export function ChildSwitcher() {
                 </span>
                 <span className="flex-1 truncate">{child.first_name}</span>
                 {child.id === selectedChildId && (
-                  <Icon name="check" className="w-4 h-4 text-sun shrink-0" />
+                  <Icon name="check" className="w-4 h-4 text-accent-ink shrink-0" />
                 )}
                 {ageGroupFromBirthDate(child.date_of_birth) && (
-                  <span className="text-[10px] text-white/60">
+                  <span className="text-[10px] text-soft">
                     {ageGroupFromBirthDate(child.date_of_birth)} ans
                   </span>
                 )}
@@ -151,7 +151,7 @@ export function ChildSwitcher() {
             ))}
             <Link
               href="/parent/select-profile"
-              className="flex items-center px-4 py-3 min-h-[48px] text-[13px] font-semibold text-sun hover:bg-white/10 active:bg-white/10 transition-colors border-t border-white/10"
+              className="flex items-center px-4 py-3 min-h-[48px] text-[13px] font-semibold text-accent-ink hover:bg-chip active:bg-chip transition-colors border-t border-line"
               onClick={() => setOpen(false)}
             >
               + Gérer les profils

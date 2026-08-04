@@ -17,7 +17,8 @@ export default function ParentMessagesScreen() {
     setRefreshing(false);
   };
 
-  const formatTime = (dateStr: string) => {
+  const formatTime = (dateStr: string | null) => {
+    if (!dateStr) return '';
     const d = new Date(dateStr);
     const now = new Date();
     const diff = now.getTime() - d.getTime();
@@ -27,7 +28,10 @@ export default function ParentMessagesScreen() {
     return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
   };
 
-  const getInitials = (f: string, l: string) => `${f[0] ?? ''}${l[0] ?? ''}`.toUpperCase();
+  const getInitials = (name?: string | null) => {
+    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
+    return parts.length ? (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase() : '?';
+  };
 
   const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
 
@@ -59,22 +63,22 @@ export default function ParentMessagesScreen() {
               key={conv.id}
               style={[styles.row, conv.unread_count > 0 && styles.rowUnread]}
               onPress={() => router.push(
-                `/(parent)/chat/${conv.id}?receiverId=${conv.other.id}&name=${conv.other.first_name} ${conv.other.last_name}`
+                `/(parent)/chat/${conv.id}?name=${conv.counterpart_name ?? 'THRIVE'}`
               )}
             >
               <View style={[styles.avatar, conv.unread_count > 0 && styles.avatarUnread]}>
-                <Text style={styles.avatarText}>{getInitials(conv.other.first_name, conv.other.last_name)}</Text>
+                <Text style={styles.avatarText}>{getInitials(conv.counterpart_name)}</Text>
               </View>
               <View style={styles.rowContent}>
                 <View style={styles.rowTop}>
                   <Text style={[styles.name, conv.unread_count > 0 && styles.nameBold]}>
-                    {conv.other.first_name} {conv.other.last_name}
+                    {conv.counterpart_name ?? 'Support THRIVE'}
                   </Text>
                   <Text style={styles.time}>{formatTime(conv.last_message_at)}</Text>
                 </View>
                 <View style={styles.rowBottom}>
                   <Text style={[styles.lastMsg, conv.unread_count > 0 && styles.lastMsgBold]} numberOfLines={1}>
-                    {conv.last_message ?? 'Nouvelle conversation'}
+                    {conv.last_message_preview ?? 'Nouvelle conversation'}
                   </Text>
                   {conv.unread_count > 0 && (
                     <View style={styles.dot}>

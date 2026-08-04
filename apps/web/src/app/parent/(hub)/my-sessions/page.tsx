@@ -182,7 +182,7 @@ function MySessionsPageInner() {
         <h1 className="font-display text-[34px] leading-[1.1] font-semibold text-night-ink mb-2">
           Mes séances
         </h1>
-        <p className="text-[15px] leading-[1.55] text-[rgba(234,243,241,0.72)] text-pretty">
+        <p className="text-[15px] leading-[1.55] text-soft text-pretty">
           Le programme 1:1 de {selectedChild.first_name}
           {coach ? (
             <>
@@ -200,18 +200,18 @@ function MySessionsPageInner() {
       {/* Jauge de progression — posée à même le fond, sans carte */}
       <div className="mt-7 animate-om-up" style={{ ['--om-d' as string]: '0.1s' }}>
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[15px] font-semibold text-[rgba(234,243,241,0.8)]">
+          <span className="text-[15px] font-semibold text-body">
             Progression du programme
           </span>
-          <span className="font-display text-[17px] font-semibold text-sun">
+          <span className="font-display text-[17px] font-semibold text-accent-ink">
             {completedCount} / 13
           </span>
         </div>
         <div className="nc-track mt-3">
-          <div className="nc-fill bg-sun" style={{ width: `${(completedCount / 13) * 100}%` }} />
+          <div className="nc-fill bg-accent" style={{ width: `${(completedCount / 13) * 100}%` }} />
         </div>
         {sessions.length === 0 && (
-          <p className="text-[13px] text-[rgba(234,243,241,0.55)] mt-3">
+          <p className="text-[13px] text-soft mt-3">
             Les séances s&apos;activeront dès qu&apos;un coach THRIVE sera attribué à{' '}
             {selectedChild.first_name}.
           </p>
@@ -271,10 +271,10 @@ function MySessionsPageInner() {
                     isDone
                       ? 'bg-sage text-[#06222A]'
                       : isCurrent
-                        ? 'bg-sun text-[#06222A] animate-om-ring'
+                        ? 'bg-accent text-[#06222A] animate-om-ring'
                         : isOff
                           ? 'border border-red-400/40 text-red-300/80'
-                          : 'border border-white/[0.16] text-[rgba(234,243,241,0.6)] font-semibold'
+                          : 'border border-line2 text-soft font-semibold'
                   }`}
                 >
                   {isDone ? <Icon name="check" className="w-4 h-4" strokeWidth={2.6} /> : tpl.num}
@@ -282,7 +282,7 @@ function MySessionsPageInner() {
                 <span className="min-w-0 flex-1 flex flex-col gap-[3px]">
                   <span
                     className={`font-display text-[17px] font-semibold leading-[1.25] line-clamp-2 ${
-                      isDone || isCurrent ? 'text-night-ink' : 'text-[rgba(234,243,241,0.72)]'
+                      isDone || isCurrent ? 'text-night-ink' : 'text-soft'
                     }`}
                   >
                     {s?.title ?? tpl.title}
@@ -290,10 +290,10 @@ function MySessionsPageInner() {
                   <span
                     className={`text-[13px] ${
                       isCurrent
-                        ? 'font-semibold text-sun'
+                        ? 'font-semibold text-accent-ink'
                         : isDone
-                          ? 'text-[rgba(234,243,241,0.62)]'
-                          : 'text-[rgba(234,243,241,0.5)]'
+                          ? 'text-soft'
+                          : 'text-faint'
                     }`}
                   >
                     {meta}
@@ -302,7 +302,7 @@ function MySessionsPageInner() {
                 {hasDetails && (
                   <span
                     className={`shrink-0 transition-transform duration-200 ${
-                      isSelected ? 'text-sun rotate-90' : 'text-[rgba(234,243,241,0.45)]'
+                      isSelected ? 'text-accent-ink rotate-90' : 'text-faint'
                     }`}
                     aria-hidden
                   >
@@ -314,7 +314,7 @@ function MySessionsPageInner() {
               {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
               {isSelected && hasDetails && s && (
                 <div className="lg:hidden px-4 pb-[18px] pt-1 animate-om-fade">
-                  <div className="h-px bg-white/[0.08] mb-3.5" />
+                  <div className="h-px bg-chip mb-3.5" />
                   <BilanDetails bilan={bilan} pack={pack} />
                 </div>
               )}
@@ -348,11 +348,11 @@ function MySessionsPageInner() {
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
     <div className="max-w-xl mx-auto text-center py-20 animate-om-up">
-      <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-sun/10 flex items-center justify-center text-sun">
+      <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-sun/10 flex items-center justify-center text-accent-ink">
         <Icon name="star" className="w-6 h-6" />
       </div>
       <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">{title}</h2>
-      <p className="text-[rgba(234,243,241,0.68)]">{body}</p>
+      <p className="text-soft">{body}</p>
     </div>
   );
 }
@@ -387,7 +387,7 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
       {/* Message du coach — inclus dans tous les packs */}
       {message && (
         <BilanCard title="Message du coach">
-          <p className="text-[15px] leading-[1.6] text-[rgba(234,243,241,0.86)] whitespace-pre-line text-pretty">
+          <p className="text-[15px] leading-[1.6] text-body whitespace-pre-line text-pretty">
             {message}
           </p>
         </BilanCard>
@@ -400,7 +400,7 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
             <div className="flex flex-col gap-2.5">
               {bilanFields.map(([key, value]) => (
                 <div key={key} className="flex flex-col gap-0.5">
-                  <span className="text-[13px] text-[rgba(234,243,241,0.55)]">
+                  <span className="text-[13px] text-soft">
                     {fieldLabel(key)}
                   </span>
                   <span className="text-[15px] font-medium text-night-ink">{String(value)}</span>
@@ -425,7 +425,7 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
             {obsEntries.map(([ind, note]) => (
               <div
                 key={ind}
-                className="rounded-2xl bg-white/[0.03] px-2.5 py-3.5 transition-colors hover:bg-white/[0.06]"
+                className="rounded-2xl bg-surface-sub px-2.5 py-3.5 transition-colors hover:bg-chip"
               >
                 <div
                   className={`flex flex-col items-center text-center gap-2 ${
@@ -476,7 +476,7 @@ function BilanPanel({
           <h3 className="font-display text-[19px] font-semibold text-night-ink leading-[1.25]">
             {session.title ?? fallbackTitle ?? 'Séance'}
           </h3>
-          <p className="text-[13px] text-[rgba(234,243,241,0.62)] mt-0.5">
+          <p className="text-[13px] text-soft mt-0.5">
             {phaseLabel}
             {session.completed_at &&
               ` · validée le ${new Date(session.completed_at).toLocaleDateString('fr-CA', {
@@ -489,13 +489,13 @@ function BilanPanel({
         <button
           onClick={onClose}
           aria-label="Fermer le bilan"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[rgba(234,243,241,0.45)] hover:text-night-ink hover:bg-white/[0.06] transition-colors shrink-0 cursor-pointer"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-faint hover:text-night-ink hover:bg-chip transition-colors shrink-0 cursor-pointer"
         >
           ✕
         </button>
       </div>
       <div className="px-5 pb-5">
-        <div className="h-px bg-white/[0.08] mb-4" />
+        <div className="h-px bg-chip mb-4" />
         <BilanDetails bilan={bilan} pack={pack} />
       </div>
     </div>
@@ -505,12 +505,12 @@ function BilanPanel({
 /* État vide du lecteur — invite à sélectionner une séance */
 function BilanReaderEmpty() {
   return (
-    <div className="rounded-[22px] border border-white/[0.07] p-10 text-center">
-      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-sun/10 flex items-center justify-center text-sun">
+    <div className="rounded-[22px] border border-line p-10 text-center">
+      <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-sun/10 flex items-center justify-center text-accent-ink">
         <Icon name="mail" className="w-5 h-5" />
       </div>
       <h3 className="font-display text-lg font-semibold text-night-ink mb-2">Lecteur de bilan</h3>
-      <p className="text-sm text-[rgba(234,243,241,0.62)]">
+      <p className="text-sm text-soft">
         Sélectionne une séance validée à gauche pour lire le bilan rédigé par le coach.
       </p>
     </div>

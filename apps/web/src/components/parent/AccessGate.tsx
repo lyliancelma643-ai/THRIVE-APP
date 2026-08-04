@@ -14,14 +14,14 @@ export function LockedBanner({ message }: { message?: string }) {
   return (
     <div className="nc-card ring-1 ring-sun/[0.22] mb-6 animate-om-up">
       <div className="flex items-start gap-3">
-        <span className="w-10 h-10 rounded-xl bg-sun/10 flex items-center justify-center text-sun shrink-0">
+        <span className="w-10 h-10 rounded-xl bg-sun/10 flex items-center justify-center text-accent-ink shrink-0">
           <Icon name="sparkle" className="w-5 h-5" />
         </span>
         <div>
           <p className="font-display text-[19px] font-semibold text-night-ink">
             Votre espace se prépare
           </p>
-          <p className="text-[15px] leading-[1.55] text-[rgba(234,243,241,0.72)] mt-1 max-w-xl text-pretty">
+          <p className="text-[15px] leading-[1.55] text-soft mt-1 max-w-xl text-pretty">
             {message ?? ACCESS_MESSAGES.welcomeLocked}
           </p>
         </div>
@@ -44,7 +44,7 @@ export function GreyedSection({
     <section className="select-none">
       <h2 className="font-display text-[22px] font-semibold text-night-ink">{title}</h2>
       {subtitle && (
-        <p className="text-sm text-[rgba(234,243,241,0.6)] mt-0.5">{subtitle}</p>
+        <p className="text-sm text-soft mt-0.5">{subtitle}</p>
       )}
       {/* inert bloque aussi le focus clavier sur les aperçus */}
       <div className="mt-3 opacity-40 grayscale pointer-events-none" aria-hidden inert>
@@ -70,7 +70,7 @@ function NoticeScreen({
     <div className="max-w-xl mx-auto text-center py-16 md:py-24 animate-om-up">
       <div
         className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center ${
-          tone === 'sun' ? 'bg-sun/10 text-sun' : 'bg-sage/10 text-sage'
+          tone === 'sun' ? 'bg-sun/10 text-accent-ink' : 'bg-sage/10 text-sage'
         }`}
       >
         <Icon name={icon} className="w-6 h-6" />
@@ -78,7 +78,7 @@ function NoticeScreen({
       <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold text-night-ink">
         {title}
       </h1>
-      <p className="mt-3 text-[15px] leading-[1.6] text-[rgba(234,243,241,0.72)] text-pretty">
+      <p className="mt-3 text-[15px] leading-[1.6] text-soft text-pretty">
         {body}
       </p>
     </div>

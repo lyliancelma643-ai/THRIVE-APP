@@ -7,9 +7,10 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMessages } from '@thrive/shared';
 
 export default function ChatScreen() {
-  const { conversationId, receiverId, name } = useLocalSearchParams<{
+  // Le destinataire n'est plus passé par l'URL : il se déduit de la
+  // conversation en base (migration 056).
+  const { conversationId, name } = useLocalSearchParams<{
     conversationId: string;
-    receiverId: string;
     name?: string;
   }>();
   const router = useRouter();
@@ -26,10 +27,10 @@ export default function ChatScreen() {
   }, [messages.length]);
 
   const handleSend = async () => {
-    if (!input.trim() || !receiverId) return;
+    if (!input.trim()) return;
     setSending(true);
     try {
-      await sendMessage(receiverId, input.trim(), { replyToId: replyTo?.id });
+      await sendMessage(input.trim(), { replyToId: replyTo?.id });
       setInput('');
       setReplyTo(null);
     } catch {}

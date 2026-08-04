@@ -20,7 +20,7 @@ export function SessionRow({ title, subtitle, sessions, completedIds }: Props) {
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-semibold text-night-ink">{title}</h2>
         {subtitle && (
-          <p className="text-sm text-[rgba(234,243,241,0.68)] mt-0.5">{subtitle}</p>
+          <p className="text-sm text-soft mt-0.5">{subtitle}</p>
         )}
       </div>
       {/* `scroll-pl-5` est indispensable : sans lui, l'accroche (snap-start) cale

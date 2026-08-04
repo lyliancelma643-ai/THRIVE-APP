@@ -50,8 +50,8 @@ function SessionDetailPageInner() {
   if (loading) {
     return (
       <div className="max-w-5xl space-y-6">
-        <div className="aspect-video rounded-2xl bg-white/5 animate-pulse" />
-        <div className="h-24 rounded-2xl bg-white/[0.04] animate-pulse" />
+        <div className="aspect-video rounded-2xl bg-surface-sub animate-pulse" />
+        <div className="h-24 rounded-2xl bg-surface-sub animate-pulse" />
       </div>
     );
   }
@@ -59,10 +59,10 @@ function SessionDetailPageInner() {
   if (!session) {
     return (
       <div className="text-center py-20">
-        <p className="text-white/60 mb-4">Séance introuvable.</p>
+        <p className="text-soft mb-4">Séance introuvable.</p>
         <button
           onClick={() => router.back()}
-          className="px-6 py-3 rounded-full glass-navy text-sm font-semibold text-white hover:bg-white/10 transition-colors"
+          className="px-6 py-3 rounded-full glass-navy text-sm font-semibold text-ink hover:bg-chip transition-colors"
         >
           ← Retour
         </button>
@@ -76,7 +76,7 @@ function SessionDetailPageInner() {
     <div className="max-w-5xl">
       <Link
         href="/parent/fitness"
-        className="inline-flex items-center gap-2 text-sm text-white/55 hover:text-white active:text-white mb-4 py-3 pr-4 -my-1 transition-colors select-none"
+        className="inline-flex items-center gap-2 text-sm text-soft hover:text-ink active:text-ink mb-4 py-3 pr-4 -my-1 transition-colors select-none"
       >
         ← Retour au Fitness
       </Link>
@@ -98,12 +98,12 @@ function SessionDetailPageInner() {
           <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
             {selectedChild ? (
               <>
-                <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-4">
+                <p className="text-accent-ink text-xs font-bold uppercase tracking-[0.2em] mb-4">
                   Prêt avec {selectedChild.first_name} ?
                 </p>
                 <button
                   onClick={() => setStarted(true)}
-                  className="w-20 h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-3xl shadow-card hover:scale-105 transition-transform mb-4"
+                  className="w-20 h-20 rounded-full bg-accent text-navy-900 flex items-center justify-center text-3xl shadow-card hover:scale-105 transition-transform mb-4"
                 >
                   ▶
                 </button>
@@ -113,12 +113,12 @@ function SessionDetailPageInner() {
               </>
             ) : (
               <>
-                <p className="text-white font-display text-xl mb-4">
+                <p className="text-ink font-display text-xl mb-4">
                   Sélectionne d&apos;abord un profil enfant
                 </p>
                 <Link
                   href="/parent/select-profile"
-                  className="px-6 py-3 rounded-full bg-sun text-navy-900 font-bold text-sm"
+                  className="px-6 py-3 rounded-full bg-accent text-navy-900 font-bold text-sm"
                 >
                   + Ajouter un enfant
                 </Link>
@@ -135,37 +135,37 @@ function SessionDetailPageInner() {
             <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${accent.chip}`}>
               {session.theme}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-white/10 text-white/70">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-chip text-soft">
               {PHASE_LABELS[session.phase]}
             </span>
           </div>
-          <h1 className="font-display text-3xl font-semibold text-white mb-1">
+          <h1 className="font-display text-3xl font-semibold text-ink mb-1">
             {session.title}
           </h1>
-          <p className="text-white/60 mb-4">{session.subtitle}</p>
-          <p className="text-white/75 leading-relaxed">{session.description}</p>
+          <p className="text-soft mb-4">{session.subtitle}</p>
+          <p className="text-body leading-relaxed">{session.description}</p>
         </div>
 
         <div className="p-5 rounded-2xl glass-navy h-fit">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-4">
+          <h3 className="text-xs font-bold uppercase tracking-wide text-faint mb-4">
             Cette séance
           </h3>
           <dl className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <dt className="text-white/55">Durée</dt>
-              <dd className="font-medium text-white">{session.duration_minutes} min</dd>
+              <dt className="text-soft">Durée</dt>
+              <dd className="font-medium text-ink">{session.duration_minutes} min</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-white/55">Âge</dt>
-              <dd className="font-medium text-white">{session.age_group} ans</dd>
+              <dt className="text-soft">Âge</dt>
+              <dd className="font-medium text-ink">{session.age_group} ans</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-white/55">Life skill</dt>
-              <dd className="font-medium text-white text-right">{session.life_skill}</dd>
+              <dt className="text-soft">Life skill</dt>
+              <dd className="font-medium text-ink text-right">{session.life_skill}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-white/55">Interactions</dt>
-              <dd className="font-medium text-white">{interactions.length}</dd>
+              <dt className="text-soft">Interactions</dt>
+              <dd className="font-medium text-ink">{interactions.length}</dd>
             </div>
           </dl>
         </div>
@@ -184,7 +184,7 @@ export default function SessionDetailPage() {
   }, [refresh]);
 
   if (isLoading || !access) {
-    return <div className="h-40 rounded-2xl bg-white/[0.05] animate-pulse" aria-hidden />;
+    return <div className="h-40 rounded-2xl bg-surface-sub animate-pulse" aria-hidden />;
   }
   if (!access.fitnessEnabled || !access.unlocked) return <FitnessConstructionNotice />;
   return <SessionDetailPageInner />;

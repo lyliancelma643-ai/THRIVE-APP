@@ -25,16 +25,39 @@ const config: Config = {
           900: '#022539',
         },
         cream: '#F7F5F2',
-        // Direction « Nuit calme » — palette de l'espace parent (design Tour 2a).
-        // Fonds plats, un seul accent (sun), zéro halo : les surfaces ne sont
-        // plus du verre teinté mais trois valeurs fixes.
+        // Espace parent — les deux ambiances du design « Tour 3 » (Nuit calme et
+        // Jour clair) partagent ce vocabulaire. Chaque nom pointe sur une
+        // variable CSS définie dans globals.css : `bg-night-surface` rend une
+        // carte #0C2029 la nuit et #FFFFFF le jour, sans toucher au balisage.
         night: {
-          bg: '#06161E', // fond de page
-          surface: '#0C2029', // cartes et rangées
-          nav: '#0A1C24', // barre d'onglets
-          ink: '#F7F5F2', // texte fort (titres, chiffres)
-          body: '#EAF3F1', // texte courant
+          bg: 'var(--bg)', // fond de page
+          surface: 'var(--surface)', // cartes et rangées
+          nav: 'var(--tab)', // barre d'onglets
+          ink: 'var(--text)', // texte fort (titres, chiffres)
+          body: 'var(--text2)', // texte courant
         },
+        // Échelle de lisibilité : du plus contrasté au plus discret. Remplace
+        // les `text-white/xx` (illisibles sur l'ambiance claire).
+        ink: 'var(--text)',
+        body: 'var(--text2)',
+        soft: 'var(--text3)',
+        faint: 'var(--text4)',
+        meta: 'var(--meta)',
+        'surface-sub': 'var(--surface-sub)',
+        line: 'var(--line)',
+        line2: 'var(--line2)',
+        chip: 'var(--chip)',
+        field: 'var(--field)',
+        track: 'var(--track)',
+        // Accents dépendants de l'ambiance : `accent` reste le jaune d'action,
+        // `accent-ink` est sa déclinaison lisible en texte (marine le jour).
+        accent: {
+          DEFAULT: 'var(--accent)',
+          ink: 'var(--accent-ink)',
+          on: 'var(--on-accent)',
+          line: 'var(--accent-line)',
+        },
+        brand: 'var(--brand)',
         sun: {
           DEFAULT: '#F9EB50',
           dark: '#E0D232',

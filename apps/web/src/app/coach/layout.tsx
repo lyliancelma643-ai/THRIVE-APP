@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 
 const NAV_ITEMS: { href: string; label: string; icon: IconName }[] = [
   { href: '/coach/dashboard', label: 'Tableau de bord', icon: 'home' },
@@ -20,6 +21,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
+  const unreadMessages = useUnreadMessages(isAuthenticated);
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -73,7 +75,14 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
                 active ? 'text-sun' : 'text-navy-100/70'
               }`}
             >
-              <Icon name={item.icon} className="w-[22px] h-[22px] shrink-0" />
+              <span className="relative">
+                <Icon name={item.icon} className="w-[22px] h-[22px] shrink-0" />
+                {item.href === '/coach/messages' && unreadMessages > 0 && (
+                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-sun text-navy-900 text-[9px] font-bold flex items-center justify-center">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
+              </span>
               {/* Hauteur de 2 lignes réservée : les libellés longs (« Tableau de
                   bord », « Mes athlètes ») s'alignent avec les courts sur mobile. */}
               <span className="min-h-[26px] flex items-center text-center text-[11px] leading-[1.05] px-0.5">
@@ -109,6 +118,11 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
               >
                 <Icon name={item.icon} className="w-5 h-5 shrink-0" />
                 {item.label}
+                {item.href === '/coach/messages' && unreadMessages > 0 && (
+                  <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center">
+                    {unreadMessages > 9 ? '9+' : unreadMessages}
+                  </span>
+                )}
               </Link>
             );
           })}
