@@ -16,6 +16,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/admin/dossiers', label: 'Dossiers', icon: 'folder' },
   { href: '/admin/supervision', label: 'Supervision', icon: 'compass', superAdminOnly: true },
   { href: '/admin/validations', label: 'Validations', icon: 'check' },
+  { href: '/admin/waitlist', label: 'Liste d’attente', icon: 'mail', superAdminOnly: true },
   { href: '/admin/roadmap', label: 'Roadmap', icon: 'flag' },
   { href: '/admin/users', label: 'Comptes', icon: 'user' },
   { href: '/admin/coaches', label: 'Coaches', icon: 'target' },
