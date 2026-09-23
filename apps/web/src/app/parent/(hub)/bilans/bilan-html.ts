@@ -559,7 +559,7 @@ export function buildHtml(d: {
             : `<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:var(--surface-sub);"><span style="width:30px;height:30px;border-radius:10px;background:var(--chip);display:grid;place-items:center;color:var(--accent-ink);flex-shrink:0;line-height:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span style="font-size:15px;line-height:1.4;color:var(--text3);">Le coach précisera bientôt les prochaines étapes.</span></div>`
         }
       </div>
-      <div class="b-hover bx" data-href="/parent/fitness" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:#A7C4BC;">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
+      <div class="b-hover bx" data-href="/parent/fitness/seances" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:#A7C4BC;">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
     </div>
   </div>
 

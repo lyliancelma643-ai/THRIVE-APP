@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** boite_a_outils
 **Fondement :** Pierce et al. (2017) · Cotterill (2010) · Slamecka & Graf (1978) — Niveau A. Carte Ma Boîte à Outils et transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Depuis dix semaines, votre enfant a accumulé des outils : ses forces, son objectif, sa respiration, sa phrase, ses personnes, son mot, ses films. Cette semaine, il les rassemble.
 >

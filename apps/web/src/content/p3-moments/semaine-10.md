@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Driskell, Copper & Moran (1994) · Jeannerod (1994) · Bandura (1977) — Niveau A. Protocole de visualisation THRIVE — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Quand on imagine un geste avec précision, une partie du cerveau s'active comme si on le faisait. C'est pour ça que les athlètes se visualisent avant de compétitionner.
 >

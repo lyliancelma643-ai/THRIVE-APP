@@ -22,7 +22,7 @@
         "Mais la première semaine ne travaille aucune compétence. Elle installe la relation. Vous regardez qui il est, vous le lui dites, et vous le laissez décider.",
         "C'est contre-intuitif quand on veut des résultats. C'est exactement pour ça que ça marche."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 2,
@@ -45,7 +45,7 @@
         "Une seule règle, celle de la Méthode : c'est lui qui fixe l'objectif. Vous pouvez poser des questions. Vous ne décidez pas à sa place, même quand vous voyez mieux que lui.",
         "Et à partir de cette semaine, chaque moment se termine par une question simple : « tu pourrais t'en servir où ? »"
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 3,
@@ -69,7 +69,7 @@
         "Cette semaine, vous fabriquez ces preuves. La règle de la Méthode tient en une ligne : un défi où il réussit à peu près une fois sur trois. Trop facile, il s'ennuie. Trop dur, il se démolit.",
         "Et quand il réussit, vous ne dites pas « bravo ». Vous dites ce qu'il a fait."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 4,
@@ -92,7 +92,7 @@
         "La Méthode utilise six mots, pas plus : frustration, peur, colère, joie, fierté, nervosité. Assez pour dire l'essentiel, assez peu pour s'en souvenir à 8 ans.",
         "Une règle éthique ne se discute pas : vous ne provoquez jamais une émotion par une remarque négative. Si un défi agace, c'est le défi qui agace, pas vous."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 5,
@@ -115,7 +115,7 @@
         "La Méthode enseigne deux outils : une respiration lente, qui calme le corps, et une phrase à se dire, qui calme la tête. Il essaie les deux, puis il choisit. Le choix lui appartient : c'est ce qui fait qu'il s'en servira.",
         "Un conseil qui vaut pour toute la suite : on s'entraîne quand tout va bien. Un outil qu'on découvre en pleine crise ne sert à rien."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 6,
@@ -139,7 +139,7 @@
         "La Méthode fait les choses en deux temps : on apprend la technique au calme, puis on l'essaie sous une vraie petite pression. Une technique apprise seulement au calme ne sert pas le jour où ça compte.",
         "La pression, ici, vient d'un défi minuté. Rien n'est noté, rien n'est comparé. Le minuteur sert le défi, jamais le jugement."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 7,
@@ -161,7 +161,7 @@
         "Cette semaine, vous ne mesurez rien et vous ne notez pas votre enfant. Vous l'aidez à voir ses propres progrès, et vous lui dites ce que vous, vous avez vu.",
         "À la fin de la semaine, l'app assemble le bilan de mi-parcours à partir de votre carnet."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 8,
@@ -184,7 +184,7 @@
         "Cette semaine, votre enfant repère les personnes sur qui il peut compter, vit une situation où il doit demander pour réussir, et prépare une vraie demande.",
         "Votre rôle est délicat : ne pas aider avant qu'il demande. C'est tout l'exercice."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 9,
@@ -207,7 +207,7 @@
         "Cette semaine, votre enfant choisit un mot court qui ramène son attention, puis s'entraîne à rester dedans pendant de courtes fenêtres. Quinze secondes à 8 ans, une minute à 16 ans.",
         "La règle qui change tout : on ne compte pas les fois où il part. On compte les fois où il revient."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 10,
@@ -230,7 +230,7 @@
         "Cette semaine, votre enfant apprend à se voir réussir : d'abord en revivant un bon moment, ensuite en visualisant un geste juste avant de le faire, enfin en préparant un moment qui lui fait peur.",
         "Deux règles de la Méthode. On ne force jamais : certains enfants ne « voient » rien en fermant les yeux, et c'est normal. Et on visualise toujours la maîtrise du geste, jamais « être meilleur que les autres »."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 11,
@@ -253,7 +253,7 @@
         "L'objectif de la Méthode est une phrase qu'il pourrait dire de lui-même : « je suis quelqu'un qui a des outils ». Pas parce qu'on le lui dit, mais parce qu'il les a nommés.",
         "À la fin de la semaine, l'app assemble sa Carte Ma Boîte à Outils, à imprimer ou à garder sur son téléphone."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 12,
@@ -276,7 +276,7 @@
         "Il va faire une chose utile pour quelqu'un sans que personne le sache, vous apprendre un de ses outils, et chercher à qui d'autre il pourrait servir.",
         "C'est souvent la semaine où les parents se disent : « il a vraiment changé ». Remarquez-le. Et dites-le-lui, précisément."
       ],
-      "status": "revu"
+      "status": "publie"
     },
     {
       "week": 13,
@@ -304,7 +304,7 @@
         "Cette semaine, trois moments : vous lui dites ce que vous avez vu, il écrit une lettre qu'il ouvrira dans un an, et il décide comment on fête ça.",
         "La lettre est scellée par l'app et vous sera renvoyée par courriel dans douze mois. Personne ne la lit avant, pas même vous."
       ],
-      "status": "revu"
+      "status": "publie"
     }
   ],
   "activities": [
@@ -433,7 +433,7 @@
         }
       ],
       "why_it_fails": "Le parent enchaîne trois compliments génériques sans exemple. L'enfant sent la flatterie et décroche à la deuxième.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0102",
@@ -561,7 +561,7 @@
         }
       ],
       "why_it_fails": "Le parent tient trois minutes puis reprend la main — une question, un conseil, une règle rappelée. L'enfant comprend que le choix était faux.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0103",
@@ -676,7 +676,7 @@
         }
       ],
       "why_it_fails": "Le parent corrige l'objectif ou le trouve trop petit. L'enfant apprend que sa réponse n'était pas la bonne et ne répondra plus.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0201",
@@ -806,7 +806,7 @@
         }
       ],
       "why_it_fails": "Le parent range lui-même les éléments « pour aller plus vite ». L'enfant regarde un tableau qui n'est plus le sien et décroche.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0202",
@@ -939,7 +939,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme la séance en planification (« et mardi tu feras… »). L'enfant repart avec un emploi du temps au lieu d'une marche réussie.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0203",
@@ -1054,7 +1054,7 @@
         }
       ],
       "why_it_fails": "Le parent utilise le jeu vidéo pour glisser une leçon sur le temps d'écran. L'enfant flaire le piège et le pont s'effondre.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0301",
@@ -1180,7 +1180,7 @@
         }
       ],
       "why_it_fails": "La liste ne contient que du sport et des résultats (buts, notes). L'enfant qui a une mauvaise semaine n'y trouve plus aucune preuve.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0302",
@@ -1317,7 +1317,7 @@
         }
       ],
       "why_it_fails": "Le parent garde le défi trop dur pour que ce soit « méritant ». L'enfant enchaîne les échecs et conclut qu'il est nul, exactement l'inverse de l'objectif.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0303",
@@ -1433,7 +1433,7 @@
         }
       ],
       "why_it_fails": "L'histoire se termine par une leçon. L'enfant entend un sermon déguisé et ne retient que ça.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0401",
@@ -1559,7 +1559,7 @@
         }
       ],
       "why_it_fails": "Le parent profite de la réponse pour ouvrir un dossier (« tu étais en colère contre qui ? »). L'enfant apprend que nommer une émotion déclenche un interrogatoire, et arrête de nommer.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0402",
@@ -1696,7 +1696,7 @@
         }
       ],
       "why_it_fails": "Le parent commente la construction (« mets les gros en bas »). L'enfant se frustre contre le parent, pas contre la tour, et c'est le lien qui encaisse.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0403",
@@ -1811,7 +1811,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme l'émotion nommée en problème à régler sur-le-champ. L'enfant apprend que partager une émotion ouvre une réunion, et se tait.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0501",
@@ -1940,7 +1940,7 @@
         }
       ],
       "why_it_fails": "Le parent sort l'outil pour la première fois en pleine crise (« respire ! »). L'enfant associe l'outil à la dispute et ne l'utilisera jamais.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0502",
@@ -2071,7 +2071,7 @@
         }
       ],
       "why_it_fails": "Le parent dit « respire » à chaque chute, sur un ton de plus en plus pressé. L'outil devient un ordre, et l'enfant le refuse par principe.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0503",
@@ -2187,7 +2187,7 @@
         }
       ],
       "why_it_fails": "Le parent se sert du plan comme d'un contrat à vérifier. L'enfant se sent surveillé et abandonne l'outil pour ne pas avoir à rendre des comptes.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0601",
@@ -2316,7 +2316,7 @@
         }
       ],
       "why_it_fails": "Le parent enchaîne l'activité un soir où l'enfant est déjà en crise. La technique se découvre au calme ; en crise, elle ressemble à un ordre.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0602",
@@ -2447,7 +2447,7 @@
         }
       ],
       "why_it_fails": "Le parent compte les paniers et les annonce. Le défi devient une évaluation, l'enfant se crispe sur le résultat et oublie la routine.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0603",
@@ -2563,7 +2563,7 @@
         }
       ],
       "why_it_fails": "Le parent rassure trop (« tu vas être parfait »). L'enfant entend que son stress n'est pas légitime et arrête de le dire.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0701",
@@ -2688,7 +2688,7 @@
         }
       ],
       "why_it_fails": "Le parent ajoute le progrès « le plus important » que l'enfant a oublié. Le podium devient celui du parent.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0702",
@@ -2819,7 +2819,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme la séance en réunion de rendement. L'enfant défend son bilan au lieu de le regarder.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0703",
@@ -2934,7 +2934,7 @@
         }
       ],
       "why_it_fails": "Le parent enchaîne l'observation positive avec un « mais ». L'enfant n'entend que ce qui suit le « mais ».",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0801",
@@ -3059,7 +3059,7 @@
         }
       ],
       "why_it_fails": "Le parent se sent remis en question par la carte et le montre. L'enfant retire des noms pour vous ménager, et la carte ne sert plus.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0802",
@@ -3191,7 +3191,7 @@
         }
       ],
       "why_it_fails": "Le parent ne supporte pas de le voir galérer et aide « juste un peu » avant la demande. L'enfant apprend que l'aide arrive sans qu'on la demande, l'inverse de l'objectif.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0803",
@@ -3311,7 +3311,7 @@
         }
       ],
       "why_it_fails": "Le parent reprend la demande à son compte (« laisse, je vais appeler l'école »). L'enfant perd la victoire et la preuve qu'il pouvait le faire.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0901",
@@ -3438,7 +3438,7 @@
         }
       ],
       "why_it_fails": "Le parent suggère « focus » ou « concentre-toi ». Le mot devient une consigne d'adulte, et l'enfant ne s'en sert pas.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0902",
@@ -3569,7 +3569,7 @@
         }
       ],
       "why_it_fails": "Le parent commente les chutes de la balle (« concentre-toi ! »). L'exercice devient un test raté au lieu d'un entraînement au retour.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0903",
@@ -3684,7 +3684,7 @@
         }
       ],
       "why_it_fails": "Le parent profite de la conversation pour parler des résultats scolaires. L'enfant entend un reproche et associe son mot à une surveillance.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1001",
@@ -3810,7 +3810,7 @@
         }
       ],
       "why_it_fails": "Le parent choisit le moment à revivre (« ton but de samedi »). L'enfant revit votre souvenir, pas le sien, et l'image reste floue.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1002",
@@ -3943,7 +3943,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme la comparaison en mesure (« tu vois, t'en as mis trois de plus »). L'enfant se met à visualiser pour le score, et l'outil devient une pression.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1003",
@@ -4065,7 +4065,7 @@
         }
       ],
       "why_it_fails": "Le parent pousse l'enfant à visualiser « le pire, pour être prêt ». Sans la réponse, l'enfant ne répète que sa peur.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1101",
@@ -4192,7 +4192,7 @@
         }
       ],
       "why_it_fails": "Le parent complète la liste avec ce que l'enfant « a oublié ». La boîte devient celle du parent, et l'enfant ne l'ouvrira pas.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1102",
@@ -4325,7 +4325,7 @@
         }
       ],
       "why_it_fails": "Le parent veut une routine « parfaite » et corrige chaque étape. L'enfant retient qu'il fait mal, pas qu'il a une routine.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1103",
@@ -4440,7 +4440,7 @@
         }
       ],
       "why_it_fails": "Le parent suggère les usages « évidents ». L'enfant acquiesce, et aucun lien ne lui appartient.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1201",
@@ -4568,7 +4568,7 @@
         }
       ],
       "why_it_fails": "Le parent félicite publiquement la mission. L'enfant apprend que la mission servait à être vu, et le secret perd tout son effet.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1202",
@@ -4692,7 +4692,7 @@
         }
       ],
       "why_it_fails": "Le parent reprend la main (« en fait, c'est plutôt comme ça »). L'enfant redevient l'élève, et la semaine perd son sens.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1203",
@@ -4807,7 +4807,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme l'idée en engagement (« tu l'appelles demain »). L'enfant se sent assigné, et la contribution devient une corvée.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1301",
@@ -4937,7 +4937,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme la reconnaissance en discours de bilan, avec des « à améliorer ». L'enfant retient la fin, pas les forces.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1302",
@@ -5058,7 +5058,7 @@
         }
       ],
       "why_it_fails": "Le parent demande « tu as écrit quoi ? » dans les jours qui suivent. L'enfant réécrira désormais pour être lu, et la lettre perd sa valeur.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1303",
@@ -5179,7 +5179,7 @@
         }
       ],
       "why_it_fails": "Le parent organise une surprise à la place de l'enfant. La fête devient celle du parent, et le choix, qui était la moitié du cadeau, disparaît.",
-      "status": "revu"
+      "status": "publie"
     }
   ]
 }

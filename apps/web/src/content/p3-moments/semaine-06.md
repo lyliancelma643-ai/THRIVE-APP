@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Zaccaro et al. (2018) · Bandura (1977) · routines de pré-performance — Niveau A. Routine THRIVE et transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > La semaine dernière, votre enfant a appris à faire redescendre une émotion déjà là. Cette semaine, il apprend à préparer son corps avant un moment de pression : un examen, un match, une présentation, la rentrée.
 >

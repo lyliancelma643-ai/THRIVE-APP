@@ -9,7 +9,7 @@
 **Transfert :** non
 **Débloque :** fiche_identite
 **Fondement :** Peterson & Seligman (2004) · Park & Peterson (2006) · PCIT, special time — Niveau A pour les principes. Transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Pendant 13 semaines, vous allez vivre avec votre enfant, dix minutes à la fois, les 13 étapes de la Méthode THRIVE. Vous ne remplacez pas un coach : vous faites ce qu'un parent seul peut faire, et que personne ne peut faire à sa place.
 >

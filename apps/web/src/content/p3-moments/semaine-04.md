@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Lieberman et al. (2007) · Gottman, Katz & Hooven (1996) · Havighurst et al. (2010) — Niveau A. Transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Cette semaine et la suivante vont ensemble. D'abord nommer ce qu'on ressent, ensuite apprendre à le faire redescendre. Dans cet ordre, parce qu'on ne peut pas calmer une émotion qu'on n'a pas encore reconnue.
 >

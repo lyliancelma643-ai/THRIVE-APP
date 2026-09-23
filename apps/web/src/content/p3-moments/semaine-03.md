@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Bandura (1977, 1997) · Peterson & Seligman (2004) — Niveau A. Transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > La confiance ne vient pas des compliments. Elle vient de preuves : des choses qu'il a réussies et dont il sait que c'est grâce à lui.
 >

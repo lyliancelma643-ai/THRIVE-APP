@@ -75,10 +75,10 @@ function SessionDetailPageInner() {
   return (
     <div className="max-w-5xl">
       <Link
-        href="/parent/fitness"
+        href="/parent/fitness/seances"
         className="inline-flex items-center gap-2 text-sm text-soft hover:text-ink active:text-ink mb-4 py-3 pr-4 -my-1 transition-colors select-none"
       >
-        ← Retour au Fitness
+        ← Retour aux séances
       </Link>
 
       {started && selectedChild && user ? (
