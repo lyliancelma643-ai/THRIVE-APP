@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Csikszentmihalyi (1990) · Hatzigeorgiadis et al. (2011) · Zoogman et al. (2015) — Niveau A. Mot de concentration et fenêtres THRIVE — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Beaucoup d'enfants pensent que la concentration, on l'a ou on ne l'a pas. La Méthode dit le contraire : c'est une compétence qui s'entraîne, comme un geste.
 >

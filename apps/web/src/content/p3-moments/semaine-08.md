@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Deci & Ryan (2000) · Cohen & Wills (1985) · Lerner et al. (2005) — Niveau A. Normalisation et transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Beaucoup d'enfants préfèrent se débrouiller seuls, même quand c'est plus dur. On appelle ça être « fort ». La recherche dit l'inverse : ne pas savoir demander est un facteur de risque, pas une qualité.
 >

@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Lerner et al. (2005) · Seligman (2011) · Nestojko et al. (2014) — Niveau A. Transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Pendant onze semaines, votre enfant a reçu. Cette semaine, il donne. La Méthode appelle ça la contribution : le moment où le jeune passe de bénéficiaire à multiplicateur.
 >

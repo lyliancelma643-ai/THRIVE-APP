@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Locke & Latham (2002) · Nicholls (1984) · Papacharisis et al. (2005) — Niveau A. Transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > La semaine dernière, votre enfant a dit ce qu'il voulait réussir cette année. Cette semaine, on transforme ce rêve en quelque chose qu'il peut faire.
 >

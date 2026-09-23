@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** bilan_mi_parcours
 **Fondement :** Ames (1992) · Henderlong & Lepper (2002) · Pierce et al. (2017) — Niveau A. Format du bilan maison — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Six semaines ont passé. La Méthode s'arrête ici pour regarder le chemin : on ressort l'objectif, on voit ce qui a bougé, on ajuste.
 >

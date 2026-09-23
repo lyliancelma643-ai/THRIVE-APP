@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** certificat
 **Fondement :** Henderlong & Lepper (2002) · King (2001) · Seligman (2011) — Niveau A. Rituel de clôture maison — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > Treize semaines. Votre enfant a nommé ses forces, fixé un objectif, osé, reconnu ses émotions, appris à les faire redescendre, demandé de l'aide, choisi son mot, s'est vu réussir, et vous a appris ses outils.
 >

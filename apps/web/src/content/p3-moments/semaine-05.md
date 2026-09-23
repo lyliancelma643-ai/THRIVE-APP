@@ -9,7 +9,7 @@
 **Transfert :** oui
 **Débloque :** —
 **Fondement :** Zaccaro et al. (2018) · Hatzigeorgiadis et al. (2011) · Bandura (1977) — Niveau A. Formulations THRIVE et transposition au parent — Niveau B.
-**Statut :** revu
+**Statut :** publie
 
 > La semaine dernière, votre enfant a appris à nommer ce qu'il ressent. Cette semaine, il apprend quoi en faire.
 >
