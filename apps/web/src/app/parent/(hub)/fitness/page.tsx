@@ -1,8 +1,9 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// E1 — Accueil « Maison » (programme P3), à la place de l'ancien onglet Fitness. Le parent fatigué de 19 h 15 lance un
-// moment en 2 taps sans rien choisir : la carte du soir (pickTonight) + « Lancer ».
+// E1 — Accueil « Maison » (programme P3), à la place de l'ancien onglet Fitness, façon plateforme de streaming.
+// Le parent fatigué de 19 h 15 lance un moment en 1 tap sans rien choisir (l'affiche du soir, pickTonight),
+// ou choisit librement dans les rangées et le catalogue — jamais plus de 3 taps.
 // E10 — Onboarding au premier accès (clé localStorage thrive.p3.welcomeSeen).
 //
 // Anti-culpabilité (R3) : le compteur cumulatif est l'indicateur principal ;
@@ -16,7 +17,8 @@ import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
-import { DurationPills, PillGroup, PillarTag } from '@/components/parent/p3/pieces';
+import { DurationPills, PillGroup } from '@/components/parent/p3/pieces';
+import { PosterArt, PosterRow } from '@/components/parent/p3/Poster';
 import {
   addRefusal,
   excludeTonight,
@@ -36,6 +38,7 @@ import {
   getWeek,
   pickTonight,
   type Duration,
+  type P3Activity,
   type RewardId,
 } from '@/lib/p3-moments';
 import { BILAN_4_SEMAINES, DEFAULT_OPENER, PAGE_CONSULTER, PAGE_NON, ROLE_LABELS, TERMS_LINE } from '@/lib/p3-moments/guide';
@@ -48,6 +51,7 @@ import {
   formatLongDate,
   p3Pool,
 } from '@/lib/p3-moments/app';
+import { buildShelves } from '@/lib/p3-moments/shelves';
 
 type PlaceChoice = (typeof PLACE_CHOICES)[number]['id'];
 
@@ -181,7 +185,12 @@ function Bilan4Semaines({ ctx }: { ctx: P3Ctx }) {
   );
 }
 
-// ── E1 — Accueil ─────────────────────────────────────────────────────────────
+// ── E1 — Accueil, façon plateforme de streaming ──────────────────────────────
+// L'affiche du soir (pickTonight) se lance en 1 tap ; chaque rangée porte son
+// message de recommandation ; « Toutes les activités » ouvre le catalogue trié
+// par âge. Trois taps au plus pour lancer n'importe quelle fiche.
+const HERO_VEIL = 'linear-gradient(to top, rgba(6,22,30,.97) 0%, rgba(6,22,30,.78) 42%, rgba(6,22,30,.1) 100%)';
+
 function Home({ ctx }: { ctx: P3Ctx }) {
   const router = useRouter();
   const { data, firstName, child } = ctx;
@@ -206,9 +215,10 @@ function Home({ ctx }: { ctx: P3Ctx }) {
     writePrefDuration(d);
   };
 
+  const all = useMemo(() => p3Pool(), []);
   const pool = useMemo(
-    () => p3Pool().filter((a) => !evening.excluded.includes(a.id) && !data.saved.deCote.has(a.id)),
-    [evening.excluded, data.saved.deCote]
+    () => all.filter((a) => !evening.excluded.includes(a.id) && !data.saved.deCote.has(a.id)),
+    [all, evening.excluded, data.saved.deCote]
   );
 
   const pick = useMemo(
@@ -228,9 +238,30 @@ function Home({ ctx }: { ctx: P3Ctx }) {
     [firstName, ctx.band, duration, place, data.moments, evening.refusals, pool]
   );
 
-  const week = getWeek(data.openWeek)!;
   const firstMoment = data.count === 0;
   const a = pick?.activity ?? null;
+
+  const lastRating = useMemo(() => {
+    const m = new Map<string, number | null>();
+    for (const x of data.moments) if (!m.has(x.activity_id)) m.set(x.activity_id, x.rating);
+    return m;
+  }, [data.moments]);
+
+  const shelves = useMemo(
+    () =>
+      buildShelves({
+        pool: all,
+        firstName,
+        openWeek: data.openWeek,
+        doneIds: data.doneIds,
+        lastRating,
+        favoris: data.saved.favoris,
+        deCote: data.saved.deCote,
+        now: new Date(),
+        heroId: a?.id ?? null,
+      }),
+    [all, firstName, data.openWeek, data.doneIds, lastRating, data.saved, a?.id]
+  );
 
   const favourite = useMemo(() => {
     const five = data.moments.find((m) => m.rating === 5);
@@ -252,16 +283,15 @@ function Home({ ctx }: { ctx: P3Ctx }) {
     await data.recordSkip(a.id, kind);
   };
 
-  const launchHref = a ? `${P3_BASE}/${a.id}/moment?duree=${duration}&lieu=${place}` : '';
+  const q = `duree=${duration}&lieu=${place}`;
+  const ficheHref = (x: P3Activity) => `${P3_BASE}/${x.id}?${q}`;
+  const launchHref = a ? `${P3_BASE}/${a.id}/moment?${q}` : '';
+  const isDone = (x: P3Activity) => data.doneIds.has(x.id);
 
   return (
-    <div className="max-w-2xl">
-      <p className="nc-eyebrow">
-        Semaine {data.openWeek} · {week.title}
-      </p>
-
+    <div>
       {doneWeek && (
-        <div className="nc-card ring-1 ring-accent-line mt-4 animate-om-up">
+        <div className="nc-card ring-1 ring-accent-line mb-5 animate-om-up">
           <p className="font-display text-[20px] font-semibold text-ink">Semaine {doneWeek.week} complète.</p>
           {doneUnlock && (
             <Link href={`${P3_BASE}/objets/${doneUnlock}`} className="inline-flex items-center gap-1.5 mt-2 min-h-[44px] font-semibold text-accent-ink">
@@ -272,37 +302,29 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         </div>
       )}
 
-      {firstMoment && (
-        <div className="mt-4">
-          <p className="font-display text-[24px] leading-[1.25] text-ink">{getWeek(1)!.opening_line}</p>
-          <p className="mt-2 text-[15px] leading-[1.6] text-body">{getWeek(1)!.intro[0]}</p>
-          <p className="mt-3 text-[16px] text-ink">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
-        </div>
-      )}
-
-      {/* LA CARTE DU SOIR */}
+      {/* L'AFFICHE DU SOIR — la recommandation, lançable en un tap */}
       {a && pick ? (
-        <div
-          className="nc-card relative mt-5 md:p-7 min-h-[46vh] flex flex-col cursor-pointer animate-om-up"
-          onClick={() => router.push(`${P3_BASE}/${a.id}?duree=${duration}&lieu=${place}`)}
+        <section
+          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56vh] cursor-pointer animate-om-up"
+          onClick={() => router.push(ficheHref(a))}
         >
-          <div className="flex items-start justify-between gap-3">
-            <p className="nc-eyebrow">{ROLE_LABELS[a.role]}</p>
-            <button
-              type="button"
-              aria-label="Plus d'options"
-              aria-expanded={menu}
-              onClick={(e) => {
-                e.stopPropagation();
-                setMenu((m) => !m);
-              }}
-              className="nc-iconbtn -mt-2 -mr-2 text-[20px] leading-none"
-            >
-              <span aria-hidden>…</span>
-            </button>
-          </div>
+          <PosterArt activity={a} big />
+          <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
+
+          <button
+            type="button"
+            aria-label="Plus d'options"
+            aria-expanded={menu}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenu((m) => !m);
+            }}
+            className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-white/10 text-white text-[20px] leading-none grid place-items-center"
+          >
+            <span aria-hidden>…</span>
+          </button>
           {menu && (
-            <div className="absolute right-4 top-16 z-10 nc-row p-1.5 min-w-[220px] ring-1 ring-line2" onClick={(e) => e.stopPropagation()} role="menu">
+            <div className="absolute right-3 top-16 z-20 nc-row p-1.5 min-w-[220px] ring-1 ring-line2" onClick={(e) => e.stopPropagation()} role="menu">
               {[
                 { id: 'PAS_LE_TEMPS' as const, label: 'Pas ce soir' },
                 { id: 'DE_COTE' as const, label: 'Mettre de côté' },
@@ -314,95 +336,142 @@ function Home({ ctx }: { ctx: P3Ctx }) {
               ))}
             </div>
           )}
-          <Link
-            href={`${P3_BASE}/${a.id}?duree=${duration}&lieu=${place}`}
-            onClick={(e) => e.stopPropagation()}
-            className="font-display text-[34px] md:text-[42px] leading-[1.1] font-semibold text-ink mt-2 hover:underline"
-          >
-            {a.title}
-          </Link>
-          <p className="mt-2 text-[16px] leading-[1.5] text-body">{a.objective}</p>
-          <p className="mt-3 text-[15px] text-soft">{pick.reason}</p>
-          <div className="mt-3">
-            <PillarTag pillar={a.pillar_main} />
+
+          <div className="relative p-6 md:p-10 max-w-2xl">
+            <p className="text-sage text-[12px] font-bold uppercase tracking-[0.16em]">
+              Recommandé pour {firstName} · {ROLE_LABELS[a.role]}
+            </p>
+            <h1 className="font-display text-[34px] md:text-[48px] leading-[1.08] font-semibold text-white mt-2">{a.title}</h1>
+            <p className="mt-2 text-[16px] md:text-[18px] leading-[1.5] text-white/80">{a.objective}</p>
+            <p className="mt-3 inline-flex items-start gap-2 text-[15px] leading-[1.45] text-white">
+              <Icon name="sparkle" className="w-4 h-4 mt-[3px] shrink-0 text-accent" />
+              {pick.reason}
+            </p>
+            <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-white/70">
+              <li>{Math.min(duration, Math.max(...a.durations))} min</li>
+              <li>{a.materials.length ? a.materials.join(', ') : 'Rien à préparer'}</li>
+              <li>Énergie : {a.parent_energy}</li>
+            </ul>
+            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+              <Link
+                href={launchHref}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full bg-accent text-accent-on font-bold text-[16px]"
+              >
+                <Icon name="play" className="w-[18px] h-[18px]" />
+                Lancer
+              </Link>
+              <Link
+                href={ficheHref(a)}
+                onClick={(e) => e.stopPropagation()}
+                className="inline-flex items-center justify-center gap-2 h-[52px] px-6 rounded-full bg-white/15 text-white font-semibold text-[16px]"
+              >
+                Voir la fiche
+              </Link>
+            </div>
           </div>
-          <ul className="mt-auto pt-6 flex flex-wrap gap-x-4 gap-y-1.5 text-[14px] text-soft">
-            <li>{Math.min(duration, Math.max(...a.durations))} min</li>
-            <li>{PLACE_CHOICES.find((p) => p.id === place)!.label}</li>
-            <li>{a.materials.length ? a.materials.join(', ') : 'Rien à préparer'}</li>
-            <li>Énergie : {a.parent_energy}</li>
-          </ul>
-          <Link
-            href={launchHref}
-            onClick={(e) => e.stopPropagation()}
-            className="mt-5 inline-flex items-center justify-center gap-2 h-[56px] rounded-full bg-accent text-accent-on font-bold text-[17px]"
-          >
-            <Icon name="play" className="w-[18px] h-[18px]" />
-            Lancer
-          </Link>
-        </div>
+        </section>
       ) : (
-        <div className="nc-card mt-5">
+        <div className="nc-card">
           <p className="text-[17px] leading-[1.5] text-ink">
             {favourite ? (
               <>
                 Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Refaites{' '}
-                <Link href={`${P3_BASE}/${favourite.id}?duree=${duration}&lieu=${place}`} className="font-semibold text-accent-ink underline">
+                <Link href={ficheHref(favourite)} className="font-semibold text-accent-ink underline">
                   “{favourite.title}”
                 </Link>{' '}
                 ?
               </>
             ) : (
-              <>Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}.</>
+              <>Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Choisissez librement ci-dessous.</>
             )}
           </p>
-          <Link href={`${P3_BASE}/programme`} className="inline-flex items-center gap-1.5 mt-3 min-h-[44px] font-semibold text-accent-ink">
-            Voir le programme <Icon name="arrow-right" className="w-4 h-4" />
-          </Link>
         </div>
       )}
 
+      {firstMoment && (
+        <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
+      )}
+
+      {/* Ce soir : temps et lieu — règlent l'affiche et les liens de toutes les rangées */}
+      <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2.5">
+        <DurationPills value={duration} available={DURATIONS} onChange={chooseDuration} />
+        <PillGroup label="Lieu" value={place} options={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))} onChange={setPlace} />
+      </div>
       {place === 'voiture' && (
-        <p className="mt-3 text-[14px] text-soft">À lire avant de partir. Pendant la route, tout se fait à voix haute.</p>
+        <p className="mt-2 text-[14px] text-soft">À lire avant de partir. Pendant la route, tout se fait à voix haute.</p>
       )}
 
       {evening.refusals >= 2 && (
-        <Link href={`${P3_BASE}/quand-il-dit-non`} className="nc-row flex items-center justify-between gap-3 p-4 mt-4 min-h-[56px]">
+        <Link href={`${P3_BASE}/quand-il-dit-non`} className="nc-row flex items-center justify-between gap-3 p-4 mt-4 min-h-[56px] max-w-2xl">
           <span className="text-[15px] font-semibold text-ink">{PAGE_NON.title}</span>
           <Icon name="chevron-right" className="w-5 h-5 text-soft" />
         </Link>
       )}
 
-      {/* Temps disponible et lieu */}
-      <div className="mt-6 space-y-3">
-        <DurationPills value={duration} available={DURATIONS} onChange={chooseDuration} />
-        <PillGroup label="Lieu" value={place} options={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))} onChange={setPlace} />
-      </div>
+      {/* Raccourcis — la liberté totale à un tap */}
+      <nav aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
+        <Link href={`${P3_BASE}/toutes`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center gap-1.5 !bg-accent !border-accent !text-accent-on font-semibold">
+          <Icon name="grid" className="w-4 h-4" />
+          Toutes les activités · {all.length}
+        </Link>
+        <Link href={`${P3_BASE}/programme`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
+          Le programme
+        </Link>
+        <Link href={`${P3_BASE}/carnet`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
+          Le carnet
+        </Link>
+        <Link href={`${P3_BASE}/quand-il-dit-non`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
+          {PAGE_NON.title}
+        </Link>
+      </nav>
 
       {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » */}
-      <section className="mt-9">
-        {data.countPhrase && (
-          <p className="font-display text-[30px] md:text-[36px] font-semibold text-ink leading-[1.15]">{data.countPhrase}</p>
-        )}
-        <p className="mt-2 text-[14px] text-soft">{data.week.done} sur 3 cette semaine</p>
-        <div className="nc-track mt-2 max-w-sm">
-          <div className="nc-fill bg-accent" style={{ width: `${(data.week.done / 3) * 100}%` }} />
+      <section className="mt-7 max-w-md">
+        {data.countPhrase && <p className="font-display text-[26px] font-semibold text-ink leading-[1.15]">{data.countPhrase}</p>}
+        <div className="mt-2 flex items-center gap-3">
+          <div className="nc-track flex-1">
+            <div className="nc-fill bg-accent" style={{ width: `${(data.week.done / 3) * 100}%` }} />
+          </div>
+          {/* R3 : jamais de « 0 » — tant que rien n'est fait, l'objectif est dit comme une invitation. */}
+          <span className="text-[13px] text-soft shrink-0">
+            {data.week.done > 0 ? `${data.week.done} sur 3 cette semaine` : 'Trois moments cette semaine'}
+          </span>
         </div>
         {data.weeklyStreak !== null && (
           <p className="mt-2 text-[14px] text-soft">{data.weeklyStreak} semaines complètes d&apos;affilée</p>
         )}
       </section>
 
-      <Link href={`${P3_BASE}/programme`} className="inline-flex items-center gap-1.5 mt-6 min-h-[44px] font-semibold text-accent-ink">
-        Choisir autre chose <Icon name="arrow-right" className="w-4 h-4" />
+      {/* Les rangées */}
+      {shelves.map((s) => (
+        <PosterRow
+          key={s.id}
+          title={s.title}
+          subtitle={s.subtitle}
+          items={s.items}
+          hrefOf={ficheHref}
+          isDone={isDone}
+          more={s.id === 'semaine' ? { href: `${P3_BASE}/programme`, label: 'Le programme' } : s.id.startsWith('phase-') ? undefined : { href: `${P3_BASE}/toutes`, label: 'Tout voir' }}
+        />
+      ))}
+
+      <Link
+        href={`${P3_BASE}/toutes`}
+        className="mt-10 flex items-center justify-center gap-2 h-[56px] rounded-full border border-line2 text-[16px] font-semibold text-ink max-w-md"
+      >
+        <Icon name="grid" className="w-5 h-5" />
+        Voir les {all.length} activités, triées par âge
       </Link>
 
-      <Bilan4Semaines ctx={ctx} />
+      <div className="max-w-2xl">
+        <Bilan4Semaines ctx={ctx} />
+      </div>
 
       {/* Carnet — les 3 derniers moments */}
       {data.carnet.length > 0 && (
-        <section className="mt-9">
-          <h2 className="nc-eyebrow mb-3">Le carnet</h2>
+        <section className="mt-10 max-w-3xl">
+          <h2 className="font-display text-[20px] md:text-[22px] font-semibold text-ink mb-3">Le carnet</h2>
           <ul className="grid gap-3 sm:grid-cols-3">
             {data.carnet.slice(0, 3).map((m) => (
               <li key={`${m.activity_id}-${m.created_at}`} className="nc-row p-4">
@@ -421,9 +490,6 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       )}
 
       <footer className="mt-12 pt-6 border-t border-line flex flex-wrap gap-x-6 gap-y-1 text-[14px]">
-        <Link href={`${P3_BASE}/quand-il-dit-non`} className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
-          {PAGE_NON.title}
-        </Link>
         <Link href={`${P3_BASE}/sources`} className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
           Les sources de la méthode
         </Link>

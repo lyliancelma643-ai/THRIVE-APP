@@ -25,7 +25,8 @@ import {
   type Place,
 } from '@/lib/p3-moments';
 import { ROLE_LABELS } from '@/lib/p3-moments/guide';
-import { P3_BASE, p3Pool, parseDuration, parsePlace } from '@/lib/p3-moments/app';
+import { BAND_LABELS } from '@/lib/p3-moments/shelves';
+import { P3_BASE, p3Pool, parseBand, parseDuration, parsePlace } from '@/lib/p3-moments/app';
 
 const PLACE_LABELS: Record<Place, string> = {
   maison: 'À la maison',
@@ -39,7 +40,7 @@ const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: '
 const LEVEL_NOTE =
   'Niveau A : fondé sur des études solides. Niveau B : adaptation THRIVE cohérente avec la recherche. Niveau C : choix pédagogique de terrain.';
 
-function FicheInner({ ctx, activity }: { ctx: P3Ctx; activity: P3Activity }) {
+function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3Activity; bandOverride: boolean }) {
   const router = useRouter();
   const search = useSearchParams();
   const place = parsePlace(search.get('lieu'));
@@ -57,7 +58,7 @@ function FicheInner({ ctx, activity }: { ctx: P3Ctx; activity: P3Activity }) {
   const week = getWeek(activity.week);
   const fav = ctx.data.saved.favoris.has(activity.id);
   const aside = ctx.data.saved.deCote.has(activity.id);
-  const launchHref = `${P3_BASE}/${activity.id}/moment?duree=${r.duration}&lieu=${place}`;
+  const launchHref = `${P3_BASE}/${activity.id}/moment?duree=${r.duration}&lieu=${place}${bandOverride ? `&bande=${ctx.band}` : ''}`;
 
   const copy = async () => {
     try {
@@ -135,8 +136,14 @@ function FicheInner({ ctx, activity }: { ctx: P3Ctx; activity: P3Activity }) {
         {r.variant && (
           <div className="nc-row p-4 mt-5">
             <p className="nc-eyebrow mb-1.5">
-              Pour {ctx.firstName}
-              {ctx.age !== null ? `, à ${ctx.age} ans` : ''}
+              {bandOverride ? (
+                `Version ${BAND_LABELS[ctx.band]}`
+              ) : (
+                <>
+                  Pour {ctx.firstName}
+                  {ctx.age !== null ? `, à ${ctx.age} ans` : ''}
+                </>
+              )}
             </p>
             <p className="text-[15px] leading-[1.55] text-body">
               <InlineMd text={r.variant} />
@@ -269,17 +276,25 @@ function FicheInner({ ctx, activity }: { ctx: P3Ctx; activity: P3Activity }) {
 
 function FichePage() {
   const params = useParams<{ activityId: string }>();
+  const search = useSearchParams();
   const activity = getActivity(String(params.activityId ?? ''));
   const allowed = activity && p3Pool().some((a) => a.id === activity.id);
+  const band = parseBand(search.get('bande'));
 
+  // Liberté totale : toute fiche publiée s'ouvre, quelle que soit la semaine en cours.
+  // ?bande= (depuis le catalogue) montre la version d'une autre tranche d'âge.
   return (
     <P3Frame>
       {(ctx) =>
-        activity && allowed && activity.week <= ctx.data.openWeek ? (
-          <FicheInner ctx={ctx} activity={activity} />
+        activity && allowed ? (
+          <FicheInner
+            ctx={band ? { ...ctx, band } : ctx}
+            activity={activity}
+            bandOverride={band !== null && band !== ctx.band}
+          />
         ) : (
           <div className="py-16 text-center">
-            <p className="text-[16px] text-body">Cette fiche s&apos;ouvrira plus tard dans le programme.</p>
+            <p className="text-[16px] text-body">Cette fiche n&apos;est pas encore disponible.</p>
             <Link href={P3_BASE} className="inline-block mt-4 min-h-[44px] font-semibold text-accent-ink underline">
               Retour à Maison
             </Link>
