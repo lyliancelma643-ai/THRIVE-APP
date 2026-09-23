@@ -187,6 +187,24 @@ function FitnessPageInner() {
         </div>
       )}
 
+      {/* Entrée du programme P3 « Maison » : 10 minutes parent-enfant, chaque soir */}
+      <Link
+        href="/parent/fitness/maison"
+        className="nc-row mt-7 flex items-center gap-4 p-4 md:p-5 min-h-[64px] animate-om-up"
+        style={{ ['--om-d' as string]: '0.15s' }}
+      >
+        <span className="w-11 h-11 rounded-full bg-accent text-accent-on grid place-items-center shrink-0">
+          <Icon name="home" className="w-5 h-5" />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block text-[16px] font-semibold text-night-ink">Maison</span>
+          <span className="block text-[14px] text-soft">
+            10 minutes{selectedChild ? ` avec ${selectedChild.first_name}` : ''}, rien à préparer.
+          </span>
+        </span>
+        <Icon name="chevron-right" className="w-5 h-5 text-soft shrink-0" />
+      </Link>
+
       {/* Rangées par phase (carrousels horizontaux) */}
       <SessionRow
         title={PHASE_LABELS.ANCRER}
