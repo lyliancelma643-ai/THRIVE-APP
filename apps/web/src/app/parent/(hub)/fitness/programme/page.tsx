@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { Icon } from '@/components/ui';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { BackLink, PillGroup, PillarTag } from '@/components/parent/p3/pieces';
+import { cameBack, recall, remember, usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
 import { P3_WEEKS, activitiesOfWeek, type P3Activity } from '@/lib/p3-moments';
 import { ROLE_LABELS } from '@/lib/p3-moments/guide';
 import { P3_BASE, p3Pool } from '@/lib/p3-moments/app';
@@ -49,12 +50,16 @@ function FicheRow({ a, done }: { a: P3Activity; done: boolean }) {
 
 function Programme({ ctx }: { ctx: P3Ctx }) {
   const { data } = ctx;
-  const [openDetail, setOpenDetail] = useState<number | null>(null);
+  // La semaine ouverte reste ouverte au retour d'une fiche (bouton ou geste).
+  const [openDetail, setOpenDetail] = useState<number | null>(() =>
+    cameBack() ? recall(`programme:${ctx.child.id}:week`, null) : null
+  );
+  useEffect(() => remember(`programme:${ctx.child.id}:week`, openDetail), [ctx.child.id, openDetail]);
   const [whyOpen, setWhyOpen] = useState(false);
   const [shelf, setShelf] = useState<Shelf>('tout');
   const pool = useMemo(() => p3Pool(), []);
 
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), []);
+  usePageScrollMemory(`programme:${ctx.child.id}`);
 
   const lastRating = useMemo(() => {
     const m = new Map<string, number | null>();

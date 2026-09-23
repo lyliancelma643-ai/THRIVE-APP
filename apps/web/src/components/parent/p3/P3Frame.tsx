@@ -90,9 +90,28 @@ function useP3Enabled(): boolean | null {
   return enabled;
 }
 
+/**
+ * Filet de sécurité des rangées d'affiches : au bout d'un carrousel, un
+ * balayage horizontal (pavé tactile surtout) peut « déborder » sur la page et
+ * être pris pour un retour arrière. Au doigt, c'est useHScroll qui l'évite ;
+ * ici on coupe aussi la navigation par débordement de la racine, sur les
+ * écrans Maison seulement. Le geste de bord système (iOS, Android) reste intact.
+ */
+function useNoHorizontalOverscrollNav() {
+  useEffect(() => {
+    const root = document.documentElement;
+    const before = root.style.overscrollBehaviorX;
+    root.style.overscrollBehaviorX = 'none';
+    return () => {
+      root.style.overscrollBehaviorX = before;
+    };
+  }, []);
+}
+
 export function P3Frame({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
   const { access, isLoading, refresh } = useAccessStore();
   const p3Enabled = useP3Enabled();
+  useNoHorizontalOverscrollNav();
 
   useEffect(() => {
     refresh();

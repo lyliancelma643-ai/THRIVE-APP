@@ -16,6 +16,7 @@ import { Icon } from '@/components/ui';
 import type { P3Activity, PillarCode } from '@/lib/p3-moments';
 import { PILLAR_PLAIN } from '@/lib/p3-moments/guide';
 import { PILLAR_ICON } from './pieces';
+import { useHScroll } from './useHScroll';
 
 /** Une teinte par pilier : c'est elle qui fait reconnaître une famille d'un coup d'œil. */
 const PILLAR_HUE: Record<PillarCode, string> = {
@@ -78,8 +79,14 @@ export function PosterCard({
   wide?: boolean;
 }) {
   return (
-    <Link href={href} className={`${wide ? 'w-full' : 'w-[152px] md:w-[176px] shrink-0 snap-start'} group select-none`}>
-      <div className="relative aspect-[3/4] rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5">
+    // Toucher : la vignette s'enfonce légèrement sous le doigt ; pas de menu d'aperçu
+    // iOS au appui long ni de « fantôme » de lien quand on tire à la souris.
+    <Link
+      href={href}
+      draggable={false}
+      className={`${wide ? 'w-full' : 'w-[152px] md:w-[176px] shrink-0 snap-start'} group select-none [-webkit-touch-callout:none]`}
+    >
+      <div className="relative aspect-[3/4] rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5 transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
         <PosterArt activity={activity} done={done} />
         <span className="absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
           <span className="w-11 h-11 rounded-full bg-accent text-navy-900 flex items-center justify-center">
@@ -98,6 +105,7 @@ export function PosterCard({
 }
 
 export function PosterRow({
+  id,
   title,
   subtitle,
   items,
@@ -105,6 +113,8 @@ export function PosterRow({
   isDone,
   more,
 }: {
+  /** Clé stable de la rangée : sert à retrouver sa position au retour. */
+  id: string;
   title: string;
   subtitle: string;
   items: P3Activity[];
@@ -112,9 +122,17 @@ export function PosterRow({
   isDone: (a: P3Activity) => boolean;
   more?: { href: string; label: string };
 }) {
+  const { ref: track, edges, props } = useHScroll(`row:${id}`);
+
+  // Souris / clavier (ordinateur) : les flèches avancent d'un écran de vignettes.
+  const page = (dir: 1 | -1) => {
+    const el = track.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.85, behavior: 'smooth' });
+  };
+
   if (items.length === 0) return null;
   return (
-    <section className="mt-9 animate-om-up">
+    <section className="mt-9 animate-om-up group/row">
       <div className="mb-3 flex items-end justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2]">{title}</h2>
@@ -127,11 +145,38 @@ export function PosterRow({
           </Link>
         )}
       </div>
-      {/* `scroll-pl-5` : sans lui, l'accroche cale la première vignette sur le bord et mange la gouttière. */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide overscroll-x-contain snap-x scroll-pl-5 md:scroll-pl-0 -mx-5 px-5 md:mx-0 md:px-0 pb-1">
-        {items.map((a) => (
-          <PosterCard key={a.id} activity={a} href={hrefOf(a)} done={isDone(a)} />
-        ))}
+      <div className="relative">
+        {/* `scroll-pl-5` : sans lui, l'accroche cale la première vignette sur le bord et mange la gouttière.
+            `snap-mandatory` : au doigt, la rangée s'arrête toujours sur une vignette entière. */}
+        <div
+          {...props}
+          className="flex gap-3 overflow-x-auto scrollbar-hide overscroll-x-contain snap-x snap-mandatory scroll-pl-5 md:scroll-pl-0 -mx-5 px-5 md:mx-0 md:px-0 pb-1"
+        >
+          {items.map((a) => (
+            <PosterCard key={a.id} activity={a} href={hrefOf(a)} done={isDone(a)} />
+          ))}
+        </div>
+        {/* Flèches : seulement avec une souris (les écrans tactiles défilent au doigt). */}
+        {(['prev', 'next'] as const).map((k) => {
+          const hidden = k === 'prev' ? edges.start : edges.end;
+          return (
+            <button
+              key={k}
+              type="button"
+              tabIndex={hidden ? -1 : 0}
+              aria-hidden={hidden}
+              aria-label={k === 'prev' ? `${title} : vignettes précédentes` : `${title} : vignettes suivantes`}
+              onClick={() => page(k === 'prev' ? -1 : 1)}
+              className={`hidden [@media(hover:hover)_and_(pointer:fine)]:grid place-items-center absolute top-[101px] md:top-[117px] -translate-y-1/2 ${
+                k === 'prev' ? '-left-3' : '-right-3'
+              } w-11 h-11 rounded-full bg-night-surface ring-1 ring-line2 text-ink transition-opacity ${
+                hidden ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100'
+              }`}
+            >
+              <Icon name="chevron-right" className={`w-5 h-5 ${k === 'prev' ? 'rotate-180' : ''}`} />
+            </button>
+          );
+        })}
       </div>
     </section>
   );
