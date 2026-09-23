@@ -56,9 +56,9 @@ drop policy if exists p3_moments_read on public.p3_moments;
 create policy p3_moments_read on public.p3_moments
   for select to authenticated
   using (
-    public.is_parent_of_child(child_id)
-    or public.is_assigned_coach(child_id)
-    or public.is_admin()
+    private.is_parent_of_child(child_id)
+    or private.is_assigned_coach(child_id)
+    or private.is_admin()
   );
 
 drop policy if exists p3_moments_insert on public.p3_moments;
@@ -66,7 +66,7 @@ create policy p3_moments_insert on public.p3_moments
   for insert to authenticated
   with check (
     parent_id = (select auth.uid())
-    and public.is_parent_of_child(child_id)
+    and private.is_parent_of_child(child_id)
   );
 
 -- ── p3_skips ────────────────────────────────────────────────────────────────
@@ -86,12 +86,12 @@ alter table public.p3_skips enable row level security;
 drop policy if exists p3_skips_read on public.p3_skips;
 create policy p3_skips_read on public.p3_skips
   for select to authenticated
-  using (public.is_parent_of_child(child_id) or public.is_admin());
+  using (private.is_parent_of_child(child_id) or private.is_admin());
 
 drop policy if exists p3_skips_insert on public.p3_skips;
 create policy p3_skips_insert on public.p3_skips
   for insert to authenticated
-  with check (parent_id = (select auth.uid()) and public.is_parent_of_child(child_id));
+  with check (parent_id = (select auth.uid()) and private.is_parent_of_child(child_id));
 
 -- ── p3_saved : favoris et mis de côté ───────────────────────────────────────
 create table if not exists public.p3_saved (
@@ -108,17 +108,17 @@ alter table public.p3_saved enable row level security;
 drop policy if exists p3_saved_read on public.p3_saved;
 create policy p3_saved_read on public.p3_saved
   for select to authenticated
-  using (public.is_parent_of_child(child_id) or public.is_admin());
+  using (private.is_parent_of_child(child_id) or private.is_admin());
 
 drop policy if exists p3_saved_insert on public.p3_saved;
 create policy p3_saved_insert on public.p3_saved
   for insert to authenticated
-  with check (parent_id = (select auth.uid()) and public.is_parent_of_child(child_id));
+  with check (parent_id = (select auth.uid()) and private.is_parent_of_child(child_id));
 
 drop policy if exists p3_saved_delete on public.p3_saved;
 create policy p3_saved_delete on public.p3_saved
   for delete to authenticated
-  using (public.is_parent_of_child(child_id));
+  using (private.is_parent_of_child(child_id));
 
 -- ── p3_rewards : acquis pour toujours ───────────────────────────────────────
 create table if not exists public.p3_rewards (
@@ -136,12 +136,12 @@ alter table public.p3_rewards enable row level security;
 drop policy if exists p3_rewards_read on public.p3_rewards;
 create policy p3_rewards_read on public.p3_rewards
   for select to authenticated
-  using (public.is_parent_of_child(child_id) or public.is_assigned_coach(child_id) or public.is_admin());
+  using (private.is_parent_of_child(child_id) or private.is_assigned_coach(child_id) or private.is_admin());
 
 drop policy if exists p3_rewards_insert on public.p3_rewards;
 create policy p3_rewards_insert on public.p3_rewards
   for insert to authenticated
-  with check (public.is_parent_of_child(child_id));
+  with check (private.is_parent_of_child(child_id));
 -- Aucune policy update/delete : une récompense ne se reprend pas.
 
 -- ── p3_letters : scellées jusqu'à deliver_at ────────────────────────────────
@@ -164,14 +164,14 @@ alter table public.p3_letters enable row level security;
 drop policy if exists p3_letters_read on public.p3_letters;
 create policy p3_letters_read on public.p3_letters
   for select to authenticated
-  using (public.is_parent_of_child(child_id) and deliver_at <= now());
+  using (private.is_parent_of_child(child_id) and deliver_at <= now());
 
 drop policy if exists p3_letters_insert on public.p3_letters;
 create policy p3_letters_insert on public.p3_letters
   for insert to authenticated
   with check (
     parent_id = (select auth.uid())
-    and public.is_parent_of_child(child_id)
+    and private.is_parent_of_child(child_id)
     and deliver_at >= now() + interval '11 months'
   );
 
