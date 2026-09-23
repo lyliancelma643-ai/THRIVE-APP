@@ -20,7 +20,42 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// fetch borné dans le temps. Sans ça, une requête réseau qui ne répond jamais
+// (typique d'une PWA iOS qui revient d'arrière-plan, ou d'un réseau mobile
+// instable) laisse la promesse pendante À VIE : le rafraîchissement du token
+// reste « en vol », getSession() ne rend jamais la main et l'app tourne sur
+// son spinner jusqu'à ce qu'on recharge la page. Avec un délai, l'appel échoue
+// proprement et l'UI peut réagir (réessayer, afficher le formulaire).
+//   • Auth (/auth/v1)      : 10 s — c'est le chemin critique de la connexion.
+//   • REST / RPC / fonctions : 25 s.
+//   • Storage (uploads)    : aucune limite (un gros fichier peut être long).
+// ─────────────────────────────────────────────────────────────────────────────
+function timeoutFor(url: string): number | null {
+  if (url.includes('/auth/v1/')) return 10_000;
+  if (url.includes('/storage/v1/')) return null;
+  return 25_000;
+}
+
+const fetchWithTimeout: typeof fetch = (input, init) => {
+  const url =
+    typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url;
+  const ms = timeoutFor(url);
+  if (ms === null || typeof AbortController === 'undefined') return fetch(input, init);
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), ms);
+  // Respecte un éventuel signal fourni par l'appelant (annulation manuelle).
+  const outer = init?.signal;
+  if (outer) {
+    if (outer.aborted) controller.abort();
+    else outer.addEventListener('abort', () => controller.abort(), { once: true });
+  }
+  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
+};
+
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: { fetch: fetchWithTimeout },
   auth: {
     autoRefreshToken: true,
     persistSession: true,

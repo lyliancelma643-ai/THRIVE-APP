@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/auth.store';
+import { homeForRole } from '@/lib/role-home';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -12,21 +13,10 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (isLoading) return;
-    if (!isAuthenticated) { router.push('/login'); return; }
+    if (!isAuthenticated) { router.replace('/login'); return; }
 
-    // Redirection selon le rôle
-    switch (user?.role) {
-      case 'ADMIN':
-      case 'SUPER_ADMIN':
-        router.replace('/admin');
-        break;
-      case 'COACH':
-        router.replace('/coach/dashboard');
-        break;
-      default:
-        router.replace('/parent');
-        break;
-    }
+    // Redirection selon le rôle, directement vers la page finale.
+    router.replace(homeForRole(user?.role));
   }, [isLoading, isAuthenticated, user, router]);
 
   // Page de transit uniquement : la redirection par rôle part dès que la

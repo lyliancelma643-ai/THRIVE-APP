@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { useAuthStore } from '@/stores/auth.store';
-import { getMfaStatus } from '@/lib/mfa';
+import { useAuthStore, homeForRole } from '@/stores/auth.store';
+import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type Mode = 'signin' | 'signup' | 'forgot';
@@ -30,6 +30,31 @@ const SITE_URL =
     ? 'https://thrivesportpositive.com'
     : 'http://localhost:5173');
 
+// Destination demandée avant la redirection vers /login (posée par le
+// middleware). N'accepte qu'un chemin interne vers un espace connu : jamais
+// d'URL absolue ni de « //domaine » (pas de redirection ouverte).
+function safeNext(): string | null {
+  if (typeof window === 'undefined') return null;
+  const next = new URLSearchParams(window.location.search).get('next');
+  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
+  if (!/^\/(parent|coach|admin|settings)(\/|$|\?)/.test(next)) return null;
+  return next;
+}
+
+// Un espace n'est accessible qu'à certains rôles : on ne suit `next` que s'il
+// correspond au rôle, sinon on irait droit sur un rebond du middleware.
+function destinationFor(role?: string | null): string {
+  const next = safeNext();
+  if (next) {
+    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
+    if (next.startsWith('/admin') && isAdmin) return next;
+    if (next.startsWith('/coach') && (role === 'COACH' || isAdmin)) return next;
+    if (next.startsWith('/parent') && (role === 'PARENT' || !role || isAdmin)) return next;
+    if (next.startsWith('/settings')) return next;
+  }
+  return homeForRole(role);
+}
+
 const SPORT_OPTIONS = [
   'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
   'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
@@ -38,7 +63,10 @@ const SPORT_OPTIONS = [
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, isLoading, hydrate, isAuthenticated } = useAuthStore();
+  const { signIn, hydrate, isAuthenticated, sessionVerified, user } = useAuthStore();
+  // Session réellement confirmée pendant cette visite (et non simple état
+  // relu du localStorage, qui peut être périmé).
+  const confirmed = isAuthenticated && sessionVerified;
 
   const [mode, setMode] = useState<Mode>('signin');
   const [error, setError] = useState('');
@@ -82,11 +110,21 @@ export default function LoginPage() {
 
   // Un utilisateur déjà connecté ne reste pas sur /login. Utile aussi quand le
   // middleware renvoie ici une session au cookie (access token) expiré : hydrate
-  // revalide/rafraîchit la session, puis on repart vers l'espace par rôle.
+  // revalide/rafraîchit la session, puis on part DIRECTEMENT vers son espace.
+  // On attend la confirmation (sessionVerified) : se fier à l'état persisté
+  // provoquait un aller-retour /login ↔ middleware puis un spinner sans fin.
   useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (isAuthenticated) router.replace('/dashboard');
-  }, [isAuthenticated, router]);
+    if (!confirmed || submitting) return;
+    const dest = destinationFor(user?.role);
+    router.replace(dest);
+    // Filet de sécurité : si la navigation client n'a pas abouti (réseau
+    // capricieux, rebond), on force un chargement complet une seule fois.
+    const t = setTimeout(() => {
+      if (window.location.pathname === '/login') window.location.replace(dest);
+    }, 4_000);
+    return () => clearTimeout(t);
+  }, [confirmed, submitting, user?.role, router]);
 
   const handleForgot = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,18 +147,29 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoading || submitting) return; // anti double-submit
+    if (submitting) return; // anti double-submit
     if (!email || !password) { setError('Tous les champs sont requis'); return; }
+    setError('');
+    setSubmitting(true);
     try {
-      setError('');
-      await signIn(email, password);
+      await signIn(email.trim(), password);
       // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
-      // Sinon (cas de tous les comptes sans MFA), redirection directe : dormant.
-      const mfa = await getMfaStatus();
-      router.push(mfa.needsStepUp ? '/mfa-verify?next=/dashboard' : '/dashboard');
+      // Vérification 100 % locale (lecture du JWT) : aucun appel réseau en plus.
+      const dest = destinationFor(useAuthStore.getState().user?.role);
+      router.replace(
+        (await needsMfaStepUp()) ? `/mfa-verify?next=${encodeURIComponent(dest)}` : dest
+      );
+      // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
     } catch (err: any) {
       const msg = err?.message ?? 'Connexion impossible';
-      setError(/invalid login|credentials/i.test(msg) ? 'Email ou mot de passe incorrect.' : humanAuthError(msg));
+      setError(
+        /invalid login|credentials/i.test(msg)
+          ? 'Email ou mot de passe incorrect.'
+          : /fetch|network|abort|timed? ?out/i.test(msg)
+            ? 'Connexion lente ou interrompue. Vérifie ton réseau et réessaie.'
+            : humanAuthError(msg)
+      );
+      setSubmitting(false);
     }
   };
 
@@ -201,7 +250,7 @@ export default function LoginPage() {
         const { error: childErr } = await supabase.from('children').insert(rows);
         if (childErr) throw childErr;
       }
-      router.push('/parent');
+      router.push('/parent/bilans');
     } catch {
       // Compte créé + session active : on entre dans l'app (les enfants pourront
       // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
@@ -209,8 +258,10 @@ export default function LoginPage() {
     }
   };
 
-  // Déjà connecté : on affiche un état de redirection plutôt qu'un flash du formulaire
-  if (isAuthenticated) {
+  // Session confirmée : état de redirection plutôt qu'un flash du formulaire.
+  // Tant qu'une session persistée est en cours de vérification (quelques
+  // centaines de ms, 6 s au pire), on affiche aussi ce même état.
+  if (confirmed || (isAuthenticated && !sessionVerified)) {
     return (
       <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
         <div
@@ -278,7 +329,7 @@ export default function LoginPage() {
                 <button
                   key={m}
                   type="button"
-                  disabled={isLoading || submitting}
+                  disabled={submitting}
                   aria-pressed={mode === m}
                   onClick={() => { setMode(m); setError(''); }}
                   className={`flex-1 min-h-[44px] py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-60 ${
@@ -393,11 +444,11 @@ export default function LoginPage() {
               {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
               <button
                 type="submit"
-                disabled={isLoading}
-                aria-busy={isLoading}
+                disabled={submitting}
+                aria-busy={submitting}
                 className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
               >
-                {isLoading ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
+                {submitting ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
               </button>
             </form>
           ) : (

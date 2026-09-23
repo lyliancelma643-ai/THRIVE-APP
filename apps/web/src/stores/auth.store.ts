@@ -4,6 +4,13 @@ import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
 import { supabaseClient as supabase } from '@thrive/shared';
 
 type AuthStore = IAuthState & {
+  /**
+   * true dès que la session a été CONFIRMÉE auprès de Supabase pendant cette
+   * visite (hydrate, connexion ou évènement auth). Non persisté : l'état
+   * `isAuthenticated` relu du localStorage peut être périmé (token expiré,
+   * session révoquée) et ne doit jamais, seul, déclencher une redirection.
+   */
+  sessionVerified: boolean;
   hydrate: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<void>;
@@ -14,7 +21,8 @@ type AuthStore = IAuthState & {
 function syncAuthCookie(accessToken: string | null) {
   if (typeof document === 'undefined') return;
   if (accessToken) {
-    document.cookie = `sb-access-token=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
+    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+    document.cookie = `sb-access-token=${accessToken}; path=/; max-age=604800; SameSite=Lax${secure}`;
   } else {
     document.cookie = 'sb-access-token=; path=/; max-age=0';
   }
@@ -52,6 +60,14 @@ function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthToke
   };
 }
 
+export { homeForRole } from '@/lib/role-home';
+
+// Délai maximal accordé à la vérification de session avant de rendre la main
+// à l'UI. Au-delà (réseau qui traîne), on affiche le formulaire plutôt qu'un
+// spinner sans fin ; si la session finit par être confirmée, l'état est mis à
+// jour et l'utilisateur est redirigé automatiquement.
+const HYDRATE_TIMEOUT_MS = 6_000;
+
 // Dédoublonnage des appels concurrents à hydrate(). La chaîne de connexion
 // monte plusieurs gardes coup sur coup (/login → /dashboard → layout d'espace),
 // chacune appelant hydrate() au montage. Sans cette garde, chaque appel relance
@@ -70,6 +86,7 @@ export const useAuthStore = create<AuthStore>()(
       // gardes de layout (admin/parent/coach) attendent au lieu de rediriger
       // vers /login. Évite le rebond au rechargement / deep-link d'une sous-page.
       isLoading: true,
+      sessionVerified: false,
 
       hydrate: async () => {
         if (hydrateInFlight) return hydrateInFlight;
@@ -80,18 +97,39 @@ export const useAuthStore = create<AuthStore>()(
           // rebasculer sur le spinner — c'était la cause des re-blocages.
           if (!get().isAuthenticated) set({ isLoading: true });
 
-          const { data, error } = await supabase.auth.getSession();
-          if (error || !data.session) {
-            set({ user: null, session: null, isAuthenticated: false, isLoading: false });
+          type SessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
+          const apply = ({ data, error }: SessionResult) => {
+            if (error || !data.session) {
+              set({
+                user: null, session: null, isAuthenticated: false,
+                isLoading: false, sessionVerified: true,
+              });
+              return null;
+            }
+            const mapped = mapSession(data.session);
+            // Session en main → on DÉBLOQUE l'UI immédiatement. Le rendu ne doit
+            // jamais attendre un aller-retour réseau supplémentaire.
+            syncAuthCookie(data.session.access_token);
+            set({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
+            return mapped;
+          };
+
+          // getSession() est local si le token est encore valide, mais déclenche
+          // un rafraîchissement réseau s'il a expiré (cas typique : on rouvre la
+          // PWA après plus d'une heure). On borne l'attente pour ne jamais rester
+          // bloqué sur le spinner ; le résultat tardif est quand même appliqué.
+          const sessionPromise = supabase.auth.getSession();
+          const first = await Promise.race([
+            sessionPromise,
+            new Promise<'timeout'>((r) => setTimeout(() => r('timeout'), HYDRATE_TIMEOUT_MS)),
+          ]);
+          if (first === 'timeout') {
+            set({ isAuthenticated: false, isLoading: false, sessionVerified: true });
+            sessionPromise.then(apply).catch(() => {});
             return;
           }
-          const mapped = mapSession(data.session);
-
-          // Session en main → on DÉBLOQUE l'UI immédiatement. Le rendu ne doit
-          // jamais attendre un aller-retour réseau supplémentaire (sinon un
-          // appel lent laisse le spinner tourner « dans le vide » jusqu'au refresh).
-          syncAuthCookie(data.session.access_token);
-          set({ ...mapped, isAuthenticated: true, isLoading: false });
+          const mapped = apply(first);
+          if (!mapped) return;
 
           // Backstop désactivation, HORS chemin critique (ne bloque plus le
           // rendu) : un compte banni peut garder un JWT en cache valide jusqu'à
@@ -123,7 +161,7 @@ export const useAuthStore = create<AuthStore>()(
         if (error) { set({ isLoading: false }); throw error; }
         const mapped = mapSession(data.session);
         syncAuthCookie(data.session.access_token);
-        set({ ...mapped, isAuthenticated: true, isLoading: false });
+        set({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
       },
 
       signUp: async (email, password, metadata) => {
@@ -200,7 +238,7 @@ if (typeof window !== 'undefined') {
       if (session) {
         syncAuthCookie(session.access_token);
         const mapped = mapSession(session);
-        useAuthStore.setState({ ...mapped, isAuthenticated: true, isLoading: false });
+        useAuthStore.setState({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
       }
     }
     if (event === 'SIGNED_OUT') {

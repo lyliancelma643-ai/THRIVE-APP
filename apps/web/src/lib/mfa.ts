@@ -52,6 +52,21 @@ export async function getMfaStatus(): Promise<MfaStatus> {
   }
 }
 
+/**
+ * Version allégée pour le chemin de connexion : le niveau d'assurance se lit
+ * dans la session locale (JWT + facteurs du user), SANS appel réseau — là où
+ * getMfaStatus() ajoute un listFactors() (aller-retour serveur). Ne lève pas.
+ */
+export async function needsMfaStepUp(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) return false;
+    return data?.currentLevel === 'aal1' && data?.nextLevel === 'aal2';
+  } catch {
+    return false;
+  }
+}
+
 export type TotpEnrollment = {
   factorId: string;
   /** SVG du QR code à afficher (data-uri fournie par Supabase). */
