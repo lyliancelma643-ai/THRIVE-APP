@@ -1,9 +1,10 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// E2 — Le programme : les 13 semaines, où on en est, et la bibliothèque des
-// fiches déjà ouvertes. Jamais de rouge, jamais de « manqué » : une semaine
-// fermée est une information (« S'ouvre quand la semaine n-1 est faite. »).
+// E2 — Le programme : les 13 semaines, où on en est, et la bibliothèque.
+// Liberté totale : toutes les semaines s'ouvrent ; la semaine en cours est
+// seulement signalée comme celle que le programme conseille. Jamais de rouge,
+// jamais de « manqué ».
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react';
@@ -62,7 +63,7 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
   }, [data.moments]);
 
   const library = useMemo(() => {
-    const open = pool.filter((a) => a.week <= data.openWeek);
+    const open = pool;
     switch (shelf) {
       case 'voiture':
         return open.filter((a) => a.car_ok);
@@ -79,7 +80,7 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
       default:
         return open;
     }
-  }, [pool, data.openWeek, shelf, lastRating, data.saved]);
+  }, [pool, shelf, lastRating, data.saved]);
 
   const detail = openDetail ? P3_WEEKS.find((w) => w.week === openDetail) : null;
 
@@ -135,36 +136,29 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
         <>
           <ol className="mt-6 space-y-2.5">
             {P3_WEEKS.map((w) => {
-              const open = w.week <= data.openWeek;
+              const current = w.week === data.openWeek;
               const acts = activitiesOfWeek(w.week);
-              const inner = (
-                <>
-                  <span className="font-display text-[20px] font-semibold text-accent-ink w-8 shrink-0">{w.week}</span>
-                  <span className="flex-1 min-w-0">
-                    <span className="nc-eyebrow block">{PHASE_LABEL[w.phase]}</span>
-                    <span className={`block text-[16px] font-semibold ${open ? 'text-ink' : 'text-soft'}`}>{w.title}</span>
-                    {!open && (
-                      <span className="block text-[13px] text-faint mt-0.5">S&apos;ouvre quand la semaine {w.week - 1} est faite.</span>
-                    )}
-                  </span>
-                  {open && (
+              return (
+                <li key={w.week}>
+                  <button
+                    type="button"
+                    onClick={() => setOpenDetail(w.week)}
+                    className={`nc-row w-full text-left flex items-center gap-3 p-4 min-h-[64px] ${current ? 'ring-1 ring-accent-line' : ''}`}
+                  >
+                    <span className="font-display text-[20px] font-semibold text-accent-ink w-8 shrink-0">{w.week}</span>
+                    <span className="flex-1 min-w-0">
+                      <span className="nc-eyebrow block">
+                        {PHASE_LABEL[w.phase]}
+                        {current ? ' · conseillée maintenant' : ''}
+                      </span>
+                      <span className="block text-[16px] font-semibold text-ink">{w.title}</span>
+                    </span>
                     <span className="flex gap-1.5 shrink-0" aria-label={`${acts.filter((a) => data.doneIds.has(a.id)).length} sur 3 déjà vécues`}>
                       {acts.map((a) => (
                         <span key={a.id} className={`w-2.5 h-2.5 rounded-full ${data.doneIds.has(a.id) ? 'bg-accent' : 'border border-line2'}`} />
                       ))}
                     </span>
-                  )}
-                </>
-              );
-              return (
-                <li key={w.week}>
-                  {open ? (
-                    <button type="button" onClick={() => setOpenDetail(w.week)} className="nc-row w-full text-left flex items-center gap-3 p-4 min-h-[64px]">
-                      {inner}
-                    </button>
-                  ) : (
-                    <div className="nc-row-idle flex items-center gap-3 p-4 min-h-[64px]">{inner}</div>
-                  )}
+                  </button>
                 </li>
               );
             })}

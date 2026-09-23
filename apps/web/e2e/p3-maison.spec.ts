@@ -7,6 +7,7 @@ import { test, expect } from '@playwright/test';
 const ROUTES = [
   '/parent/fitness',
   '/parent/fitness/programme',
+  '/parent/fitness/toutes',
   '/parent/fitness/ACT-0101',
   '/parent/fitness/ACT-0101/moment?duree=10&lieu=maison',
   '/parent/fitness/carnet',

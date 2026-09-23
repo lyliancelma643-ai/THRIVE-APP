@@ -9,6 +9,7 @@
 import {
   P3_ACTIVITIES,
   publishedActivities,
+  type AgeBand,
   type CaptureKind,
   type Duration,
   type Moment,
@@ -47,6 +48,11 @@ export function parseDuration(raw: string | null | undefined): Duration {
 
 export function parsePlace(raw: string | null | undefined): Exclude<Place, 'partout'> {
   return raw === 'exterieur' || raw === 'voiture' ? raw : 'maison';
+}
+
+/** Version d'âge choisie depuis le catalogue (?bande=12-14) ; null → celle de l'enfant. */
+export function parseBand(raw: string | null | undefined): AgeBand | null {
+  return raw === '8-11' || raw === '12-14' || raw === '15-17' ? raw : null;
 }
 
 /** Âge révolu à `now`, ou null si la date de naissance est inconnue ou illisible. */
