@@ -26,11 +26,12 @@ import { useAccessStore } from '@/lib/access';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useThumbNav } from '@/hooks/useThumbNav';
 
-// Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Fitness
+// Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Maison (programme P3 ;
+// les séances vidéo Fitness restent dans /parent/fitness/seances)
 const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: '/parent/bilans', label: 'Bilan', icon: 'sparkle' },
   { href: '/parent/my-sessions', label: 'Mes séances', icon: 'star' },
-  { href: '/parent/fitness', label: 'Fitness', icon: 'grid' },
+  { href: '/parent/fitness', label: 'Maison', icon: 'home' },
 ];
 
 // Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;

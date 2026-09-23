@@ -1,18 +1,19 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Cadre commun des écrans P3 « Maison » (sous-page de l'onglet Fitness).
+// Cadre commun des écrans P3 « Maison » (l'onglet qui remplace Fitness).
 //
-//   1. Garde d'accès : EXACTEMENT celle de l'onglet Fitness (flag serveur
-//      `fitness_enabled` + compte activé) — P3 vit dans Fitness et s'ouvre avec lui.
-//      La persistance en base dépend en plus du flag `p3_enabled` (migration 062) ;
-//      tant qu'il est OFF, le hook bascule en local sans rien montrer.
+//   1. Garde d'accès : flag serveur `p3_enabled` (app_settings, migration 062)
+//      + compte activé — la même condition que la RLS des tables p3_*.
+//      Indépendant de `fitness_enabled`, qui ne garde plus que les séances vidéo
+//      (/parent/fitness/seances).
 //   2. Enfant sélectionné (store) et âge : moins de 8 ans → message neutre (R6).
 //   3. Données (useP3Moments) + squelette de chargement. Aucun état d'échec (R7).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { supabaseClient as supabase } from '@thrive/shared';
 import { useAccessStore } from '@/lib/access';
 import { useChildStore } from '@/stores/child.store';
 import { FitnessConstructionNotice, LockedBanner } from '@/components/parent/AccessGate';
@@ -64,15 +65,41 @@ function P3Inner({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
   return <>{children({ child, firstName, age: data.age, band: data.band, data })}</>;
 }
 
+/**
+ * Flag serveur `p3_enabled`. Lecture directe d'app_settings (lisible par tout
+ * compte connecté) : pas besoin de modifier access_state(). Même repli que
+ * l'état d'accès : table illisible → ouvert, la RLS reste l'autorité.
+ */
+function useP3Enabled(): boolean | null {
+  const [enabled, setEnabled] = useState<boolean | null>(null);
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from('app_settings')
+        .select('enabled')
+        .eq('key', 'p3_enabled')
+        .maybeSingle();
+      if (!alive) return;
+      setEnabled(error ? true : data?.enabled === true);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+  return enabled;
+}
+
 export function P3Frame({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
   const { access, isLoading, refresh } = useAccessStore();
+  const p3Enabled = useP3Enabled();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  if (isLoading || !access) return <P3Skeleton />;
-  if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
+  if (isLoading || !access || p3Enabled === null) return <P3Skeleton />;
+  if (!p3Enabled) return <FitnessConstructionNotice />;
   if (!access.unlocked) return <LockedBanner />;
   return <P3Inner>{children}</P3Inner>;
 }

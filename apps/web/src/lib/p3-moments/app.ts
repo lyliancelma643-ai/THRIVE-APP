@@ -17,8 +17,8 @@ import {
   type RewardId,
 } from './index';
 
-/** Le programme vit en sous-page de l'onglet Fitness. */
-export const P3_BASE = '/parent/fitness/maison';
+/** Le programme Maison occupe l'onglet Fitness (les séances vidéo vivent dans /parent/fitness/seances). */
+export const P3_BASE = '/parent/fitness';
 
 /**
  * Fiches servies : « publie » en production ; « revu » en plus hors production

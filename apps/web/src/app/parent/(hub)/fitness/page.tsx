@@ -1,374 +1,466 @@
 'use client';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// E1 — Accueil « Maison » (programme P3), à la place de l'ancien onglet Fitness. Le parent fatigué de 19 h 15 lance un
+// moment en 2 taps sans rien choisir : la carte du soir (pickTonight) + « Lancer ».
+// E10 — Onboarding au premier accès (clé localStorage thrive.p3.welcomeSeen).
+//
+// Anti-culpabilité (R3) : le compteur cumulatif est l'indicateur principal ;
+// une série n'apparaît que si weeklyStreak() renvoie un nombre ; aucun « 0 »,
+// aucun mot de manque. Tout texte de fiche vient du JSON généré (R1).
+// ─────────────────────────────────────────────────────────────────────────────
+
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { supabaseClient as supabase } from '@thrive/shared';
-import { useChildStore } from '@/stores/child.store';
-import { useAccessStore } from '@/lib/access';
-import { FitnessConstructionNotice, LockedBanner, GreyedSection } from '@/components/parent/AccessGate';
-import {
-  VideoSession,
-  AgeGroup,
-  Phase,
-  PHASE_LABELS,
-  ageGroupFromBirthDate,
-} from '@/lib/catalog';
-import { SessionRow } from '@/components/parent/SessionRow';
-import { SessionCard } from '@/components/parent/SessionCard';
+import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
+import { useAccessStore } from '@/lib/access';
+import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
+import { DurationPills, PillGroup, PillarTag } from '@/components/parent/p3/pieces';
+import {
+  addRefusal,
+  excludeTonight,
+  popWeekDone,
+  readEvening,
+  readFlag,
+  readLocalJSON,
+  readPrefDuration,
+  writeFlag,
+  writeLocalJSON,
+  writePrefDuration,
+} from '@/components/parent/p3/session';
+import {
+  DURATION_WORDS,
+  REWARDS,
+  getActivity,
+  getWeek,
+  pickTonight,
+  type Duration,
+  type RewardId,
+} from '@/lib/p3-moments';
+import { BILAN_4_SEMAINES, DEFAULT_OPENER, PAGE_CONSULTER, PAGE_NON, ROLE_LABELS, TERMS_LINE } from '@/lib/p3-moments/guide';
+import {
+  DURATIONS,
+  P3_BASE,
+  PLACE_CHOICES,
+  captureText,
+  fill,
+  formatLongDate,
+  p3Pool,
+} from '@/lib/p3-moments/app';
 
-const AGE_GROUPS: AgeGroup[] = ['8-11', '12-14', '15-17'];
-const PHASES: Phase[] = ['ANCRER', 'DEVELOPPER', 'INTEGRER'];
+type PlaceChoice = (typeof PLACE_CHOICES)[number]['id'];
 
-function FitnessPageInner() {
-  const { children, selectedChildId } = useChildStore();
-  const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
-  const childAgeGroup = ageGroupFromBirthDate(selectedChild?.date_of_birth ?? null);
+const IS_DEV = process.env.NODE_ENV !== 'production';
 
-  const [allSessions, setAllSessions] = useState<VideoSession[]>([]);
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [loading, setLoading] = useState(true);
-
-  // Filtres de la bibliothèque (section « Toutes les séances »)
-  const [ageFilter, setAgeFilter] = useState<AgeGroup | 'all'>(childAgeGroup ?? 'all');
-  const [phaseFilter, setPhaseFilter] = useState<Phase | 'all'>('all');
-  const [themeFilter, setThemeFilter] = useState<string>('all');
-
-  // Le profil enfant peut arriver après le premier rendu (store async) : on
-  // aligne alors le filtre d'âge sur sa tranche, idem au changement d'enfant.
-  useEffect(() => {
-    if (childAgeGroup) setAgeFilter(childAgeGroup);
-  }, [childAgeGroup]);
-
-  // Une seule requête catalogue : le parcours et la bibliothèque s'y partagent
-  useEffect(() => {
-    (async () => {
-      setLoading(true);
-      const { data } = await supabase
-        .from('video_sessions')
-        .select('*')
-        .eq('is_active', true)
-        .eq('lang', 'fr')
-        .order('session_number');
-      setAllSessions((data ?? []) as VideoSession[]);
-      setLoading(false);
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!selectedChildId) return;
-    (async () => {
-      const { data } = await supabase
-        .from('video_session_runs')
-        .select('video_session_id, completed_at')
-        .eq('child_id', selectedChildId)
-        .not('completed_at', 'is', null);
-      setCompletedIds(new Set((data ?? []).map((r) => r.video_session_id)));
-    })();
-  }, [selectedChildId]);
-
-  // Parcours : la tranche d'âge de l'enfant (sans profil, on évite les triplons : 8-11)
-  const sessions = useMemo(
-    () => allSessions.filter((s) => s.age_group === (childAgeGroup ?? '8-11')),
-    [allSessions, childAgeGroup]
-  );
-
-  const nextSession = useMemo(
-    () => sessions.find((s) => !completedIds.has(s.id)) ?? sessions[0],
-    [sessions, completedIds]
-  );
-
-  const byPhase = useMemo(
-    () => ({
-      ANCRER: sessions.filter((s) => s.phase === 'ANCRER'),
-      DEVELOPPER: sessions.filter((s) => s.phase === 'DEVELOPPER'),
-      INTEGRER: sessions.filter((s) => s.phase === 'INTEGRER'),
-    }),
-    [sessions]
-  );
-
-  const themes = useMemo(
-    () => Array.from(new Set(allSessions.map((s) => s.theme))),
-    [allSessions]
-  );
-
-  const filtered = allSessions.filter(
-    (s) =>
-      (ageFilter === 'all' || s.age_group === ageFilter) &&
-      (phaseFilter === 'all' || s.phase === phaseFilter) &&
-      (themeFilter === 'all' || s.theme === themeFilter)
-  );
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="h-[420px] rounded-[26px] bg-night-surface animate-pulse" />
-        <div className="h-32 rounded-[22px] bg-night-surface animate-pulse" />
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      {/* Hero — séance suivante : une seule affiche 16:9 étendue, dégradé de
-          lisibilité vers le bas, aucun filigrane ni halo (direction 2a). */}
-      {nextSession && (
-        <Link
-          href={`/parent/session/${nextSession.id}`}
-          className="block group relative animate-om-up"
-        >
-          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52vh] md:min-h-[440px] bg-night-surface">
-            {/* Image de la séance quand elle existe ; sinon une trame discrète */}
-            {nextSession.thumbnail_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={nextSession.thumbnail_url}
-                alt=""
-                className="absolute inset-0 w-full h-full object-cover"
-              />
-            ) : (
-              <div
-                aria-hidden
-                className="absolute inset-0"
-                style={{
-                  background:
-                    'repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 12px,rgba(255,255,255,0) 12px 24px)',
-                }}
-              />
-            )}
-
-            {/* Voile de lisibilité */}
-            <div
-              aria-hidden
-              className="absolute inset-0"
-              style={{
-                background:
-                  'linear-gradient(to top,rgba(2,20,27,.96) 0%,rgba(2,20,27,.65) 45%,rgba(2,20,27,0) 100%)',
-              }}
-            />
-
-            <div className="relative p-6 md:p-10 max-w-2xl">
-              <p className="text-sage text-xs font-bold uppercase tracking-[0.16em] mb-2.5">
-                Séance {nextSession.session_number} · {nextSession.duration_minutes} min
-                {selectedChild ? ` · ${selectedChild.first_name}` : ''}
-              </p>
-              <h1 className="font-display text-[32px] md:text-5xl text-night-ink font-semibold leading-[1.12] mb-2">
-                {nextSession.title}
-              </h1>
-              <p className="text-[15px] md:text-lg leading-[1.5] text-body mb-5">
-                {nextSession.subtitle}
-              </p>
-              <span className="inline-flex items-center gap-2 h-[52px] px-6 rounded-full bg-accent text-navy-900 font-bold text-base group-hover:bg-sun-dark transition-colors">
-                <Icon name="play" className="w-[18px] h-[18px]" />
-                {completedIds.size > 0 ? 'Continuer la séance' : 'Lancer la séance'}
-              </span>
-            </div>
-          </div>
-        </Link>
-      )}
-
-      {/* Progression — posée à même le fond, sans carte */}
-      {sessions.length > 0 && (
-        <div className="mt-7 animate-om-up" style={{ ['--om-d' as string]: '0.1s' }}>
-          <div className="flex items-baseline justify-between gap-3">
-            <span className="text-[15px] font-semibold text-body">
-              Parcours 20 minutes{selectedChild ? ` de ${selectedChild.first_name}` : ''}
-            </span>
-            <span className="font-display text-[17px] font-semibold text-accent-ink">
-              {completedIds.size} / {sessions.length}
-            </span>
-          </div>
-          <div className="nc-track mt-3">
-            <div
-              className="nc-fill bg-accent"
-              style={{ width: `${(completedIds.size / Math.max(sessions.length, 1)) * 100}%` }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* Entrée du programme P3 « Maison » : 10 minutes parent-enfant, chaque soir */}
-      <Link
-        href="/parent/fitness/maison"
-        className="nc-row mt-7 flex items-center gap-4 p-4 md:p-5 min-h-[64px] animate-om-up"
-        style={{ ['--om-d' as string]: '0.15s' }}
-      >
-        <span className="w-11 h-11 rounded-full bg-accent text-accent-on grid place-items-center shrink-0">
-          <Icon name="home" className="w-5 h-5" />
-        </span>
-        <span className="flex-1 min-w-0">
-          <span className="block text-[16px] font-semibold text-night-ink">Maison</span>
-          <span className="block text-[14px] text-soft">
-            10 minutes{selectedChild ? ` avec ${selectedChild.first_name}` : ''}, rien à préparer.
-          </span>
-        </span>
-        <Icon name="chevron-right" className="w-5 h-5 text-soft shrink-0" />
+// ── E10 — Onboarding ─────────────────────────────────────────────────────────
+function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => void }) {
+  const [i, setI] = useState(0);
+  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), [i]);
+  const screens = [
+    <>
+      <h1 className="font-display text-[32px] md:text-[42px] leading-[1.15] font-semibold text-ink">
+        13 semaines. 10 minutes. Vous et {firstName}.
+      </h1>
+      <p className="mt-4 text-[17px] leading-[1.55] text-body">
+        Chaque semaine reprend une étape de la Méthode THRIVE. Vous n&apos;avez rien à préparer et rien à évaluer.
+      </p>
+    </>,
+    <>
+      <p className="font-display text-[28px] md:text-[36px] leading-[1.25] text-ink">
+        « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
+      </p>
+      <p className="mt-4 text-[17px] leading-[1.55] text-body">Voilà la phrase qui ouvre tout. Vous la direz souvent.</p>
+    </>,
+    <>
+      <h1 className="font-display text-[28px] md:text-[36px] leading-[1.2] font-semibold text-ink">Et s&apos;il dit non ?</h1>
+      <p className="mt-4 text-[17px] leading-[1.55] text-body">{PAGE_NON.intro}</p>
+      <p className="mt-2 text-[17px] leading-[1.55] text-ink">{PAGE_NON.exitLine}</p>
+      <Link href={`${P3_BASE}/quand-il-dit-non`} className="inline-block mt-4 min-h-[44px] font-semibold text-accent-ink underline">
+        {PAGE_NON.title}
       </Link>
-
-      {/* Rangées par phase (carrousels horizontaux) */}
-      <SessionRow
-        title={PHASE_LABELS.ANCRER}
-        subtitle="Créer l'alliance, mesurer le point de départ, fixer le cap."
-        sessions={byPhase.ANCRER}
-        completedIds={completedIds}
-      />
-      <SessionRow
-        title={PHASE_LABELS.DEVELOPPER}
-        subtitle="Apprendre chaque life skill, séance par séance."
-        sessions={byPhase.DEVELOPPER}
-        completedIds={completedIds}
-      />
-      <SessionRow
-        title={PHASE_LABELS.INTEGRER}
-        subtitle="Consolider, transférer hors du sport, célébrer."
-        sessions={byPhase.INTEGRER}
-        completedIds={completedIds}
-      />
-
-      {/* ── Bibliothèque complète (ex-page « Toutes les séances ») ── */}
-      <div className="mt-9">
-        <h2 className="font-display text-[22px] md:text-3xl font-semibold text-night-ink mb-1.5">
-          Toutes les séances
-        </h2>
-        <p className="text-sm md:text-[15px] leading-[1.5] text-soft mb-4">
-          13 séances de 20 minutes par tranche d&apos;âge, à vivre parent et enfant.
-        </p>
-
-        {/* Filtres — pastilles : l'accent plein marque la valeur retenue */}
-        <div className="flex flex-col gap-2.5 mb-7">
-          <FilterGroup
-            label="Âge"
-            value={ageFilter}
-            options={[
-              { value: 'all', label: 'Tous' },
-              ...AGE_GROUPS.map((a) => ({ value: a, label: `${a} ans` })),
-            ]}
-            onChange={(v) => setAgeFilter(v as AgeGroup | 'all')}
-          />
-          <FilterGroup
-            label="Phase"
-            value={phaseFilter}
-            options={[
-              { value: 'all', label: 'Toutes phases' },
-              ...PHASES.map((p) => ({ value: p, label: PHASE_LABELS[p].split('— ')[1] })),
-            ]}
-            onChange={(v) => setPhaseFilter(v as Phase | 'all')}
-          />
-          <FilterGroup
-            label="Thème"
-            value={themeFilter}
-            options={[{ value: 'all', label: 'Tous thèmes' }, ...themes.map((t) => ({ value: t, label: t }))]}
-            onChange={setThemeFilter}
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-          {filtered.map((s) => (
-            <div key={s.id} className="[&>a]:w-full">
-              <SessionCard session={s} completed={completedIds.has(s.id)} />
-            </div>
-          ))}
-        </div>
-
-        {filtered.length === 0 && (
-          <p className="text-soft text-sm py-12 text-center">
-            Aucune séance ne correspond à ces filtres.
-          </p>
+    </>,
+    <>
+      <h1 className="font-display text-[28px] md:text-[36px] leading-[1.2] font-semibold text-ink">
+        Il n&apos;y a ni retard, ni série à défendre. Trois moments par semaine, c&apos;est déjà réussi.
+      </h1>
+      <p className="mt-6 text-[13px] leading-[1.5] text-faint">{TERMS_LINE}</p>
+    </>,
+  ];
+  const last = i === screens.length - 1;
+  return (
+    <div className="max-w-xl py-8 md:py-14 animate-om-up" key={i}>
+      <p className="nc-eyebrow mb-4">Maison · {i + 1} / {screens.length}</p>
+      {screens[i]}
+      <div className="mt-10 flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => (last ? onDone() : setI(i + 1))}
+          className="h-[56px] px-8 rounded-full bg-accent text-accent-on font-bold text-[17px]"
+        >
+          {last ? 'Commencer la semaine 1' : 'Suivant'}
+        </button>
+        {!last && (
+          <button type="button" onClick={onDone} className="min-h-[48px] px-3 text-[15px] font-semibold text-soft">
+            Passer
+          </button>
         )}
       </div>
     </div>
   );
 }
 
-function FilterGroup({
-  label,
-  value,
-  options,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  options: { value: string; label: string }[];
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div
-      className="flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0"
-      role="group"
-      aria-label={label}
-    >
-      {options.map((opt) => (
-        <button
-          key={opt.value}
-          onClick={() => onChange(opt.value)}
-          aria-pressed={value === opt.value}
-          className="nc-pill shrink-0 select-none"
-        >
-          {opt.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-
-// ── Compte en préparation : aperçu réel des séances découverte (is_free) ─────
-// Les cartes sont affichées mais inertes (GreyedSection) : le parent voit ce
-// qui l'attend sans pouvoir lancer une séance avant l'activation.
-function LockedFitnessPreview() {
-  const [freeSessions, setFreeSessions] = useState<VideoSession[]>([]);
+// ── Bilan court à 4 semaines (ressenti, jamais un score — stocké en local en V1) ──
+function Bilan4Semaines({ ctx }: { ctx: P3Ctx }) {
+  const key = `thrive.p3.bilan4.${ctx.child.id}`;
+  const [state, setState] = useState<'hidden' | 'closed' | 'open'>('hidden');
+  const [answers, setAnswers] = useState<string[]>(['', '', '']);
+  const [feeling, setFeeling] = useState<string | null>(null);
 
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase
-        .from('video_sessions')
-        .select('*')
-        .eq('is_active', true)
-        .eq('lang', 'fr')
-        .eq('is_free', true)
-        .order('session_number');
-      setFreeSessions((data ?? []) as VideoSession[]);
-    })();
-  }, []);
+    const first = ctx.data.firstMomentAt;
+    const due = first && Date.now() - new Date(first).getTime() >= 28 * 864e5;
+    setState(due && !readLocalJSON(key, null) ? 'closed' : 'hidden');
+  }, [ctx.data.firstMomentAt, key]);
+
+  if (state === 'hidden') return null;
+  const title = fill(BILAN_4_SEMAINES.title, { prenom: ctx.firstName });
+  const close = (payload: unknown) => {
+    writeLocalJSON(key, payload);
+    setState('hidden');
+  };
 
   return (
-    <div className="space-y-8">
-      <LockedBanner />
-      {freeSessions.length > 0 && (
-        <GreyedSection
-          title="Séances découverte"
-          subtitle="Un aperçu offert du parcours — jouable dès l'activation de votre espace"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {freeSessions.map((s) => (
-              <div key={s.id} className="[&>a]:w-full">
-                <SessionCard session={s} />
-              </div>
-            ))}
+    <section className="nc-card mt-8">
+      <p className="nc-eyebrow">Pour vous</p>
+      <p className="font-display text-[21px] font-semibold text-ink mt-1">{title}</p>
+      {state === 'closed' ? (
+        <div className="mt-4 flex gap-3">
+          <button type="button" onClick={() => setState('open')} className="h-11 px-5 rounded-full bg-accent text-accent-on font-bold text-[15px]">
+            Répondre
+          </button>
+          <button type="button" onClick={() => close({ dismissed_at: new Date().toISOString() })} className="min-h-[44px] px-3 text-[15px] font-semibold text-soft">
+            Plus tard
+          </button>
+        </div>
+      ) : (
+        <div className="mt-3">
+          <p className="text-[15px] text-soft">{BILAN_4_SEMAINES.intro}</p>
+          {BILAN_4_SEMAINES.questions.map((q, i) => (
+            <label key={i} className="block mt-5">
+              <span className="text-[16px] text-ink">{fill(q, { prenom: ctx.firstName })}</span>
+              <textarea
+                value={answers[i]}
+                onChange={(e) => setAnswers((a) => a.map((x, j) => (j === i ? e.target.value : x)))}
+                rows={2}
+                maxLength={800}
+                className="mt-2 w-full rounded-[16px] bg-field border border-line2 p-3 text-[15px] text-ink"
+              />
+            </label>
+          ))}
+          <p className="mt-6 text-[16px] text-ink">{fill(BILAN_4_SEMAINES.guiltScale.label, { prenom: ctx.firstName })}</p>
+          <div className="mt-3">
+            <PillGroup
+              label={BILAN_4_SEMAINES.guiltScale.label}
+              value={feeling ?? ''}
+              options={BILAN_4_SEMAINES.guiltScale.options.map((o) => ({ value: o, label: o }))}
+              onChange={(v) => setFeeling(v)}
+            />
           </div>
-        </GreyedSection>
+          <p className="mt-3 text-[13px] text-soft">{BILAN_4_SEMAINES.guiltScale.note}</p>
+          <button
+            type="button"
+            onClick={() => close({ answered_at: new Date().toISOString(), answers, feeling })}
+            className="mt-6 h-12 px-6 rounded-full bg-accent text-accent-on font-bold text-[15px]"
+          >
+            Garder
+          </button>
+        </div>
       )}
-      <GreyedSection
-        title="Fitness"
-        subtitle="La bibliothèque de séances vidéo de votre enfant"
-      />
+    </section>
+  );
+}
+
+// ── E1 — Accueil ─────────────────────────────────────────────────────────────
+function Home({ ctx }: { ctx: P3Ctx }) {
+  const router = useRouter();
+  const { data, firstName, child } = ctx;
+  const fitnessEnabled = useAccessStore((st) => st.access?.fitnessEnabled === true);
+  const [duration, setDuration] = useState<Duration>(10);
+  const [place, setPlace] = useState<PlaceChoice>('maison');
+  const [evening, setEvening] = useState(() => ({ day: '', excluded: [] as string[], refusals: 0 }));
+  const [menu, setMenu] = useState(false);
+  const [weekDone, setWeekDone] = useState<number | null>(null);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'auto' });
+    setEvening(readEvening(child.id));
+    setWeekDone(popWeekDone(child.id));
+    setDuration(data.lastDuration ?? readPrefDuration() ?? 10);
+    // Préférences de départ : lues une fois à l'arrivée sur l'écran.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [child.id]);
+
+  const chooseDuration = (d: Duration) => {
+    setDuration(d);
+    writePrefDuration(d);
+  };
+
+  const pool = useMemo(
+    () => p3Pool().filter((a) => !evening.excluded.includes(a.id) && !data.saved.deCote.has(a.id)),
+    [evening.excluded, data.saved.deCote]
+  );
+
+  const pick = useMemo(
+    () =>
+      pickTonight({
+        firstName,
+        band: ctx.band,
+        declaredDuration: duration,
+        place,
+        parentEnergy: null,
+        childMood: null,
+        moments: data.moments,
+        consecutiveRefusals: evening.refusals,
+        now: new Date(),
+        pool,
+      }),
+    [firstName, ctx.band, duration, place, data.moments, evening.refusals, pool]
+  );
+
+  const week = getWeek(data.openWeek)!;
+  const firstMoment = data.count === 0;
+  const a = pick?.activity ?? null;
+
+  const favourite = useMemo(() => {
+    const five = data.moments.find((m) => m.rating === 5);
+    return five ? getActivity(five.activity_id) : null;
+  }, [data.moments]);
+
+  const doneWeek = weekDone ? getWeek(weekDone) : null;
+  const doneUnlock = doneWeek?.unlocks && data.rewards.has(doneWeek.unlocks as RewardId) ? doneWeek.unlocks : null;
+
+  const skip = async (kind: 'PAS_LE_TEMPS' | 'DE_COTE' | 'REFUS_ENFANT') => {
+    if (!a) return;
+    setMenu(false);
+    if (kind === 'DE_COTE') {
+      await data.toggleSaved(a.id, 'DE_COTE');
+      return;
+    }
+    if (kind === 'REFUS_ENFANT') setEvening(addRefusal(child.id, a.id));
+    else setEvening(excludeTonight(child.id, a.id));
+    await data.recordSkip(a.id, kind);
+  };
+
+  const launchHref = a ? `${P3_BASE}/${a.id}/moment?duree=${duration}&lieu=${place}` : '';
+
+  return (
+    <div className="max-w-2xl">
+      <p className="nc-eyebrow">
+        Semaine {data.openWeek} · {week.title}
+      </p>
+
+      {doneWeek && (
+        <div className="nc-card ring-1 ring-accent-line mt-4 animate-om-up">
+          <p className="font-display text-[20px] font-semibold text-ink">Semaine {doneWeek.week} complète.</p>
+          {doneUnlock && (
+            <Link href={`${P3_BASE}/objets/${doneUnlock}`} className="inline-flex items-center gap-1.5 mt-2 min-h-[44px] font-semibold text-accent-ink">
+              {fill(REWARDS.find((r) => r.id === doneUnlock)!.label, { prenom: firstName })}
+              <Icon name="arrow-right" className="w-4 h-4" />
+            </Link>
+          )}
+        </div>
+      )}
+
+      {firstMoment && (
+        <div className="mt-4">
+          <p className="font-display text-[24px] leading-[1.25] text-ink">{getWeek(1)!.opening_line}</p>
+          <p className="mt-2 text-[15px] leading-[1.6] text-body">{getWeek(1)!.intro[0]}</p>
+          <p className="mt-3 text-[16px] text-ink">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
+        </div>
+      )}
+
+      {/* LA CARTE DU SOIR */}
+      {a && pick ? (
+        <div
+          className="nc-card relative mt-5 md:p-7 min-h-[46vh] flex flex-col cursor-pointer animate-om-up"
+          onClick={() => router.push(`${P3_BASE}/${a.id}?duree=${duration}&lieu=${place}`)}
+        >
+          <div className="flex items-start justify-between gap-3">
+            <p className="nc-eyebrow">{ROLE_LABELS[a.role]}</p>
+            <button
+              type="button"
+              aria-label="Plus d'options"
+              aria-expanded={menu}
+              onClick={(e) => {
+                e.stopPropagation();
+                setMenu((m) => !m);
+              }}
+              className="nc-iconbtn -mt-2 -mr-2 text-[20px] leading-none"
+            >
+              <span aria-hidden>…</span>
+            </button>
+          </div>
+          {menu && (
+            <div className="absolute right-4 top-16 z-10 nc-row p-1.5 min-w-[220px] ring-1 ring-line2" onClick={(e) => e.stopPropagation()} role="menu">
+              {[
+                { id: 'PAS_LE_TEMPS' as const, label: 'Pas ce soir' },
+                { id: 'DE_COTE' as const, label: 'Mettre de côté' },
+                { id: 'REFUS_ENFANT' as const, label: 'Il ne veut pas' },
+              ].map((o) => (
+                <button key={o.id} type="button" role="menuitem" onClick={() => skip(o.id)} className="w-full text-left px-4 min-h-[44px] rounded-[12px] text-[15px] text-ink hover:bg-surface-sub">
+                  {o.label}
+                </button>
+              ))}
+            </div>
+          )}
+          <Link
+            href={`${P3_BASE}/${a.id}?duree=${duration}&lieu=${place}`}
+            onClick={(e) => e.stopPropagation()}
+            className="font-display text-[34px] md:text-[42px] leading-[1.1] font-semibold text-ink mt-2 hover:underline"
+          >
+            {a.title}
+          </Link>
+          <p className="mt-2 text-[16px] leading-[1.5] text-body">{a.objective}</p>
+          <p className="mt-3 text-[15px] text-soft">{pick.reason}</p>
+          <div className="mt-3">
+            <PillarTag pillar={a.pillar_main} />
+          </div>
+          <ul className="mt-auto pt-6 flex flex-wrap gap-x-4 gap-y-1.5 text-[14px] text-soft">
+            <li>{Math.min(duration, Math.max(...a.durations))} min</li>
+            <li>{PLACE_CHOICES.find((p) => p.id === place)!.label}</li>
+            <li>{a.materials.length ? a.materials.join(', ') : 'Rien à préparer'}</li>
+            <li>Énergie : {a.parent_energy}</li>
+          </ul>
+          <Link
+            href={launchHref}
+            onClick={(e) => e.stopPropagation()}
+            className="mt-5 inline-flex items-center justify-center gap-2 h-[56px] rounded-full bg-accent text-accent-on font-bold text-[17px]"
+          >
+            <Icon name="play" className="w-[18px] h-[18px]" />
+            Lancer
+          </Link>
+        </div>
+      ) : (
+        <div className="nc-card mt-5">
+          <p className="text-[17px] leading-[1.5] text-ink">
+            {favourite ? (
+              <>
+                Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Refaites{' '}
+                <Link href={`${P3_BASE}/${favourite.id}?duree=${duration}&lieu=${place}`} className="font-semibold text-accent-ink underline">
+                  “{favourite.title}”
+                </Link>{' '}
+                ?
+              </>
+            ) : (
+              <>Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}.</>
+            )}
+          </p>
+          <Link href={`${P3_BASE}/programme`} className="inline-flex items-center gap-1.5 mt-3 min-h-[44px] font-semibold text-accent-ink">
+            Voir le programme <Icon name="arrow-right" className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
+
+      {place === 'voiture' && (
+        <p className="mt-3 text-[14px] text-soft">À lire avant de partir. Pendant la route, tout se fait à voix haute.</p>
+      )}
+
+      {evening.refusals >= 2 && (
+        <Link href={`${P3_BASE}/quand-il-dit-non`} className="nc-row flex items-center justify-between gap-3 p-4 mt-4 min-h-[56px]">
+          <span className="text-[15px] font-semibold text-ink">{PAGE_NON.title}</span>
+          <Icon name="chevron-right" className="w-5 h-5 text-soft" />
+        </Link>
+      )}
+
+      {/* Temps disponible et lieu */}
+      <div className="mt-6 space-y-3">
+        <DurationPills value={duration} available={DURATIONS} onChange={chooseDuration} />
+        <PillGroup label="Lieu" value={place} options={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))} onChange={setPlace} />
+      </div>
+
+      {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » */}
+      <section className="mt-9">
+        {data.countPhrase && (
+          <p className="font-display text-[30px] md:text-[36px] font-semibold text-ink leading-[1.15]">{data.countPhrase}</p>
+        )}
+        <p className="mt-2 text-[14px] text-soft">{data.week.done} sur 3 cette semaine</p>
+        <div className="nc-track mt-2 max-w-sm">
+          <div className="nc-fill bg-accent" style={{ width: `${(data.week.done / 3) * 100}%` }} />
+        </div>
+        {data.weeklyStreak !== null && (
+          <p className="mt-2 text-[14px] text-soft">{data.weeklyStreak} semaines complètes d&apos;affilée</p>
+        )}
+      </section>
+
+      <Link href={`${P3_BASE}/programme`} className="inline-flex items-center gap-1.5 mt-6 min-h-[44px] font-semibold text-accent-ink">
+        Choisir autre chose <Icon name="arrow-right" className="w-4 h-4" />
+      </Link>
+
+      <Bilan4Semaines ctx={ctx} />
+
+      {/* Carnet — les 3 derniers moments */}
+      {data.carnet.length > 0 && (
+        <section className="mt-9">
+          <h2 className="nc-eyebrow mb-3">Le carnet</h2>
+          <ul className="grid gap-3 sm:grid-cols-3">
+            {data.carnet.slice(0, 3).map((m) => (
+              <li key={`${m.activity_id}-${m.created_at}`} className="nc-row p-4">
+                <p className="text-[12px] text-faint">{formatLongDate(m.created_at)}</p>
+                <p className="mt-1 text-[15px] font-semibold text-ink">{getActivity(m.activity_id)?.title}</p>
+                <p className="mt-1.5 text-[14px] leading-[1.45] text-body line-clamp-3">
+                  {m.kept_phrase ? `« ${m.kept_phrase} »` : captureText(m.capture)}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <Link href={`${P3_BASE}/carnet`} className="inline-flex items-center gap-1.5 mt-3 min-h-[44px] font-semibold text-accent-ink">
+            Tout le carnet <Icon name="arrow-right" className="w-4 h-4" />
+          </Link>
+        </section>
+      )}
+
+      <footer className="mt-12 pt-6 border-t border-line flex flex-wrap gap-x-6 gap-y-1 text-[14px]">
+        <Link href={`${P3_BASE}/quand-il-dit-non`} className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
+          {PAGE_NON.title}
+        </Link>
+        <Link href={`${P3_BASE}/sources`} className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
+          Les sources de la méthode
+        </Link>
+        {/* Les séances vidéo Fitness restent accessibles quand leur flag est ouvert. */}
+        {fitnessEnabled && (
+          <Link href="/parent/fitness/seances" className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
+            Les séances vidéo
+          </Link>
+        )}
+        {/* « Quand consulter » : contenu à valider — lié en développement seulement. */}
+        {IS_DEV && (
+          <Link href={`${P3_BASE}/quand-consulter`} className="min-h-[44px] inline-flex items-center text-soft hover:text-ink">
+            {PAGE_CONSULTER.title}
+          </Link>
+        )}
+      </footer>
     </div>
   );
 }
 
-// ── Garde d'accès : flag serveur fitness_enabled (Super Admin) ───────────────
-// Flag OFF → « en construction » pour TOUS les comptes, quel que soit le statut.
-export default function FitnessPage() {
-  const { access, isLoading, refresh } = useAccessStore();
+function Welcome({ ctx }: { ctx: P3Ctx }) {
+  const [seen, setSeen] = useState<boolean | null>(null);
+  useEffect(() => setSeen(readFlag('thrive.p3.welcomeSeen')), []);
+  if (seen === null) return null;
+  if (!seen)
+    return (
+      <Onboarding
+        firstName={ctx.firstName}
+        onDone={() => {
+          writeFlag('thrive.p3.welcomeSeen');
+          setSeen(true);
+        }}
+      />
+    );
+  return <Home ctx={ctx} />;
+}
 
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  if (isLoading || !access) {
-    return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
-  }
-  if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
-  if (!access.unlocked) return <LockedFitnessPreview />;
-  return <FitnessPageInner />;
+export default function MaisonPage() {
+  return <P3Frame>{(ctx) => <Welcome ctx={ctx} />}</P3Frame>;
 }
