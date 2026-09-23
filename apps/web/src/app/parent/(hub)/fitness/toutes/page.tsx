@@ -13,6 +13,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { BackLink, PillGroup } from '@/components/parent/p3/pieces';
 import { PosterCard } from '@/components/parent/p3/Poster';
+import { recall, remember, usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
+import { useHScroll } from '@/components/parent/p3/useHScroll';
 import { renderOpener, type AgeBand, type P3Activity } from '@/lib/p3-moments';
 import { P3_BASE, p3Pool } from '@/lib/p3-moments/app';
 import { BAND_LABELS, FILTERS, matchesFilter, type FilterId } from '@/lib/p3-moments/shelves';
@@ -35,12 +37,21 @@ type Order = 'programme' | 'nouvelles';
 
 function Catalogue({ ctx }: { ctx: P3Ctx }) {
   const { data, firstName } = ctx;
-  const [band, setBand] = useState<AgeBand>(ctx.band);
-  const [filter, setFilter] = useState<FilterId>('tout');
-  const [order, setOrder] = useState<Order>('programme');
+  // Âge, filtre et ordre restent choisis le temps de la session : on revient
+  // d'une fiche (bouton ou geste) sur le même rayon, à la même hauteur.
+  const mem = `toutes:${ctx.child.id}`;
+  const [band, setBand] = useState<AgeBand>(() => recall(`${mem}:band`, ctx.band));
+  const [filter, setFilter] = useState<FilterId>(() => recall(`${mem}:filter`, 'tout'));
+  const [order, setOrder] = useState<Order>(() => recall(`${mem}:order`, 'programme'));
   const all = useMemo(() => p3Pool(), []);
+  const filters = useHScroll(`${mem}:filters`);
 
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), []);
+  usePageScrollMemory(mem);
+  useEffect(() => {
+    remember(`${mem}:band`, band);
+    remember(`${mem}:filter`, filter);
+    remember(`${mem}:order`, order);
+  }, [mem, band, filter, order]);
 
   const list = useMemo(() => {
     const kept = all.filter((a) => matchesFilter(a, filter, { doneIds: data.doneIds, favoris: data.saved.favoris }));
@@ -90,7 +101,7 @@ function Catalogue({ ctx }: { ctx: P3Ctx }) {
       </div>
 
       {/* Filtres */}
-      <div className="mt-5 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
+      <div {...filters.props} className="mt-5 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
         <div role="group" aria-label="Filtrer" className="flex gap-2 w-max md:w-auto md:flex-wrap">
           {FILTERS.map((f) => (
             <button

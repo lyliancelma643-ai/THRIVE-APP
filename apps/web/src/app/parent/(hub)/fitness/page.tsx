@@ -11,7 +11,7 @@
 // aucun mot de manque. Tout texte de fiche vient du JSON généré (R1).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
@@ -19,6 +19,8 @@ import { useAccessStore } from '@/lib/access';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { DurationPills, PillGroup } from '@/components/parent/p3/pieces';
 import { PosterArt, PosterRow } from '@/components/parent/p3/Poster';
+import { usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
+import { useHScroll } from '@/components/parent/p3/useHScroll';
 import {
   addRefusal,
   excludeTonight,
@@ -200,9 +202,13 @@ function Home({ ctx }: { ctx: P3Ctx }) {
   const [evening, setEvening] = useState(() => ({ day: '', excluded: [] as string[], refusals: 0 }));
   const [menu, setMenu] = useState(false);
   const [weekDone, setWeekDone] = useState<number | null>(null);
+  const heroRef = useRef<HTMLElement>(null);
+  const shortcuts = useHScroll();
+
+  // Retour depuis une fiche (bouton ou geste) : on retrouve la page là où on l'a laissée.
+  usePageScrollMemory(`maison:${child.id}`);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
     setEvening(readEvening(child.id));
     setWeekDone(popWeekDone(child.id));
     setDuration(data.lastDuration ?? readPrefDuration() ?? 10);
@@ -271,6 +277,22 @@ function Home({ ctx }: { ctx: P3Ctx }) {
   const doneWeek = weekDone ? getWeek(weekDone) : null;
   const doneUnlock = doneWeek?.unlocks && data.rewards.has(doneWeek.unlocks as RewardId) ? doneWeek.unlocks : null;
 
+  // Menu « … » : se ferme en touchant ailleurs ou avec Échap.
+  useEffect(() => {
+    if (!menu) return;
+    const onDown = (e: PointerEvent) => {
+      if (!heroRef.current?.contains(e.target as Node)) setMenu(false);
+    };
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setMenu(false);
+    // Capture : les rangées arrêtent la propagation de leurs gestes.
+    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('pointerdown', onDown, true);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menu]);
+
   const skip = async (kind: 'PAS_LE_TEMPS' | 'DE_COTE' | 'REFUS_ENFANT') => {
     if (!a) return;
     setMenu(false);
@@ -305,8 +327,13 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       {/* L'AFFICHE DU SOIR — la recommandation, lançable en un tap */}
       {a && pick ? (
         <section
-          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56vh] cursor-pointer animate-om-up"
-          onClick={() => router.push(ficheHref(a))}
+          ref={heroRef}
+          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56vh] cursor-pointer animate-om-up select-none [-webkit-touch-callout:none]"
+          onClick={() => {
+            // Menu ouvert : toucher l'affiche referme le menu, sans ouvrir la fiche.
+            if (menu) setMenu(false);
+            else router.push(ficheHref(a));
+          }}
         >
           <PosterArt activity={a} big />
           <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
@@ -410,7 +437,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       )}
 
       {/* Raccourcis — la liberté totale à un tap */}
-      <nav aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
+      <nav {...shortcuts.props} aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
         <Link href={`${P3_BASE}/toutes`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center gap-1.5 !bg-accent !border-accent !text-accent-on font-semibold">
           <Icon name="grid" className="w-4 h-4" />
           Toutes les activités · {all.length}
@@ -447,6 +474,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       {shelves.map((s) => (
         <PosterRow
           key={s.id}
+          id={s.id}
           title={s.title}
           subtitle={s.subtitle}
           items={s.items}
