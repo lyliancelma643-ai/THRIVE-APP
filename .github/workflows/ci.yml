@@ -85,5 +85,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      # --no-config : sinon Deno 2.9 lit les tsconfig du monorepo (apps/mobile,
+      # jsx « react-native ») et refuse de démarrer. Le test n'a besoin que de jsr:.
       - name: Test signature Stripe
-        run: deno test supabase/functions/stripe-webhook/verify.test.ts
+        run: deno test --no-config supabase/functions/stripe-webhook/verify.test.ts
