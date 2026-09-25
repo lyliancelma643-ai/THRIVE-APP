@@ -3,10 +3,16 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // E4 — Mode activité (les 5 temps de la Méthode compressés) + E5 — synthèse.
 //
-//   1. Check-in (ressenti, jamais de chiffre — R5)   2. La fois d'avant
-//   3. L'activité : amorce → une étape par écran (≤ 10 mots), avance au tap ou
-//      au glissement, JAMAIS automatiquement ; minuteur sans son ni vibration
-//   4. Débrief : une question par écran     5. Pour finir : la phrase de clôture
+//   1. Check-in (ressenti, jamais de chiffre — R5), une question à la fois
+//   2. La fois d'avant
+//   3. L'activité : amorce → le déroulé se construit SUR LA MÊME PAGE : chaque
+//      « Suivant » ajoute en dessous la chose à faire ou la phrase à dire
+//      (une question à la fois), JAMAIS automatiquement. Par étape : « Si ça
+//      bloque », minuteur de jeu lancé par le parent, visuel à montrer.
+//      Minuteur du moment en tête (part du temps choisi) ; « Approfondir »
+//      l'anime et ajoute ses 10 minutes si elles n'étaient pas prévues.
+//   4. Débrief : les questions s'ajoutent l'une sous l'autre, une à la fois
+//   5. Pour finir : la phrase de clôture
 //   → écran « 12 minutes avec Léa. » (1 s) → synthèse facultative → progression
 //
 // Plein écran : rendu dans un portail au-dessus de la barre d'onglets ; les
@@ -14,7 +20,7 @@
 // allumé par la Wake Lock API quand elle existe (ignorée sinon).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -30,16 +36,19 @@ import {
   type Duration,
   type P3Activity,
   type RewardId,
+  type VisualId,
 } from '@/lib/p3-moments';
 import {
   CHECKIN,
   CLOSING_SCREEN,
   DEBRIEF,
+  PILLAR_PLAIN,
   PRIDE_LINES,
   SYNTHESIS,
 } from '@/lib/p3-moments/guide';
 import {
   P3_BASE,
+  captureText as captureToText,
   fill,
   formatFullDate,
   inOneYear,
@@ -51,6 +60,8 @@ import type { P3Ctx } from './P3Frame';
 import { InlineMd } from './InlineMd';
 import { TimerRing } from './TimerRing';
 import { pushWeekDone } from './session';
+import { StepTimer } from './StepTimer';
+import { VisualButton, VisualSheet } from './Visuals';
 
 type Place = 'maison' | 'exterieur' | 'voiture';
 
@@ -59,16 +70,32 @@ type Screen =
   | { t: 'rappel' }
   | { t: 'lecture' }
   | { t: 'amorce' }
-  | { t: 'etape'; i: number }
-  | { t: 'extension'; i: number }
+  | { t: 'deroule' }
   | { t: 'route' }
-  | { t: 'debrief'; i: number }
+  | { t: 'debrief' }
   | { t: 'cloture' }
   | { t: 'minutes' }
   | { t: 'synthese' }
   | { t: 'fin' };
 
 const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: 'Transférer' } as const;
+
+/** Ce qu'on travaille : rappel de l'objectif de développement lié à la séance. */
+function WorkedOn({ activity, compact = false }: { activity: P3Activity; compact?: boolean }) {
+  const week = getWeek(activity.week);
+  return (
+    <div className={`rounded-[22px] border-2 border-accent-line ${compact ? 'p-4' : 'p-5'}`}>
+      <p className="nc-eyebrow">Ce qu’on travaille</p>
+      <p className={`mt-1.5 font-display font-semibold text-ink ${compact ? 'text-[20px]' : 'text-[24px]'} leading-[1.2]`}>
+        {week?.skill ?? activity.subtitle}
+      </p>
+      <p className="mt-2 text-[15px] leading-[1.5] text-body">{activity.objective}</p>
+      <p className="mt-2 text-[13px] text-soft">
+        {activity.subtitle} · {PILLAR_PLAIN[activity.pillar_main]}
+      </p>
+    </div>
+  );
+}
 
 /** Garde l'écran allumé pendant le moment (Wake Lock API), silencieusement ignoré sinon. */
 function useWakeLock() {
@@ -154,7 +181,15 @@ export function ActivityMode({
   const [captureItems, setCaptureItems] = useState<string[]>(['', '', '']);
   const [captureText, setCaptureText] = useState('');
   const [answers, setAnswers] = useState<Record<number, string>>({});
-  const [answerOpen, setAnswerOpen] = useState(false);
+  const [answerOpen, setAnswerOpen] = useState<Record<number, boolean>>({});
+  /** Déroulé : nombre de « temps » (faire / dire) déjà affichés, toutes étapes confondues. */
+  const [revealed, setRevealed] = useState(1);
+  /** Extensions ouvertes (index dans activity.extensions). */
+  const [extOpen, setExtOpen] = useState<number[]>([]);
+  const [extraMinutes, setExtraMinutes] = useState(0);
+  const [boost, setBoost] = useState(0);
+  const [debriefShown, setDebriefShown] = useState(1);
+  const [visual, setVisual] = useState<VisualId | null>(null);
   const [rating, setRating] = useState<1 | 2 | 3 | 4 | 5 | null>(null);
   const [outcome, setOutcome] = useState<P3Outcome | null>(null);
   const [kept, setKept] = useState('');
@@ -167,7 +202,10 @@ export function ActivityMode({
   const [letter, setLetter] = useState('');
   const [letterStep, setLetterStep] = useState<'write' | 'confirm' | 'sealed' | 'paper'>('write');
   const [sealedAt, setSealedAt] = useState<Date | null>(null);
-  const swipe = useRef<{ x: number; y: number } | null>(null);
+  const lastRef = useRef<HTMLElement | null>(null);
+  const setLast = useCallback((el: HTMLElement | null) => {
+    if (el) lastRef.current = el;
+  }, []);
 
   useWakeLock();
   useEffect(() => setMounted(true), []);
@@ -182,8 +220,15 @@ export function ActivityMode({
   // Chaque changement d'écran remonte en haut.
   useEffect(() => {
     document.getElementById('p3-mode')?.scrollTo({ top: 0 });
-    setAnswerOpen(false);
-  }, [screen]);
+  }, [screen.t]);
+
+  // Ce qui vient d'apparaître en dessous glisse sous les yeux du parent.
+  useEffect(() => {
+    if (screen.t !== 'deroule' && screen.t !== 'debrief' && screen.t !== 'checkin') return;
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    const id = window.setTimeout(() => lastRef.current?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' }), 60);
+    return () => window.clearTimeout(id);
+  }, [revealed, extOpen.length, debriefShown, checkin, screen.t]);
 
   // Fond de page figé derrière le mode activité.
   useEffect(() => {
@@ -195,7 +240,28 @@ export function ActivityMode({
   }, []);
 
   const elapsed = startedAt ? Math.max(0, Math.round(((endedAt ?? now) - startedAt) / 1000)) : 0;
-  const total = r.duration * 60;
+  // Le minuteur part du temps choisi par le parent ; « Approfondir » peut l'allonger.
+  const playedDuration = Math.min(30, r.duration + extraMinutes) as Duration;
+  const total = (r.duration + extraMinutes) * 60;
+
+  // Déroulé à plat : chaque « temps » sait à quelle étape il appartient.
+  const flat = useMemo(
+    () => activity.guide.flatMap((g, step) => g.beats.map((beat, k) => ({ step, k, beat }))),
+    [activity.guide]
+  );
+  const allRevealed = revealed >= flat.length;
+  const visibleSteps = flat[Math.min(revealed, flat.length) - 1]?.step ?? 0;
+
+  // Ce que l'enfant a noté dans ses mots (visuel « Ses outils »).
+  const notes = useMemo(() => {
+    const out: Record<string, string> = {};
+    for (const m of data.carnet) {
+      if (out[m.activity_id]) continue;
+      const t = captureToText(m.capture) ?? m.kept_phrase?.trim();
+      if (t) out[m.activity_id] = t;
+    }
+    return out;
+  }, [data.carnet]);
 
   // ── Navigation entre écrans ───────────────────────────────────────────────
   const afterCheckin = () => {
@@ -208,51 +274,32 @@ export function ActivityMode({
     const t = Date.now();
     setStartedAt(t);
     setNow(t);
-    setScreen(inCar ? { t: 'route' } : { t: 'etape', i: 0 });
+    setRevealed(1);
+    setScreen(inCar ? { t: 'route' } : { t: 'deroule' });
   };
 
   const finishActivity = useCallback(() => {
     setEndedAt((e) => e ?? Date.now());
     setCaptureOpen(false);
-    setScreen({ t: 'debrief', i: 0 });
+    setDebriefShown(1);
+    setScreen({ t: 'debrief' });
   }, []);
 
-  const nextFromActivity = () => {
-    if (screen.t === 'etape') {
-      if (screen.i < r.screen_steps.length - 1) setScreen({ t: 'etape', i: screen.i + 1 });
-      else if (r.extensions.length) setScreen({ t: 'extension', i: 0 });
-      return;
-    }
-    if (screen.t === 'extension' && screen.i < r.extensions.length - 1) setScreen({ t: 'extension', i: screen.i + 1 });
-  };
-  const prevFromActivity = () => {
-    if (screen.t === 'etape' && screen.i > 0) setScreen({ t: 'etape', i: screen.i - 1 });
-    else if (screen.t === 'extension')
-      setScreen(screen.i > 0 ? { t: 'extension', i: screen.i - 1 } : { t: 'etape', i: r.screen_steps.length - 1 });
-  };
-  const atLastActivityScreen =
-    (screen.t === 'etape' && screen.i === r.screen_steps.length - 1 && !r.extensions.length) ||
-    (screen.t === 'extension' && screen.i === r.extensions.length - 1);
+  const nextBeat = () => setRevealed((n) => Math.min(flat.length, n + 1));
+  const prevBeat = () => setRevealed((n) => Math.max(1, n - 1));
+  const nextIsNewStep = !allRevealed && flat[revealed]?.step !== flat[revealed - 1]?.step;
 
-  // Glissement horizontal pour avancer / reculer (jamais automatique).
-  const onPointerDown = (e: PointerEvent) => {
-    e.stopPropagation();
-    if (screen.t === 'etape' || screen.t === 'extension') swipe.current = { x: e.clientX, y: e.clientY };
-  };
-  const onPointerUp = (e: PointerEvent) => {
-    e.stopPropagation();
-    const s = swipe.current;
-    swipe.current = null;
-    if (!s) return;
-    const dx = e.clientX - s.x;
-    if (Math.abs(dx) < 56 || Math.abs(dx) < Math.abs(e.clientY - s.y)) return;
-    if (dx < 0) nextFromActivity();
-    else prevFromActivity();
+  /** « Approfondir » : anime le minuteur ; ajoute 10 min si elles n'étaient pas prévues. */
+  const openExtension = (i: number) => {
+    if (extOpen.includes(i)) return;
+    const ext = activity.extensions[i];
+    setExtOpen((o) => [...o, i]);
+    setBoost((b) => b + 1);
+    if (ext.adds_to > r.duration) setExtraMinutes((m) => Math.min(30 - r.duration, m + 10));
   };
 
   const nextDebrief = () => {
-    if (screen.t !== 'debrief') return;
-    if (screen.i < r.debrief.length - 1) setScreen({ t: 'debrief', i: screen.i + 1 });
+    if (debriefShown < r.debrief.length) setDebriefShown((n) => n + 1);
     else setScreen({ t: 'cloture' });
   };
 
@@ -295,7 +342,7 @@ export function ActivityMode({
     const { newRewards } = await data.recordMoment({
       activityId: activity.id,
       week: activity.week,
-      duration_chosen: r.duration,
+      duration_chosen: playedDuration,
       duration_real_s: startedAt ? Math.round(((endedAt ?? Date.now()) - startedAt) / 1000) : null,
       place,
       checkin: checkinRow,
@@ -371,8 +418,8 @@ export function ActivityMode({
           <p className="nc-eyebrow">Check-in</p>
           <p className="mt-3 text-[17px] leading-[1.55] text-body">{CHECKIN.intro}</p>
           <div className="mt-6 space-y-6">
-            {CHECKIN.axes.map((axis) => (
-              <fieldset key={axis.id}>
+            {CHECKIN.axes.slice(0, Math.min(CHECKIN.axes.length, Object.keys(checkin).length + 1)).map((axis, i, shown) => (
+              <fieldset key={axis.id} ref={i === shown.length - 1 ? setLast : undefined} className="motion-safe:animate-om-up">
                 <legend className="text-[18px] text-ink mb-3">{axis.question}</legend>
                 <div className="flex flex-wrap gap-2">
                   {axis.options.map((o) => (
@@ -392,7 +439,7 @@ export function ActivityMode({
             ))}
           </div>
           <div className="mt-8 flex items-center gap-3 flex-wrap">
-            <PrimaryButton onClick={afterCheckin}>Continuer</PrimaryButton>
+            {Object.keys(checkin).length >= CHECKIN.axes.length && <PrimaryButton onClick={afterCheckin}>Continuer</PrimaryButton>}
             <GhostButton onClick={afterCheckin}>{CHECKIN.skip}</GhostButton>
           </div>
         </>
@@ -436,7 +483,16 @@ export function ActivityMode({
             {r.screen_steps.map((s, i) => (
               <li key={i} className="flex gap-3 text-[18px] leading-[1.45] text-body">
                 <span className="font-display font-semibold text-accent-ink w-6 shrink-0">{i + 1}</span>
-                <InlineMd text={s} />
+                <span>
+                  <InlineMd text={s} />
+                  {activity.guide[i].beats
+                    .filter((b) => b.kind === 'dire')
+                    .map((b, k) => (
+                      <span key={k} className="block mt-1 text-[16px] text-ink">
+                        Dites : {b.text}
+                      </span>
+                    ))}
+                </span>
               </li>
             ))}
           </ol>
@@ -450,10 +506,14 @@ export function ActivityMode({
     case 'amorce':
       body = (
         <>
-          <p className="text-[18px] text-soft">Dites :</p>
+          <WorkedOn activity={activity} compact />
+          <p className="mt-8 text-[18px] text-soft">Pour commencer, dites :</p>
           <BigText className="mt-3 !text-[34px] md:!text-[46px]">{r.opener}</BigText>
-          <div className="mt-10">
-            <PrimaryButton onClick={startActivity}>C’est dit</PrimaryButton>
+          <p className="mt-6 text-[15px] leading-[1.5] text-soft">
+            Le minuteur démarre sur {r.duration} minutes. Ensuite, touchez « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
+          </p>
+          <div className="mt-8">
+            <PrimaryButton onClick={startActivity}>C’est dit, on commence</PrimaryButton>
           </div>
         </>
       );
@@ -472,70 +532,128 @@ export function ActivityMode({
       );
       break;
 
-    case 'etape':
-    case 'extension': {
-      const isStep = screen.t === 'etape';
-      const ext = !isStep ? r.extensions[screen.i] : null;
-      const dots = r.screen_steps.length + r.extensions.length;
-      const pos = isStep ? screen.i : r.screen_steps.length + screen.i;
+    case 'deroule': {
       body = (
-        <div className="flex flex-col min-h-[calc(100dvh-140px)]">
-          <div className="flex justify-center">
-            <TimerRing elapsed={elapsed} total={total} />
-          </div>
-          <button
-            type="button"
-            onClick={nextFromActivity}
-            className="flex-1 w-full text-left mt-8 cursor-pointer"
-            aria-label={atLastActivityScreen ? 'Dernier écran' : 'Écran suivant'}
-          >
-            {isStep ? (
-              <>
-                <p className="nc-eyebrow">Étape {screen.i + 1}</p>
-                <BigText className="mt-4">
-                  <InlineMd text={r.screen_steps[screen.i]} />
-                </BigText>
-              </>
-            ) : (
-              ext && (
-                <>
-                  <p className="nc-eyebrow">+10 min — {EXT_LABELS[ext.kind]}</p>
-                  <p className="mt-4 text-[19px] leading-[1.55] text-body">
-                    <InlineMd text={ext.text} />
-                  </p>
-                </>
-              )
-            )}
-          </button>
+        <div className="pb-28">
+          {activity.guide.slice(0, visibleSteps + 1).map((g, stepIdx) => {
+            const current = stepIdx === visibleSteps && !(allRevealed && extOpen.length);
+            const beats = flat.filter((f) => f.step === stepIdx).slice(0, Math.max(0, revealed - flat.findIndex((f) => f.step === stepIdx)));
+            return (
+              <section
+                key={stepIdx}
+                className={`${stepIdx > 0 ? 'mt-10 pt-8 border-t border-line' : ''} motion-safe:animate-om-up transition-opacity motion-reduce:transition-none ${current ? '' : 'opacity-60'}`}
+              >
+                <p className="nc-eyebrow">
+                  Étape {stepIdx + 1} sur {activity.guide.length}
+                </p>
+                <p className="mt-2 font-display text-[26px] md:text-[32px] leading-[1.2] text-ink text-balance">
+                  <InlineMd text={r.screen_steps[stepIdx]} />
+                </p>
+                <div className="mt-4 space-y-3">
+                  {beats.map(({ beat, k }) => {
+                    const isLast = flat.findIndex((f) => f.step === stepIdx) + k === revealed - 1;
+                    return (
+                      <div key={k} ref={isLast ? setLast : undefined} className="motion-safe:animate-om-up">
+                        {beat.kind === 'dire' ? (
+                          <div className={`rounded-[20px] p-4 ${isLast && current ? 'bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] ring-2 ring-accent' : 'bg-surface-sub'}`}>
+                            <p className="text-[13px] font-bold uppercase tracking-wide text-accent-ink">Dites</p>
+                            <p className="mt-1 font-display text-[22px] md:text-[26px] leading-[1.3] text-ink">{beat.text}</p>
+                          </div>
+                        ) : (
+                          <div className="flex gap-3 px-1">
+                            <span aria-hidden className="mt-0.5 text-[18px]">👉</span>
+                            <p className={`text-[17px] leading-[1.55] ${isLast && current ? 'text-ink font-semibold' : 'text-body'}`}>
+                              <InlineMd text={beat.text} />
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                {g.visual && <VisualButton id={g.visual} onOpen={setVisual} />}
+                {g.timer && <StepTimer timer={g.timer} />}
+                {g.help && (
+                  <details className="mt-4 nc-row p-4 group">
+                    <summary className="cursor-pointer list-none flex items-center justify-between text-[15px] font-semibold text-ink min-h-[28px]">
+                      Si ça bloque
+                      <Icon name="chevron-down" className="w-4 h-4 text-soft transition-transform group-open:rotate-180" />
+                    </summary>
+                    <p className="mt-2 text-[15px] leading-[1.55] text-body">
+                      <InlineMd text={g.help} />
+                    </p>
+                  </details>
+                )}
+              </section>
+            );
+          })}
 
-          {/* Pagination par points */}
-          <div className="flex justify-center gap-2 mt-6" aria-hidden>
-            {Array.from({ length: dots }).map((_, i) => (
-              <span
-                key={i}
-                className={`h-2 rounded-full transition-all motion-reduce:transition-none ${i === pos ? 'w-6 bg-accent' : 'w-2 bg-track'}`}
-              />
-            ))}
-          </div>
+          {/* Approfondir : un bouton par palier de 10 min ; le minuteur s'anime */}
+          {allRevealed && activity.extensions.length > 0 && (
+            <div className="mt-10 pt-8 border-t border-line space-y-4">
+              <p className="nc-eyebrow">Vous avez encore envie ?</p>
+              {activity.extensions.map((ext, i) => {
+                const open = extOpen.includes(i);
+                const planned = ext.adds_to <= r.duration;
+                if (i > 0 && !extOpen.includes(i - 1)) return null;
+                return open ? (
+                  <div key={i} ref={i === extOpen[extOpen.length - 1] ? setLast : undefined} className="nc-card ring-1 ring-accent-line motion-safe:animate-om-up">
+                    <p className="nc-eyebrow">+10 min — {EXT_LABELS[ext.kind]}</p>
+                    <p className="mt-2 text-[17px] leading-[1.55] text-ink">
+                      <InlineMd text={ext.text} />
+                    </p>
+                  </div>
+                ) : (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => openExtension(i)}
+                    className="w-full flex items-center gap-3 rounded-[22px] border-2 border-accent p-4 text-left active:scale-[0.99] transition-transform motion-reduce:transition-none"
+                  >
+                    <span className="w-11 h-11 rounded-full bg-accent text-accent-on grid place-items-center font-bold shrink-0" aria-hidden>
+                      +10
+                    </span>
+                    <span className="flex-1">
+                      <span className="block text-[18px] font-bold text-ink">{EXT_LABELS[ext.kind]}</span>
+                      <span className="block text-[14px] text-soft">
+                        {planned ? 'Prévu dans votre temps choisi' : 'Ajoute 10 minutes au minuteur'}
+                      </span>
+                    </span>
+                    <Icon name="chevron-right" className="w-5 h-5 text-soft" />
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
-          <div className="mt-6 flex items-center gap-2 flex-wrap">
-            {(screen.t === 'extension' || screen.i > 0) && (
-              <button type="button" onClick={prevFromActivity} className="nc-iconbtn" aria-label="Écran précédent">
-                <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
-              </button>
-            )}
-            {noteButton}
-            <div className="flex-1" />
-            {atLastActivityScreen ? (
-              <PrimaryButton onClick={finishActivity}>Terminer</PrimaryButton>
-            ) : (
-              <>
-                <GhostButton onClick={finishActivity}>Terminer</GhostButton>
-                <button type="button" onClick={nextFromActivity} className="nc-iconbtn" aria-label="Écran suivant">
-                  <Icon name="chevron-right" className="w-5 h-5" />
+          {/* Barre d'action collée en bas : toujours au pouce */}
+          <div className="fixed inset-x-0 bottom-0 z-[75] bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur border-t border-line safe-bottom">
+            <div className="max-w-2xl mx-auto px-5 md:px-8 py-3 flex items-center gap-2">
+              {revealed > 1 && (
+                <button type="button" onClick={prevBeat} className="nc-iconbtn shrink-0" aria-label="Revenir d’un cran">
+                  <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
                 </button>
-              </>
-            )}
+              )}
+              {noteButton}
+              <div className="flex-1" />
+              {allRevealed ? (
+                <PrimaryButton onClick={finishActivity}>Terminer l’activité</PrimaryButton>
+              ) : (
+                <>
+                  <button type="button" onClick={finishActivity} className="min-h-[48px] px-2 text-[14px] font-semibold text-soft hover:text-ink shrink-0">
+                    Terminer
+                  </button>
+                  <button
+                    type="button"
+                    onClick={nextBeat}
+                    className="shrink-0 h-[52px] px-5 rounded-full bg-accent text-accent-on font-bold text-[16px] inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform motion-reduce:transition-none"
+                  >
+                    {nextIsNewStep ? 'Étape suivante' : 'Suivant'}
+                    <Icon name="chevron-right" className="w-5 h-5" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
         </div>
       );
@@ -543,36 +661,60 @@ export function ActivityMode({
     }
 
     case 'debrief': {
-      const q = r.debrief[screen.i];
-      const last = screen.i === r.debrief.length - 1;
       body = (
         <>
-          {screen.i === 0 && <p className="text-[15px] leading-[1.55] text-soft mb-6">{DEBRIEF.intro}</p>}
-          <p className="nc-eyebrow">{DEBRIEF.labels[q.kind]}</p>
-          <BigText className="mt-4">{q.question}</BigText>
-          {answerOpen || answers[screen.i] ? (
-            <textarea
-              value={answers[screen.i] ?? ''}
-              onChange={(e) => setAnswers((a) => ({ ...a, [screen.i]: e.target.value }))}
-              rows={3}
-              maxLength={500}
-              autoFocus
-              aria-label="Sa réponse"
-              className="mt-6 w-full rounded-[18px] bg-field border border-line2 p-4 text-[16px] text-ink placeholder:text-faint"
-              placeholder="Sa réponse, dans ses mots"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAnswerOpen(true)}
-              className="mt-6 min-h-[44px] text-[15px] font-semibold text-accent-ink underline underline-offset-4"
-            >
-              Noter sa réponse
-            </button>
+          <p className="text-[15px] leading-[1.55] text-soft mb-6">{DEBRIEF.intro}</p>
+          <div className="space-y-8">
+            {r.debrief.slice(0, debriefShown).map((q, i) => {
+              const current = i === debriefShown - 1;
+              return (
+                <div
+                  key={i}
+                  ref={current ? setLast : undefined}
+                  className={`motion-safe:animate-om-up transition-opacity motion-reduce:transition-none ${current ? '' : 'opacity-60'}`}
+                >
+                  <p className="nc-eyebrow">
+                    Question {i + 1} sur {r.debrief.length} · {DEBRIEF.labels[q.kind]}
+                  </p>
+                  <p className={`mt-3 font-display leading-[1.25] text-ink text-balance ${current ? 'text-[28px] md:text-[36px]' : 'text-[20px]'}`}>
+                    {q.question}
+                  </p>
+                  {answerOpen[i] || answers[i] ? (
+                    <textarea
+                      value={answers[i] ?? ''}
+                      onChange={(e) => setAnswers((a) => ({ ...a, [i]: e.target.value }))}
+                      rows={2}
+                      maxLength={500}
+                      autoFocus={current}
+                      aria-label="Sa réponse"
+                      className="mt-4 w-full rounded-[18px] bg-field border border-line2 p-4 text-[16px] text-ink placeholder:text-faint"
+                      placeholder="Sa réponse, dans ses mots"
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setAnswerOpen((o) => ({ ...o, [i]: true }))}
+                      className="mt-3 min-h-[44px] text-[15px] font-semibold text-accent-ink underline underline-offset-4"
+                    >
+                      Noter sa réponse
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+          {debriefShown === r.debrief.length && activity.week === 1 && (
+            <p className="mt-6 text-[14px] leading-[1.5] text-soft">{DEBRIEF.week1Note}</p>
           )}
-          {last && activity.week === 1 && <p className="mt-6 text-[14px] leading-[1.5] text-soft">{DEBRIEF.week1Note}</p>}
+          {activity.visuals.length > 0 && (
+            <div className="mt-6">
+              {activity.visuals.map((v) => (
+                <VisualButton key={v} id={v} onOpen={setVisual} />
+              ))}
+            </div>
+          )}
           <div className="mt-8 flex items-center gap-3 flex-wrap">
-            <PrimaryButton onClick={nextDebrief}>{last ? 'Continuer' : 'Question suivante'}</PrimaryButton>
+            <PrimaryButton onClick={nextDebrief}>{debriefShown < r.debrief.length ? 'Question suivante' : 'Continuer'}</PrimaryButton>
             <GhostButton onClick={nextDebrief}>Passer</GhostButton>
           </div>
         </>
@@ -888,26 +1030,30 @@ export function ActivityMode({
       id="p3-mode"
       className="fixed inset-0 z-[70] bg-night-bg text-night-body overflow-y-auto overscroll-contain"
       style={{ touchAction: 'pan-y' }}
-      onPointerDown={onPointerDown}
+      onPointerDown={(e) => e.stopPropagation()}
       onPointerMove={(e) => e.stopPropagation()}
-      onPointerUp={onPointerUp}
-      onPointerCancel={(e) => {
-        e.stopPropagation();
-        swipe.current = null;
-      }}
+      onPointerUp={(e) => e.stopPropagation()}
+      onPointerCancel={(e) => e.stopPropagation()}
     >
-      <div className="max-w-2xl mx-auto px-5 md:px-8 safe-top pb-10">
-        <div className="flex items-center justify-between h-16">
-          <button type="button" onClick={leave} className="nc-iconbtn" aria-label={screen.t === 'fin' ? 'Fermer' : 'Quitter le mode activité'}>
+      <div className="sticky top-0 z-[72] bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur safe-top">
+        <div className="max-w-2xl mx-auto px-5 md:px-8 flex items-center justify-between gap-3 h-16">
+          <button type="button" onClick={leave} className="nc-iconbtn shrink-0" aria-label={screen.t === 'fin' ? 'Fermer' : 'Quitter le mode activité'}>
             <Icon name="plus" className="w-5 h-5 rotate-45" />
           </button>
-          <span className="text-[14px] text-soft truncate px-3">{activity.title}</span>
-          <span className="w-11" aria-hidden />
+          <span className="text-[14px] text-soft truncate flex-1 text-center">{activity.title}</span>
+          {startedAt && !endedAt && screen.t !== 'route' ? (
+            <TimerRing elapsed={elapsed} total={total} size={40} compact boost={boost} />
+          ) : (
+            <span className="w-11" aria-hidden />
+          )}
         </div>
-        <div key={`${screen.t}-${'i' in screen ? screen.i : ''}`} className="pt-4 motion-safe:animate-om-fade">
+      </div>
+      <div className="max-w-2xl mx-auto px-5 md:px-8 pb-10">
+        <div key={screen.t} className="pt-4 motion-safe:animate-om-fade">
           {body}
         </div>
       </div>
+      {visual && <VisualSheet id={visual} notes={notes} onClose={() => setVisual(null)} />}
       {capturePanel}
       {quitDialog}
     </div>,

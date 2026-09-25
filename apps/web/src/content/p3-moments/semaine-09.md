@@ -13,7 +13,7 @@
 
 > Beaucoup d'enfants pensent que la concentration, on l'a ou on ne l'a pas. La Méthode dit le contraire : c'est une compétence qui s'entraîne, comme un geste.
 >
-> Cette semaine, votre enfant choisit un mot court qui ramène son attention, puis s'entraîne à rester dedans pendant de courtes fenêtres. Quinze secondes à 8 ans, une minute à 16 ans.
+> Cette semaine, votre enfant choisit un mot court qui ramène son attention, puis s'entraîne à rester concentré sur de courts moments, et à revenir quand sa tête part ailleurs. Quinze secondes à 8 ans, une minute à 16 ans.
 >
 > La règle qui change tout : on ne compte pas les fois où il part. On compte les fois où il revient.
 
@@ -43,13 +43,30 @@
 1. Dans la pièce sombre, il éclaire un objet. Seul cet objet existe.
 2. Expliquez : « Ta tête marche pareil. C'est toi qui choisis ce que t'éclaires. »
 3. Demandez : « Quand tu fais vraiment bien un truc, tu sens quoi dans ton corps ? »
-4. Il choisit un mot très court qui dit ce feeling. Vous ne proposez rien.
+4. Il choisit un mot très court qui dit cette sensation. Vous ne proposez rien.
 
 ### À l'écran
 1. Lumière éteinte. Il éclaire un objet.
 2. « Ta tête choisit ce qu'elle éclaire. »
 3. « Quand tu fais bien, tu sens quoi ? »
 4. Il choisit son mot. Aucune proposition.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Éteignez la lumière. Donnez-lui la lampe de poche, ou celle du téléphone.
+**Dites :** « Éclaire un seul objet. Juste un. »
+**Dites :** « Le reste de la pièce, tu le vois ? »
+#### Étape 2
+**Dites :** « Ta tête marche pareil. C'est toi qui choisis ce que tu éclaires. »
+**Faites :** Laissez-le jouer avec la lampe quelques secondes.
+#### Étape 3
+**Faites :** Rallumez la lumière.
+**Dites :** « Quand tu fais vraiment bien un truc, tu sens quoi dans ton corps ? »
+**Si ça bloque :** « Pense à un moment où tout marchait : au sport, en jouant, en dessinant. C'était comment, dans ton corps ? »
+#### Étape 4
+**Dites :** « Trouve un mot très court pour dire ça. Ce sera ton mot. »
+**Faites :** Attendez. Ne proposez aucun mot, même s'il hésite longtemps. Notez-le avec « Noter ».
+**Si ça bloque :** Donnez seulement le genre de mot, jamais le mot : « Un mot qui bouge, ou un mot qui se sent. »
 
 ### À éviter
 - Ne proposez pas de mot, même s'il hésite longtemps.
@@ -97,8 +114,8 @@ Le parent suggère « focus » ou « concentre-toi ». Le mot devient une consig
 ## ACT-0902 · Quinze secondes, ton mot
 
 **Rôle :** Pratiquer
-**Sous-titre :** Séance 9 · Les fenêtres d'attention
-**Objectif :** Votre enfant reste concentré pendant de courtes fenêtres et s'entraîne à revenir.
+**Sous-titre :** Séance 9 · Rester concentré, revenir
+**Objectif :** Votre enfant reste concentré quinze secondes sur un geste, et apprend à revenir quand sa tête part ailleurs.
 **Durées :** 10 · 20 · 30
 **Lieu :** maison
 **Matériel :** balle, cuillère
@@ -112,32 +129,49 @@ Le parent suggère « focus » ou « concentre-toi ». Le mot devient une consig
 **Origine :** Méthode S9, étape 3 (fenêtres de concentration guidées, silence du coach) · créée pour P3
 
 ### Ce que vous dites pour commencer
-« On fait des fenêtres de quinze secondes. Avant chacune, tu dis ton mot. Moi, je me tais. »
+« Petit défi : quinze secondes avec une balle sur une cuillère. Avant, tu dis ton mot dans ta tête. »
 
 ### Le déroulé
-1. Choisissez une tâche d'adresse : une balle en équilibre sur une cuillère, en marchant lentement.
-2. Il dit son mot dans sa tête. Vous lancez quinze secondes. Silence total de votre part.
-3. Après : « Combien de fois t'es parti ailleurs ? Et combien de fois t'es revenu ? »
-4. Refaites trois à cinq fenêtres.
+1. Posez une petite balle (ou une boule de papier) sur une cuillère. Il marche lentement jusqu'au mur sans la faire tomber.
+2. Avant de partir, il dit son mot dans sa tête. Lancez le minuteur de quinze secondes. Pendant ce temps, vous ne dites rien.
+3. Après, demandez : « Ta tête est partie ailleurs ? » Puis : « T'as réussi à revenir ? » Partir ailleurs, c'est penser à autre chose ; revenir, c'est se reconcentrer sur la cuillère.
+4. Refaites trois à cinq manches de quinze secondes.
 
 ### À l'écran
-1. Balle sur cuillère. Marche lente.
-2. Son mot. Quinze secondes. Silence.
-3. « Parti combien de fois ? Revenu combien ? »
-4. Trois à cinq fenêtres.
+1. Balle sur cuillère. Il marche lentement.
+2. Son mot. Quinze secondes. Vous vous taisez.
+3. « Ta tête est partie ailleurs ? »
+4. Trois à cinq manches.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Posez une petite balle, ou une boule de papier, sur une cuillère. Il tient la cuillère devant lui.
+**Dites :** « Tu marches doucement jusqu'au mur, sans la faire tomber. »
+#### Étape 2
+**Dites :** « Dis ton mot dans ta tête. Prêt ? »
+**Minuteur :** [silence] Ton mot, puis silence 15 s
+**Faites :** Pendant les quinze secondes, vous ne dites rien. Si la balle tombe, il la remet et continue.
+#### Étape 3
+**Dites :** « Pendant ces quinze secondes, ta tête est partie ailleurs ? »
+**Faites :** S'il ne comprend pas, expliquez : « Partir ailleurs, c'est penser à autre chose. Tout le monde le fait. »
+**Dites :** « Et t'as réussi à revenir sur ta cuillère ? »
+**Si ça bloque :** S'il dit « jamais parti » : « D'accord. On regarde à la prochaine manche. » Sans insister.
+#### Étape 4
+**Faites :** Refaites une manche : son mot, le minuteur, votre silence, puis les deux mêmes questions. Trois à cinq manches en tout.
+**Minuteur :** [silence] Ton mot, puis silence 15 s
 
 ### À éviter
-- Ne parlez pas pendant la fenêtre. Votre silence fait partie de l'exercice.
+- Ne parlez pas pendant les quinze secondes. Votre silence fait partie de l'exercice.
 - Ne comptez pas les chutes de la balle. On compte les retours.
 - Ne présentez pas les distractions comme des fautes.
 
 ### Ce que vous allez voir
-À la première fenêtre, il dira qu'il n'est jamais parti. À la troisième, il avouera « deux fois ». C'est un progrès : il commence à remarquer quand son attention s'en va, ce qui est la condition pour la ramener.
+À la première manche, il dira que sa tête n'est jamais partie. À la troisième, il avouera « deux fois ». C'est un progrès : il commence à remarquer quand son attention s'en va, ce qui est la condition pour la ramener.
 
 ### Le débrief
-1. [vécu] « Pendant la fenêtre, t'entendais quoi, dans ta tête ? »
+1. [vécu] « Pendant les quinze secondes, t'entendais quoi, dans ta tête ? »
 2. [fait] « Quand t'es parti ailleurs, qu'est-ce qui t'a fait revenir ? »
-3. [ailleurs] « En classe, tu pourrais faire une fenêtre de quinze secondes quand ? »
+3. [ailleurs] « En classe, à quel moment tu pourrais dire ton mot pour te reconcentrer ? »
 
 ### Pour finir
 « T'es parti, t'es revenu. C'est exactement ça, se concentrer. »
@@ -152,10 +186,10 @@ De courtes fenêtres d'attention, sans aide extérieure, entraînent la capacit�
 - Fenêtres de 15 à 60 secondes selon l'âge — Niveau B
 
 ### +10 min — Approfondir
-Allongez la fenêtre à trente secondes, ou ajoutez un obstacle sur le trajet. Il décide lui-même quand il est prêt pour plus long.
+Passez à trente secondes, ou ajoutez un obstacle sur le trajet. Il décide lui-même quand il est prêt pour plus long.
 
 ### +10 min — Transférer
-Faites une fenêtre sur une tâche scolaire : il lit un paragraphe, dit son mot avant, et compte ses retours. Notez le nombre dans le carnet, sans jugement.
+Faites une manche sur une tâche scolaire : il dit son mot, lit un paragraphe, puis compte combien de fois il est revenu à sa lecture. Notez le nombre dans le carnet, sans jugement.
 
 ### Variante 12–14
 Fenêtres de trente secondes. La tâche peut être un geste de son sport, un jonglage, ou une lecture. Même question après chaque fenêtre.
@@ -190,16 +224,29 @@ Le parent commente les chutes de la balle (« concentre-toi ! »). L'exercice de
 « Ton mot, tu l'as testé à la maison. On regarde où il pourrait servir à l'école ? »
 
 ### Le déroulé
-1. Demandez : « En classe, c'est quand que ton projecteur part tout seul ? »
+1. Demandez : « En classe, c'est quand que ta tête part ailleurs toute seule ? »
 2. Il nomme le moment : une matière, une heure, un bruit.
 3. Demandez : « La prochaine fois, tu feras quoi ? »
 4. Il formule : « Quand je décroche, je dis mon mot et je reviens sur… »
 
 ### À l'écran
-1. « En classe, ton projecteur part quand ? »
+1. « En classe, ta tête part ailleurs quand ? »
 2. Le moment exact.
 3. « La prochaine fois, tu feras quoi ? »
 4. « Quand je décroche, je dis mon mot… »
+
+### Pas à pas
+#### Étape 1
+**Dites :** « En classe, c'est quand que ta tête part ailleurs toute seule ? »
+**Si ça bloque :** Proposez un moment à la fois : « Après la récré ? » Puis : « Pendant une dictée ? » Puis : « Quand ça parle autour de toi ? »
+#### Étape 2
+**Faites :** Aidez-le à préciser le moment : la matière, l'heure, ce qui se passe.
+**Dites :** « C'est à quel moment, exactement ? »
+#### Étape 3
+**Dites :** « La prochaine fois que ça arrive, tu feras quoi ? »
+#### Étape 4
+**Dites :** « Complète : “Quand je décroche, je dis mon mot et je reviens sur…” »
+**Faites :** Il termine la phrase : le tableau, sa feuille, la voix du prof. Notez-la avec « Noter ».
 
 ### À éviter
 - Ne transformez pas la conversation en reproche sur les notes ou le comportement.

@@ -53,6 +53,24 @@
 4. Trois fois, dans sa tête.
 5. « Lequel est à toi ? »
 
+### Pas à pas
+#### Étape 1
+**Faites :** Asseyez-vous côte à côte. Chacun pose une main sur son ventre.
+**Dites :** « Ton ventre, c'est un ballon. On le gonfle en comptant jusqu'à 4, on le dégonfle doucement jusqu'à 8. »
+**Faites :** Montrez-le une fois, lentement, en comptant à voix haute.
+#### Étape 2
+**Faites :** Lancez le minuteur et faites-le ensemble, en suivant la couleur de l'écran.
+**Minuteur :** 5 × [inspire] Gonfle le ballon 4 s · [garde] Garde l'air 2 s · [expire] Dégonfle doucement 8 s
+#### Étape 3
+**Dites :** « Deuxième outil : une phrase courte que tu te dis quand ça rate. Tu dirais quoi ? »
+**Si ça bloque :** Donnez deux exemples, puis laissez-le inventer la sienne : « Je recommence, c'est juste un essai. » ou « Calme, je peux le faire. »
+#### Étape 4
+**Dites :** « Dis-la dans ta tête, trois fois. »
+**Faites :** Attendez en silence qu'il ait fini.
+#### Étape 5
+**Dites :** « Lequel est à toi : le ballon ou la phrase ? »
+**Faites :** Il peut choisir les deux, ou aucun. Notez son choix avec « Noter ».
+
 ### À éviter
 - N'imposez pas votre phrase. Elle ne marche que si elle vient de lui.
 - Ne corrigez pas sa façon de respirer s'il se sent bien.
@@ -128,6 +146,24 @@ Le parent sort l'outil pour la première fois en pleine crise (« respire ! »).
 3. Son outil. Puis il recommence.
 4. Encore. Vous vous taisez peu à peu.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Même matériel que la semaine dernière : gobelets, livres, boîtes.
+**Dites :** « Même défi : une minute, la tour la plus haute. »
+**Minuteur :** [action] Construis ta tour ! 1 min
+#### Étape 2
+**Faites :** Quand elle tombe, dites seulement ceci, calmement :
+**Dites :** « Cinq secondes. Ton outil. »
+**Minuteur :** [detente] Ton outil : ballon ou phrase 5 s
+**Si ça bloque :** Il a oublié son outil ? « Le ballon, ou ta phrase. Tu choisis. » Rien de plus.
+#### Étape 3
+**Faites :** Il fait son ballon ou dit sa phrase. Puis il recommence la tour.
+**Minuteur :** [action] Nouvelle tour ! 1 min
+#### Étape 4
+**Faites :** Refaites trois ou quatre tours. Après la deuxième chute, vous ne dites plus rien : il prend ses cinq secondes seul.
+**Minuteur :** [action] Nouvelle tour ! 1 min
+**Faites :** S'il prend ses cinq secondes sans vous, dites-le-lui à la fin : « T'as pris tes cinq secondes. »
+
 ### À éviter
 - Ne changez pas de défi : c'est le même qu'en semaine 4, exprès.
 - Ne lui rappelez pas son outil sur un ton agacé. Le ton compte plus que les mots.
@@ -139,7 +175,8 @@ Au début, il utilisera l'outil pour vous faire plaisir. Vers la troisième chut
 ### Le débrief
 1. [vécu] « Par rapport à la semaine dernière, c'était pareil ou différent, dans ta tête ? »
 2. [fait] « Qu'est-ce que tu t'es dit, pour recommencer ? »
-3. [ailleurs] « Cette frustration-là, tu la ressens aussi ailleurs ? Ton outil marcherait là-bas ? »
+3. [ailleurs] « Cette frustration-là, tu la ressens aussi ailleurs ? »
+4. [ailleurs] « Ton outil, il marcherait là-bas ? »
 
 ### Pour finir
 « T'as pris tes cinq secondes. Même quand ça montait. »
@@ -202,6 +239,21 @@ Le parent dit « respire » à chaque chute, sur un ton de plus en plus pressé.
 2. « Le premier signe, ce serait quoi ? »
 3. « Quand je sens ça, alors je… »
 4. L'outil une fois, maintenant.
+
+### Pas à pas
+#### Étape 1
+**Dites :** « Cette semaine, il y a un moment où ça risque de monter ? »
+**Si ça bloque :** Proposez une piste à la fois, sans choisir pour lui : « Un examen ? » Puis : « Un match ? » Puis : « Une dispute ? »
+#### Étape 2
+**Dites :** « Juste avant que ça monte, le premier signe, ce serait quoi ? »
+**Si ça bloque :** Proposez une partie du corps à la fois : le ventre, les mains, la mâchoire, la tête.
+#### Étape 3
+**Dites :** « Complète : “Quand je sens ça, alors je…” »
+**Faites :** Il termine la phrase avec son outil : le ballon ou sa phrase.
+**Si ça bloque :** Il ne se souvient plus de ses outils ? « Tu te souviens du ballon ? Gonfle 4, dégonfle 8. »
+#### Étape 4
+**Faites :** Il fait son outil une fois, là, maintenant. Faites-le avec lui.
+**Minuteur :** [inspire] Gonfle le ballon 4 s · [garde] Garde l'air 2 s · [expire] Dégonfle doucement 8 s
 
 ### À éviter
 - Ne choisissez pas la situation à sa place, même si vous savez que les soupers sont tendus.

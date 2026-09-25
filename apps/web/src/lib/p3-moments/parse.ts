@@ -43,6 +43,39 @@ export type Unlock = 'fiche_identite' | 'bilan_mi_parcours' | 'boite_a_outils' |
 
 export type SourceRef = { citation: string; level: 'A' | 'B' | 'C' };
 
+/** Supports visuels que le parent peut montrer à l'enfant, en plein écran. */
+export type VisualId = 'emotions' | 'thermometre' | 'colonnes' | 'escalier' | 'carte' | 'sens' | 'endroits' | 'outils';
+export const VISUAL_IDS: VisualId[] = ['emotions', 'thermometre', 'colonnes', 'escalier', 'carte', 'sens', 'endroits', 'outils'];
+
+/** Couleur d'une phase de minuteur de jeu : l'écran entier prend cette teinte. */
+export type TimerTone = 'action' | 'tension' | 'detente' | 'inspire' | 'garde' | 'expire' | 'silence';
+export const TIMER_TONES: TimerTone[] = ['action', 'tension', 'detente', 'inspire', 'garde', 'expire', 'silence'];
+
+/**
+ * Minuteur de jeu, lancé à la main par le parent (distinct du minuteur du moment).
+ * `rounds` × la suite des `phases` : le parent lance UNE fois, l'écran enchaîne
+ * seul (ex. 5 × « Tout cru, tout raide » 5 s · « Tout cuit, tout mou » 5 s).
+ */
+export type StepTimer = {
+  rounds: number;
+  phases: { tone: TimerTone; label: string; seconds: number }[];
+};
+
+/**
+ * Un « temps » du pas à pas : une chose à FAIRE ou une phrase à DIRE.
+ * Le mode activité les révèle un par un, l'un sous l'autre — une question à la fois.
+ */
+export type StepBeat = { kind: 'faire' | 'dire'; text: string };
+
+/** Accompagnement détaillé d'une étape du déroulé (section « Pas à pas »). */
+export type StepGuide = {
+  beats: StepBeat[];
+  /** « Si ça bloque » : ce que le parent peut dire ou montrer pour relancer. */
+  help: string | null;
+  timer: StepTimer | null;
+  visual: VisualId | null;
+};
+
 export type P3Week = {
   week: number;
   title: string;
@@ -90,8 +123,12 @@ export type P3Activity = {
   opener: string;
   opener_is_dynamic: boolean;
   steps: string[];
-  /** Mode activité : une étape par écran, ≤ 10 mots, même nombre que steps. */
+  /** Mode activité : le titre de chaque étape, ≤ 10 mots, même nombre que steps. */
   screen_steps: string[];
+  /** Pas à pas du parent : une entrée par étape (même nombre que steps). */
+  guide: StepGuide[];
+  /** Tous les visuels de la fiche (ceux des étapes + « Visuels » de l'en-tête). */
+  visuals: VisualId[];
   donts: [string, string, string];
   what_you_will_see: string;
   debrief: { kind: DebriefKind; question: string }[];
@@ -156,6 +193,79 @@ const EXT_KINDS: Record<string, ExtensionKind> = {
 
 const WORDS = (s: string) => s.replace(/[«»"“”.,!?:;…—–-]/g, ' ').split(/\s+/).filter(Boolean).length;
 const splitDots = (s: string) => s.split(' · ').map((x) => x.trim()).filter(Boolean);
+/** Règle « une question à la fois » : jamais deux « ? » dans une même phrase adressée à l'enfant. */
+const QUESTIONS = (s: string) => (s.match(/\?/g) ?? []).length;
+
+function oneQuestion(text: string, where: string, what: string) {
+  if (QUESTIONS(text) > 1) throw new Error(`${where} : ${what} pose plusieurs questions à la fois (« ${text} »)`);
+}
+
+/**
+ * « 5 × [tension] Tout cru, tout raide ! 5 s · [detente] Tout cuit, tout mou ! 5 s »
+ * « [action] Construis ta tour ! 1 min »
+ */
+export function parseTimer(raw: string, where: string): StepTimer {
+  const m = raw.match(/^(?:(\d+) × )?(.+)$/);
+  if (!m) throw new Error(`${where} : minuteur illisible « ${raw} »`);
+  const rounds = m[1] ? Number(m[1]) : 1;
+  const phases = m[2].split(' · ').map((p) => {
+    const pm = p.trim().match(/^\[(\w+)\] (.+?) (\d+) (s|min)$/);
+    if (!pm) throw new Error(`${where} : phase de minuteur illisible « ${p} »`);
+    const tone = pm[1] as TimerTone;
+    if (!TIMER_TONES.includes(tone)) throw new Error(`${where} : teinte de minuteur inconnue « ${pm[1]} »`);
+    const seconds = Number(pm[3]) * (pm[4] === 'min' ? 60 : 1);
+    if (seconds < 1 || seconds > 600) throw new Error(`${where} : phase de ${seconds} s`);
+    if (WORDS(pm[2]) > 8) throw new Error(`${where} : libellé de phase > 8 mots (« ${pm[2]} »)`);
+    return { tone, label: pm[2], seconds };
+  });
+  if (rounds < 1 || rounds > 12) throw new Error(`${where} : ${rounds} tours de minuteur`);
+  const total = rounds * phases.reduce((n, p) => n + p.seconds, 0);
+  if (total > 15 * 60) throw new Error(`${where} : minuteur de jeu > 15 min`);
+  return { rounds, phases };
+}
+
+/** Section « Pas à pas » : un bloc « #### Étape n » par étape du déroulé. */
+function parseGuide(lines: string[], stepCount: number, where: string): StepGuide[] {
+  const guide: StepGuide[] = [];
+  let cur: StepGuide | null = null;
+  for (const l of lines) {
+    if (!l) continue;
+    const h = l.match(/^#### Étape (\d+)$/);
+    if (h) {
+      if (Number(h[1]) !== guide.length + 1) throw new Error(`${where} : pas à pas — étape ${h[1]} hors d'ordre`);
+      cur = { beats: [], help: null, timer: null, visual: null };
+      guide.push(cur);
+      continue;
+    }
+    if (!cur) throw new Error(`${where} : pas à pas — ligne hors étape « ${l} »`);
+    const f = l.match(/^\*\*(Faites|Dites|Si ça bloque|Minuteur|Visuel) :\*\* (.+)$/);
+    if (!f) throw new Error(`${where} : pas à pas — ligne illisible « ${l} »`);
+    const [, key, value] = f;
+    const at = `${where}, étape ${guide.length}`;
+    if (key === 'Faites') cur.beats.push({ kind: 'faire', text: value });
+    else if (key === 'Dites') {
+      if (!/^«.+»$/.test(value)) throw new Error(`${at} : « Dites » doit être entre « »`);
+      oneQuestion(value, at, 'une phrase à dire');
+      cur.beats.push({ kind: 'dire', text: value });
+    } else if (key === 'Si ça bloque') {
+      if (cur.help) throw new Error(`${at} : un seul « Si ça bloque »`);
+      cur.help = value;
+    } else if (key === 'Minuteur') {
+      if (cur.timer) throw new Error(`${at} : un seul minuteur par étape`);
+      cur.timer = parseTimer(value, at);
+    } else {
+      if (cur.visual) throw new Error(`${at} : un seul visuel par étape`);
+      if (!VISUAL_IDS.includes(value as VisualId)) throw new Error(`${at} : visuel inconnu « ${value} »`);
+      cur.visual = value as VisualId;
+    }
+  }
+  if (guide.length !== stepCount) throw new Error(`${where} : pas à pas — ${guide.length} étapes pour ${stepCount}`);
+  guide.forEach((g, i) => {
+    if (!g.beats.length) throw new Error(`${where} : pas à pas — étape ${i + 1} sans « Faites » ni « Dites »`);
+    if (g.beats.length > 8) throw new Error(`${where} : pas à pas — étape ${i + 1} trop longue (8 temps max)`);
+  });
+  return guide;
+}
 
 function pillars(raw: string, where: string): PillarCode[] {
   const list = splitDots(raw);
@@ -335,6 +445,7 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
   // Amorce
   const opener = quote(sec('Ce que vous dites pour commencer'), where);
   if (WORDS(opener.replace('{duree}', 'dix minutes')) > 22) throw new Error(`${where} : amorce > 20 mots`);
+  oneQuestion(opener, where, "l'amorce");
 
   // Déroulé et écran
   const steps = numbered(sec('Le déroulé'));
@@ -343,7 +454,14 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
   if (screen.length !== steps.length) throw new Error(`${where} : ${screen.length} écrans pour ${steps.length} étapes`);
   screen.forEach((s, i) => {
     if (WORDS(s) > 10) throw new Error(`${where} : écran ${i + 1} dépasse 10 mots (« ${s} »)`);
+    oneQuestion(s, where, `l'écran ${i + 1}`);
   });
+  const guide = parseGuide(sec('Pas à pas'), steps.length, where);
+  const headVisuals = f['Visuels'] ? splitDots(f['Visuels']) : [];
+  for (const v of headVisuals) {
+    if (!VISUAL_IDS.includes(v as VisualId)) throw new Error(`${where} : visuel inconnu « ${v} »`);
+  }
+  const visuals = [...new Set([...guide.map((g) => g.visual).filter((v): v is VisualId => !!v), ...(headVisuals as VisualId[])])];
 
   const donts = bullets(sec('À éviter'));
   if (donts.length !== 3) throw new Error(`${where} : ${donts.length} interdits (exactement 3)`);
@@ -356,9 +474,10 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     const m = q.match(/^\[(.+?)\] (.+)$/);
     const kind = m && DEBRIEF_TAGS[m[1]];
     if (!m || !kind) throw new Error(`${where} : question de débrief sans étiquette [vécu|fait|ailleurs]`);
+    oneQuestion(m[2], where, 'une question de débrief');
     return { kind, question: m[2] };
   });
-  if (debrief.length < 1 || debrief.length > 3) throw new Error(`${where} : 1 à 3 questions de débrief`);
+  if (debrief.length < 1 || debrief.length > 5) throw new Error(`${where} : 1 à 5 questions de débrief`);
   const hasTransfer = debrief.some((d) => d.kind === 'ailleurs');
   if (!week.transfer && hasTransfer) {
     throw new Error(`${where} : pas de question de transfert en semaine ${week.week} (Méthode, S1)`);
@@ -367,9 +486,10 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     throw new Error(`${where} : la question [ailleurs] est obligatoire dès la semaine 2`);
   }
   const order = debrief.map((d) => ['vecu', 'fait', 'ailleurs'].indexOf(d.kind));
-  if (order.some((v, i) => i > 0 && v <= order[i - 1])) throw new Error(`${where} : ordre vécu → fait → ailleurs`);
+  if (order.some((v, i) => i > 0 && v < order[i - 1])) throw new Error(`${where} : ordre vécu → fait → ailleurs`);
 
   const closing = quote(sec('Pour finir'), where);
+  oneQuestion(closing, where, 'la phrase de fin');
 
   // Pourquoi ça marche
   const why = sec('Pourquoi ça marche');
@@ -438,6 +558,8 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     opener_is_dynamic: opener.includes('{duree}'),
     steps,
     screen_steps: screen,
+    guide,
+    visuals,
     donts: donts as [string, string, string],
     what_you_will_see: see,
     debrief,

@@ -51,6 +51,25 @@
 3. Encore. Trois au total.
 4. « Laquelle te surprend le plus ? »
 
+### Pas à pas
+#### Étape 1
+**Faites :** Pensez à une chose qu'il a faite cette semaine. Une action que vous avez vue, pas une qualité.
+**Dites :** « Première chose : cette semaine, tu as aidé ta sœur à finir son puzzle. »
+**Si ça bloque :** Rien ne vous vient ? Pensez à un moment où il a aidé, réparé, recommencé, fait rire quelqu'un, ou appris quelque chose seul.
+#### Étape 2
+**Faites :** Donnez le moment exact : le jour, l'endroit, ce qu'il a fait.
+**Dites :** « C'était mardi, dans la cuisine. Tu as recommencé trois fois sans t'énerver. »
+**Faites :** Arrêtez-vous là. Pas de « c'est bien », pas de leçon.
+#### Étape 3
+**Faites :** Deuxième chose, avec son moment exact.
+**Dites :** « Deuxième chose : … »
+**Faites :** Puis la troisième, toujours avec son moment exact.
+**Dites :** « Et la troisième : … »
+**Si ça bloque :** S'il coupe ou conteste, ne discutez pas : « D'accord. Moi, c'est ce que j'ai vu. » Puis continuez.
+#### Étape 4
+**Dites :** « Laquelle te surprend le plus ? »
+**Faites :** Attendez sa réponse. Même s'il dit « aucune », n'ajoutez rien.
+
 ### À éviter
 - Ne dites pas « tu es gentil » ou « tu es intelligent » : dites ce qu'il a **fait**, pas ce qu'il **est**.
 - N'ajoutez aucun « et si tu faisais ça plus souvent ».
@@ -127,6 +146,22 @@ Le parent enchaîne trois compliments génériques sans exemple. L'enfant sent l
 3. Une fois : nommez ce que vous voyez.
 4. « C'était ton idée. C'était bien. »
 
+### Pas à pas
+#### Étape 1
+**Faites :** Attendez qu'il choisisse. Ne proposez rien, même s'il hésite longtemps.
+**Si ça bloque :** S'il dit « je sais pas », répondez : « Prends ton temps. Je t'attends. » Et attendez vraiment.
+#### Étape 2
+**Faites :** Jouez avec lui. Suivez ses règles, même bizarres.
+**Faites :** Décrivez à voix haute ce qu'il fait, comme un commentateur calme.
+**Dites :** « Tu mets le rouge tout en haut. »
+**Faites :** Aucune question, aucun ordre, aucune correction.
+#### Étape 3
+**Faites :** Une seule fois dans le moment, nommez un effort que vous voyez.
+**Dites :** « Là, tu viens de recommencer. »
+#### Étape 4
+**Faites :** Quand le temps est fini, dites-le simplement, puis :
+**Dites :** « C'était ton idée. C'était bien. »
+
 ### À éviter
 - **Ne posez aucune question.** Pas même « tu t'amuses ? ».
 - Ne donnez aucun ordre, même gentil, même déguisé en suggestion.
@@ -137,7 +172,8 @@ Il va tester si vous allez reprendre le contrôle. Souvent en choisissant quelqu
 
 ### Le débrief
 1. [vécu] « C'était comment, de décider ? »
-2. [fait] « Qu'est-ce que tu as choisi, et pourquoi celui-là ? »
+2. [fait] « Qu'est-ce que tu as choisi ? »
+3. [fait] « Pourquoi celui-là ? »
 
 ### Pour finir
 « On refera ça. Et ce sera encore toi qui choisis. »
@@ -201,6 +237,21 @@ Le parent tient trois minutes puis reprend la main — une question, un conseil,
 2. Silence. Même long.
 3. « Et pour y arriver, tu ferais quoi ? »
 4. Une seule phrase. La sienne.
+
+### Pas à pas
+#### Étape 1
+**Dites :** « Cette année, il y a un truc que tu aimerais réussir. C'est quoi ? »
+**Faites :** Regardez-le, et attendez.
+#### Étape 2
+**Faites :** Laissez le silence. Lancez le minuteur si ça vous aide à tenir : trente secondes sans rien dire.
+**Minuteur :** [silence] Silence. Vous attendez. 30 s
+**Si ça bloque :** S'il dit « je sais pas » : « Pas grave. À l'école, au sport, avec tes amis : n'importe où. » Puis silence encore.
+#### Étape 3
+**Faites :** S'il donne un résultat (« gagner », « avoir 90 % »), posez une seule question.
+**Dites :** « Et pour y arriver, tu ferais quoi ? »
+#### Étape 4
+**Dites :** « Tu peux me le redire en une seule phrase ? »
+**Faites :** Répétez sa phrase mot pour mot, sans l'améliorer. Notez-la avec « Noter ».
 
 ### À éviter
 - Ne reformulez pas « mieux » que lui. La phrase doit rester dans ses mots.

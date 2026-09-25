@@ -51,6 +51,23 @@
 3. Il range tout. Vous ne rangez rien.
 4. Il entoure une chose « de moi ».
 
+### Pas à pas
+#### Étape 1
+**Faites :** Relisez sa phrase de la semaine dernière, mot pour mot. Elle est dans le carnet de l'app.
+**Dites :** « La semaine dernière, tu m'as dit : … C'est toujours ça ? »
+**Si ça bloque :** Vous ne l'avez pas notée ? Demandez-lui : « Ton truc à réussir cette année, c'était quoi, déjà ? »
+#### Étape 2
+**Faites :** Sur une feuille, tracez un trait au milieu. À gauche : « ça dépend de moi ». À droite : « ça ne dépend pas de moi ».
+**Visuel :** colonnes
+**Dites :** « Ici, ce que toi tu peux faire. Là, ce que tu ne contrôles pas. »
+#### Étape 3
+**Dites :** « Pour réussir ton truc, qu'est-ce qui compte ? »
+**Faites :** Pour chaque chose qu'il dit, il choisit la colonne et l'écrit lui-même. Vous ne rangez rien.
+**Si ça bloque :** Donnez un exemple sur un autre sujet : « Pour un gâteau : suivre la recette, ça dépend de moi. Le four qui chauffe mal, non. »
+#### Étape 4
+**Dites :** « Dans la colonne de gauche, laquelle tu choisis ? »
+**Faites :** Il l'entoure. C'est son objectif pour les semaines qui viennent.
+
 ### À éviter
 - Ne rangez rien à sa place, même quand il se trompe de colonne.
 - Ne remplacez pas son objectif par un « meilleur ».
@@ -128,6 +145,24 @@ Le parent range lui-même les éléments « pour aller plus vite ». L'enfant re
 4. Il la fait. Vous l'accompagnez.
 5. Il colorie la marche.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Dessinez un escalier de quatre marches. Sur la plus haute, il écrit ce qu'il a entouré.
+**Visuel :** escalier
+#### Étape 2
+**Dites :** « Pour arriver en haut, c'est quoi la toute première marche, la plus facile ? »
+**Faites :** Il l'écrit sur la marche du bas. Puis la deuxième, puis la troisième.
+**Si ça bloque :** « Qu'est-ce que tu pourrais faire en cinq minutes, pour commencer ? »
+#### Étape 3
+**Dites :** « Laquelle tu peux faire là, maintenant ? »
+**Si ça bloque :** Si elle est trop grosse : « Il y a une marche plus petite, avant celle-là ? »
+#### Étape 4
+**Faites :** Il la fait, maintenant. Si c'est possible, faites-la avec lui.
+**Faites :** Ne commentez pas sa façon de faire.
+#### Étape 5
+**Faites :** Il colorie la marche sur le dessin.
+**Dites :** « Une marche de faite. »
+
 ### À éviter
 - Ne choisissez pas la première marche à sa place.
 - Ne transformez pas la marche en devoir à rendre demain.
@@ -202,6 +237,21 @@ Le parent transforme la séance en planification (« et mardi tu feras… »). L
 2. Relevez ce qui ressemble à son escalier.
 3. « Et à l'école, ton niveau à passer ? »
 4. Une phrase : « Si… alors je… »
+
+### Pas à pas
+#### Étape 1
+**Faites :** Laissez-le expliquer sa méthode en détail. Intéressez-vous pour vrai.
+**Dites :** « Et quand tu bloques à un niveau, tu fais quoi ? »
+#### Étape 2
+**Faites :** Relevez ce qui ressemble à son escalier : un but précis, une marche à la fois, recommencer.
+**Dites :** « Tu découpes en petits bouts. C'est comme ton escalier. »
+#### Étape 3
+**Dites :** « Et à l'école, ce serait quoi, ton niveau à passer ? »
+**Si ça bloque :** « Une matière, un devoir, un truc qui te bloque en ce moment. N'importe lequel, même petit. »
+#### Étape 4
+**Dites :** « Complète : “Si je bloque sur…, alors je…” »
+**Faites :** Il termine la phrase à voix haute. Notez-la avec « Noter ».
+**Si ça bloque :** Donnez la forme avec un exemple de jeu : « Si je perds contre le boss, alors je regarde comment il attaque. » Puis : « Et pour l'école ? »
 
 ### À éviter
 - Ne critiquez pas le jeu. Le jeu est le pont, pas le sujet.

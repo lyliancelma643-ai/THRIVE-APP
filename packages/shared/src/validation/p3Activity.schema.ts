@@ -15,6 +15,38 @@ export const ContentStatusSchema = z.enum(['brouillon', 'revu', 'publie']);
 
 const wordCount = (s: string) => s.replace(/[«»"“”.,!?:;…—–-]/g, ' ').split(/\s+/).filter(Boolean).length;
 
+export const VisualIdSchema = z.enum(['emotions', 'thermometre', 'colonnes', 'escalier', 'carte', 'sens', 'endroits', 'outils']);
+
+const oneQuestion = (s: string) => (s.match(/\?/g) ?? []).length <= 1;
+
+export const StepGuideSchema = z.object({
+  beats: z
+    .array(
+      z.object({
+        kind: z.enum(['faire', 'dire']),
+        text: z.string().min(2).refine(oneQuestion, 'une question à la fois'),
+      }),
+    )
+    .min(1)
+    .max(8),
+  help: z.string().min(3).nullable(),
+  timer: z
+    .object({
+      rounds: z.number().int().min(1).max(12),
+      phases: z
+        .array(
+          z.object({
+            tone: z.enum(['action', 'tension', 'detente', 'inspire', 'garde', 'expire', 'silence']),
+            label: z.string().min(1),
+            seconds: z.number().int().min(1).max(600),
+          }),
+        )
+        .min(1),
+    })
+    .nullable(),
+  visual: VisualIdSchema.nullable(),
+});
+
 export const P3WeekSchema = z.object({
   week: z.number().int().min(1).max(13),
   title: z.string().min(3),
@@ -67,12 +99,19 @@ export const P3ActivitySchema = z
     opener_is_dynamic: z.boolean(),
     steps: z.array(z.string().min(3)).min(3).max(5),
     screen_steps: z.array(z.string().refine((s) => wordCount(s) <= 10, '≤ 10 mots à l’écran')).min(3).max(5),
+    guide: z.array(StepGuideSchema).min(3).max(5),
+    visuals: z.array(VisualIdSchema),
     donts: z.tuple([z.string(), z.string(), z.string()]),
     what_you_will_see: z.string().min(10),
     debrief: z
-      .array(z.object({ kind: z.enum(['vecu', 'fait', 'ailleurs']), question: z.string().min(5) }))
+      .array(
+        z.object({
+          kind: z.enum(['vecu', 'fait', 'ailleurs']),
+          question: z.string().min(5).refine(oneQuestion, 'une question à la fois'),
+        }),
+      )
       .min(1)
-      .max(3),
+      .max(5),
     closing: z.string().regex(/^«.+»$/),
     why_one_line: z.string().min(10),
     why_detail: z.string().min(20),
@@ -98,7 +137,7 @@ export const P3ActivitySchema = z
     status: ContentStatusSchema,
   })
   .superRefine((a, ctx) => {
-    if (a.steps.length !== a.screen_steps.length) {
+    if (a.steps.length !== a.screen_steps.length || a.steps.length !== a.guide.length) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${a.id} : écrans ≠ étapes` });
     }
     if (a.extensions.length !== a.durations.length - 1) {

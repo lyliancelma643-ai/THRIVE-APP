@@ -204,7 +204,7 @@
       "foundation": "Csikszentmihalyi (1990) · Hatzigeorgiadis et al. (2011) · Zoogman et al. (2015) — Niveau A. Mot de concentration et fenêtres THRIVE — Niveau B.",
       "intro": [
         "Beaucoup d'enfants pensent que la concentration, on l'a ou on ne l'a pas. La Méthode dit le contraire : c'est une compétence qui s'entraîne, comme un geste.",
-        "Cette semaine, votre enfant choisit un mot court qui ramène son attention, puis s'entraîne à rester dedans pendant de courtes fenêtres. Quinze secondes à 8 ans, une minute à 16 ans.",
+        "Cette semaine, votre enfant choisit un mot court qui ramène son attention, puis s'entraîne à rester concentré sur de courts moments, et à revenir quand sa tête part ailleurs. Quinze secondes à 8 ans, une minute à 16 ans.",
         "La règle qui change tout : on ne compte pas les fois où il part. On compte les fois où il revient."
       ],
       "status": "publie"
@@ -370,6 +370,81 @@
         "Encore. Trois au total.",
         "« Laquelle te surprend le plus ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Pensez à une chose qu'il a faite cette semaine. Une action que vous avez vue, pas une qualité."
+            },
+            {
+              "kind": "dire",
+              "text": "« Première chose : cette semaine, tu as aidé ta sœur à finir son puzzle. »"
+            }
+          ],
+          "help": "Rien ne vous vient ? Pensez à un moment où il a aidé, réparé, recommencé, fait rire quelqu'un, ou appris quelque chose seul.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Donnez le moment exact : le jour, l'endroit, ce qu'il a fait."
+            },
+            {
+              "kind": "dire",
+              "text": "« C'était mardi, dans la cuisine. Tu as recommencé trois fois sans t'énerver. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Arrêtez-vous là. Pas de « c'est bien », pas de leçon."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Deuxième chose, avec son moment exact."
+            },
+            {
+              "kind": "dire",
+              "text": "« Deuxième chose : … »"
+            },
+            {
+              "kind": "faire",
+              "text": "Puis la troisième, toujours avec son moment exact."
+            },
+            {
+              "kind": "dire",
+              "text": "« Et la troisième : … »"
+            }
+          ],
+          "help": "S'il coupe ou conteste, ne discutez pas : « D'accord. Moi, c'est ce que j'ai vu. » Puis continuez.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Laquelle te surprend le plus ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez sa réponse. Même s'il dit « aucune », n'ajoutez rien."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne dites pas « tu es gentil » ou « tu es intelligent » : dites ce qu'il a **fait**, pas ce qu'il **est**.",
         "N'ajoutez aucun « et si tu faisais ça plus souvent ».",
@@ -498,6 +573,73 @@
         "Une fois : nommez ce que vous voyez.",
         "« C'était ton idée. C'était bien. »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Attendez qu'il choisisse. Ne proposez rien, même s'il hésite longtemps."
+            }
+          ],
+          "help": "S'il dit « je sais pas », répondez : « Prends ton temps. Je t'attends. » Et attendez vraiment.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Jouez avec lui. Suivez ses règles, même bizarres."
+            },
+            {
+              "kind": "faire",
+              "text": "Décrivez à voix haute ce qu'il fait, comme un commentateur calme."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu mets le rouge tout en haut. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Aucune question, aucun ordre, aucune correction."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Une seule fois dans le moment, nommez un effort que vous voyez."
+            },
+            {
+              "kind": "dire",
+              "text": "« Là, tu viens de recommencer. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Quand le temps est fini, dites-le simplement, puis :"
+            },
+            {
+              "kind": "dire",
+              "text": "« C'était ton idée. C'était bien. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "**Ne posez aucune question.** Pas même « tu t'amuses ? ».",
         "Ne donnez aucun ordre, même gentil, même déguisé en suggestion.",
@@ -511,7 +653,11 @@
         },
         {
           "kind": "fait",
-          "question": "« Qu'est-ce que tu as choisi, et pourquoi celui-là ? »"
+          "question": "« Qu'est-ce que tu as choisi ? »"
+        },
+        {
+          "kind": "fait",
+          "question": "« Pourquoi celui-là ? »"
         }
       ],
       "closing": "« On refera ça. Et ce sera encore toi qui choisis. »",
@@ -626,6 +772,74 @@
         "« Et pour y arriver, tu ferais quoi ? »",
         "Une seule phrase. La sienne."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Cette année, il y a un truc que tu aimerais réussir. C'est quoi ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Regardez-le, et attendez."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Laissez le silence. Lancez le minuteur si ça vous aide à tenir : trente secondes sans rien dire."
+            }
+          ],
+          "help": "S'il dit « je sais pas » : « Pas grave. À l'école, au sport, avec tes amis : n'importe où. » Puis silence encore.",
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Silence. Vous attendez.",
+                "seconds": 30
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "S'il donne un résultat (« gagner », « avoir 90 % »), posez une seule question."
+            },
+            {
+              "kind": "dire",
+              "text": "« Et pour y arriver, tu ferais quoi ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu peux me le redire en une seule phrase ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Répétez sa phrase mot pour mot, sans l'améliorer. Notez-la avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne reformulez pas « mieux » que lui. La phrase doit rester dans ses mots.",
         "Ne négociez pas l'ambition, ni vers le haut, ni vers le bas.",
@@ -742,6 +956,71 @@
         "Deux colonnes : de moi · pas de moi.",
         "Il range tout. Vous ne rangez rien.",
         "Il entoure une chose « de moi »."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Relisez sa phrase de la semaine dernière, mot pour mot. Elle est dans le carnet de l'app."
+            },
+            {
+              "kind": "dire",
+              "text": "« La semaine dernière, tu m'as dit : … C'est toujours ça ? »"
+            }
+          ],
+          "help": "Vous ne l'avez pas notée ? Demandez-lui : « Ton truc à réussir cette année, c'était quoi, déjà ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Sur une feuille, tracez un trait au milieu. À gauche : « ça dépend de moi ». À droite : « ça ne dépend pas de moi »."
+            },
+            {
+              "kind": "dire",
+              "text": "« Ici, ce que toi tu peux faire. Là, ce que tu ne contrôles pas. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "colonnes"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Pour réussir ton truc, qu'est-ce qui compte ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Pour chaque chose qu'il dit, il choisit la colonne et l'écrit lui-même. Vous ne rangez rien."
+            }
+          ],
+          "help": "Donnez un exemple sur un autre sujet : « Pour un gâteau : suivre la recette, ça dépend de moi. Le four qui chauffe mal, non. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Dans la colonne de gauche, laquelle tu choisis ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il l'entoure. C'est son objectif pour les semaines qui viennent."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "colonnes"
       ],
       "donts": [
         "Ne rangez rien à sa place, même quand il se trompe de colonne.",
@@ -876,6 +1155,78 @@
         "Il la fait. Vous l'accompagnez.",
         "Il colorie la marche."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dessinez un escalier de quatre marches. Sur la plus haute, il écrit ce qu'il a entouré."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "escalier"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Pour arriver en haut, c'est quoi la toute première marche, la plus facile ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il l'écrit sur la marche du bas. Puis la deuxième, puis la troisième."
+            }
+          ],
+          "help": "« Qu'est-ce que tu pourrais faire en cinq minutes, pour commencer ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Laquelle tu peux faire là, maintenant ? »"
+            }
+          ],
+          "help": "Si elle est trop grosse : « Il y a une marche plus petite, avant celle-là ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il la fait, maintenant. Si c'est possible, faites-la avec lui."
+            },
+            {
+              "kind": "faire",
+              "text": "Ne commentez pas sa façon de faire."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il colorie la marche sur le dessin."
+            },
+            {
+              "kind": "dire",
+              "text": "« Une marche de faite. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "escalier"
+      ],
       "donts": [
         "Ne choisissez pas la première marche à sa place.",
         "Ne transformez pas la marche en devoir à rendre demain.",
@@ -1004,6 +1355,65 @@
         "« Et à l'école, ton niveau à passer ? »",
         "Une phrase : « Si… alors je… »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Laissez-le expliquer sa méthode en détail. Intéressez-vous pour vrai."
+            },
+            {
+              "kind": "dire",
+              "text": "« Et quand tu bloques à un niveau, tu fais quoi ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Relevez ce qui ressemble à son escalier : un but précis, une marche à la fois, recommencer."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu découpes en petits bouts. C'est comme ton escalier. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Et à l'école, ce serait quoi, ton niveau à passer ? »"
+            }
+          ],
+          "help": "« Une matière, un devoir, un truc qui te bloque en ce moment. N'importe lequel, même petit. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Complète : “Si je bloque sur…, alors je…” »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il termine la phrase à voix haute. Notez-la avec « Noter »."
+            }
+          ],
+          "help": "Donnez la forme avec un exemple de jeu : « Si je perds contre le boss, alors je regarde comment il attaque. » Puis : « Et pour l'école ? »",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne critiquez pas le jeu. Le jeu est le pont, pas le sujet.",
         "Ne faites pas le lien à sa place : laissez-le le construire.",
@@ -1121,6 +1531,81 @@
         "Il les écrit lui-même.",
         "« Qui a fait ça ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Il y a un an, qu'est-ce que tu ne savais pas faire ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Cherchez ensemble, jusqu'à cinq. Les petites choses comptent autant que les grandes."
+            }
+          ],
+          "help": "Proposez une piste, pas une réponse : le vélo, la lecture, ses lacets, cuisiner, un jeu, nager.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Si tout vient du sport, ouvrez d'autres portes, une question à la fois."
+            },
+            {
+              "kind": "dire",
+              "text": "« Et à l'école ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Et avec tes amis ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Et à la maison ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il écrit lui-même en haut de la feuille : « Mes impossibles ». Puis ses lignes, en dessous."
+            },
+            {
+              "kind": "faire",
+              "text": "Laissez les fautes d'orthographe. C'est sa liste."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Montrez la liste du doigt."
+            },
+            {
+              "kind": "dire",
+              "text": "« Qui a fait ça ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez. S'il dit « moi », répétez simplement : « Oui. Toi. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'écrivez pas les lignes à sa place.",
         "Ne répondez pas vous-même à « qui a fait ça ? ». La réponse est la sienne.",
@@ -1250,6 +1735,80 @@
         "Réussite ? Nommez ce qu'il a fait.",
         "Vous essayez aussi. Pour vrai."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Posez une boîte ou un panier par terre. Il se place à deux pas, avec une boule de papier."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu lances la boule dans la boîte. On cherche ta bonne distance. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il lance trois fois."
+            },
+            {
+              "kind": "faire",
+              "text": "Trois réussites sur trois : il recule d'un pas. Aucune : il avance d'un pas."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Quand il réussit une fois sur trois, restez à cette distance et jouez."
+            },
+            {
+              "kind": "dire",
+              "text": "« Là, c'est ta bonne distance. C'est dur, mais c'est possible. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "À chaque réussite, dites ce qu'il a fait. Pas « bravo »."
+            },
+            {
+              "kind": "dire",
+              "text": "« T'as pris ton temps avant de lancer. »"
+            }
+          ],
+          "help": "Autres choses à remarquer : « t'as regardé la boîte », « t'as lancé plus doucement », « t'as changé de main ».",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "À votre tour, à la même distance. Pour vrai, sans faire exprès de rater."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne dites pas « bravo » ou « super ». Dites ce qu'il a **fait** pour réussir.",
         "Ne le laissez pas rater dix fois « pour qu'il apprenne ». Si tout rate, on simplifie tout de suite.",
@@ -1383,6 +1942,74 @@
         "Silence. N'exigez rien.",
         "« T'as eu besoin de courage quand ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Racontez un vrai échec à vous : où vous étiez, ce qui s'est passé, ce que vous avez ressenti."
+            }
+          ],
+          "help": "Pistes : un examen raté, le permis de conduire, un match perdu, un oral où vous avez bafouillé, un emploi pas obtenu.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Racontez ce que vous avez fait ensuite. Même si ce n'était pas glorieux."
+            },
+            {
+              "kind": "faire",
+              "text": "Ne finissez pas par une morale."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Taisez-vous. Laissez-le réagir, ou pas."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Silence. Vous attendez.",
+                "seconds": 20
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "S'il réagit, posez une seule question."
+            },
+            {
+              "kind": "dire",
+              "text": "« Toi, t'as eu besoin de courage quand, cette semaine ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "S'il ne répond pas, c'est bien aussi. Ne relancez pas."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne terminez pas par « alors tu vois, toi aussi tu devrais… ». Ça annule tout.",
         "Ne choisissez pas un faux échec qui finit en triomphe.",
@@ -1486,15 +2113,108 @@
       "opener_is_dynamic": false,
       "steps": [
         "Montrez-lui la roue dans l'app : frustration, peur, colère, joie, fierté, nervosité.",
-        "Mimez-en une, sans un mot. Il devine.",
-        "À son tour de mimer. Vous devinez. Trois tours chacun.",
-        "Demandez : « Laquelle t'as sentie cette semaine ? C'était quand ? »"
+        "Mimez les six, une par une, sans un mot : la joie, la peur, la colère, la frustration, la fierté, la nervosité. Il devine chaque fois en la montrant du doigt sur l'écran.",
+        "À son tour de mimer. Vous devinez. Au moins trois, les six s'il veut.",
+        "Demandez : « Laquelle t'as sentie cette semaine ? » Puis : « C'était quand ? »"
       ],
       "screen_steps": [
         "La roue : six émotions.",
-        "Vous mimez. Il devine.",
+        "Vous mimez les six. Il devine.",
         "Il mime. Vous devinez.",
-        "« Laquelle cette semaine ? C'était quand ? »"
+        "« Laquelle t'as sentie cette semaine ? »"
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ouvrez « Les six émotions » et tournez l'écran vers lui."
+            },
+            {
+              "kind": "dire",
+              "text": "« Il y a six émotions : la joie, la peur, la colère, la frustration, la fierté et la nervosité. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "emotions"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Mimez les six, une par une, dans cet ordre, sans un mot. Après chaque mime, demandez « C'est laquelle ? » : il la montre du doigt sur l'écran."
+            },
+            {
+              "kind": "faire",
+              "text": "1 — La joie : grand sourire, bras en l'air, petits sauts."
+            },
+            {
+              "kind": "faire",
+              "text": "2 — La peur : yeux grands ouverts, vous reculez, mains devant vous."
+            },
+            {
+              "kind": "faire",
+              "text": "3 — La colère : sourcils froncés, poings serrés, vous tapez du pied."
+            },
+            {
+              "kind": "faire",
+              "text": "4 — La frustration : vous essayez d'ouvrir un pot imaginaire, il ne s'ouvre pas, vous soufflez fort."
+            },
+            {
+              "kind": "faire",
+              "text": "5 — La fierté : torse bombé, menton levé, une main sur le cœur."
+            },
+            {
+              "kind": "faire",
+              "text": "6 — La nervosité : vous vous rongez les ongles, vous tapez vite du pied, vous regardez partout."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "emotions"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« À toi. Tu en choisis une et tu la mimes, sans parler. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Vous devinez en la montrant sur l'écran. Il en mime au moins trois, les six s'il en a envie."
+            }
+          ],
+          "help": "Il ne sait pas comment mimer ? Soufflez-lui une idée à l'oreille : « La peur : tu recules, les yeux grands ouverts. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Laquelle t'as sentie cette semaine ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Laissez-le la montrer du doigt sur l'écran."
+            },
+            {
+              "kind": "dire",
+              "text": "« C'était quand ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Écoutez. Ne posez pas d'autre question."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "emotions"
+        }
+      ],
+      "visuals": [
+        "emotions"
       ],
       "donts": [
         "Ne dites pas qu'une émotion est « mauvaise ». La colère n'est pas mal, elle est difficile à conduire.",
@@ -1629,6 +2349,118 @@
         "« Regarde la roue. Juste un mot. »",
         "Il reprend. Aucun commentaire."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Posez sur la table ce qu'il y a : gobelets, livres, boîtes."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu as une minute pour faire la tour la plus haute possible. Prêt ? »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Construis ta tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Quand elle tombe, il recommence. Relancez le minuteur à chaque nouvelle tour."
+            },
+            {
+              "kind": "dire",
+              "text": "« Nouvelle tour. Une minute. Vas-y. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Nouvelle tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Après la deuxième chute, pas avant. Parlez calmement, doucement."
+            },
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce qui se passe dans ta tête, là ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez. Ne proposez pas de mot."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "S'il ne trouve pas de mot, ouvrez « Les six émotions » et tendez-lui l'écran."
+            },
+            {
+              "kind": "dire",
+              "text": "« Montre-moi celle que tu sens. Juste une. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "emotions"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il reprend la tour. Relancez le minuteur."
+            },
+            {
+              "kind": "faire",
+              "text": "Vous ne commentez pas la tour. Ni conseil, ni « bravo »."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Encore une tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "emotions",
+        "thermometre"
+      ],
       "donts": [
         "Ne provoquez rien : aucune moquerie, aucune pression, aucun « t'es pas capable ». La difficulté vient de la tour.",
         "Ne proposez pas de mot avant qu'il ait cherché le sien.",
@@ -1752,14 +2584,75 @@
       "steps": [
         "Donnez votre émotion du jour, parmi les six, avec le moment exact.",
         "Il donne la sienne. Vous répétez son mot, sans rien ajouter.",
-        "Demandez : « Elle arrive souvent, celle-là ? Où ? »",
+        "Demandez : « Elle arrive souvent, celle-là ? » Puis : « Où, surtout ? »",
         "Cherchez ensemble le premier signe, avant qu'elle prenne toute la place."
       ],
       "screen_steps": [
         "Votre émotion du jour, avec le moment.",
         "La sienne. Répétez son mot.",
-        "« Elle arrive souvent ? Où ? »",
+        "« Elle arrive souvent, celle-là ? »",
         "Le tout premier signe."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Commencez par vous : une émotion parmi les six, et le moment exact de votre journée."
+            },
+            {
+              "kind": "dire",
+              "text": "« Moi, aujourd'hui, c'était la nervosité. À 14 h, avant ma réunion. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "emotions"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Et toi, aujourd'hui, c'était laquelle ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Répétez son mot, et rien d'autre : « La frustration. »"
+            }
+          ],
+          "help": "S'il dit « bien » ou « normal », montrez les six émotions : « Parmi celles-là, laquelle ressemble le plus à ta journée ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Elle arrive souvent, celle-là ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Où, surtout ? »"
+            }
+          ],
+          "help": "Proposez un lieu à la fois : « À l'école ? » Puis, s'il fait non : « Avec tes amis ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Juste avant qu'elle arrive, tu sens quoi en premier ? »"
+            }
+          ],
+          "help": "Proposez une partie du corps à la fois : le ventre, les mains, les joues, la tête.",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "emotions"
       ],
       "donts": [
         "Ne cherchez pas de solution. Cette semaine, on repère, on ne règle pas.",
@@ -1877,6 +2770,99 @@
         "Trois fois, dans sa tête.",
         "« Lequel est à toi ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Asseyez-vous côte à côte. Chacun pose une main sur son ventre."
+            },
+            {
+              "kind": "dire",
+              "text": "« Ton ventre, c'est un ballon. On le gonfle en comptant jusqu'à 4, on le dégonfle doucement jusqu'à 8. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Montrez-le une fois, lentement, en comptant à voix haute."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Lancez le minuteur et faites-le ensemble, en suivant la couleur de l'écran."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 5,
+            "phases": [
+              {
+                "tone": "inspire",
+                "label": "Gonfle le ballon",
+                "seconds": 4
+              },
+              {
+                "tone": "garde",
+                "label": "Garde l'air",
+                "seconds": 2
+              },
+              {
+                "tone": "expire",
+                "label": "Dégonfle doucement",
+                "seconds": 8
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Deuxième outil : une phrase courte que tu te dis quand ça rate. Tu dirais quoi ? »"
+            }
+          ],
+          "help": "Donnez deux exemples, puis laissez-le inventer la sienne : « Je recommence, c'est juste un essai. » ou « Calme, je peux le faire. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Dis-la dans ta tête, trois fois. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez en silence qu'il ait fini."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Lequel est à toi : le ballon ou la phrase ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il peut choisir les deux, ou aucun. Notez son choix avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'imposez pas votre phrase. Elle ne marche que si elle vient de lui.",
         "Ne corrigez pas sa façon de respirer s'il se sent bien.",
@@ -2008,6 +2994,101 @@
         "Son outil. Puis il recommence.",
         "Encore. Vous vous taisez peu à peu."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Même matériel que la semaine dernière : gobelets, livres, boîtes."
+            },
+            {
+              "kind": "dire",
+              "text": "« Même défi : une minute, la tour la plus haute. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Construis ta tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Quand elle tombe, dites seulement ceci, calmement :"
+            },
+            {
+              "kind": "dire",
+              "text": "« Cinq secondes. Ton outil. »"
+            }
+          ],
+          "help": "Il a oublié son outil ? « Le ballon, ou ta phrase. Tu choisis. » Rien de plus.",
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "detente",
+                "label": "Ton outil : ballon ou phrase",
+                "seconds": 5
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il fait son ballon ou dit sa phrase. Puis il recommence la tour."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Nouvelle tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Refaites trois ou quatre tours. Après la deuxième chute, vous ne dites plus rien : il prend ses cinq secondes seul."
+            },
+            {
+              "kind": "faire",
+              "text": "S'il prend ses cinq secondes sans vous, dites-le-lui à la fin : « T'as pris tes cinq secondes. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Nouvelle tour !",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne changez pas de défi : c'est le même qu'en semaine 4, exprès.",
         "Ne lui rappelez pas son outil sur un ton agacé. Le ton compte plus que les mots.",
@@ -2025,7 +3106,11 @@
         },
         {
           "kind": "ailleurs",
-          "question": "« Cette frustration-là, tu la ressens aussi ailleurs ? Ton outil marcherait là-bas ? »"
+          "question": "« Cette frustration-là, tu la ressens aussi ailleurs ? »"
+        },
+        {
+          "kind": "ailleurs",
+          "question": "« Ton outil, il marcherait là-bas ? »"
         }
       ],
       "closing": "« T'as pris tes cinq secondes. Même quand ça montait. »",
@@ -2137,6 +3222,76 @@
         "« Quand je sens ça, alors je… »",
         "L'outil une fois, maintenant."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Cette semaine, il y a un moment où ça risque de monter ? »"
+            }
+          ],
+          "help": "Proposez une piste à la fois, sans choisir pour lui : « Un examen ? » Puis : « Un match ? » Puis : « Une dispute ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Juste avant que ça monte, le premier signe, ce serait quoi ? »"
+            }
+          ],
+          "help": "Proposez une partie du corps à la fois : le ventre, les mains, la mâchoire, la tête.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Complète : “Quand je sens ça, alors je…” »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il termine la phrase avec son outil : le ballon ou sa phrase."
+            }
+          ],
+          "help": "Il ne se souvient plus de ses outils ? « Tu te souviens du ballon ? Gonfle 4, dégonfle 8. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il fait son outil une fois, là, maintenant. Faites-le avec lui."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "inspire",
+                "label": "Gonfle le ballon",
+                "seconds": 4
+              },
+              {
+                "tone": "garde",
+                "label": "Garde l'air",
+                "seconds": 2
+              },
+              {
+                "tone": "expire",
+                "label": "Dégonfle doucement",
+                "seconds": 8
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne choisissez pas la situation à sa place, même si vous savez que les soupers sont tendus.",
         "Ne lui rappelez pas son plan au moment où ça monte. Ça l'énerve davantage.",
@@ -2237,22 +3392,141 @@
         "label": "Sa respiration du ventre et ses trois mots d'ancrage"
       },
       "origin": "Méthode S6 (respiration abdominale en 3 temps, scan corporel) · adapté des cartes A16, B16",
-      "opener": "« Tu sais la différence entre un spaghetti cru et un spaghetti cuit ? Montre-moi. »",
+      "opener": "« Tu sais la différence entre un spaghetti cru et un spaghetti cuit ? Montre-moi avec ton corps. »",
       "opener_is_dynamic": false,
       "steps": [
-        "« Spaghetti cru ! » : il raidit tout son corps cinq secondes. « Spaghetti cuit ! » : il relâche tout.",
-        "Cinq allers-retours, de plus en plus lentement.",
+        "« Spaghetti cru ! » : il raidit tout son corps, comme un spaghetti sorti du paquet. « Spaghetti cuit ! » : il relâche tout, tout mou.",
+        "Lancez le minuteur une seule fois : cinq tours de cinq secondes tout cru, puis cinq secondes tout cuit. L'écran change de couleur, vous annoncez à voix haute, de plus en plus lentement.",
         "Debout, relâché : il vide tout son air, puis inspire par le nez en gonflant le ventre.",
         "Il expire lentement par la bouche, en comptant jusqu'à 6 ou 8.",
         "Ajoutez : « Sens tes pieds sur le plancher. Ici, maintenant. »"
       ],
       "screen_steps": [
         "Cru : tout raide. Cuit : tout mou.",
-        "Cinq fois, de plus en plus lent.",
+        "Cinq fois : cru, puis cuit.",
         "Vider l'air. Inspirer par le ventre.",
         "Expirer lentement, jusqu'à 6 ou 8.",
         "« Sens tes pieds. Ici, maintenant. »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Debout, face à face. Montrez d'abord vous-même : tout raide, bras collés au corps. Puis tout mou, bras qui pendent."
+            },
+            {
+              "kind": "dire",
+              "text": "« Spaghetti cru : tout raide, comme dans le paquet. Montre-moi avec ton corps. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Spaghetti cuit : tout mou, comme dans l'assiette. Montre-moi avec ton corps. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Tournez l'écran vers lui et lancez le minuteur une seule fois : il enchaîne les cinq tours tout seul. Rouge : tout cru, tout raide. Bleu : tout cuit, tout mou."
+            },
+            {
+              "kind": "faire",
+              "text": "À chaque changement de couleur, annoncez-le à voix haute. Dites « tout cuit » de plus en plus lentement et doucement."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 5,
+            "phases": [
+              {
+                "tone": "tension",
+                "label": "Tout cru, tout raide !",
+                "seconds": 5
+              },
+              {
+                "tone": "detente",
+                "label": "Tout cuit, tout mou…",
+                "seconds": 5
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Debout, relâché. Posez sa main sur son ventre, et la vôtre sur le vôtre."
+            },
+            {
+              "kind": "dire",
+              "text": "« Vide tout ton air, comme un ballon qui se dégonfle. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Maintenant, inspire par le nez, et gonfle ton ventre. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Lancez le minuteur et respirez avec lui, en suivant l'écran."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 3,
+            "phases": [
+              {
+                "tone": "inspire",
+                "label": "Inspire par le nez, gonfle le ventre",
+                "seconds": 4
+              },
+              {
+                "tone": "expire",
+                "label": "Souffle lentement par la bouche",
+                "seconds": 6
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Sens tes pieds sur le plancher. Ici, maintenant. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Restez debout en silence, tous les deux, jusqu'à la fin du minuteur."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Sens tes pieds. Ici, maintenant.",
+                "seconds": 10
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'allez pas vite. C'est la lenteur qui fait l'effet.",
         "Ne corrigez pas sa respiration s'il gonfle la poitrine au début. Posez sa main sur son ventre, sans commentaire.",
@@ -2370,7 +3644,7 @@
         "label": "Sa routine d'avant, dans l'ordre qu'il a choisi"
       },
       "origin": "Méthode S6, étape 2 (tirs chronométrés avec enjeu visible) · créée pour P3",
-      "opener": "« Cinq lancers en trente secondes. Avant chaque lancer, trois secondes pour toi. »",
+      "opener": "« Cinq lancers en trente secondes. Avant chaque lancer, ta petite routine : souffle, pieds, lance. »",
       "opener_is_dynamic": false,
       "steps": [
         "Placez la boîte à une distance où il réussit environ une fois sur trois.",
@@ -2384,6 +3658,83 @@
         "Trente secondes. « Expire. Tes pieds. Vas-y. »",
         "Puis un mot. Puis plus rien."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Posez la boîte à la distance où il réussit environ une fois sur trois, comme en semaine 3."
+            }
+          ],
+          "help": "Pas de repère ? Il lance trois fois : trois réussites, il recule d'un pas ; aucune, il avance d'un pas.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Sans minuteur, il fait sa routine une fois, lentement, avant de lancer."
+            },
+            {
+              "kind": "dire",
+              "text": "« Expire. Sens tes pieds. Vas-y. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Manche 1. Lancez le minuteur. Avant chaque lancer, dites la routine."
+            },
+            {
+              "kind": "dire",
+              "text": "« Expire. Tes pieds. Vas-y. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Manche : cinq lancers !",
+                "seconds": 30
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Manche 2 : vous dites seulement « Expire ». Relancez le minuteur."
+            },
+            {
+              "kind": "faire",
+              "text": "Manche 3 : relancez le minuteur et ne dites plus rien. Il fait sa routine seul, ou pas."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Manche : cinq lancers !",
+                "seconds": 30
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne comptez pas les paniers à voix haute et ne gardez aucun score.",
         "Ne dramatisez pas le chrono (« vite, vite ! »). La pression vient du temps, pas de vous.",
@@ -2397,11 +3748,19 @@
         },
         {
           "kind": "fait",
-          "question": "« À la dernière manche, t'as fait ta routine tout seul ? Ça a changé quoi ? »"
+          "question": "« À la dernière manche, t'as fait ta routine tout seul ? »"
+        },
+        {
+          "kind": "fait",
+          "question": "« Ça a changé quoi ? »"
         },
         {
           "kind": "ailleurs",
-          "question": "« Avant un examen, qu'est-ce qui serait pareil ? Qu'est-ce qui serait différent ? »"
+          "question": "« Avant un examen, qu'est-ce qui serait pareil ? »"
+        },
+        {
+          "kind": "ailleurs",
+          "question": "« Et qu'est-ce qui serait différent ? »"
         }
       ],
       "closing": "« À la fin, t'avais plus besoin de moi. C'est le but. »",
@@ -2512,6 +3871,71 @@
         "« Juste avant, ton corps fera quoi ? »",
         "« C'est ton corps qui se prépare. »",
         "Sa routine, pour ce moment précis."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Laissez-le nommer le moment. Puis aidez-le à le rendre précis, une question à la fois."
+            },
+            {
+              "kind": "dire",
+              "text": "« C'est quel jour ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Et tu seras où, exactement ? »"
+            }
+          ],
+          "help": "« Un examen, un oral, un match, un rendez-vous : n'importe quoi qui te serre un peu le ventre. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Juste avant, ton corps va faire quoi ? »"
+            }
+          ],
+          "help": "Proposez un signe à la fois : « Ton cœur qui bat vite ? » Puis : « Tes mains moites ? » Puis : « Ton ventre ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dites-le calmement, en le regardant :"
+            },
+            {
+              "kind": "dire",
+              "text": "« Ça, c'est ton corps qui se prépare. Il ne te prévient pas d'un danger. Il te donne de l'énergie. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Raconte-moi : t'es juste avant ce moment. Tu fais quoi ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il dit sa routine à voix haute, pour ce moment précis : où il sera, ce qu'il fera."
+            }
+          ],
+          "help": "S'il oublie une étape, ne corrigez pas. Demandez seulement : « Et tes pieds ? »",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "thermometre"
       ],
       "donts": [
         "Ne dites pas « t'as pas à stresser ». Ça n'a jamais calmé personne.",
@@ -2628,6 +4052,63 @@
         "Ouvrez le carnet ensemble.",
         "Trois progrès sur le podium.",
         "Il explique la première place."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il dessine un podium : trois marches, la plus haute au milieu."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ouvrez le carnet de l'app ensemble, ou « Ses outils » à l'écran. Lisez ce qu'il a gardé : ses forces, son objectif, son outil."
+            }
+          ],
+          "help": "Il ne se souvient de rien ? Lisez un outil à voix haute : « Le ballon, tu t'en souviens ? »",
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Depuis six semaines, qu'est-ce que tu fais mieux qu'avant ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il choisit trois progrès et les écrit sur les marches. Le plus gros sur la plus haute."
+            }
+          ],
+          "help": "« Même un petit. Un truc qui est plus facile pour toi qu'avant. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Raconte-moi ta première place. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Écoutez jusqu'au bout, sans compléter."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "outils"
       ],
       "donts": [
         "Ne suggérez pas un progrès qu'il n'a pas cité, même le plus évident.",
@@ -2755,6 +4236,78 @@
         "« L'objectif est encore le bon ? »",
         "Il garde, ajuste ou change.",
         "La prochaine marche, datée."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ressortez son escalier de la semaine 2 et sa phrase « ce qui dépend de moi »."
+            }
+          ],
+          "help": "Escalier perdu ? Redessinez-en un avec lui, en deux minutes : quatre marches, son objectif en haut.",
+          "timer": null,
+          "visual": "escalier"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Aujourd'hui, t'es sur quelle marche ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il la colorie. Vous ne discutez pas sa place."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ton objectif, il est encore le bon pour toi ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il décide : il garde, il ajuste ou il change. Vous suivez."
+            },
+            {
+              "kind": "dire",
+              "text": "« D'accord. C'est toi qui décides. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« C'est quoi, ta prochaine marche ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il l'écrit, avec la date du jour à côté."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "escalier"
       ],
       "donts": [
         "Ne le placez pas plus haut ou plus bas qu'il ne se place.",
@@ -2884,6 +4437,69 @@
         "« Et toi, t'as remarqué quoi ? »",
         "Écoutez. Répétez ses mots."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dites un changement précis que vous avez vu. Un comportement, pas une note."
+            },
+            {
+              "kind": "dire",
+              "text": "« J'ai remarqué que maintenant, tu… »"
+            }
+          ],
+          "help": "Pistes : il recommence plus vite après une erreur, il demande de l'aide, il dit ce qu'il ressent, il souffle avant de s'énerver.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Donnez le moment exact."
+            },
+            {
+              "kind": "dire",
+              "text": "« Mardi, quand ton devoir de maths bloquait, tu as soufflé et tu as recommencé. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Et toi, t'as remarqué quelque chose de différent ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez. Le silence est normal."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Écoutez. Puis répétez ce qu'il a dit, avec ses mots à lui."
+            },
+            {
+              "kind": "dire",
+              "text": "« Donc toi, tu as remarqué que… »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Pas de « je suis fier de toi » seul : dites ce que vous avez **vu**.",
         "Ne parlez pas de résultats scolaires ou sportifs. Parlez de comportements.",
@@ -3000,6 +4616,63 @@
         "« Pour quoi, exactement ? »",
         "Au moins une hors de la maison."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il se dessine au milieu d'une feuille."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "carte"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Si ça va vraiment pas, tu vas voir qui ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il dessine chaque personne autour de lui, avec son prénom. Deux ou trois suffisent."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Pour chaque personne, la même question :"
+            },
+            {
+              "kind": "dire",
+              "text": "« Elle, tu vas la voir pour quoi, exactement ? »"
+            }
+          ],
+          "help": "Donnez des exemples de « pour quoi » : parler quand on est triste, se faire expliquer un devoir, rire, un conseil de sport.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Et en dehors de la maison, il y a quelqu'un ? »"
+            }
+          ],
+          "help": "Proposez un lieu à la fois : « À l'école ? » Puis : « Au sport ? » Puis : « Dans la famille qui habite ailleurs ? »",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "carte"
+      ],
       "donts": [
         "Ne vous vexez pas de ne pas être en premier. Ce n'est pas un classement d'amour.",
         "Ne proposez pas de noms avant qu'il ait cherché.",
@@ -3013,7 +4686,11 @@
         },
         {
           "kind": "fait",
-          "question": "« Laquelle t'as été la plus longue à trouver ? Pourquoi ? »"
+          "question": "« Laquelle t'as été la plus longue à trouver ? »"
+        },
+        {
+          "kind": "fait",
+          "question": "« Pourquoi, à ton avis ? »"
         },
         {
           "kind": "ailleurs",
@@ -3128,6 +4805,77 @@
         "Il demande : aidez tout de suite.",
         "« T'as demandé. C'est ça qu'il fallait. »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Donnez-lui les coussins et une couverture. Le défi : un toit qui tient tout seul. Impossible à deux mains seulement."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu construis seul. Je suis là si t'as besoin. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Restez à côté, disponible. Ne touchez à rien. Regardez-le, sans téléphone."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Quand ça coince, attendez. Même s'il soupire, même s'il vous regarde : attendez les mots."
+            }
+          ],
+          "help": "S'il s'énerve vraiment, dites une seule fois : « Je suis là. » Rien de plus.",
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Vous attendez sa demande.",
+                "seconds": 60
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dès qu'il demande, aidez tout de suite. Exactement ce qu'il demande, pas plus."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« T'as demandé. C'est exactement ce qu'il fallait faire. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'aidez pas avant qu'il demande. Toute l'activité est là.",
         "Ne faites pas plus que ce qu'il demande.",
@@ -3145,7 +4893,11 @@
         },
         {
           "kind": "ailleurs",
-          "question": "« Des fois, tu préfères faire tout seul même si c'est plus dur ? Où, par exemple ? »"
+          "question": "« Des fois, tu préfères faire tout seul, même si c'est plus dur ? »"
+        },
+        {
+          "kind": "ailleurs",
+          "question": "« Où, par exemple ? »"
         }
       ],
       "closing": "« Les gens qui réussissent le mieux, c'est ceux qui savent quand demander. »",
@@ -3248,15 +5000,74 @@
       "steps": [
         "Racontez une vraie fois où vous avez demandé de l'aide, et ce que ça a donné.",
         "Demandez : « Toi, il y a un truc pour lequel t'aurais besoin de demander, en ce moment ? »",
-        "Il prépare sa demande : à qui, ce qu'il veut, pourquoi.",
+        "Il prépare sa demande, une question à la fois : à qui, quoi, pourquoi.",
         "Il la dit une fois à voix haute, à vous, comme s'il y était."
       ],
       "screen_steps": [
         "Votre vraie demande d'aide.",
         "« Toi, t'aurais besoin de demander quoi ? »",
-        "À qui, quoi, pourquoi.",
+        "À qui, quoi, pourquoi : une à la fois.",
         "Il la dit une fois, à voix haute."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Racontez une vraie fois où vous avez demandé de l'aide : à qui, pour quoi, ce que ça a donné."
+            }
+          ],
+          "help": "Pistes : un collègue, un médecin, un voisin, vos parents, un prof quand vous étiez jeune.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Toi, il y a un truc pour lequel t'aurais besoin de demander, en ce moment ? »"
+            }
+          ],
+          "help": "« À l'école, au sport, avec un ami : n'importe quoi, même petit. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu demanderais à qui ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu lui demanderais quoi, exactement ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« C'est important pour toi parce que… ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Fais comme si j'étais cette personne. Vas-y. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Écoutez sans corriger."
+            }
+          ],
+          "help": "S'il commence par s'excuser : « Et sans t'excuser, ça donnerait quoi ? »",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'allez pas faire la demande à sa place. Jamais, même si ça vous démange.",
         "Ne réécrivez pas sa phrase pour la rendre « plus polie ».",
@@ -3367,7 +5178,7 @@
         "Dans la pièce sombre, il éclaire un objet. Seul cet objet existe.",
         "Expliquez : « Ta tête marche pareil. C'est toi qui choisis ce que t'éclaires. »",
         "Demandez : « Quand tu fais vraiment bien un truc, tu sens quoi dans ton corps ? »",
-        "Il choisit un mot très court qui dit ce feeling. Vous ne proposez rien."
+        "Il choisit un mot très court qui dit cette sensation. Vous ne proposez rien."
       ],
       "screen_steps": [
         "Lumière éteinte. Il éclaire un objet.",
@@ -3375,6 +5186,73 @@
         "« Quand tu fais bien, tu sens quoi ? »",
         "Il choisit son mot. Aucune proposition."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Éteignez la lumière. Donnez-lui la lampe de poche, ou celle du téléphone."
+            },
+            {
+              "kind": "dire",
+              "text": "« Éclaire un seul objet. Juste un. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Le reste de la pièce, tu le vois ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ta tête marche pareil. C'est toi qui choisis ce que tu éclaires. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Laissez-le jouer avec la lampe quelques secondes."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Rallumez la lumière."
+            },
+            {
+              "kind": "dire",
+              "text": "« Quand tu fais vraiment bien un truc, tu sens quoi dans ton corps ? »"
+            }
+          ],
+          "help": "« Pense à un moment où tout marchait : au sport, en jouant, en dessinant. C'était comment, dans ton corps ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Trouve un mot très court pour dire ça. Ce sera ton mot. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Attendez. Ne proposez aucun mot, même s'il hésite longtemps. Notez-le avec « Noter »."
+            }
+          ],
+          "help": "Donnez seulement le genre de mot, jamais le mot : « Un mot qui bouge, ou un mot qui se sent. »",
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne proposez pas de mot, même s'il hésite longtemps.",
         "Ne trouvez pas son mot bizarre ou ridicule. Il n'a de sens que pour lui.",
@@ -3447,8 +5325,8 @@
       "role": "pratiquer",
       "phase": "DEVELOPPER",
       "title": "Quinze secondes, ton mot",
-      "subtitle": "Séance 9 · Les fenêtres d'attention",
-      "objective": "Votre enfant reste concentré pendant de courtes fenêtres et s'entraîne à revenir.",
+      "subtitle": "Séance 9 · Rester concentré, revenir",
+      "objective": "Votre enfant reste concentré quinze secondes sur un geste, et apprend à revenir quand sa tête part ailleurs.",
       "durations": [
         10,
         20,
@@ -3492,30 +5370,111 @@
         "label": "Combien de fois il est revenu"
       },
       "origin": "Méthode S9, étape 3 (fenêtres de concentration guidées, silence du coach) · créée pour P3",
-      "opener": "« On fait des fenêtres de quinze secondes. Avant chacune, tu dis ton mot. Moi, je me tais. »",
+      "opener": "« Petit défi : quinze secondes avec une balle sur une cuillère. Avant, tu dis ton mot dans ta tête. »",
       "opener_is_dynamic": false,
       "steps": [
-        "Choisissez une tâche d'adresse : une balle en équilibre sur une cuillère, en marchant lentement.",
-        "Il dit son mot dans sa tête. Vous lancez quinze secondes. Silence total de votre part.",
-        "Après : « Combien de fois t'es parti ailleurs ? Et combien de fois t'es revenu ? »",
-        "Refaites trois à cinq fenêtres."
+        "Posez une petite balle (ou une boule de papier) sur une cuillère. Il marche lentement jusqu'au mur sans la faire tomber.",
+        "Avant de partir, il dit son mot dans sa tête. Lancez le minuteur de quinze secondes. Pendant ce temps, vous ne dites rien.",
+        "Après, demandez : « Ta tête est partie ailleurs ? » Puis : « T'as réussi à revenir ? » Partir ailleurs, c'est penser à autre chose ; revenir, c'est se reconcentrer sur la cuillère.",
+        "Refaites trois à cinq manches de quinze secondes."
       ],
       "screen_steps": [
-        "Balle sur cuillère. Marche lente.",
-        "Son mot. Quinze secondes. Silence.",
-        "« Parti combien de fois ? Revenu combien ? »",
-        "Trois à cinq fenêtres."
+        "Balle sur cuillère. Il marche lentement.",
+        "Son mot. Quinze secondes. Vous vous taisez.",
+        "« Ta tête est partie ailleurs ? »",
+        "Trois à cinq manches."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Posez une petite balle, ou une boule de papier, sur une cuillère. Il tient la cuillère devant lui."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu marches doucement jusqu'au mur, sans la faire tomber. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Dis ton mot dans ta tête. Prêt ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Pendant les quinze secondes, vous ne dites rien. Si la balle tombe, il la remet et continue."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Ton mot, puis silence",
+                "seconds": 15
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Pendant ces quinze secondes, ta tête est partie ailleurs ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "S'il ne comprend pas, expliquez : « Partir ailleurs, c'est penser à autre chose. Tout le monde le fait. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Et t'as réussi à revenir sur ta cuillère ? »"
+            }
+          ],
+          "help": "S'il dit « jamais parti » : « D'accord. On regarde à la prochaine manche. » Sans insister.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Refaites une manche : son mot, le minuteur, votre silence, puis les deux mêmes questions. Trois à cinq manches en tout."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Ton mot, puis silence",
+                "seconds": 15
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
-        "Ne parlez pas pendant la fenêtre. Votre silence fait partie de l'exercice.",
+        "Ne parlez pas pendant les quinze secondes. Votre silence fait partie de l'exercice.",
         "Ne comptez pas les chutes de la balle. On compte les retours.",
         "Ne présentez pas les distractions comme des fautes."
       ],
-      "what_you_will_see": "À la première fenêtre, il dira qu'il n'est jamais parti. À la troisième, il avouera « deux fois ». C'est un progrès : il commence à remarquer quand son attention s'en va, ce qui est la condition pour la ramener.",
+      "what_you_will_see": "À la première manche, il dira que sa tête n'est jamais partie. À la troisième, il avouera « deux fois ». C'est un progrès : il commence à remarquer quand son attention s'en va, ce qui est la condition pour la ramener.",
       "debrief": [
         {
           "kind": "vecu",
-          "question": "« Pendant la fenêtre, t'entendais quoi, dans ta tête ? »"
+          "question": "« Pendant les quinze secondes, t'entendais quoi, dans ta tête ? »"
         },
         {
           "kind": "fait",
@@ -3523,7 +5482,7 @@
         },
         {
           "kind": "ailleurs",
-          "question": "« En classe, tu pourrais faire une fenêtre de quinze secondes quand ? »"
+          "question": "« En classe, à quel moment tu pourrais dire ton mot pour te reconcentrer ? »"
         }
       ],
       "closing": "« T'es parti, t'es revenu. C'est exactement ça, se concentrer. »",
@@ -3548,12 +5507,12 @@
         {
           "adds_to": 20,
           "kind": "approfondir",
-          "text": "Allongez la fenêtre à trente secondes, ou ajoutez un obstacle sur le trajet. Il décide lui-même quand il est prêt pour plus long."
+          "text": "Passez à trente secondes, ou ajoutez un obstacle sur le trajet. Il décide lui-même quand il est prêt pour plus long."
         },
         {
           "adds_to": 30,
           "kind": "transferer",
-          "text": "Faites une fenêtre sur une tâche scolaire : il lit un paragraphe, dit son mot avant, et compte ses retours. Notez le nombre dans le carnet, sans jugement."
+          "text": "Faites une manche sur une tâche scolaire : il dit son mot, lit un paragraphe, puis compte combien de fois il est revenu à sa lecture. Notez le nombre dans le carnet, sans jugement."
         }
       ],
       "variants": [
@@ -3623,17 +5582,72 @@
       "opener": "« Ton mot, tu l'as testé à la maison. On regarde où il pourrait servir à l'école ? »",
       "opener_is_dynamic": false,
       "steps": [
-        "Demandez : « En classe, c'est quand que ton projecteur part tout seul ? »",
+        "Demandez : « En classe, c'est quand que ta tête part ailleurs toute seule ? »",
         "Il nomme le moment : une matière, une heure, un bruit.",
         "Demandez : « La prochaine fois, tu feras quoi ? »",
         "Il formule : « Quand je décroche, je dis mon mot et je reviens sur… »"
       ],
       "screen_steps": [
-        "« En classe, ton projecteur part quand ? »",
+        "« En classe, ta tête part ailleurs quand ? »",
         "Le moment exact.",
         "« La prochaine fois, tu feras quoi ? »",
         "« Quand je décroche, je dis mon mot… »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« En classe, c'est quand que ta tête part ailleurs toute seule ? »"
+            }
+          ],
+          "help": "Proposez un moment à la fois : « Après la récré ? » Puis : « Pendant une dictée ? » Puis : « Quand ça parle autour de toi ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Aidez-le à préciser le moment : la matière, l'heure, ce qui se passe."
+            },
+            {
+              "kind": "dire",
+              "text": "« C'est à quel moment, exactement ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« La prochaine fois que ça arrive, tu feras quoi ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Complète : “Quand je décroche, je dis mon mot et je reviens sur…” »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il termine la phrase : le tableau, sa feuille, la voix du prof. Notez-la avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne transformez pas la conversation en reproche sur les notes ou le comportement.",
         "Ne donnez pas la réponse. Il connaît mieux que vous sa classe.",
@@ -3738,14 +5752,96 @@
       "steps": [
         "Allongé ou assis, yeux fermés. Il choisit son meilleur moment de la semaine.",
         "Il le revit au ralenti, de l'intérieur, comme s'il y était.",
-        "Guidez par les sens : « Tu vois quoi ? Tu entends quoi ? Tu sens quoi dans tes mains ? »",
+        "Guidez par les sens, une question à la fois : « Tu vois quoi ? », puis « Tu entends quoi ? », puis « Tu sens quoi dans tes mains ? »",
         "Il rouvre les yeux et vous raconte le détail le plus précis."
       ],
       "screen_steps": [
         "Yeux fermés. Son meilleur moment.",
         "Il le revit, au ralenti.",
-        "« Tu vois, entends, sens quoi ? »",
+        "Les sens, une question à la fois.",
         "Il raconte le détail le plus précis."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il s'allonge ou s'assoit, et ferme les yeux."
+            },
+            {
+              "kind": "dire",
+              "text": "« Choisis ton meilleur moment de la semaine. Un moment où t'étais bien. »"
+            }
+          ],
+          "help": "« Même un petit moment : un fou rire, un but, un bon repas. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu y es. Repasse-le au ralenti, comme un film. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Parlez lentement, à voix basse. Lancez le minuteur et laissez le silence."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Il revit son film, au ralenti",
+                "seconds": 20
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Posez une question à la fois. Attendez la réponse avant la suivante."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu vois quoi ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu entends quoi ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu sens quoi, dans tes mains ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "sens"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ouvre les yeux. C'était quoi, le détail le plus précis ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Notez son détail avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "sens"
       ],
       "donts": [
         "Ne le pressez pas. La visualisation lente est la seule qui fonctionne.",
@@ -3870,7 +5966,7 @@
         "Reprenez le défi des lancers, à la distance « une fois sur trois ».",
         "Deux lancers sans visualiser.",
         "Puis : yeux fermés, cinq secondes. « Vois ta main, la boule, la boîte. Sens ton bras. » Il ouvre et lance.",
-        "Cinq fois de suite : visualiser, lancer.",
+        "Cinq fois de suite : visualiser, lancer. Le minuteur enchaîne les cinq tours ; vous annoncez chaque changement.",
         "Demandez : « Tu sens une différence quand tu l'as vu avant ? »"
       ],
       "screen_steps": [
@@ -3880,6 +5976,96 @@
         "Cinq fois : voir, lancer.",
         "« Une différence quand tu l'as vu ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Reprenez la boîte et la boule de papier, à la distance où il réussit une fois sur trois."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il lance deux fois, normalement, sans rien de spécial."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ferme les yeux. Vois ta main, la boule, la boîte. Sens ton bras. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Lancez le minuteur. Quand l'écran change de couleur, dites « Ouvre les yeux, lance ! »."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Yeux fermés : vois ton lancer",
+                "seconds": 5
+              },
+              {
+                "tone": "action",
+                "label": "Ouvre les yeux, lance !",
+                "seconds": 5
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Lancez le minuteur une seule fois : il enchaîne cinq lancers. Il a les yeux fermés : annoncez chaque changement à voix haute."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 5,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Yeux fermés : vois ton lancer",
+                "seconds": 5
+              },
+              {
+                "tone": "action",
+                "label": "Ouvre les yeux, lance !",
+                "seconds": 5
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu sens une différence, quand tu l'as vu avant ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne comptez pas les paniers. On compare des sensations, pas des scores.",
         "Ne dites jamais « visualise-toi meilleur que moi ». On visualise le geste, pas la victoire.",
@@ -4007,6 +6193,74 @@
         "Ton souffle, ton mot, tes phrases.",
         "« Qu'est-ce que tu as vu ? »"
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Il y a un truc qui te fait un peu peur, la semaine prochaine ? »"
+            }
+          ],
+          "help": "« Un exposé, un examen, une conversation difficile, un match. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ferme les yeux. Vois-toi le faire bien, du début à la fin. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "silence",
+                "label": "Yeux fermés : il se voit réussir",
+                "seconds": 10
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Pendant qu'il a les yeux fermés, guidez doucement, une phrase à la fois."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu prends ton souffle. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu dis ton mot. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu dis ta première phrase. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Ouvre les yeux. Qu'est-ce que tu as vu ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne vous arrêtez pas au problème. Une visualisation qui s'arrête là augmente l'inquiétude.",
         "Ne choisissez pas le moment à sa place.",
@@ -4132,6 +6386,67 @@
         "Un papier par outil. Son nom à lui.",
         "« Je m'en sers quand… »",
         "Tout va dans sa boîte."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ouvrez le carnet de l'app ensemble, ou « Ses outils » à l'écran."
+            },
+            {
+              "kind": "dire",
+              "text": "« Depuis dix semaines, t'as appris des trucs. On les retrouve tous ? »"
+            }
+          ],
+          "help": "Il ne se souvient plus ? Montrez un outil à la fois sur l'écran : « Le ballon, tu t'en souviens ? »",
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Pour chaque outil, il écrit un petit papier, avec le nom qu'il lui donne, lui."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu l'appellerais comment, celui-là ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Sous chaque nom, il complète : « Je m'en sers quand… »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Celui-là, tu t'en sers quand ? »"
+            }
+          ],
+          "help": "Pointez l'outil sur l'écran : « Ta phrase de recentrage, tu pourrais l'utiliser où ? »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Les papiers vont dans une boîte à son nom. C'est lui qui les range."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "outils"
       ],
       "donts": [
         "N'ajoutez pas vos propres conseils dans la boîte. Seulement les siens.",
@@ -4262,6 +6577,110 @@
         "Après trois lancers : silence.",
         "Une dernière fois, en trois secondes."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Rappelez ses trois outils, un à la fois."
+            },
+            {
+              "kind": "dire",
+              "text": "« Un : tu expires et tu sens tes pieds. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Deux : tu dis ton mot. »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Trois : tu te vois réussir. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il les enchaîne une fois, au calme, en suivant l'écran."
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "expire",
+                "label": "Expire, sens tes pieds",
+                "seconds": 6
+              },
+              {
+                "tone": "silence",
+                "label": "Dis ton mot",
+                "seconds": 3
+              },
+              {
+                "tone": "inspire",
+                "label": "Vois-toi réussir",
+                "seconds": 5
+              }
+            ]
+          },
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Reprenez la boîte et la boule de papier. Avant chaque lancer : sa routine complète."
+            },
+            {
+              "kind": "dire",
+              "text": "« Ta routine, puis tu lances. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Après trois lancers, vous ne dites plus rien. Il fait sa routine seul."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Une dernière fois, les yeux ouverts, en trois secondes. »"
+            }
+          ],
+          "help": null,
+          "timer": {
+            "rounds": 1,
+            "phases": [
+              {
+                "tone": "action",
+                "label": "Routine express, puis lance !",
+                "seconds": 3
+              }
+            ]
+          },
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "outils"
+      ],
       "donts": [
         "N'ajoutez pas un quatrième outil. Une routine trop longue ne se fait jamais sous pression.",
         "Ne corrigez pas l'ordre s'il le change. Son ordre à lui est le bon.",
@@ -4381,7 +6800,7 @@
       "steps": [
         "Trois endroits : l'école, les amis, la maison.",
         "Pour chaque outil qu'il cite, il cherche un usage à chaque endroit.",
-        "Vous ne proposez rien. Vous pouvez seulement dire : « et à la maison ? »",
+        "Vous ne proposez rien. Vous pouvez seulement dire : « Et à la maison ? » S'il a oublié ses outils, montrez-lui « Ses outils » à l'écran.",
         "Il en choisit **un** à tester cette semaine, à un endroit précis."
       ],
       "screen_steps": [
@@ -4389,6 +6808,72 @@
         "Un usage par outil, par endroit.",
         "Vous ne proposez rien.",
         "Il en choisit un à tester."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ouvrez « Trois endroits » et montrez-lui l'écran : l'école, les amis, la maison."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "endroits"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Prenez ses outils un par un. Pour chacun, il cherche un usage à chaque endroit."
+            },
+            {
+              "kind": "dire",
+              "text": "« Ton ballon, tu pourrais l'utiliser où, à l'école ? »"
+            }
+          ],
+          "help": "Il ne se souvient plus de ses outils ? Ouvrez « Ses outils », pointez-en un et demandez : « Celui-là, tu pourrais l'utiliser où ? »",
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Vous ne proposez rien. Vous avez seulement le droit de changer d'endroit."
+            },
+            {
+              "kind": "dire",
+              "text": "« Et à la maison ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Lequel tu veux tester cette semaine ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Où, exactement ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Notez l'outil et l'endroit avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "endroits",
+        "outils"
       ],
       "donts": [
         "Ne remplissez pas les colonnes à sa place, surtout la colonne « maison ».",
@@ -4399,11 +6884,15 @@
       "debrief": [
         {
           "kind": "fait",
-          "question": "« Lequel a été le plus facile à placer ailleurs ? Pourquoi ? »"
+          "question": "« Lequel a été le plus facile à placer ailleurs ? »"
+        },
+        {
+          "kind": "fait",
+          "question": "« Pourquoi celui-là ? »"
         },
         {
           "kind": "ailleurs",
-          "question": "« Celui que tu testes, tu vas t'en servir quand exactement ? »"
+          "question": "« Celui que tu testes, tu vas t'en servir quand, exactement ? »"
         }
       ],
       "closing": "« Tes outils, ils sont pas faits pour une seule place. »",
@@ -4505,6 +6994,69 @@
         "Il l'exécute. Seul.",
         "Il vous la raconte. À vous seul."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu pourrais aider qui, sans qu'il le sache ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Cherchez ensemble trois idées de missions."
+            }
+          ],
+          "help": "Idées : ranger les chaussures de l'entrée, mettre la table, laisser un petit mot gentil, remplir la gamelle du chat, préparer le sac de sa sœur.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Laquelle tu choisis ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il a dix minutes, ou la journée entière. C'est lui qui décide."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il fait sa mission seul. Vous ne l'aidez pas, vous ne regardez pas."
+            },
+            {
+              "kind": "faire",
+              "text": "Si quelqu'un remarque quelque chose, ne dites rien : c'est secret."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Alors, raconte-moi ta mission. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Écoutez. Il vous la raconte à vous seul, pas devant les autres."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne racontez pas la mission à toute la famille au souper. C'est secret, c'est tout l'effet.",
         "Ne notez pas la qualité de la mission.",
@@ -4633,6 +7185,71 @@
         "Vous exécutez. Pour de vrai.",
         "Il corrige. Vous recommencez."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ouvrez « Ses outils » pour l'aider à choisir."
+            },
+            {
+              "kind": "dire",
+              "text": "« Lequel tu veux m'apprendre ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Explique-moi. Je t'écoute. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Puis il vous le fait faire. Laissez-le mener."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Faites-le vraiment, comme un débutant. Sans faire exprès d'être mauvais."
+            },
+            {
+              "kind": "dire",
+              "text": "« Comme ça ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il vous corrige. Vous recommencez, jusqu'à ce qu'il dise que c'est bon."
+            },
+            {
+              "kind": "dire",
+              "text": "« Je recommence. Dis-moi quand c'est bon. »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "outils"
+      ],
       "donts": [
         "Ne reprenez pas le contrôle de la leçon. Vous êtes l'élève du début à la fin.",
         "Ne corrigez pas son explication, même si elle diffère de l'app.",
@@ -4747,15 +7364,72 @@
       "opener_is_dynamic": false,
       "steps": [
         "Il pense à quelqu'un : un frère, une amie, un coéquipier, un élève plus jeune.",
-        "Demandez : « Lequel de tes outils l'aiderait ? Pourquoi ? »",
+        "Demandez : « Lequel de tes outils l'aiderait ? » Puis : « Pourquoi celui-là ? »",
         "Demandez : « Tu lui expliquerais comment, en une phrase ? »",
         "Il décide s'il le fait, et quand. Il peut aussi décider que non."
       ],
       "screen_steps": [
         "Quelqu'un autour de toi.",
-        "« Quel outil l'aiderait ? Pourquoi ? »",
+        "« Quel outil l'aiderait ? »",
         "« Tu l'expliquerais comment ? »",
         "Il décide s'il le fait."
+      ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu penses à quelqu'un autour de toi qui a parfois du mal ? »"
+            }
+          ],
+          "help": "« Un frère, une sœur, une amie, un coéquipier, un plus jeune à l'école. »",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Lequel de tes outils l'aiderait ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Pourquoi celui-là ? »"
+            }
+          ],
+          "help": "Il ne se souvient plus de ses outils ? Ouvrez « Ses outils » et lisez-en un : « Le ballon, ça l'aiderait ? »",
+          "timer": null,
+          "visual": "outils"
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu lui expliquerais comment, en une phrase ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Tu veux le faire ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il peut dire non. Acceptez-le sans insister."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [
+        "outils"
       ],
       "donts": [
         "N'organisez pas la rencontre à sa place.",
@@ -4770,7 +7444,11 @@
         },
         {
           "kind": "ailleurs",
-          "question": "« Si tu le fais, ce serait où, et quand ? »"
+          "question": "« Si tu le fais, ce serait où ? »"
+        },
+        {
+          "kind": "ailleurs",
+          "question": "« Et quand ? »"
         }
       ],
       "closing": "« Tu sais des choses qui peuvent aider quelqu'un. C'est pas rien. »",
@@ -4874,6 +7552,61 @@
         "« J'ai remarqué que tu as… »",
         "À la main. Il les lit."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Ressortez sa Fiche Identité de la semaine 1, et relisez ses trois forces de départ."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Choisissez trois forces que vous avez vues pendant le programme. Pour chacune, une preuve : le jour, ce qu'il a fait."
+            }
+          ],
+          "help": "Pistes : il a recommencé, il a demandé de l'aide, il a aidé quelqu'un, il a soufflé avant de s'énerver, il a osé.",
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dites-les une à la fois, en commençant chaque fois par :"
+            },
+            {
+              "kind": "dire",
+              "text": "« Pendant ces semaines, j'ai remarqué que tu as… »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Écrivez les trois à la main, pour son certificat."
+            },
+            {
+              "kind": "dire",
+              "text": "« Tu veux me les lire à voix haute ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Pas de « je suis fier de toi » seul : une reconnaissance précise, un comportement réel.",
         "Ne l'imprimez pas. Écrivez-le à la main, même si votre écriture est moche.",
@@ -5003,6 +7736,65 @@
         "Il scelle. Retour dans un an.",
         "Papier : enveloppe fermée, datée."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Donnez-lui les trois questions, une à la fois. Il peut les garder sous les yeux."
+            },
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce que t'as appris ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce que tu veux continuer ? »"
+            },
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce que tu veux devenir ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Il écrit sur papier, ou il tape dans l'app avec le bouton « La lettre ». S'il écrit, éloignez-vous."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Dans l'app, il appuie sur « Sceller la lettre ». Personne ne pourra la lire avant un an, pas même vous."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "faire",
+              "text": "Sur papier : il la met dans une enveloppe fermée, et écrit dessus la date d'ouverture."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "Ne demandez pas à la lire, ni maintenant, ni plus tard.",
         "Ne corrigez ni le fond, ni la forme, ni l'orthographe.",
@@ -5125,6 +7917,65 @@
         "« Qu'est-ce que tu gardes ? »",
         "« On fête comment ? » Il décide."
       ],
+      "guide": [
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce qui a changé, pour toi ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Écoutez jusqu'au bout. Ne complétez pas."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce qui a été le plus dur ? »"
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« Qu'est-ce que tu gardes ? »"
+            },
+            {
+              "kind": "faire",
+              "text": "Notez sa réponse avec « Noter »."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        },
+        {
+          "beats": [
+            {
+              "kind": "dire",
+              "text": "« On fête ça comment ? C'est toi qui choisis. »"
+            },
+            {
+              "kind": "faire",
+              "text": "Il choisit tout. Vous suivez, sans négocier."
+            }
+          ],
+          "help": null,
+          "timer": null,
+          "visual": null
+        }
+      ],
+      "visuals": [],
       "donts": [
         "N'ajoutez pas ce que **vous** avez observé avant qu'il ait fini. Après, oui.",
         "Ne corrigez pas son choix de fête parce qu'il est trop simple ou trop bizarre.",

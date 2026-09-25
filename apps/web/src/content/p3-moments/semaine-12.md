@@ -51,6 +51,21 @@
 3. Il l'exécute. Seul.
 4. Il vous la raconte. À vous seul.
 
+### Pas à pas
+#### Étape 1
+**Dites :** « Tu pourrais aider qui, sans qu'il le sache ? »
+**Faites :** Cherchez ensemble trois idées de missions.
+**Si ça bloque :** Idées : ranger les chaussures de l'entrée, mettre la table, laisser un petit mot gentil, remplir la gamelle du chat, préparer le sac de sa sœur.
+#### Étape 2
+**Dites :** « Laquelle tu choisis ? »
+**Faites :** Il a dix minutes, ou la journée entière. C'est lui qui décide.
+#### Étape 3
+**Faites :** Il fait sa mission seul. Vous ne l'aidez pas, vous ne regardez pas.
+**Faites :** Si quelqu'un remarque quelque chose, ne dites rien : c'est secret.
+#### Étape 4
+**Dites :** « Alors, raconte-moi ta mission. »
+**Faites :** Écoutez. Il vous la raconte à vous seul, pas devant les autres.
+
 ### À éviter
 - Ne racontez pas la mission à toute la famille au souper. C'est secret, c'est tout l'effet.
 - Ne notez pas la qualité de la mission.
@@ -126,6 +141,21 @@ Le parent félicite publiquement la mission. L'enfant apprend que la mission ser
 3. Vous exécutez. Pour de vrai.
 4. Il corrige. Vous recommencez.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Ouvrez « Ses outils » pour l'aider à choisir.
+**Visuel :** outils
+**Dites :** « Lequel tu veux m'apprendre ? »
+#### Étape 2
+**Dites :** « Explique-moi. Je t'écoute. »
+**Faites :** Puis il vous le fait faire. Laissez-le mener.
+#### Étape 3
+**Faites :** Faites-le vraiment, comme un débutant. Sans faire exprès d'être mauvais.
+**Dites :** « Comme ça ? »
+#### Étape 4
+**Faites :** Il vous corrige. Vous recommencez, jusqu'à ce qu'il dise que c'est bon.
+**Dites :** « Je recommence. Dis-moi quand c'est bon. »
+
 ### À éviter
 - Ne reprenez pas le contrôle de la leçon. Vous êtes l'élève du début à la fin.
 - Ne corrigez pas son explication, même si elle diffère de l'app.
@@ -190,15 +220,30 @@ Le parent reprend la main (« en fait, c'est plutôt comme ça »). L'enfant red
 
 ### Le déroulé
 1. Il pense à quelqu'un : un frère, une amie, un coéquipier, un élève plus jeune.
-2. Demandez : « Lequel de tes outils l'aiderait ? Pourquoi ? »
+2. Demandez : « Lequel de tes outils l'aiderait ? » Puis : « Pourquoi celui-là ? »
 3. Demandez : « Tu lui expliquerais comment, en une phrase ? »
 4. Il décide s'il le fait, et quand. Il peut aussi décider que non.
 
 ### À l'écran
 1. Quelqu'un autour de toi.
-2. « Quel outil l'aiderait ? Pourquoi ? »
+2. « Quel outil l'aiderait ? »
 3. « Tu l'expliquerais comment ? »
 4. Il décide s'il le fait.
+
+### Pas à pas
+#### Étape 1
+**Dites :** « Tu penses à quelqu'un autour de toi qui a parfois du mal ? »
+**Si ça bloque :** « Un frère, une sœur, une amie, un coéquipier, un plus jeune à l'école. »
+#### Étape 2
+**Dites :** « Lequel de tes outils l'aiderait ? »
+**Dites :** « Pourquoi celui-là ? »
+**Visuel :** outils
+**Si ça bloque :** Il ne se souvient plus de ses outils ? Ouvrez « Ses outils » et lisez-en un : « Le ballon, ça l'aiderait ? »
+#### Étape 3
+**Dites :** « Tu lui expliquerais comment, en une phrase ? »
+#### Étape 4
+**Dites :** « Tu veux le faire ? »
+**Faites :** Il peut dire non. Acceptez-le sans insister.
 
 ### À éviter
 - N'organisez pas la rencontre à sa place.
@@ -210,7 +255,8 @@ Il pensera souvent à quelqu'un qui vit exactement ce qu'il vivait au début du 
 
 ### Le débrief
 1. [vécu] « Qu'est-ce que ça fait, de penser que tu pourrais aider ? »
-2. [ailleurs] « Si tu le fais, ce serait où, et quand ? »
+2. [ailleurs] « Si tu le fais, ce serait où ? »
+3. [ailleurs] « Et quand ? »
 
 ### Pour finir
 « Tu sais des choses qui peuvent aider quelqu'un. C'est pas rien. »
