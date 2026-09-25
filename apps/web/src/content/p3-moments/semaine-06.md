@@ -37,21 +37,42 @@
 **Origine :** Méthode S6 (respiration abdominale en 3 temps, scan corporel) · adapté des cartes A16, B16
 
 ### Ce que vous dites pour commencer
-« Tu sais la différence entre un spaghetti cru et un spaghetti cuit ? Montre-moi. »
+« Tu sais la différence entre un spaghetti cru et un spaghetti cuit ? Montre-moi avec ton corps. »
 
 ### Le déroulé
-1. « Spaghetti cru ! » : il raidit tout son corps cinq secondes. « Spaghetti cuit ! » : il relâche tout.
-2. Cinq allers-retours, de plus en plus lentement.
+1. « Spaghetti cru ! » : il raidit tout son corps, comme un spaghetti sorti du paquet. « Spaghetti cuit ! » : il relâche tout, tout mou.
+2. Lancez le minuteur une seule fois : cinq tours de cinq secondes tout cru, puis cinq secondes tout cuit. L'écran change de couleur, vous annoncez à voix haute, de plus en plus lentement.
 3. Debout, relâché : il vide tout son air, puis inspire par le nez en gonflant le ventre.
 4. Il expire lentement par la bouche, en comptant jusqu'à 6 ou 8.
 5. Ajoutez : « Sens tes pieds sur le plancher. Ici, maintenant. »
 
 ### À l'écran
 1. Cru : tout raide. Cuit : tout mou.
-2. Cinq fois, de plus en plus lent.
+2. Cinq fois : cru, puis cuit.
 3. Vider l'air. Inspirer par le ventre.
 4. Expirer lentement, jusqu'à 6 ou 8.
 5. « Sens tes pieds. Ici, maintenant. »
+
+### Pas à pas
+#### Étape 1
+**Faites :** Debout, face à face. Montrez d'abord vous-même : tout raide, bras collés au corps. Puis tout mou, bras qui pendent.
+**Dites :** « Spaghetti cru : tout raide, comme dans le paquet. Montre-moi avec ton corps. »
+**Dites :** « Spaghetti cuit : tout mou, comme dans l'assiette. Montre-moi avec ton corps. »
+#### Étape 2
+**Faites :** Tournez l'écran vers lui et lancez le minuteur une seule fois : il enchaîne les cinq tours tout seul. Rouge : tout cru, tout raide. Bleu : tout cuit, tout mou.
+**Minuteur :** 5 × [tension] Tout cru, tout raide ! 5 s · [detente] Tout cuit, tout mou… 5 s
+**Faites :** À chaque changement de couleur, annoncez-le à voix haute. Dites « tout cuit » de plus en plus lentement et doucement.
+#### Étape 3
+**Faites :** Debout, relâché. Posez sa main sur son ventre, et la vôtre sur le vôtre.
+**Dites :** « Vide tout ton air, comme un ballon qui se dégonfle. »
+**Dites :** « Maintenant, inspire par le nez, et gonfle ton ventre. »
+#### Étape 4
+**Faites :** Lancez le minuteur et respirez avec lui, en suivant l'écran.
+**Minuteur :** 3 × [inspire] Inspire par le nez, gonfle le ventre 4 s · [expire] Souffle lentement par la bouche 6 s
+#### Étape 5
+**Dites :** « Sens tes pieds sur le plancher. Ici, maintenant. »
+**Minuteur :** [silence] Sens tes pieds. Ici, maintenant. 10 s
+**Faites :** Restez debout en silence, tous les deux, jusqu'à la fin du minuteur.
 
 ### À éviter
 - N'allez pas vite. C'est la lenteur qui fait l'effet.
@@ -114,7 +135,7 @@ Le parent enchaîne l'activité un soir où l'enfant est déjà en crise. La tec
 **Origine :** Méthode S6, étape 2 (tirs chronométrés avec enjeu visible) · créée pour P3
 
 ### Ce que vous dites pour commencer
-« Cinq lancers en trente secondes. Avant chaque lancer, trois secondes pour toi. »
+« Cinq lancers en trente secondes. Avant chaque lancer, ta petite routine : souffle, pieds, lance. »
 
 ### Le déroulé
 1. Placez la boîte à une distance où il réussit environ une fois sur trois.
@@ -128,6 +149,22 @@ Le parent enchaîne l'activité un soir où l'enfant est déjà en crise. La tec
 3. Trente secondes. « Expire. Tes pieds. Vas-y. »
 4. Puis un mot. Puis plus rien.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Posez la boîte à la distance où il réussit environ une fois sur trois, comme en semaine 3.
+**Si ça bloque :** Pas de repère ? Il lance trois fois : trois réussites, il recule d'un pas ; aucune, il avance d'un pas.
+#### Étape 2
+**Faites :** Sans minuteur, il fait sa routine une fois, lentement, avant de lancer.
+**Dites :** « Expire. Sens tes pieds. Vas-y. »
+#### Étape 3
+**Faites :** Manche 1. Lancez le minuteur. Avant chaque lancer, dites la routine.
+**Minuteur :** [action] Manche : cinq lancers ! 30 s
+**Dites :** « Expire. Tes pieds. Vas-y. »
+#### Étape 4
+**Faites :** Manche 2 : vous dites seulement « Expire ». Relancez le minuteur.
+**Minuteur :** [action] Manche : cinq lancers ! 30 s
+**Faites :** Manche 3 : relancez le minuteur et ne dites plus rien. Il fait sa routine seul, ou pas.
+
 ### À éviter
 - Ne comptez pas les paniers à voix haute et ne gardez aucun score.
 - Ne dramatisez pas le chrono (« vite, vite ! »). La pression vient du temps, pas de vous.
@@ -138,8 +175,10 @@ Le parent enchaîne l'activité un soir où l'enfant est déjà en crise. La tec
 
 ### Le débrief
 1. [vécu] « Quand le chrono tournait, qu'est-ce qui se passait dans ton corps ? »
-2. [fait] « À la dernière manche, t'as fait ta routine tout seul ? Ça a changé quoi ? »
-3. [ailleurs] « Avant un examen, qu'est-ce qui serait pareil ? Qu'est-ce qui serait différent ? »
+2. [fait] « À la dernière manche, t'as fait ta routine tout seul ? »
+3. [fait] « Ça a changé quoi ? »
+4. [ailleurs] « Avant un examen, qu'est-ce qui serait pareil ? »
+5. [ailleurs] « Et qu'est-ce qui serait différent ? »
 
 ### Pour finir
 « À la fin, t'avais plus besoin de moi. C'est le but. »
@@ -187,6 +226,7 @@ Le parent compte les paniers et les annonce. Le défi devient une évaluation, l
 **Piliers :** P7 · P4
 **À garder :** phrase — Le moment qu'il prépare, et sa routine pour ce moment
 **Origine :** Méthode S6 (débriefing de transfert) · adapté de la carte B12
+**Visuels :** thermometre
 
 ### Ce que vous dites pour commencer
 « Il y a un moment stressant qui s'en vient cette semaine ? On le prépare maintenant. »
@@ -202,6 +242,23 @@ Le parent compte les paniers et les annonce. Le défi devient une évaluation, l
 2. « Juste avant, ton corps fera quoi ? »
 3. « C'est ton corps qui se prépare. »
 4. Sa routine, pour ce moment précis.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Laissez-le nommer le moment. Puis aidez-le à le rendre précis, une question à la fois.
+**Dites :** « C'est quel jour ? »
+**Dites :** « Et tu seras où, exactement ? »
+**Si ça bloque :** « Un examen, un oral, un match, un rendez-vous : n'importe quoi qui te serre un peu le ventre. »
+#### Étape 2
+**Dites :** « Juste avant, ton corps va faire quoi ? »
+**Si ça bloque :** Proposez un signe à la fois : « Ton cœur qui bat vite ? » Puis : « Tes mains moites ? » Puis : « Ton ventre ? »
+#### Étape 3
+**Faites :** Dites-le calmement, en le regardant :
+**Dites :** « Ça, c'est ton corps qui se prépare. Il ne te prévient pas d'un danger. Il te donne de l'énergie. »
+#### Étape 4
+**Dites :** « Raconte-moi : t'es juste avant ce moment. Tu fais quoi ? »
+**Faites :** Il dit sa routine à voix haute, pour ce moment précis : où il sera, ce qu'il fera.
+**Si ça bloque :** S'il oublie une étape, ne corrigez pas. Demandez seulement : « Et tes pieds ? »
 
 ### À éviter
 - Ne dites pas « t'as pas à stresser ». Ça n'a jamais calmé personne.

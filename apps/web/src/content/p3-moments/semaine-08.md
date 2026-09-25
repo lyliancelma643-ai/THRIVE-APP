@@ -51,6 +51,21 @@
 3. « Pour quoi, exactement ? »
 4. Au moins une hors de la maison.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Il se dessine au milieu d'une feuille.
+**Visuel :** carte
+#### Étape 2
+**Dites :** « Si ça va vraiment pas, tu vas voir qui ? »
+**Faites :** Il dessine chaque personne autour de lui, avec son prénom. Deux ou trois suffisent.
+#### Étape 3
+**Faites :** Pour chaque personne, la même question :
+**Dites :** « Elle, tu vas la voir pour quoi, exactement ? »
+**Si ça bloque :** Donnez des exemples de « pour quoi » : parler quand on est triste, se faire expliquer un devoir, rire, un conseil de sport.
+#### Étape 4
+**Dites :** « Et en dehors de la maison, il y a quelqu'un ? »
+**Si ça bloque :** Proposez un lieu à la fois : « À l'école ? » Puis : « Au sport ? » Puis : « Dans la famille qui habite ailleurs ? »
+
 ### À éviter
 - Ne vous vexez pas de ne pas être en premier. Ce n'est pas un classement d'amour.
 - Ne proposez pas de noms avant qu'il ait cherché.
@@ -61,8 +76,9 @@ Il va d'abord ne mettre que la famille. En cherchant « pour quoi exactement »,
 
 ### Le débrief
 1. [vécu] « Ça fait quoi, de voir tous ces gens autour de toi ? »
-2. [fait] « Laquelle t'as été la plus longue à trouver ? Pourquoi ? »
-3. [ailleurs] « Cette semaine, il y a un truc pour lequel tu pourrais aller voir quelqu'un de ta carte ? »
+2. [fait] « Laquelle t'as été la plus longue à trouver ? »
+3. [fait] « Pourquoi, à ton avis ? »
+4. [ailleurs] « Cette semaine, il y a un truc pour lequel tu pourrais aller voir quelqu'un de ta carte ? »
 
 ### Pour finir
 « T'es pas tout seul. T'as une carte, maintenant. »
@@ -127,6 +143,21 @@ Le parent se sent remis en question par la carte et le montre. L'enfant retire d
 4. Il demande : aidez tout de suite.
 5. « T'as demandé. C'est ça qu'il fallait. »
 
+### Pas à pas
+#### Étape 1
+**Faites :** Donnez-lui les coussins et une couverture. Le défi : un toit qui tient tout seul. Impossible à deux mains seulement.
+**Dites :** « Tu construis seul. Je suis là si t'as besoin. »
+#### Étape 2
+**Faites :** Restez à côté, disponible. Ne touchez à rien. Regardez-le, sans téléphone.
+#### Étape 3
+**Faites :** Quand ça coince, attendez. Même s'il soupire, même s'il vous regarde : attendez les mots.
+**Minuteur :** [silence] Vous attendez sa demande. 1 min
+**Si ça bloque :** S'il s'énerve vraiment, dites une seule fois : « Je suis là. » Rien de plus.
+#### Étape 4
+**Faites :** Dès qu'il demande, aidez tout de suite. Exactement ce qu'il demande, pas plus.
+#### Étape 5
+**Dites :** « T'as demandé. C'est exactement ce qu'il fallait faire. »
+
 ### À éviter
 - N'aidez pas avant qu'il demande. Toute l'activité est là.
 - Ne faites pas plus que ce qu'il demande.
@@ -138,7 +169,8 @@ Il va d'abord s'acharner, puis soupirer, puis vous regarder sans rien dire. Atte
 ### Le débrief
 1. [vécu] « Avant de me demander, ça faisait quoi, dans ta tête ? »
 2. [fait] « Qu'est-ce qui t'a fait demander, finalement ? »
-3. [ailleurs] « Des fois, tu préfères faire tout seul même si c'est plus dur ? Où, par exemple ? »
+3. [ailleurs] « Des fois, tu préfères faire tout seul, même si c'est plus dur ? »
+4. [ailleurs] « Où, par exemple ? »
 
 ### Pour finir
 « Les gens qui réussissent le mieux, c'est ceux qui savent quand demander. »
@@ -193,14 +225,30 @@ Le parent ne supporte pas de le voir galérer et aide « juste un peu » avant l
 ### Le déroulé
 1. Racontez une vraie fois où vous avez demandé de l'aide, et ce que ça a donné.
 2. Demandez : « Toi, il y a un truc pour lequel t'aurais besoin de demander, en ce moment ? »
-3. Il prépare sa demande : à qui, ce qu'il veut, pourquoi.
+3. Il prépare sa demande, une question à la fois : à qui, quoi, pourquoi.
 4. Il la dit une fois à voix haute, à vous, comme s'il y était.
 
 ### À l'écran
 1. Votre vraie demande d'aide.
 2. « Toi, t'aurais besoin de demander quoi ? »
-3. À qui, quoi, pourquoi.
+3. À qui, quoi, pourquoi : une à la fois.
 4. Il la dit une fois, à voix haute.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Racontez une vraie fois où vous avez demandé de l'aide : à qui, pour quoi, ce que ça a donné.
+**Si ça bloque :** Pistes : un collègue, un médecin, un voisin, vos parents, un prof quand vous étiez jeune.
+#### Étape 2
+**Dites :** « Toi, il y a un truc pour lequel t'aurais besoin de demander, en ce moment ? »
+**Si ça bloque :** « À l'école, au sport, avec un ami : n'importe quoi, même petit. »
+#### Étape 3
+**Dites :** « Tu demanderais à qui ? »
+**Dites :** « Tu lui demanderais quoi, exactement ? »
+**Dites :** « C'est important pour toi parce que… ? »
+#### Étape 4
+**Dites :** « Fais comme si j'étais cette personne. Vas-y. »
+**Faites :** Écoutez sans corriger.
+**Si ça bloque :** S'il commence par s'excuser : « Et sans t'excuser, ça donnerait quoi ? »
 
 ### À éviter
 - N'allez pas faire la demande à sa place. Jamais, même si ça vous démange.

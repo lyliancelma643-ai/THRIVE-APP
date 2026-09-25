@@ -41,15 +41,40 @@
 
 ### Le déroulé
 1. Montrez-lui la roue dans l'app : frustration, peur, colère, joie, fierté, nervosité.
-2. Mimez-en une, sans un mot. Il devine.
-3. À son tour de mimer. Vous devinez. Trois tours chacun.
-4. Demandez : « Laquelle t'as sentie cette semaine ? C'était quand ? »
+2. Mimez les six, une par une, sans un mot : la joie, la peur, la colère, la frustration, la fierté, la nervosité. Il devine chaque fois en la montrant du doigt sur l'écran.
+3. À son tour de mimer. Vous devinez. Au moins trois, les six s'il veut.
+4. Demandez : « Laquelle t'as sentie cette semaine ? » Puis : « C'était quand ? »
 
 ### À l'écran
 1. La roue : six émotions.
-2. Vous mimez. Il devine.
+2. Vous mimez les six. Il devine.
 3. Il mime. Vous devinez.
-4. « Laquelle cette semaine ? C'était quand ? »
+4. « Laquelle t'as sentie cette semaine ? »
+
+### Pas à pas
+#### Étape 1
+**Faites :** Ouvrez « Les six émotions » et tournez l'écran vers lui.
+**Visuel :** emotions
+**Dites :** « Il y a six émotions : la joie, la peur, la colère, la frustration, la fierté et la nervosité. »
+#### Étape 2
+**Faites :** Mimez les six, une par une, dans cet ordre, sans un mot. Après chaque mime, demandez « C'est laquelle ? » : il la montre du doigt sur l'écran.
+**Visuel :** emotions
+**Faites :** 1 — La joie : grand sourire, bras en l'air, petits sauts.
+**Faites :** 2 — La peur : yeux grands ouverts, vous reculez, mains devant vous.
+**Faites :** 3 — La colère : sourcils froncés, poings serrés, vous tapez du pied.
+**Faites :** 4 — La frustration : vous essayez d'ouvrir un pot imaginaire, il ne s'ouvre pas, vous soufflez fort.
+**Faites :** 5 — La fierté : torse bombé, menton levé, une main sur le cœur.
+**Faites :** 6 — La nervosité : vous vous rongez les ongles, vous tapez vite du pied, vous regardez partout.
+#### Étape 3
+**Dites :** « À toi. Tu en choisis une et tu la mimes, sans parler. »
+**Faites :** Vous devinez en la montrant sur l'écran. Il en mime au moins trois, les six s'il en a envie.
+**Si ça bloque :** Il ne sait pas comment mimer ? Soufflez-lui une idée à l'oreille : « La peur : tu recules, les yeux grands ouverts. »
+#### Étape 4
+**Dites :** « Laquelle t'as sentie cette semaine ? »
+**Faites :** Laissez-le la montrer du doigt sur l'écran.
+**Dites :** « C'était quand ? »
+**Faites :** Écoutez. Ne posez pas d'autre question.
+**Visuel :** emotions
 
 ### À éviter
 - Ne dites pas qu'une émotion est « mauvaise ». La colère n'est pas mal, elle est difficile à conduire.
@@ -110,6 +135,7 @@ Le parent profite de la réponse pour ouvrir un dossier (« tu étais en colère
 **Piliers :** P4 · P7 · P1
 **À garder :** emotion — Le mot qu'il a trouvé quand la tour est tombée
 **Origine :** Méthode S4 (défi difficile répété, verbatims du coach) · créée pour P3
+**Visuels :** emotions · thermometre
 
 ### Ce que vous dites pour commencer
 « Défi : la tour la plus haute possible, en une minute. Elle va tomber. C'est prévu. »
@@ -127,6 +153,28 @@ Le parent profite de la réponse pour ouvrir un dossier (« tu étais en colère
 3. « Qu'est-ce qui se passe dans ta tête ? »
 4. « Regarde la roue. Juste un mot. »
 5. Il reprend. Aucun commentaire.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Posez sur la table ce qu'il y a : gobelets, livres, boîtes.
+**Dites :** « Tu as une minute pour faire la tour la plus haute possible. Prêt ? »
+**Minuteur :** [action] Construis ta tour ! 1 min
+#### Étape 2
+**Faites :** Quand elle tombe, il recommence. Relancez le minuteur à chaque nouvelle tour.
+**Dites :** « Nouvelle tour. Une minute. Vas-y. »
+**Minuteur :** [action] Nouvelle tour ! 1 min
+#### Étape 3
+**Faites :** Après la deuxième chute, pas avant. Parlez calmement, doucement.
+**Dites :** « Qu'est-ce qui se passe dans ta tête, là ? »
+**Faites :** Attendez. Ne proposez pas de mot.
+#### Étape 4
+**Faites :** S'il ne trouve pas de mot, ouvrez « Les six émotions » et tendez-lui l'écran.
+**Visuel :** emotions
+**Dites :** « Montre-moi celle que tu sens. Juste une. »
+#### Étape 5
+**Faites :** Il reprend la tour. Relancez le minuteur.
+**Minuteur :** [action] Encore une tour ! 1 min
+**Faites :** Vous ne commentez pas la tour. Ni conseil, ni « bravo ».
 
 ### À éviter
 - Ne provoquez rien : aucune moquerie, aucune pression, aucun « t'es pas capable ». La difficulté vient de la tour.
@@ -195,14 +243,31 @@ Le parent commente la construction (« mets les gros en bas »). L'enfant se fru
 ### Le déroulé
 1. Donnez votre émotion du jour, parmi les six, avec le moment exact.
 2. Il donne la sienne. Vous répétez son mot, sans rien ajouter.
-3. Demandez : « Elle arrive souvent, celle-là ? Où ? »
+3. Demandez : « Elle arrive souvent, celle-là ? » Puis : « Où, surtout ? »
 4. Cherchez ensemble le premier signe, avant qu'elle prenne toute la place.
 
 ### À l'écran
 1. Votre émotion du jour, avec le moment.
 2. La sienne. Répétez son mot.
-3. « Elle arrive souvent ? Où ? »
+3. « Elle arrive souvent, celle-là ? »
 4. Le tout premier signe.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Commencez par vous : une émotion parmi les six, et le moment exact de votre journée.
+**Dites :** « Moi, aujourd'hui, c'était la nervosité. À 14 h, avant ma réunion. »
+**Visuel :** emotions
+#### Étape 2
+**Dites :** « Et toi, aujourd'hui, c'était laquelle ? »
+**Faites :** Répétez son mot, et rien d'autre : « La frustration. »
+**Si ça bloque :** S'il dit « bien » ou « normal », montrez les six émotions : « Parmi celles-là, laquelle ressemble le plus à ta journée ? »
+#### Étape 3
+**Dites :** « Elle arrive souvent, celle-là ? »
+**Dites :** « Où, surtout ? »
+**Si ça bloque :** Proposez un lieu à la fois : « À l'école ? » Puis, s'il fait non : « Avec tes amis ? »
+#### Étape 4
+**Dites :** « Juste avant qu'elle arrive, tu sens quoi en premier ? »
+**Si ça bloque :** Proposez une partie du corps à la fois : le ventre, les mains, les joues, la tête.
 
 ### À éviter
 - Ne cherchez pas de solution. Cette semaine, on repère, on ne règle pas.

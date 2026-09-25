@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseWeekMarkdown, type P3Activity } from './parse';
+import { parseTimer, parseWeekMarkdown, type P3Activity } from './parse';
 import generated from './activities.generated.json';
 import { P3ContentSchema } from '../../../../../packages/shared/src/validation/p3Activity.schema';
 import {
@@ -72,6 +72,71 @@ describe('contenu — 13 semaines × 3 fiches', () => {
       const hasTransfer = a.debrief.some((d) => d.kind === 'ailleurs');
       expect(hasTransfer, a.id).toBe(a.week !== 1);
     }
+  });
+
+  it('pas à pas : chaque étape guide le parent, une question à la fois', () => {
+    const questions = (s: string) => (s.match(/\?/g) ?? []).length;
+    for (const a of acts) {
+      expect(a.guide.length, a.id).toBe(a.steps.length);
+      for (const g of a.guide) {
+        expect(g.beats.length, a.id).toBeGreaterThan(0);
+        for (const b of g.beats) if (b.kind === 'dire') expect(questions(b.text), `${a.id} ${b.text}`).toBeLessThanOrEqual(1);
+      }
+      for (const d of a.debrief) expect(questions(d.question), `${a.id} ${d.question}`).toBeLessThanOrEqual(1);
+      for (const s of a.screen_steps) expect(questions(s), `${a.id} ${s}`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it('la roue des six : le parent mime les six émotions, nommées une par une', () => {
+    const a = acts.find((x) => x.id === 'ACT-0401')!;
+    const mimes = a.guide[1].beats.map((b) => b.text).join(' ');
+    for (const e of ['joie', 'peur', 'colère', 'frustration', 'fierté', 'nervosité']) expect(mimes).toContain(e);
+    expect(a.guide[0].visual).toBe('emotions');
+  });
+
+  it('spaghetti : « avec ton corps » et 5 × 5 s lancés une seule fois', () => {
+    const a = acts.find((x) => x.id === 'ACT-0601')!;
+    expect(a.opener).toContain('Montre-moi avec ton corps');
+    const t = a.guide[1].timer!;
+    expect(t.rounds).toBe(5);
+    expect(t.phases.map((p) => [p.tone, p.seconds])).toEqual([
+      ['tension', 5],
+      ['detente', 5],
+    ]);
+    expect(t.phases[0].label).toMatch(/tout cru, tout raide/i);
+  });
+
+  it('jeux chronométrés : un minuteur à lancer par le parent (tour, lancers, 15 s)', () => {
+    const timed = (id: string) => acts.find((x) => x.id === id)!.guide.filter((g) => g.timer).length;
+    expect(timed('ACT-0402')).toBeGreaterThanOrEqual(2);
+    expect(timed('ACT-0502')).toBeGreaterThanOrEqual(2);
+    expect(timed('ACT-0602')).toBeGreaterThanOrEqual(2);
+    expect(timed('ACT-0902')).toBeGreaterThanOrEqual(1);
+  });
+
+  it('quinze secondes : plus de jargon (« fenêtre ») dans ce qui est lu ou dit', () => {
+    const a = acts.find((x) => x.id === 'ACT-0902')!;
+    const text = [a.opener, a.objective, ...a.steps, ...a.screen_steps, ...a.debrief.map((d) => d.question), ...a.guide.flatMap((g) => g.beats.map((b) => b.text))].join(' ');
+    expect(text).not.toMatch(/fenêtre/i);
+  });
+
+  it('outils oubliés : une relance « tu pourrais l’utiliser où ? » avec le visuel', () => {
+    const a = acts.find((x) => x.id === 'ACT-1103')!;
+    expect(a.visuals).toContain('outils');
+    expect(a.guide.some((g) => /utiliser où/.test(g.help ?? ''))).toBe(true);
+  });
+
+  it('minuteur : lecture du format, refus des formats inconnus', () => {
+    expect(parseTimer('3 × [inspire] Inspire 4 s · [expire] Souffle 6 s', 'x')).toEqual({
+      rounds: 3,
+      phases: [
+        { tone: 'inspire', label: 'Inspire', seconds: 4 },
+        { tone: 'expire', label: 'Souffle', seconds: 6 },
+      ],
+    });
+    expect(parseTimer('[action] La tour 1 min', 'x').phases[0].seconds).toBe(60);
+    expect(() => parseTimer('[rouge] La tour 1 min', 'x')).toThrow();
+    expect(() => parseTimer('La tour', 'x')).toThrow();
   });
 
   it('chaque fiche jouable en 10 minutes (la promesse du produit)', () => {

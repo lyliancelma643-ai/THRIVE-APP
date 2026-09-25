@@ -51,6 +51,19 @@
 3. « J'ai remarqué que tu as… »
 4. À la main. Il les lit.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Ressortez sa Fiche Identité de la semaine 1, et relisez ses trois forces de départ.
+#### Étape 2
+**Faites :** Choisissez trois forces que vous avez vues pendant le programme. Pour chacune, une preuve : le jour, ce qu'il a fait.
+**Si ça bloque :** Pistes : il a recommencé, il a demandé de l'aide, il a aidé quelqu'un, il a soufflé avant de s'énerver, il a osé.
+#### Étape 3
+**Faites :** Dites-les une à la fois, en commençant chaque fois par :
+**Dites :** « Pendant ces semaines, j'ai remarqué que tu as… »
+#### Étape 4
+**Faites :** Écrivez les trois à la main, pour son certificat.
+**Dites :** « Tu veux me les lire à voix haute ? »
+
 ### À éviter
 - Pas de « je suis fier de toi » seul : une reconnaissance précise, un comportement réel.
 - Ne l'imprimez pas. Écrivez-le à la main, même si votre écriture est moche.
@@ -126,6 +139,19 @@ Le parent transforme la reconnaissance en discours de bilan, avec des « à amé
 3. Il scelle. Retour dans un an.
 4. Papier : enveloppe fermée, datée.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Donnez-lui les trois questions, une à la fois. Il peut les garder sous les yeux.
+**Dites :** « Qu'est-ce que t'as appris ? »
+**Dites :** « Qu'est-ce que tu veux continuer ? »
+**Dites :** « Qu'est-ce que tu veux devenir ? »
+#### Étape 2
+**Faites :** Il écrit sur papier, ou il tape dans l'app avec le bouton « La lettre ». S'il écrit, éloignez-vous.
+#### Étape 3
+**Faites :** Dans l'app, il appuie sur « Sceller la lettre ». Personne ne pourra la lire avant un an, pas même vous.
+#### Étape 4
+**Faites :** Sur papier : il la met dans une enveloppe fermée, et écrit dessus la date d'ouverture.
+
 ### À éviter
 - Ne demandez pas à la lire, ni maintenant, ni plus tard.
 - Ne corrigez ni le fond, ni la forme, ni l'orthographe.
@@ -198,6 +224,19 @@ Le parent demande « tu as écrit quoi ? » dans les jours qui suivent. L'enfant
 2. « Le plus dur ? »
 3. « Qu'est-ce que tu gardes ? »
 4. « On fête comment ? » Il décide.
+
+### Pas à pas
+#### Étape 1
+**Dites :** « Qu'est-ce qui a changé, pour toi ? »
+**Faites :** Écoutez jusqu'au bout. Ne complétez pas.
+#### Étape 2
+**Dites :** « Qu'est-ce qui a été le plus dur ? »
+#### Étape 3
+**Dites :** « Qu'est-ce que tu gardes ? »
+**Faites :** Notez sa réponse avec « Noter ».
+#### Étape 4
+**Dites :** « On fête ça comment ? C'est toi qui choisis. »
+**Faites :** Il choisit tout. Vous suivez, sans négocier.
 
 ### À éviter
 - N'ajoutez pas ce que **vous** avez observé avant qu'il ait fini. Après, oui.

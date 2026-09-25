@@ -51,6 +51,24 @@
 3. Il les écrit lui-même.
 4. « Qui a fait ça ? »
 
+### Pas à pas
+#### Étape 1
+**Dites :** « Il y a un an, qu'est-ce que tu ne savais pas faire ? »
+**Faites :** Cherchez ensemble, jusqu'à cinq. Les petites choses comptent autant que les grandes.
+**Si ça bloque :** Proposez une piste, pas une réponse : le vélo, la lecture, ses lacets, cuisiner, un jeu, nager.
+#### Étape 2
+**Faites :** Si tout vient du sport, ouvrez d'autres portes, une question à la fois.
+**Dites :** « Et à l'école ? »
+**Dites :** « Et avec tes amis ? »
+**Dites :** « Et à la maison ? »
+#### Étape 3
+**Faites :** Il écrit lui-même en haut de la feuille : « Mes impossibles ». Puis ses lignes, en dessous.
+**Faites :** Laissez les fautes d'orthographe. C'est sa liste.
+#### Étape 4
+**Faites :** Montrez la liste du doigt.
+**Dites :** « Qui a fait ça ? »
+**Faites :** Attendez. S'il dit « moi », répétez simplement : « Oui. Toi. »
+
 ### À éviter
 - N'écrivez pas les lignes à sa place.
 - Ne répondez pas vous-même à « qui a fait ça ? ». La réponse est la sienne.
@@ -127,6 +145,23 @@ La liste ne contient que du sport et des résultats (buts, notes). L'enfant qui 
 4. Réussite ? Nommez ce qu'il a fait.
 5. Vous essayez aussi. Pour vrai.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Posez une boîte ou un panier par terre. Il se place à deux pas, avec une boule de papier.
+**Dites :** « Tu lances la boule dans la boîte. On cherche ta bonne distance. »
+#### Étape 2
+**Faites :** Il lance trois fois.
+**Faites :** Trois réussites sur trois : il recule d'un pas. Aucune : il avance d'un pas.
+#### Étape 3
+**Faites :** Quand il réussit une fois sur trois, restez à cette distance et jouez.
+**Dites :** « Là, c'est ta bonne distance. C'est dur, mais c'est possible. »
+#### Étape 4
+**Faites :** À chaque réussite, dites ce qu'il a fait. Pas « bravo ».
+**Dites :** « T'as pris ton temps avant de lancer. »
+**Si ça bloque :** Autres choses à remarquer : « t'as regardé la boîte », « t'as lancé plus doucement », « t'as changé de main ».
+#### Étape 5
+**Faites :** À votre tour, à la même distance. Pour vrai, sans faire exprès de rater.
+
 ### À éviter
 - Ne dites pas « bravo » ou « super ». Dites ce qu'il a **fait** pour réussir.
 - Ne le laissez pas rater dix fois « pour qu'il apprenne ». Si tout rate, on simplifie tout de suite.
@@ -202,6 +237,21 @@ Le parent garde le défi trop dur pour que ce soit « méritant ». L'enfant enc
 2. Ce que vous avez fait ensuite.
 3. Silence. N'exigez rien.
 4. « T'as eu besoin de courage quand ? »
+
+### Pas à pas
+#### Étape 1
+**Faites :** Racontez un vrai échec à vous : où vous étiez, ce qui s'est passé, ce que vous avez ressenti.
+**Si ça bloque :** Pistes : un examen raté, le permis de conduire, un match perdu, un oral où vous avez bafouillé, un emploi pas obtenu.
+#### Étape 2
+**Faites :** Racontez ce que vous avez fait ensuite. Même si ce n'était pas glorieux.
+**Faites :** Ne finissez pas par une morale.
+#### Étape 3
+**Faites :** Taisez-vous. Laissez-le réagir, ou pas.
+**Minuteur :** [silence] Silence. Vous attendez. 20 s
+#### Étape 4
+**Faites :** S'il réagit, posez une seule question.
+**Dites :** « Toi, t'as eu besoin de courage quand, cette semaine ? »
+**Faites :** S'il ne répond pas, c'est bien aussi. Ne relancez pas.
 
 ### À éviter
 - Ne terminez pas par « alors tu vois, toi aussi tu devrais… ». Ça annule tout.

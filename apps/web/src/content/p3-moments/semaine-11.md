@@ -51,6 +51,22 @@
 3. « Je m'en sers quand… »
 4. Tout va dans sa boîte.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Ouvrez le carnet de l'app ensemble, ou « Ses outils » à l'écran.
+**Visuel :** outils
+**Dites :** « Depuis dix semaines, t'as appris des trucs. On les retrouve tous ? »
+**Si ça bloque :** Il ne se souvient plus ? Montrez un outil à la fois sur l'écran : « Le ballon, tu t'en souviens ? »
+#### Étape 2
+**Faites :** Pour chaque outil, il écrit un petit papier, avec le nom qu'il lui donne, lui.
+**Dites :** « Tu l'appellerais comment, celui-là ? »
+#### Étape 3
+**Faites :** Sous chaque nom, il complète : « Je m'en sers quand… »
+**Dites :** « Celui-là, tu t'en sers quand ? »
+**Si ça bloque :** Pointez l'outil sur l'écran : « Ta phrase de recentrage, tu pourrais l'utiliser où ? »
+#### Étape 4
+**Faites :** Les papiers vont dans une boîte à son nom. C'est lui qui les range.
+
 ### À éviter
 - N'ajoutez pas vos propres conseils dans la boîte. Seulement les siens.
 - Ne renommez pas ses outils avec les mots de l'app.
@@ -127,6 +143,25 @@ Le parent complète la liste avec ce que l'enfant « a oublié ». La boîte dev
 4. Après trois lancers : silence.
 5. Une dernière fois, en trois secondes.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Rappelez ses trois outils, un à la fois.
+**Dites :** « Un : tu expires et tu sens tes pieds. »
+**Dites :** « Deux : tu dis ton mot. »
+**Dites :** « Trois : tu te vois réussir. »
+**Visuel :** outils
+#### Étape 2
+**Faites :** Il les enchaîne une fois, au calme, en suivant l'écran.
+**Minuteur :** [expire] Expire, sens tes pieds 6 s · [silence] Dis ton mot 3 s · [inspire] Vois-toi réussir 5 s
+#### Étape 3
+**Faites :** Reprenez la boîte et la boule de papier. Avant chaque lancer : sa routine complète.
+**Dites :** « Ta routine, puis tu lances. »
+#### Étape 4
+**Faites :** Après trois lancers, vous ne dites plus rien. Il fait sa routine seul.
+#### Étape 5
+**Dites :** « Une dernière fois, les yeux ouverts, en trois secondes. »
+**Minuteur :** [action] Routine express, puis lance ! 3 s
+
 ### À éviter
 - N'ajoutez pas un quatrième outil. Une routine trop longue ne se fait jamais sous pression.
 - Ne corrigez pas l'ordre s'il le change. Son ordre à lui est le bon.
@@ -193,7 +228,7 @@ Le parent veut une routine « parfaite » et corrige chaque étape. L'enfant ret
 ### Le déroulé
 1. Trois endroits : l'école, les amis, la maison.
 2. Pour chaque outil qu'il cite, il cherche un usage à chaque endroit.
-3. Vous ne proposez rien. Vous pouvez seulement dire : « et à la maison ? »
+3. Vous ne proposez rien. Vous pouvez seulement dire : « Et à la maison ? » S'il a oublié ses outils, montrez-lui « Ses outils » à l'écran.
 4. Il en choisit **un** à tester cette semaine, à un endroit précis.
 
 ### À l'écran
@@ -201,6 +236,23 @@ Le parent veut une routine « parfaite » et corrige chaque étape. L'enfant ret
 2. Un usage par outil, par endroit.
 3. Vous ne proposez rien.
 4. Il en choisit un à tester.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Ouvrez « Trois endroits » et montrez-lui l'écran : l'école, les amis, la maison.
+**Visuel :** endroits
+#### Étape 2
+**Faites :** Prenez ses outils un par un. Pour chacun, il cherche un usage à chaque endroit.
+**Dites :** « Ton ballon, tu pourrais l'utiliser où, à l'école ? »
+**Visuel :** outils
+**Si ça bloque :** Il ne se souvient plus de ses outils ? Ouvrez « Ses outils », pointez-en un et demandez : « Celui-là, tu pourrais l'utiliser où ? »
+#### Étape 3
+**Faites :** Vous ne proposez rien. Vous avez seulement le droit de changer d'endroit.
+**Dites :** « Et à la maison ? »
+#### Étape 4
+**Dites :** « Lequel tu veux tester cette semaine ? »
+**Dites :** « Où, exactement ? »
+**Faites :** Notez l'outil et l'endroit avec « Noter ».
 
 ### À éviter
 - Ne remplissez pas les colonnes à sa place, surtout la colonne « maison ».
@@ -211,8 +263,9 @@ Le parent veut une routine « parfaite » et corrige chaque étape. L'enfant ret
 Il va trouver un usage auquel vous n'aviez pas pensé (son mot avant un jeu vidéo difficile, sa respiration avant de s'endormir). C'est le transfert en direct : il construit lui-même le pont.
 
 ### Le débrief
-1. [fait] « Lequel a été le plus facile à placer ailleurs ? Pourquoi ? »
-2. [ailleurs] « Celui que tu testes, tu vas t'en servir quand exactement ? »
+1. [fait] « Lequel a été le plus facile à placer ailleurs ? »
+2. [fait] « Pourquoi celui-là ? »
+3. [ailleurs] « Celui que tu testes, tu vas t'en servir quand, exactement ? »
 
 ### Pour finir
 « Tes outils, ils sont pas faits pour une seule place. »

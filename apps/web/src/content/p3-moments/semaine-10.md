@@ -42,14 +42,33 @@
 ### Le déroulé
 1. Allongé ou assis, yeux fermés. Il choisit son meilleur moment de la semaine.
 2. Il le revit au ralenti, de l'intérieur, comme s'il y était.
-3. Guidez par les sens : « Tu vois quoi ? Tu entends quoi ? Tu sens quoi dans tes mains ? »
+3. Guidez par les sens, une question à la fois : « Tu vois quoi ? », puis « Tu entends quoi ? », puis « Tu sens quoi dans tes mains ? »
 4. Il rouvre les yeux et vous raconte le détail le plus précis.
 
 ### À l'écran
 1. Yeux fermés. Son meilleur moment.
 2. Il le revit, au ralenti.
-3. « Tu vois, entends, sens quoi ? »
+3. Les sens, une question à la fois.
 4. Il raconte le détail le plus précis.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Il s'allonge ou s'assoit, et ferme les yeux.
+**Dites :** « Choisis ton meilleur moment de la semaine. Un moment où t'étais bien. »
+**Si ça bloque :** « Même un petit moment : un fou rire, un but, un bon repas. »
+#### Étape 2
+**Dites :** « Tu y es. Repasse-le au ralenti, comme un film. »
+**Faites :** Parlez lentement, à voix basse. Lancez le minuteur et laissez le silence.
+**Minuteur :** [silence] Il revit son film, au ralenti 20 s
+#### Étape 3
+**Faites :** Posez une question à la fois. Attendez la réponse avant la suivante.
+**Visuel :** sens
+**Dites :** « Tu vois quoi ? »
+**Dites :** « Tu entends quoi ? »
+**Dites :** « Tu sens quoi, dans tes mains ? »
+#### Étape 4
+**Dites :** « Ouvre les yeux. C'était quoi, le détail le plus précis ? »
+**Faites :** Notez son détail avec « Noter ».
 
 ### À éviter
 - Ne le pressez pas. La visualisation lente est la seule qui fonctionne.
@@ -118,7 +137,7 @@ Le parent choisit le moment à revivre (« ton but de samedi »). L'enfant revit
 1. Reprenez le défi des lancers, à la distance « une fois sur trois ».
 2. Deux lancers sans visualiser.
 3. Puis : yeux fermés, cinq secondes. « Vois ta main, la boule, la boîte. Sens ton bras. » Il ouvre et lance.
-4. Cinq fois de suite : visualiser, lancer.
+4. Cinq fois de suite : visualiser, lancer. Le minuteur enchaîne les cinq tours ; vous annoncez chaque changement.
 5. Demandez : « Tu sens une différence quand tu l'as vu avant ? »
 
 ### À l'écran
@@ -127,6 +146,21 @@ Le parent choisit le moment à revivre (« ton but de samedi »). L'enfant revit
 3. Yeux fermés, cinq secondes. Puis lancer.
 4. Cinq fois : voir, lancer.
 5. « Une différence quand tu l'as vu ? »
+
+### Pas à pas
+#### Étape 1
+**Faites :** Reprenez la boîte et la boule de papier, à la distance où il réussit une fois sur trois.
+#### Étape 2
+**Faites :** Il lance deux fois, normalement, sans rien de spécial.
+#### Étape 3
+**Dites :** « Ferme les yeux. Vois ta main, la boule, la boîte. Sens ton bras. »
+**Faites :** Lancez le minuteur. Quand l'écran change de couleur, dites « Ouvre les yeux, lance ! ».
+**Minuteur :** [silence] Yeux fermés : vois ton lancer 5 s · [action] Ouvre les yeux, lance ! 5 s
+#### Étape 4
+**Faites :** Lancez le minuteur une seule fois : il enchaîne cinq lancers. Il a les yeux fermés : annoncez chaque changement à voix haute.
+**Minuteur :** 5 × [silence] Yeux fermés : vois ton lancer 5 s · [action] Ouvre les yeux, lance ! 5 s
+#### Étape 5
+**Dites :** « Tu sens une différence, quand tu l'as vu avant ? »
 
 ### À éviter
 - Ne comptez pas les paniers. On compare des sensations, pas des scores.
@@ -202,6 +236,21 @@ Le parent transforme la comparaison en mesure (« tu vois, t'en as mis trois de 
 2. Yeux fermés. Te voir le faire bien.
 3. Ton souffle, ton mot, tes phrases.
 4. « Qu'est-ce que tu as vu ? »
+
+### Pas à pas
+#### Étape 1
+**Dites :** « Il y a un truc qui te fait un peu peur, la semaine prochaine ? »
+**Si ça bloque :** « Un exposé, un examen, une conversation difficile, un match. »
+#### Étape 2
+**Dites :** « Ferme les yeux. Vois-toi le faire bien, du début à la fin. »
+**Minuteur :** [silence] Yeux fermés : il se voit réussir 10 s
+#### Étape 3
+**Faites :** Pendant qu'il a les yeux fermés, guidez doucement, une phrase à la fois.
+**Dites :** « Tu prends ton souffle. »
+**Dites :** « Tu dis ton mot. »
+**Dites :** « Tu dis ta première phrase. »
+#### Étape 4
+**Dites :** « Ouvre les yeux. Qu'est-ce que tu as vu ? »
 
 ### À éviter
 - Ne vous arrêtez pas au problème. Une visualisation qui s'arrête là augmente l'inquiétude.

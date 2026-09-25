@@ -24,7 +24,9 @@ import {
   type P3Activity,
   type Place,
 } from '@/lib/p3-moments';
-import { ROLE_LABELS } from '@/lib/p3-moments/guide';
+import { PILLAR_PLAIN, ROLE_LABELS } from '@/lib/p3-moments/guide';
+import { timerSummary } from '@/components/parent/p3/StepTimer';
+import { VISUAL_LABELS } from '@/components/parent/p3/Visuals';
 import { BAND_LABELS } from '@/lib/p3-moments/shelves';
 import { P3_BASE, p3Pool, parseBand, parseDuration, parsePlace } from '@/lib/p3-moments/app';
 
@@ -86,7 +88,40 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         {activity.title}
       </h1>
       <p className="text-[15px] text-soft mt-1.5">{activity.subtitle}</p>
-      <p className="text-[17px] leading-[1.5] text-body mt-3">{activity.objective}</p>
+
+      {/* L'objectif de développement, relié à la séance : ce qu'on travaille vraiment */}
+      <section
+        aria-label="Ce qu’on travaille"
+        className="mt-5 rounded-[24px] p-5 md:p-6 bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] ring-2 ring-accent-line"
+      >
+        <p className="nc-eyebrow">Ce qu’on travaille</p>
+        <p className="mt-2 font-display text-[26px] md:text-[30px] leading-[1.15] font-semibold text-ink">
+          {week?.skill ?? activity.subtitle}
+        </p>
+        <p className="mt-3 text-[17px] leading-[1.5] text-ink">
+          <span className="font-semibold">Objectif : </span>
+          {activity.objective}
+        </p>
+        <dl className="mt-4 grid gap-2 text-[14px] leading-[1.45]">
+          <div className="flex gap-2">
+            <dt className="text-soft shrink-0">Séance</dt>
+            <dd className="text-body">
+              {week?.session_source ?? activity.subtitle}
+              {week?.action && week.action !== '—' ? ` · ${week.action}` : ''}
+            </dd>
+          </div>
+          <div className="flex gap-2">
+            <dt className="text-soft shrink-0">Pilier</dt>
+            <dd className="text-body">{PILLAR_PLAIN[activity.pillar_main]}</dd>
+          </div>
+          {week && (
+            <div className="flex gap-2">
+              <dt className="text-soft shrink-0">Semaine {week.week}</dt>
+              <dd className="text-body">{week.opening_line}</dd>
+            </div>
+          )}
+        </dl>
+      </section>
 
       {/* Barre de contexte */}
       <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] text-soft">
@@ -129,7 +164,15 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           {r.steps.map((s, i) => (
             <li key={i} className="flex gap-3 text-[16px] leading-[1.55] text-body">
               <span className="font-display text-[18px] font-semibold text-accent-ink w-6 shrink-0">{i + 1}</span>
-              <InlineMd text={s} />
+              <span>
+                <InlineMd text={s} />
+                {(activity.guide[i]?.timer || activity.guide[i]?.visual) && (
+                  <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold text-accent-ink">
+                    {activity.guide[i].timer && <span>⏱ Minuteur {timerSummary(activity.guide[i].timer!)}</span>}
+                    {activity.guide[i].visual && <span>👁 À montrer : {VISUAL_LABELS[activity.guide[i].visual!]}</span>}
+                  </span>
+                )}
+              </span>
             </li>
           ))}
         </ol>
@@ -233,9 +276,6 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         )}
       </Section>
 
-      <p className="mt-8 text-[13px] text-faint">
-        {week?.session_source}
-      </p>
 
       {/* Actions — collantes sur mobile, au-dessus de la barre d'onglets */}
       <div className="fixed md:static inset-x-0 bottom-[84px] z-40 px-5 md:px-0 md:mt-8">

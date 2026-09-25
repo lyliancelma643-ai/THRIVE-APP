@@ -51,6 +51,21 @@
 3. Trois progrès sur le podium.
 4. Il explique la première place.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Il dessine un podium : trois marches, la plus haute au milieu.
+#### Étape 2
+**Faites :** Ouvrez le carnet de l'app ensemble, ou « Ses outils » à l'écran. Lisez ce qu'il a gardé : ses forces, son objectif, son outil.
+**Visuel :** outils
+**Si ça bloque :** Il ne se souvient de rien ? Lisez un outil à voix haute : « Le ballon, tu t'en souviens ? »
+#### Étape 3
+**Dites :** « Depuis six semaines, qu'est-ce que tu fais mieux qu'avant ? »
+**Faites :** Il choisit trois progrès et les écrit sur les marches. Le plus gros sur la plus haute.
+**Si ça bloque :** « Même un petit. Un truc qui est plus facile pour toi qu'avant. »
+#### Étape 4
+**Dites :** « Raconte-moi ta première place. »
+**Faites :** Écoutez jusqu'au bout, sans compléter.
+
 ### À éviter
 - Ne suggérez pas un progrès qu'il n'a pas cité, même le plus évident.
 - Ne comparez pas avec un frère, une sœur ou un ami.
@@ -127,6 +142,23 @@ Le parent ajoute le progrès « le plus important » que l'enfant a oublié. Le 
 4. Il garde, ajuste ou change.
 5. La prochaine marche, datée.
 
+### Pas à pas
+#### Étape 1
+**Faites :** Ressortez son escalier de la semaine 2 et sa phrase « ce qui dépend de moi ».
+**Visuel :** escalier
+**Si ça bloque :** Escalier perdu ? Redessinez-en un avec lui, en deux minutes : quatre marches, son objectif en haut.
+#### Étape 2
+**Dites :** « Aujourd'hui, t'es sur quelle marche ? »
+**Faites :** Il la colorie. Vous ne discutez pas sa place.
+#### Étape 3
+**Dites :** « Ton objectif, il est encore le bon pour toi ? »
+#### Étape 4
+**Faites :** Il décide : il garde, il ajuste ou il change. Vous suivez.
+**Dites :** « D'accord. C'est toi qui décides. »
+#### Étape 5
+**Dites :** « C'est quoi, ta prochaine marche ? »
+**Faites :** Il l'écrit, avec la date du jour à côté.
+
 ### À éviter
 - Ne le placez pas plus haut ou plus bas qu'il ne se place.
 - Ne vivez pas un objectif changé comme un abandon. Ajuster, c'est la compétence.
@@ -201,6 +233,21 @@ Le parent transforme la séance en réunion de rendement. L'enfant défend son b
 2. Le moment exact.
 3. « Et toi, t'as remarqué quoi ? »
 4. Écoutez. Répétez ses mots.
+
+### Pas à pas
+#### Étape 1
+**Faites :** Dites un changement précis que vous avez vu. Un comportement, pas une note.
+**Dites :** « J'ai remarqué que maintenant, tu… »
+**Si ça bloque :** Pistes : il recommence plus vite après une erreur, il demande de l'aide, il dit ce qu'il ressent, il souffle avant de s'énerver.
+#### Étape 2
+**Faites :** Donnez le moment exact.
+**Dites :** « Mardi, quand ton devoir de maths bloquait, tu as soufflé et tu as recommencé. »
+#### Étape 3
+**Dites :** « Et toi, t'as remarqué quelque chose de différent ? »
+**Faites :** Attendez. Le silence est normal.
+#### Étape 4
+**Faites :** Écoutez. Puis répétez ce qu'il a dit, avec ses mots à lui.
+**Dites :** « Donc toi, tu as remarqué que… »
 
 ### À éviter
 - Pas de « je suis fier de toi » seul : dites ce que vous avez **vu**.
