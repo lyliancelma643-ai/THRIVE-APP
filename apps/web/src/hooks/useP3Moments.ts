@@ -46,6 +46,9 @@ import {
 
 type Table = 'p3_moments' | 'p3_rewards' | 'p3_saved' | 'p3_skips';
 
+/** Préfixe de l'id du profil « parent seul » (parent sans enfant) : aucune ligne en base, tout reste en local. */
+export const PARENT_ONLY_PREFIX = 'parent-';
+
 const localKey = (table: Table, childId: string) => `thrive.p3.${table}.${childId}`;
 
 function readLocal<T>(table: Table, childId: string): T[] {
@@ -115,6 +118,17 @@ export function useP3Moments(childId: string | null, dateOfBirth: string | null,
       const localRewards = readLocal<P3RewardRow>('p3_rewards', childId);
       const localSaved = readLocal<P3SavedRow>('p3_saved', childId);
       const localSkips = readLocal<P3SkipRow>('p3_skips', childId).filter((s) => s.created_at >= since);
+      if (childId.startsWith(PARENT_ONLY_PREFIX)) {
+        setState({
+          loading: false,
+          storage: 'local',
+          moments: mergeMoments([], localMoments),
+          rewards: mergeRewards([], localRewards),
+          saved: localSaved,
+          skips: localSkips,
+        });
+        return;
+      }
       try {
         const [m, r, s, k] = await Promise.all([
           supabase

@@ -8,16 +8,18 @@
 //      Indépendant de `fitness_enabled`, qui ne garde plus que les séances vidéo
 //      (/parent/fitness/seances).
 //   2. Enfant sélectionné (store) et âge : moins de 8 ans → message neutre (R6).
+//      Sans profil enfant, le parent accède quand même à Maison (profil
+//      « parent seul », données gardées en local sur l'appareil).
 //   3. Données (useP3Moments) + squelette de chargement. Aucun état d'échec (R7).
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useState, type ReactNode } from 'react';
-import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAccessStore } from '@/lib/access';
 import { useChildStore } from '@/stores/child.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { FitnessConstructionNotice, LockedBanner } from '@/components/parent/AccessGate';
-import { useP3Moments, type P3Data } from '@/hooks/useP3Moments';
+import { PARENT_ONLY_PREFIX, useP3Moments, type P3Data } from '@/hooks/useP3Moments';
 import type { AgeBand } from '@/lib/p3-moments';
 import type { ChildProfile } from '@/lib/catalog';
 import { P3Skeleton } from './pieces';
@@ -43,22 +45,29 @@ function Notice({ children }: { children: ReactNode }) {
 
 function P3Inner({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
   const { children: kids, selectedChildId, isLoading } = useChildStore();
-  const child = kids.find((c) => c.id === selectedChildId) ?? null;
-  const firstName = child?.first_name ?? 'votre enfant';
+  const userId = useAuthStore((s) => s.user?.id ?? null);
+  const selected = kids.find((c) => c.id === selectedChildId) ?? null;
+  // Parent sans enfant : profil « parent seul » (pas de ligne children), l'accès
+  // à Maison ne dépend pas d'un profil enfant.
+  const child: ChildProfile | null =
+    selected ??
+    (!isLoading && userId
+      ? {
+          id: `${PARENT_ONLY_PREFIX}${userId}`,
+          family_id: '',
+          first_name: 'votre enfant',
+          last_name: null,
+          date_of_birth: null,
+          avatar_url: null,
+          nickname: null,
+          jersey_number: null,
+          accent_color: null,
+        }
+      : null);
+  const firstName = selected?.first_name ?? 'votre enfant';
   const data = useP3Moments(child?.id ?? null, child?.date_of_birth ?? null, firstName);
 
-  if (!child) {
-    if (isLoading) return <P3Skeleton />;
-    return (
-      <Notice>
-        Choisissez d&apos;abord l&apos;enfant avec qui vivre ces moments.{' '}
-        <Link href="/parent/select-profile" className="font-semibold text-accent-ink underline">
-          Gérer les profils
-        </Link>
-      </Notice>
-    );
-  }
-  if (data.loading) return <P3Skeleton />;
+  if (!child || data.loading) return <P3Skeleton />;
   // R6 : moins de 8 ans → aucune fiche servie.
   if (!data.band) return <Notice>{UNDER_8_MESSAGE}</Notice>;
 
