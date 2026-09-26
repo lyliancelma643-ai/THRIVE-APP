@@ -48,9 +48,9 @@ export const TOOLS: { emoji: string; name: string; ask: string; what: string; we
   { emoji: '🎯', name: 'Un cran au-dessus', ask: 'Ton défi un cran au-dessus', what: 'Le défi que je réussis une fois sur trois.', week: 3, from: ['ACT-0302'] },
   { emoji: '🎭', name: 'Mettre un mot', ask: 'Mettre un mot sur ce que tu sens', what: 'Je nomme mon émotion quand elle arrive.', week: 4, from: ['ACT-0401', 'ACT-0402'] },
   { emoji: '🎈', name: 'Le ballon', ask: 'Ton ballon', what: 'Je gonfle mon ventre sur 4, je dégonfle sur 8.', week: 5, from: ['ACT-0501'] },
-  { emoji: '💬', name: 'Ma phrase', ask: 'Ta phrase', what: 'Ce que je me dis pour recommencer.', week: 5, from: ['ACT-0502'] },
+  { emoji: '💬', name: 'Ma phrase', ask: 'Ta phrase', what: 'Ce que je me dis pour recommencer.', week: 5, from: ['ACT-0502', 'ACT-0504'] },
   { emoji: '🍝', name: 'Spaghetti cuit', ask: 'Ton spaghetti cuit', what: 'Je relâche tout et je sens mes pieds.', week: 6, from: ['ACT-0601', 'ACT-0602'] },
-  { emoji: '🤝', name: 'Mes personnes', ask: 'Tes personnes', what: 'Je sais qui aller voir, et pour quoi.', week: 8, from: ['ACT-0801'] },
+  { emoji: '🤝', name: 'Mes personnes', ask: 'Tes personnes', what: 'Je sais qui aller voir, et pour quoi.', week: 8, from: ['ACT-0801', 'ACT-0804'] },
   { emoji: '🔦', name: 'Mon mot', ask: 'Ton mot', what: 'Il ramène ma tête quand elle part ailleurs.', week: 9, from: ['ACT-0901'] },
   { emoji: '🎬', name: 'Mon film', ask: 'Ton film', what: 'Je me vois réussir avant de le faire.', week: 10, from: ['ACT-1001', 'ACT-1002'] },
 ];

@@ -19,6 +19,7 @@ import {
   effectiveDuration,
   getActivity,
   getWeek,
+  isVisible,
   resolveActivity,
   type Duration,
   type P3Activity,
@@ -58,6 +59,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 
   const r = resolveActivity(activity, duration, ctx.band)!;
   const week = getWeek(activity.week);
+  const after = activity.after ? getActivity(activity.after) : null;
   const fav = ctx.data.saved.favoris.has(activity.id);
   const aside = ctx.data.saved.deCote.has(activity.id);
   const launchHref = `${P3_BASE}/${activity.id}/moment?duree=${r.duration}&lieu=${place}${bandOverride ? `&bande=${ctx.band}` : ''}`;
@@ -82,12 +84,23 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
       <BackLink href={P3_BASE} label="Maison" />
 
       <p className="nc-eyebrow mt-3">
-        Semaine {activity.week} · {ROLE_LABELS[activity.role]}
+        {activity.programme === 'bonus'
+          ? 'Bonus · hors programme'
+          : `Semaine ${activity.week} · ${activity.programme === 'complement' ? 'Pour aller plus loin · ' : ''}${ROLE_LABELS[activity.role]}`}
       </p>
       <h1 className="font-display text-[32px] md:text-[40px] leading-[1.12] font-semibold text-ink mt-2">
         {activity.title}
       </h1>
       <p className="text-[15px] text-soft mt-1.5">{activity.subtitle}</p>
+      {after && (
+        <p className="text-[14px] text-soft mt-1">
+          À faire après{' '}
+          <Link href={`${P3_BASE}/${after.id}`} className="font-semibold text-accent-ink underline underline-offset-4">
+            « {after.title} »
+          </Link>
+          {ctx.data.doneIds.has(after.id) ? ' (déjà vécue)' : ''}
+        </p>
+      )}
 
       {/* L'objectif de développement, relié à la séance : ce qu'on travaille vraiment */}
       <section
@@ -106,7 +119,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           <div className="flex gap-2">
             <dt className="text-soft shrink-0">Séance</dt>
             <dd className="text-body">
-              {week?.session_source ?? activity.subtitle}
+              {week?.session_source ?? 'Hors séance'}
               {week?.action && week.action !== '—' ? ` · ${week.action}` : ''}
             </dd>
           </div>
@@ -132,6 +145,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         <li>{activity.places.map((p) => PLACE_LABELS[p]).join(' · ')}</li>
         <li>{activity.materials.length ? activity.materials.join(', ') : 'Rien à préparer'}</li>
         <li>Énergie : {activity.parent_energy}</li>
+        {activity.participants && <li>{activity.participants}</li>}
       </ul>
       <div className="mt-3">
         <PillarTag pillar={activity.pillar_main} />
@@ -158,6 +172,14 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </button>
         </div>
       </Section>
+
+      {activity.safety && (
+        <Section title="À savoir avant de commencer">
+          <p className="nc-row p-4 text-[15px] leading-[1.55] text-body">
+            <InlineMd text={activity.safety} />
+          </p>
+        </Section>
+      )}
 
       <Section title="Le déroulé">
         <ol className="space-y-3">
@@ -188,7 +210,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
                 </>
               )}
             </p>
-            <p className="text-[15px] leading-[1.55] text-body">
+            <p className="text-[15px] leading-[1.55] text-body whitespace-pre-line">
               <InlineMd text={r.variant} />
             </p>
           </div>
@@ -227,7 +249,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
                 <div className="overflow-hidden">
                   <div className="nc-row p-4">
                     <p className="nc-eyebrow mb-1.5">+10 min — {EXT_LABELS[e.kind]}</p>
-                    <p className="text-[15px] leading-[1.55] text-body">
+                    <p className="text-[15px] leading-[1.55] text-body whitespace-pre-line">
                       <InlineMd text={e.text} />
                     </p>
                   </div>
@@ -318,7 +340,7 @@ function FichePage() {
   const params = useParams<{ activityId: string }>();
   const search = useSearchParams();
   const activity = getActivity(String(params.activityId ?? ''));
-  const allowed = activity && p3Pool().some((a) => a.id === activity.id);
+  const inPool = !!activity && p3Pool().some((a) => a.id === activity.id);
   const band = parseBand(search.get('bande'));
 
   // Liberté totale : toute fiche publiée s'ouvre, quelle que soit la semaine en cours.
@@ -326,7 +348,8 @@ function FichePage() {
   return (
     <P3Frame>
       {(ctx) =>
-        activity && allowed ? (
+        // Un complément s'ouvre dès que sa semaine est ouverte (spec §0.3) ; une fiche cœur, toujours.
+        activity && inPool && isVisible(activity, ctx.data.openWeek) ? (
           <FicheInner
             ctx={band ? { ...ctx, band } : ctx}
             activity={activity}

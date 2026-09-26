@@ -1,7 +1,8 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // P3 « Le moment qui compte » — règles métier, sans I/O.
 //
-// Le contenu (13 semaines × 3 fiches) vit dans src/content/p3-moments/ et est
+// Le contenu (13 semaines × 3 fiches cœur, plus les compléments « Pour aller
+// plus loin » et les bonus hors séance) vit dans src/content/p3-moments/ et est
 // parsé en JSON par les tests (activities.generated.json). Ici : uniquement
 // les règles, testées une à une dans p3-moments.test.ts.
 //
@@ -33,11 +34,36 @@ export function publishedActivities(all: P3Activity[] = P3_ACTIVITIES, includeRe
 export function getActivity(id: string): P3Activity | null {
   return P3_ACTIVITIES.find((a) => a.id === id.toUpperCase()) ?? null;
 }
-export function getWeek(n: number): P3Week | null {
+export function getWeek(n: number | null): P3Week | null {
+  if (n === null) return null;
   return P3_WEEKS.find((w) => w.week === n) ?? null;
 }
-export function activitiesOfWeek(n: number): P3Activity[] {
-  return P3_ACTIVITIES.filter((a) => a.week === n).sort((a, b) => a.rank - b.rank);
+/** Les 3 fiches cœur d'une semaine : elles seules ouvrent la semaine suivante. */
+export function activitiesOfWeek(n: number, all: P3Activity[] = P3_ACTIVITIES): P3Activity[] {
+  return all.filter((a) => a.programme === 'coeur' && a.week === n).sort((a, b) => a.rank - b.rank);
+}
+/** « Pour aller plus loin cette semaine » : jamais exigés, jamais devant une fiche cœur. */
+export function complementsOfWeek(n: number, all: P3Activity[] = P3_ACTIVITIES): P3Activity[] {
+  return all.filter((a) => a.programme === 'complement' && a.week === n).sort((a, b) => a.rank - b.rank);
+}
+export function bonusActivities(all: P3Activity[] = P3_ACTIVITIES): P3Activity[] {
+  return all.filter((a) => a.programme === 'bonus').sort((a, b) => a.rank - b.rank);
+}
+
+/**
+ * Une fiche cœur est toujours visible (liberté totale). Un complément apparaît dès
+ * que sa semaine est ouverte, puis reste ; un bonus, dès sa semaine de disponibilité.
+ */
+export function isVisible(a: P3Activity, openWeek: number): boolean {
+  if (a.programme === 'complement') return a.week !== null && a.week <= openWeek;
+  if (a.programme === 'bonus') return (a.available_from_week ?? 1) <= openWeek;
+  return true;
+}
+
+/** Samedi ou dimanche : le seul moment où un bonus est proposé de lui-même. */
+export function isWeekend(d: Date): boolean {
+  const day = d.getDay();
+  return day === 0 || day === 6;
 }
 
 // ── Âge ──────────────────────────────────────────────────────────────────────
@@ -287,7 +313,7 @@ export function pickTonight(input: TonightInput): TonightPick {
   const done = new Set(input.moments.map((m) => m.activity_id));
   const open = unlockedWeeks(done);
   const fits = (a: P3Activity) =>
-    a.week <= open &&
+    (a.programme === 'bonus' ? isVisible(a, open) && isWeekend(input.now) : a.week !== null && a.week <= open) &&
     effectiveDuration(a, input.declaredDuration) !== null &&
     (input.place === 'voiture' ? a.car_ok : a.places.includes(input.place) || a.places.includes('partout'));
 
@@ -296,7 +322,9 @@ export function pickTonight(input: TonightInput): TonightPick {
     if (soft.length) return { activity: soft[0], reason: 'Celle-ci marche même les soirs où il dit non.' };
   }
 
-  const next = pool.filter((a) => a.week === open && !done.has(a.id) && fits(a)).sort((a, b) => a.rank - b.rank)[0];
+  const next = pool
+    .filter((a) => a.programme === 'coeur' && a.week === open && !done.has(a.id) && fits(a))
+    .sort((a, b) => a.rank - b.rank)[0];
   if (next) {
     const reason =
       input.place === 'voiture'
@@ -322,14 +350,21 @@ export function pickTonight(input: TonightInput): TonightPick {
       const last = lastMomentOf(a.id, input.moments);
       if (last?.rating && last.rating >= 4) s += 10;
       if (a.specific_materials) s -= 5;
-      return { a, s, last };
+      // Spec §0.3 : un complément de la semaine qu'on vient de finir (ses 3 fiches cœur faites)
+      // donne quelque chose à faire au parent en avance. Il ne passe jamais devant une fiche cœur
+      // non faite : celles-ci sont déjà proposées plus haut, par `next`.
+      const fresh = a.programme === 'complement' && !done.has(a.id) && a.week !== null && a.week >= open - 1 && isWeekComplete(a.week, done);
+      if (fresh) s += 15;
+      return { a, s, last, fresh };
     })
     .sort((x, y) => y.s - x.s);
   const best = scored[0];
   if (!best) return null;
 
   let reason = 'Une de celles que vous avez déjà ouvertes.';
-  if (best.last?.rating === 5) reason = 'On refait celle-ci : elle avait bien marché.';
+  if (best.a.programme === 'bonus') reason = 'Un bonus pour le week-end, en famille.';
+  else if (best.fresh) reason = `Pour aller plus loin : votre semaine ${best.a.week} est faite.`;
+  else if (best.last?.rating === 5) reason = 'On refait celle-ci : elle avait bien marché.';
   else if (input.childMood === 'fatigue' && best.a.child_moods.includes('fatigue'))
     reason = `Parce que ${input.firstName} est fatigué·e ce soir.`;
   else if (input.parentEnergy === 'basse' && best.a.parent_energy === 'basse')

@@ -48,7 +48,7 @@ export function PosterArt({ activity, big = false, done = false }: { activity: P
       </span>
       {!big && (
         <span className="absolute top-2.5 left-3 font-display text-[30px] font-semibold leading-none text-white/90">
-          {activity.week}
+          {activity.week ?? '★'}
         </span>
       )}
       {done && (
@@ -95,7 +95,8 @@ export function PosterCard({
         </span>
       </div>
       <p className="mt-2.5 text-[12px] font-semibold text-sage">
-        Semaine {activity.week} · {durationsLabel(activity)}
+        {activity.week === null ? 'Bonus' : `Semaine ${activity.week}${activity.programme === 'complement' ? ' · plus loin' : ''}`} ·{' '}
+        {durationsLabel(activity)}
       </p>
       <p className="text-[15px] font-semibold leading-[1.3] text-ink line-clamp-2">{activity.title}</p>
       <p className="mt-0.5 text-[12px] text-faint line-clamp-1">{PILLAR_PLAIN[activity.pillar_main]}</p>
