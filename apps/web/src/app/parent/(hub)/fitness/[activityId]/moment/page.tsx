@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
 import { P3Frame } from '@/components/parent/p3/P3Frame';
 import { ActivityMode } from '@/components/parent/p3/ActivityMode';
-import { effectiveDuration, getActivity } from '@/lib/p3-moments';
+import { effectiveDuration, getActivity, isVisible } from '@/lib/p3-moments';
 import { P3_BASE, p3Pool, parseBand, parseDuration, parsePlace } from '@/lib/p3-moments/app';
 
 function MomentPage() {
@@ -22,8 +22,9 @@ function MomentPage() {
   return (
     <P3Frame>
       {(ctx) => {
-        // Liberté totale : toute fiche publiée se lance, quelle que soit la semaine en cours.
-        if (!activity || !allowed) {
+        // Liberté totale : toute fiche cœur publiée se lance, quelle que soit la semaine en cours ;
+        // un complément, dès que sa semaine est ouverte.
+        if (!activity || !allowed || !isVisible(activity, ctx.data.openWeek)) {
           return (
             <div className="py-16 text-center">
               <p className="text-[16px] text-body">Cette fiche n&apos;est pas encore disponible.</p>

@@ -164,12 +164,13 @@ export function ActivityMode({
   const router = useRouter();
   const { data, firstName, band } = ctx;
   const r = useMemo(() => resolveActivity(activity, declared, band)!, [activity, declared, band]);
-  const week = getWeek(activity.week)!;
+  const week = getWeek(activity.week);
   const isLetter = activity.capture?.kind === 'lettre';
   const inCar = place === 'voiture';
 
   const recall = recallLine(firstName, data.lastKeptPhrase);
-  const opening = activity.rank === 1 ? week.opening_line : null;
+  // La phrase d'ouverture de la semaine ne s'affiche qu'avant sa première fiche cœur.
+  const opening = activity.programme === 'coeur' && activity.rank === 1 && week ? week.opening_line : null;
 
   const [mounted, setMounted] = useState(false);
   const [screen, setScreen] = useState<Screen>({ t: 'checkin' });
@@ -359,11 +360,15 @@ export function ActivityMode({
   };
 
   const weekJustDone = useMemo(
-    () => (result ? isWeekComplete(activity.week, data.doneIds) : false),
-    [result, activity.week, data.doneIds]
+    // Seule une fiche cœur peut compléter une semaine : un complément ou un bonus ne la « refinit » pas.
+    () =>
+      result && activity.programme === 'coeur' && activity.week !== null
+        ? isWeekComplete(activity.week, data.doneIds)
+        : false,
+    [result, activity.programme, activity.week, data.doneIds]
   );
   useEffect(() => {
-    if (result && weekJustDone) pushWeekDone(ctx.child.id, activity.week);
+    if (result && weekJustDone && activity.week !== null) pushWeekDone(ctx.child.id, activity.week);
   }, [result, weekJustDone, ctx.child.id, activity.week]);
 
   // Compteur qui monte (≤ 2 s) si le parent a répondu ; sinon affiché directement.
@@ -404,6 +409,7 @@ export function ActivityMode({
   );
 
   const doneTitle = (() => {
+    if (activity.week === null) return null;
     const next = activitiesOfWeek(activity.week).find((a) => !data.doneIds.has(a.id));
     return next ?? null;
   })();
@@ -451,7 +457,7 @@ export function ActivityMode({
         <>
           {opening && (
             <>
-              <p className="nc-eyebrow">Semaine {week.week} · {week.title}</p>
+              <p className="nc-eyebrow">Semaine {week?.week} · {week?.title}</p>
               <BigText className="mt-4">{opening}</BigText>
             </>
           )}
@@ -507,6 +513,16 @@ export function ActivityMode({
       body = (
         <>
           <WorkedOn activity={activity} compact />
+          {activity.safety && (
+            <details className="mt-4 nc-row p-4">
+              <summary className="cursor-pointer list-none text-[15px] font-semibold text-ink min-h-[28px]">
+                À savoir avant de commencer
+              </summary>
+              <p className="mt-2 text-[15px] leading-[1.55] text-body">
+                <InlineMd text={activity.safety} />
+              </p>
+            </details>
+          )}
           <p className="mt-8 text-[18px] text-soft">Pour commencer, dites :</p>
           <BigText className="mt-3 !text-[34px] md:!text-[46px]">{r.opener}</BigText>
           <p className="mt-6 text-[15px] leading-[1.5] text-soft">
@@ -599,7 +615,7 @@ export function ActivityMode({
                 return open ? (
                   <div key={i} ref={i === extOpen[extOpen.length - 1] ? setLast : undefined} className="nc-card ring-1 ring-accent-line motion-safe:animate-om-up">
                     <p className="nc-eyebrow">+10 min — {EXT_LABELS[ext.kind]}</p>
-                    <p className="mt-2 text-[17px] leading-[1.55] text-ink">
+                    <p className="mt-2 text-[17px] leading-[1.55] text-ink whitespace-pre-line">
                       <InlineMd text={ext.text} />
                     </p>
                   </div>

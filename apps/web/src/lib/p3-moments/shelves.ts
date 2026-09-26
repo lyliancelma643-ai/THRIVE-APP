@@ -2,14 +2,16 @@
 // Maison façon plateforme de streaming : les rangées de l'accueil et les filtres
 // du catalogue. Règles pures, sans I/O, testées dans shelves.test.ts.
 //
-// Liberté totale : aucune rangée ne cache une fiche parce que sa semaine n'est
-// pas « ouverte » — le programme recommande un ordre, il ne l'impose pas.
+// Liberté totale : aucune rangée ne cache une fiche cœur parce que sa semaine
+// n'est pas « ouverte » — le programme recommande un ordre, il ne l'impose pas.
+// Les compléments apparaissent dès que leur semaine est ouverte (spec §0.3), les
+// bonus dès leur semaine de disponibilité (isVisible).
 // Anti-culpabilité (R3) : les titres invitent, ils ne comptent jamais un manque ;
 // une rangée vide disparaît au lieu d'afficher « 0 ».
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { AgeBand, DayMoment, P3Activity } from './parse';
-import { getWeek } from './index';
+import { getWeek, isVisible } from './index';
 
 export type Shelf = {
   id: string;
@@ -115,7 +117,8 @@ export function matchesFilter(
   }
 }
 
-const byProgramme = (a: P3Activity, b: P3Activity) => a.week - b.week || a.rank - b.rank;
+/** Ordre du programme : semaine, puis cœur avant compléments ; les bonus (sans semaine) à la fin. */
+export const byProgramme = (a: P3Activity, b: P3Activity) => (a.week ?? 99) - (b.week ?? 99) || a.rank - b.rank;
 
 /** Recommandation douce : les fiches pas encore vécues d'abord, puis l'ordre du programme. */
 function freshFirst(items: P3Activity[], doneIds: ReadonlySet<string>): P3Activity[] {
@@ -128,8 +131,9 @@ const PHASES = [
   { id: 'INTEGRER', label: 'Intégrer' },
 ] as const;
 
-function weekSpan(items: P3Activity[]): string {
-  const weeks = items.map((a) => a.week);
+export function weekSpan(items: P3Activity[]): string {
+  const weeks = items.map((a) => a.week).filter((w): w is number => w !== null);
+  if (!weeks.length) return 'Hors programme';
   const lo = Math.min(...weeks);
   const hi = Math.max(...weeks);
   return lo === hi ? `Semaine ${lo}` : `Semaines ${lo} à ${hi}`;
@@ -138,7 +142,7 @@ function weekSpan(items: P3Activity[]): string {
 /** Les rangées de l'accueil, dans l'ordre d'affichage. Une rangée vide n'est pas renvoyée. */
 export function buildShelves(input: ShelfInput): Shelf[] {
   const { firstName, doneIds, favoris, deCote, lastRating } = input;
-  const visible = input.pool.filter((a) => !deCote.has(a.id));
+  const visible = input.pool.filter((a) => !deCote.has(a.id) && isVisible(a, input.openWeek));
   const notHero = visible.filter((a) => a.id !== input.heroId);
   const f = (id: FilterId) => notHero.filter((a) => matchesFilter(a, id, { doneIds, favoris }));
   const shelves: Shelf[] = [];
@@ -148,7 +152,22 @@ export function buildShelves(input: ShelfInput): Shelf[] {
     id: 'semaine',
     title: `Votre semaine ${input.openWeek}${week ? ` · ${week.title}` : ''}`,
     subtitle: 'L’ordre que le programme conseille. Rien ne vous y oblige.',
-    items: visible.filter((a) => a.week === input.openWeek).sort(byProgramme),
+    items: visible.filter((a) => a.programme === 'coeur' && a.week === input.openWeek).sort(byProgramme),
+  });
+
+  // Sous les 3 fiches de la semaine : ses compléments. Ceux de la semaine qu'on vient
+  // de finir restent là tant qu'ils ne sont pas faits (le parent en avance a de quoi faire).
+  shelves.push({
+    id: 'plus-loin',
+    title: 'Pour aller plus loin cette semaine',
+    subtitle: 'Jamais obligatoires. Chacun compte comme un moment.',
+    items: visible
+      .filter(
+        (a) =>
+          a.programme === 'complement' &&
+          (a.week === input.openWeek || (a.week === input.openWeek - 1 && !doneIds.has(a.id)))
+      )
+      .sort(byProgramme),
   });
 
   // « Parce que … a aimé » : la dernière fiche notée 4 ou 5, et son pilier.
@@ -205,6 +224,13 @@ export function buildShelves(input: ShelfInput): Shelf[] {
     items: visible.filter((a) => (lastRating.get(a.id) ?? 0) >= 4),
   });
   shelves.push({ id: 'favoris', title: 'Vos favoris', subtitle: 'Celles que vous avez gardées.', items: visible.filter((a) => favoris.has(a.id)) });
+
+  shelves.push({
+    id: 'bonus',
+    title: 'Bonus · pour le week-end',
+    subtitle: 'Hors programme, à faire en famille.',
+    items: visible.filter((a) => a.programme === 'bonus').sort(byProgramme),
+  });
 
   for (const p of PHASES) {
     const items = visible.filter((a) => a.phase === p.id).sort(byProgramme);

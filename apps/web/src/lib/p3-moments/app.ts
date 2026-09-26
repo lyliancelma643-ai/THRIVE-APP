@@ -92,7 +92,8 @@ export type P3Checkin = { emotion?: string; corps?: string; tete?: string };
 export type P3Outcome = 'ACCROCHE' | 'MOYEN' | 'PAS_CE_SOIR';
 
 export type P3MomentRow = Moment & {
-  week: number;
+  /** null pour un bonus (hors semaine). */
+  week: number | null;
   kept_phrase: string | null;
   capture: P3Capture | null;
   place?: Place | null;
@@ -172,7 +173,7 @@ export function buildRewardPayload(
       };
     case 'boite_a_outils': {
       const outils = moments
-        .filter((m) => m.week >= 2 && m.week <= 11 && m.capture && ['outil', 'mot', 'personnes'].includes(m.capture.kind))
+        .filter((m) => m.week !== null && m.week >= 2 && m.week <= 11 && m.capture && ['outil', 'mot', 'personnes'].includes(m.capture.kind))
         .sort((a, b) => a.created_at.localeCompare(b.created_at))
         .flatMap((m) => captureItems(m.capture).map((text) => ({ kind: m.capture!.kind, text })));
       return { outils };

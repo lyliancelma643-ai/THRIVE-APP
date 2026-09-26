@@ -74,7 +74,8 @@ function appendLocal<T>(table: Table, childId: string, row: T) {
 
 export type RecordMomentInput = {
   activityId: string;
-  week: number;
+  /** null pour un bonus (hors semaine). */
+  week: number | null;
   duration_chosen: Duration;
   duration_real_s: number | null;
   place: Place;
