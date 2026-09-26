@@ -1,5 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// P3 « Le moment qui compte » — parser des 13 fichiers semaine-XX.md.
+// P3 « Le moment qui compte » — parser des 13 fichiers semaine-XX.md, des
+// compléments (complements.md) et des bonus (bonus.md).
 //
 // Même philosophie que le module « À la maison » (lib/home-cards/parse.ts) :
 // le contenu parent vit en markdown dans src/content/p3-moments/, tel que
@@ -15,7 +16,14 @@
 
 export type Phase = 'ANCRER' | 'DEVELOPPER' | 'INTEGRER';
 export type PillarCode = 'P1' | 'P2' | 'P3' | 'P4' | 'P5' | 'P6' | 'P7' | 'P8';
-export type Role = 'decouvrir' | 'pratiquer' | 'transferer' | 'ancrer';
+export type Role = 'decouvrir' | 'pratiquer' | 'transferer' | 'ancrer' | 'bonus';
+/**
+ * Place de la fiche dans le programme :
+ *   • coeur      — les 3 fiches d'une semaine ; elles seules ouvrent la suivante ;
+ *   • complement — « Pour aller plus loin cette semaine » : jamais exigé, compte comme un moment ;
+ *   • bonus      — hors séance (BON-NN), sans semaine, proposé le week-end.
+ */
+export type ProgrammeRole = 'coeur' | 'complement' | 'bonus';
 export type AgeBand = '8-11' | '12-14' | '15-17';
 export type Place = 'maison' | 'exterieur' | 'voiture' | 'partout';
 export type ParentEnergy = 'basse' | 'moyenne' | 'haute';
@@ -94,11 +102,22 @@ export type P3Week = {
 };
 
 export type P3Activity = {
-  id: string; // ACT-SSRR
-  week: number;
-  rank: 1 | 2 | 3;
+  id: string; // ACT-SSRR (cœur : RR 01–03 ; complément : RR 04–09) · BON-NN (bonus)
+  programme: ProgrammeRole;
+  /** null pour un bonus : il n'appartient à aucune semaine. */
+  week: number | null;
+  /** Ordre dans la semaine : 1–3 cœur, 4+ complément, 1 bonus. */
+  rank: number;
   role: Role;
-  phase: Phase;
+  phase: Phase | null;
+  /** Complément : la fiche cœur après laquelle il prend tout son sens (affichée, jamais bloquante). */
+  after: string | null;
+  /** Bonus : semaine à partir de laquelle il est proposé. */
+  available_from_week: number | null;
+  /** « 2 minimum · idéal : 3 à 5 » — null = parent + enfant. */
+  participants: string | null;
+  /** Limite à connaître avant de lancer (quand arrêter, quand consulter). */
+  safety: string | null;
   title: string;
   subtitle: string;
   objective: string;
@@ -168,7 +187,9 @@ const ROLE_LABELS: Record<string, Role> = {
   Pratiquer: 'pratiquer',
   Transférer: 'transferer',
   Ancrer: 'ancrer',
+  Bonus: 'bonus',
 };
+const PROGRAMMES: Record<string, ProgrammeRole> = { cœur: 'coeur', coeur: 'coeur', complément: 'complement', bonus: 'bonus' };
 const PHASES: Record<string, Phase> = { ANCRER: 'ANCRER', DÉVELOPPER: 'DEVELOPPER', INTÉGRER: 'INTEGRER' };
 const PLACES: Record<string, Place> = {
   maison: 'maison', table: 'maison', extérieur: 'exterieur', dehors: 'exterieur', marche: 'exterieur',
@@ -368,21 +389,44 @@ export function parseWeekMarkdown(md: string): { week: P3Week; activities: P3Act
   starts.forEach((start, k) => {
     const end = starts[k + 1] ?? lines.length;
     const block = lines.slice(start, end).filter((l) => l !== '---');
-    activities.push(parseActivity(block, week));
+    const a = parseActivity(block, [week]);
+    if (a.programme !== 'coeur') throw new Error(`${a.id} : un fichier de semaine ne contient que les 3 fiches cœur`);
+    activities.push(a);
   });
 
   if (activities.length !== 3) throw new Error(`${whereW} : ${activities.length} fiches (3 attendues)`);
   return { week, activities };
 }
 
-function parseActivity(block: string[], week: P3Week): P3Activity {
-  const t = block[0].match(/^## (ACT-(\d{2})(\d{2})) · (.+)$/);
+/**
+ * complements.md et bonus.md : des fiches « ## ACT-SSRR · … » (compléments) ou
+ * « ## BON-NN · … » (bonus), sous un en-tête libre. La semaine d'un complément se
+ * lit dans son identifiant ; elle doit exister dans `weeks`.
+ */
+export function parseExtraMarkdown(md: string, weeks: P3Week[]): P3Activity[] {
+  const lines = md.split(/\r?\n/).map((l) => l.trimEnd());
+  if (!/^# .+/.test(lines[0] ?? '')) throw new Error('En-tête « # titre » manquant');
+  const isCard = (l: string) => l.startsWith('## ACT-') || l.startsWith('## BON-');
+  const starts = lines.map((l, i) => (isCard(l) ? i : -1)).filter((i) => i >= 0);
+  if (!starts.length) throw new Error('Aucune fiche');
+  return starts.map((start, k) => {
+    const block = lines.slice(start, starts[k + 1] ?? lines.length).filter((l) => l !== '---');
+    const a = parseActivity(block, weeks);
+    if (a.programme === 'coeur') throw new Error(`${a.id} : une fiche cœur vit dans son fichier de semaine`);
+    return a;
+  });
+}
+
+function parseActivity(block: string[], weeks: P3Week[]): P3Activity {
+  const t = block[0].match(/^## (?:(ACT-(\d{2})(\d{2}))|(BON-(\d{2}))) · (.+)$/);
   if (!t) throw new Error(`Titre de fiche illisible : ${block[0]}`);
-  const [, id, ww, rr, title] = t;
+  const [, actId, ww, rr, bonId, bb, title] = t;
+  const id = actId ?? bonId;
   const where = id;
-  if (Number(ww) !== week.week) throw new Error(`${where} : rangée dans la semaine ${week.week}`);
-  const rank = Number(rr) as 1 | 2 | 3;
-  if (![1, 2, 3].includes(rank)) throw new Error(`${where} : rang ${rank}`);
+  const isBonus = !!bonId;
+  const week = isBonus ? null : (weeks.find((w) => w.week === Number(ww)) ?? null);
+  if (!isBonus && !week) throw new Error(`${where} : rangée hors de la semaine ${weeks.map((w) => w.week).join(', ')}`);
+  const rank = Number(isBonus ? bb : rr);
 
   // Découpe en sections ### …
   const sections = new Map<string, string[]>();
@@ -403,10 +447,36 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
   };
 
   const f = readFields(sections.get('__head')!);
+  const programme = f['Programme'] ? PROGRAMMES[f['Programme'].toLowerCase()] : 'coeur';
+  if (!programme) throw new Error(`${where} : programme inconnu « ${f['Programme']} »`);
+  if ((programme === 'bonus') !== isBonus) throw new Error(`${where} : seul un identifiant BON-NN est un bonus`);
   const role = ROLE_LABELS[need(f, 'Rôle', where)];
   if (!role) throw new Error(`${where} : rôle inconnu`);
-  const expectedRole = rank === 1 ? 'decouvrir' : rank === 2 ? 'pratiquer' : week.transfer ? 'transferer' : 'ancrer';
-  if (role !== expectedRole) throw new Error(`${where} : rôle « ${role} » au rang ${rank} (attendu ${expectedRole})`);
+  if ((role === 'bonus') !== isBonus) throw new Error(`${where} : le rôle « Bonus » est réservé aux bonus`);
+
+  let after: string | null = null;
+  let availableFrom: number | null = null;
+  if (programme === 'coeur') {
+    if (rank < 1 || rank > 3) throw new Error(`${where} : rang ${rank} (fiche cœur : 1 à 3)`);
+    const expectedRole = rank === 1 ? 'decouvrir' : rank === 2 ? 'pratiquer' : week!.transfer ? 'transferer' : 'ancrer';
+    if (role !== expectedRole) throw new Error(`${where} : rôle « ${role} » au rang ${rank} (attendu ${expectedRole})`);
+  } else if (programme === 'complement') {
+    if (rank < 4 || rank > 9) throw new Error(`${where} : rang ${rank} (complément : 04 à 09)`);
+    after = need(f, 'Après', where);
+    if (!new RegExp(`^ACT-${ww}0[1-3]$`).test(after)) {
+      throw new Error(`${where} : « Après » doit viser une fiche cœur de la même semaine (« ${after} »)`);
+    }
+    if (role === 'transferer' && !week!.transfer) throw new Error(`${where} : pas de fiche de transfert en semaine ${week!.week}`);
+  } else {
+    if (rank < 1) throw new Error(`${where} : numéro de bonus ${rank}`);
+    const m = need(f, 'Disponible dès', where).match(/^semaine (\d{1,2})$/);
+    if (!m || Number(m[1]) < 1 || Number(m[1]) > 13) throw new Error(`${where} : « Disponible dès » illisible`);
+    availableFrom = Number(m[1]);
+  }
+  const status = (f['Statut'] ?? week?.status) as P3Activity['status'] | undefined;
+  if (!status || !['brouillon', 'revu', 'publie'].includes(status)) throw new Error(`${where} : statut manquant ou inconnu`);
+  /** Règle de la Méthode (S1) : pas de transfert en semaine 1. Un bonus n'y est pas soumis. */
+  const transferWeek = week ? week.transfer : null;
 
   // Durées
   const durRaw = need(f, 'Durées', where);
@@ -479,10 +549,10 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
   });
   if (debrief.length < 1 || debrief.length > 5) throw new Error(`${where} : 1 à 5 questions de débrief`);
   const hasTransfer = debrief.some((d) => d.kind === 'ailleurs');
-  if (!week.transfer && hasTransfer) {
-    throw new Error(`${where} : pas de question de transfert en semaine ${week.week} (Méthode, S1)`);
+  if (transferWeek === false && hasTransfer) {
+    throw new Error(`${where} : pas de question de transfert en semaine ${week!.week} (Méthode, S1)`);
   }
-  if (week.transfer && !hasTransfer) {
+  if (transferWeek === true && !hasTransfer) {
     throw new Error(`${where} : la question [ailleurs] est obligatoire dès la semaine 2`);
   }
   const order = debrief.map((d) => ['vecu', 'fait', 'ailleurs'].indexOf(d.kind));
@@ -510,6 +580,9 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     if (!m) continue;
     const kind = EXT_KINDS[m[1]];
     if (!kind) throw new Error(`${where} : extension inconnue « ${m[1]} »`);
+    if (kind === 'transferer' && transferWeek === false) {
+      throw new Error(`${where} : en semaine ${week!.week}, le dernier palier ancre, il ne transfère pas`);
+    }
     const adds_to = (durations[0] + 10 * (extensions.length + 1)) as 20 | 30;
     extensions.push({ adds_to, kind, text: prose(lines) });
   }
@@ -528,12 +601,22 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
   const fails = prose(sec('Pourquoi ça rate'));
   if (!fails) throw new Error(`${where} : « Pourquoi ça rate » vide`);
 
+  const moments = mapList(need(f, 'Moment', where), MOMENTS, where, 'moment');
+  if (programme === 'bonus' && moments.join() !== 'week-end') throw new Error(`${where} : un bonus se propose le week-end seulement`);
+  const participants = f['Participants'] ?? null;
+  const safety = f['Sécurité'] ?? null;
+
   return {
     id,
-    week: week.week,
+    programme,
+    week: week?.week ?? null,
     rank,
     role,
-    phase: week.phase,
+    phase: week?.phase ?? null,
+    after,
+    available_from_week: availableFrom,
+    participants,
+    safety,
     title,
     subtitle: need(f, 'Sous-titre', where),
     objective: need(f, 'Objectif', where),
@@ -547,7 +630,7 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     specific_materials: specific,
     parent_energy: energy,
     movement,
-    moments: mapList(need(f, 'Moment', where), MOMENTS, where, 'moment'),
+    moments,
     child_moods: mapList(need(f, 'Humeur enfant', where), MOODS, where, 'humeur'),
     anti_refusal: need(f, 'Anti-refus', where) === 'oui',
     pillar_main: pl[0],
@@ -571,6 +654,6 @@ function parseActivity(block: string[], week: P3Week): P3Activity {
     extensions,
     variants,
     why_it_fails: fails,
-    status: week.status,
+    status,
   };
 }

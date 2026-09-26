@@ -13,7 +13,7 @@ import { Icon } from '@/components/ui';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { BackLink, PillGroup, PillarTag } from '@/components/parent/p3/pieces';
 import { cameBack, recall, remember, usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
-import { P3_WEEKS, activitiesOfWeek, type P3Activity } from '@/lib/p3-moments';
+import { P3_WEEKS, activitiesOfWeek, bonusActivities, complementsOfWeek, isVisible, type P3Activity } from '@/lib/p3-moments';
 import { ROLE_LABELS } from '@/lib/p3-moments/guide';
 import { P3_BASE, p3Pool } from '@/lib/p3-moments/app';
 
@@ -38,7 +38,10 @@ function FicheRow({ a, done }: { a: P3Activity; done: boolean }) {
         className={`w-3 h-3 rounded-full shrink-0 ${done ? 'bg-accent' : 'border border-line2'}`}
       />
       <span className="flex-1 min-w-0">
-        <span className="nc-eyebrow block">{ROLE_LABELS[a.role]}</span>
+        <span className="nc-eyebrow block">
+          {a.programme === 'complement' ? 'Pour aller plus loin · ' : ''}
+          {ROLE_LABELS[a.role]}
+        </span>
         <span className="block text-[16px] font-semibold text-ink">{a.title}</span>
         <span className="block text-[14px] text-soft mt-0.5">{a.objective}</span>
         <span className="block text-[13px] text-faint mt-1">{a.durations.join(' · ')} min</span>
@@ -68,7 +71,7 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
   }, [data.moments]);
 
   const library = useMemo(() => {
-    const open = pool;
+    const open = pool.filter((a) => isVisible(a, data.openWeek));
     switch (shelf) {
       case 'voiture':
         return open.filter((a) => a.car_ok);
@@ -85,7 +88,7 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
       default:
         return open;
     }
-  }, [pool, shelf, lastRating, data.saved]);
+  }, [pool, shelf, lastRating, data.saved, data.openWeek]);
 
   const detail = openDetail ? P3_WEEKS.find((w) => w.week === openDetail) : null;
 
@@ -136,6 +139,28 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
                 <FicheRow key={a.id} a={a} done={data.doneIds.has(a.id)} />
               ))}
           </div>
+          {(() => {
+            const extra = complementsOfWeek(detail.week).filter((a) => pool.some((p) => p.id === a.id));
+            if (!extra.length) return null;
+            const open = isVisible(extra[0], data.openWeek);
+            return (
+              <div className="mt-8">
+                <h3 className="nc-eyebrow">Pour aller plus loin cette semaine</h3>
+                <p className="text-[14px] text-soft mt-1 mb-3">
+                  {open
+                    ? 'Jamais obligatoires : les trois fiches du dessus suffisent pour passer à la suite.'
+                    : 'Ils s’ouvriront avec cette semaine.'}
+                </p>
+                {open && (
+                  <div className="space-y-3">
+                    {extra.map((a) => (
+                      <FicheRow key={a.id} a={a} done={data.doneIds.has(a.id)} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
         </section>
       ) : (
         <>
@@ -168,6 +193,22 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
               );
             })}
           </ol>
+
+          {(() => {
+            const bonus = bonusActivities().filter((a) => pool.some((p) => p.id === a.id) && isVisible(a, data.openWeek));
+            if (!bonus.length) return null;
+            return (
+              <section className="mt-10">
+                <h2 className="nc-eyebrow mb-1">Bonus · hors programme</h2>
+                <p className="text-[14px] text-soft mb-3">Pour le week-end, en famille. Ils ne débloquent rien.</p>
+                <div className="space-y-3">
+                  {bonus.map((a) => (
+                    <FicheRow key={a.id} a={a} done={data.doneIds.has(a.id)} />
+                  ))}
+                </div>
+              </section>
+            );
+          })()}
 
           <section className="mt-10">
             <h2 className="nc-eyebrow mb-3">La bibliothèque</h2>

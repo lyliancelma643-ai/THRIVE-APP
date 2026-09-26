@@ -30,6 +30,7 @@ export const ROLE_LABELS: Record<Role, string> = {
   pratiquer: 'Pratiquer',
   transferer: 'Transférer',
   ancrer: 'Ancrer',
+  bonus: 'Bonus',
 };
 
 // ── Les 5 temps (Méthode → 10 minutes) ───────────────────────────────────────

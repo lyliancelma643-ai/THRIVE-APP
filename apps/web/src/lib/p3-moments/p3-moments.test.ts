@@ -1,7 +1,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseTimer, parseWeekMarkdown, type P3Activity } from './parse';
+import { parseExtraMarkdown, parseTimer, parseWeekMarkdown, type P3Activity } from './parse';
 import generated from './activities.generated.json';
 import { P3ContentSchema } from '../../../../../packages/shared/src/validation/p3Activity.schema';
 import {
@@ -10,6 +10,10 @@ import {
   REWARDS,
   activitiesOfWeek,
   bandForAge,
+  bonusActivities,
+  complementsOfWeek,
+  isVisible,
+  isWeekend,
   canRepeat,
   dailyStreak,
   effectiveDuration,
@@ -33,6 +37,10 @@ const contentDir = path.resolve(__dirname, '../../content/p3-moments');
 const files = readdirSync(contentDir).filter((f) => /^semaine-\d{2}\.md$/.test(f)).sort();
 const parsed = files.map((f) => parseWeekMarkdown(readFileSync(path.join(contentDir, f), 'utf8')));
 const acts: P3Activity[] = parsed.flatMap((p) => p.activities);
+const extras: P3Activity[] = ['complements.md', 'bonus.md'].flatMap((f) =>
+  parseExtraMarkdown(readFileSync(path.join(contentDir, f), 'utf8'), parsed.map((p) => p.week)),
+);
+const everything: P3Activity[] = [...acts, ...extras];
 
 const at = (iso: string) => new Date(iso);
 const m = (id: string, iso: string, rating: Moment['rating'] = null, d: 10 | 20 | 30 = 10): Moment => ({
@@ -53,7 +61,7 @@ describe('contenu — 13 semaines × 3 fiches', () => {
   });
 
   it('le JSON généré est à jour (sinon : tsx scripts/generate-p3-activities.ts)', () => {
-    expect((generated as unknown as { activities: P3Activity[] }).activities).toEqual(acts);
+    expect((generated as unknown as { activities: P3Activity[] }).activities).toEqual(everything);
   });
 
   it('passe le schéma Zod partagé', () => {
@@ -76,7 +84,7 @@ describe('contenu — 13 semaines × 3 fiches', () => {
 
   it('pas à pas : chaque étape guide le parent, une question à la fois', () => {
     const questions = (s: string) => (s.match(/\?/g) ?? []).length;
-    for (const a of acts) {
+    for (const a of everything) {
       expect(a.guide.length, a.id).toBe(a.steps.length);
       for (const g of a.guide) {
         expect(g.beats.length, a.id).toBeGreaterThan(0);
@@ -140,7 +148,7 @@ describe('contenu — 13 semaines × 3 fiches', () => {
   });
 
   it('chaque fiche jouable en 10 minutes (la promesse du produit)', () => {
-    for (const a of acts) expect(a.base_duration, a.id).toBe(10);
+    for (const a of everything) expect(a.base_duration, a.id).toBe(10);
   });
 
   it('les fiches de rang 3 passent en voiture : verbal, zéro matériel', () => {
@@ -154,11 +162,13 @@ describe('contenu — 13 semaines × 3 fiches', () => {
     expect(acts.filter((a) => a.anti_refusal).length).toBeGreaterThanOrEqual(6);
     expect(acts.filter((a) => a.parent_energy === 'basse').length).toBeGreaterThanOrEqual(15);
     expect(acts.filter((a) => a.specific_materials).map((a) => a.id)).toEqual([]);
+    // Seul le bonus sort de la liste blanche (vieux magazines, facultatifs).
+    expect(extras.filter((a) => a.specific_materials).map((a) => a.id)).toEqual(['BON-01']);
   });
 
   it('aucune fiche ne note, ne chronomètre en comparaison ni ne score l’enfant', () => {
     const forbidden = /\b(score|meilleur que|classement|noter l'enfant|compétition)\b/i;
-    for (const a of acts) {
+    for (const a of everything) {
       const text = [...a.steps, ...a.screen_steps].join(' ');
       expect(forbidden.test(text), a.id).toBe(false);
     }
@@ -172,7 +182,85 @@ describe('contenu — 13 semaines × 3 fiches', () => {
   });
 
   it('chaque fiche a au moins une source de niveau A', () => {
-    for (const a of acts) expect(a.sources.some((s) => s.level === 'A'), a.id).toBe(true);
+    for (const a of everything) expect(a.sources.some((s) => s.level === 'A'), a.id).toBe(true);
+  });
+});
+
+describe('compléments et bonus (contenu 2.1.0)', () => {
+  const complements = extras.filter((a) => a.programme === 'complement');
+
+  it('13 compléments, 1 bonus, identifiants uniques', () => {
+    expect(complements).toHaveLength(13);
+    expect(extras.filter((a) => a.programme === 'bonus').map((a) => a.id)).toEqual(['BON-01']);
+    expect(new Set(everything.map((a) => a.id)).size).toBe(everything.length);
+  });
+
+  it('rattachement : chaque séance sauf S9 et S13, deux compléments en S3 et S11', () => {
+    const byWeek = (w: number) => complements.filter((a) => a.week === w).map((a) => a.id);
+    expect(byWeek(3)).toEqual(['ACT-0304', 'ACT-0305']);
+    expect(byWeek(11)).toEqual(['ACT-1104', 'ACT-1105']);
+    expect(byWeek(9)).toEqual([]);
+    expect(byWeek(13)).toEqual([]);
+    for (const w of [1, 2, 4, 5, 6, 7, 8, 10, 12]) expect(byWeek(w), `semaine ${w}`).toHaveLength(1);
+  });
+
+  it('« après » vise toujours une fiche cœur de la même semaine', () => {
+    for (const a of complements) {
+      const target = acts.find((x) => x.id === a.after);
+      expect(target, a.id).toBeDefined();
+      expect(target!.week, a.id).toBe(a.week);
+    }
+  });
+
+  it('semaine 1 : ni question [ailleurs] ni palier « Transférer » ; ensuite, [ailleurs] toujours', () => {
+    for (const a of complements) {
+      expect(a.debrief.some((d) => d.kind === 'ailleurs'), a.id).toBe(a.week !== 1);
+      if (a.week === 1) expect(a.extensions.some((e) => e.kind === 'transferer'), a.id).toBe(false);
+    }
+  });
+
+  it('trois formats pour chacune : 10 · 20 · 30, avec deux paliers de 10 min', () => {
+    for (const a of extras) {
+      expect(a.durations, a.id).toEqual([10, 20, 30]);
+      expect(a.extensions.map((e) => e.adds_to), a.id).toEqual([20, 30]);
+      expect(a.extensions[0].kind, a.id).toBe('approfondir');
+    }
+  });
+
+  it('statut « revu » : hors production tant que Lylian ne les a pas publiés', () => {
+    for (const a of extras) expect(a.status, a.id).toBe('revu');
+  });
+
+  it('corrections scientifiques : pas de promesse hormonale, pas d’affirmation générique', () => {
+    const posture = extras.find((a) => a.id === 'ACT-0604')!;
+    expect(posture.donts.join(' ')).toMatch(/hormones/);
+    expect(posture.guide.flatMap((g) => g.beats.map((b) => b.text)).join(' ')).not.toMatch(/bloque(z)? ta respiration|retiens ton souffle/i);
+    const cartes = extras.find((a) => a.id === 'ACT-1104')!;
+    expect(cartes.donts[0]).toMatch(/compliments/);
+    expect(cartes.sources.some((s) => /Wood, J\. V\./.test(s.citation))).toBe(true);
+  });
+
+  it('bonus : sans semaine, proposé le week-end seulement, visible dès la semaine 1', () => {
+    const b = extras.find((a) => a.id === 'BON-01')!;
+    expect(b.week).toBeNull();
+    expect(b.phase).toBeNull();
+    expect(b.moments).toEqual(['week-end']);
+    expect(isVisible(b, 1)).toBe(true);
+    expect(bonusActivities().map((a) => a.id)).toEqual(['BON-01']);
+  });
+
+  it('visibilité : un complément dès que sa semaine est ouverte, une fiche cœur toujours', () => {
+    const c = extras.find((a) => a.id === 'ACT-0404')!;
+    expect(isVisible(c, 3)).toBe(false);
+    expect(isVisible(c, 4)).toBe(true);
+    expect(isVisible(c, 13)).toBe(true);
+    expect(isVisible(getActivity('ACT-1301')!, 1)).toBe(true);
+  });
+
+  it('les fiches à sécurité l’annoncent (arrêt, « Quand consulter »)', () => {
+    for (const id of ['ACT-0104', 'ACT-0304', 'ACT-0404', 'ACT-0504', 'ACT-1105']) {
+      expect(extras.find((a) => a.id === id)!.safety, id).toMatch(/Quand consulter/);
+    }
   });
 });
 
@@ -273,6 +361,41 @@ describe('programme et carte du soir', () => {
     expect(unlockedWeeks(new Set(activitiesOfWeek(1).map((a) => a.id)))).toBe(2);
   });
 
+  it('un complément n’est jamais exigé et ne débloque rien', () => {
+    expect(activitiesOfWeek(3).map((a) => a.id)).toEqual(['ACT-0301', 'ACT-0302', 'ACT-0303']);
+    expect(complementsOfWeek(3).map((a) => a.id)).toEqual(['ACT-0304', 'ACT-0305']);
+    expect(unlockedWeeks(new Set(['ACT-0101', 'ACT-0102', 'ACT-0104']))).toBe(1);
+    expect(unlockedWeeks(new Set(['ACT-0101', 'ACT-0102', 'ACT-0103']))).toBe(2);
+    expect(
+      newlyEarned({ alreadyEarned: new Set(), doneIds: new Set(['ACT-0104', 'BON-01']), momentsTotal: 2, subscriptionMonths: 0 }),
+    ).toEqual([]);
+  });
+
+  it('un complément ne passe jamais devant une fiche cœur non faite', () => {
+    const moments = [m('ACT-0101', '2026-10-13T19:00:00')];
+    for (let i = 0; i < 5; i++) expect(pickTonight({ ...base, moments })!.activity.programme).toBe('coeur');
+  });
+
+  it('semaine finie en avance : le complément de cette semaine est proposé (+15)', () => {
+    const cores = [...activitiesOfWeek(1), ...activitiesOfWeek(2)];
+    const pool = P3_ACTIVITIES.filter((a) => a.week === 1 || a.week === 2);
+    const moments = cores.map((a, i) => m(a.id, `2026-10-1${i % 5}T19:00:00`));
+    const pick = pickTonight({ ...base, moments, pool })!;
+    expect(pick.activity.id).toBe('ACT-0204');
+    expect(pick.reason).toBe('Pour aller plus loin : votre semaine 2 est faite.');
+  });
+
+  it('le bonus n’est proposé de lui-même que le week-end', () => {
+    const pool = bonusActivities();
+    expect(isWeekend(now)).toBe(false);
+    expect(pickTonight({ ...base, moments: [], pool })).toBeNull();
+    const saturday = at('2026-10-17T10:00:00');
+    expect(isWeekend(saturday)).toBe(true);
+    const pick = pickTonight({ ...base, moments: [], pool, now: saturday })!;
+    expect(pick.activity.id).toBe('BON-01');
+    expect(isGuiltFree(pick.reason)).toBe(true);
+  });
+
   it('propose d’abord la prochaine fiche du programme', () => {
     expect(pickTonight({ ...base, moments: [] })!.activity.id).toBe('ACT-0101');
     const pick = pickTonight({ ...base, moments: [m('ACT-0101', '2026-10-14T19:00:00')] })!;
@@ -306,7 +429,8 @@ describe('textes d’accompagnement', () => {
     expect(PAGE_NON.exitLine).toContain('reproposerai');
     expect(PAGE_CONSULTER.status).toBe('A_VALIDER');
   });
-  it('P3_ACTIVITIES exposé à l’app', () => {
-    expect(P3_ACTIVITIES).toHaveLength(39);
+  it('P3_ACTIVITIES exposé à l’app : 39 cœur + 13 compléments + 1 bonus', () => {
+    expect(P3_ACTIVITIES).toHaveLength(53);
+    expect(P3_ACTIVITIES.filter((a) => a.programme === 'coeur')).toHaveLength(39);
   });
 });

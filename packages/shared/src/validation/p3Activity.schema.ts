@@ -2,7 +2,8 @@ import { z } from 'zod';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // P3 « Le moment qui compte » — schéma Zod des fiches d'activité.
-// Source de vérité : apps/web/src/content/p3-moments/semaine-XX.md
+// Source de vérité : apps/web/src/content/p3-moments/semaine-XX.md (39 fiches cœur),
+// complements.md (compléments « Pour aller plus loin ») et bonus.md (hors séance).
 // Ce schéma valide le JSON généré (apps/web/src/lib/p3-moments/activities.generated.json)
 // et toute future source (CMS, import CSV) avant qu'une fiche n'atteigne l'app.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -63,15 +64,22 @@ export const P3WeekSchema = z.object({
   status: ContentStatusSchema,
 });
 
+export const ProgrammeRoleSchema = z.enum(['coeur', 'complement', 'bonus']);
+
 export const P3ActivitySchema = z
   .object({
-    id: z.string().regex(/^ACT-(0[1-9]|1[0-3])0[1-3]$/),
-    week: z.number().int().min(1).max(13),
-    rank: z.union([z.literal(1), z.literal(2), z.literal(3)]),
-    role: z.enum(['decouvrir', 'pratiquer', 'transferer', 'ancrer']),
-    phase: z.enum(['ANCRER', 'DEVELOPPER', 'INTEGRER']),
+    id: z.string().regex(/^(ACT-(0[1-9]|1[0-3])0[1-9]|BON-\d{2})$/),
+    programme: ProgrammeRoleSchema,
+    week: z.number().int().min(1).max(13).nullable(),
+    rank: z.number().int().min(1).max(99),
+    role: z.enum(['decouvrir', 'pratiquer', 'transferer', 'ancrer', 'bonus']),
+    phase: z.enum(['ANCRER', 'DEVELOPPER', 'INTEGRER']).nullable(),
+    after: z.string().regex(/^ACT-(0[1-9]|1[0-3])0[1-3]$/).nullable(),
+    available_from_week: z.number().int().min(1).max(13).nullable(),
+    participants: z.string().min(3).nullable(),
+    safety: z.string().min(10).nullable(),
     title: z.string().min(2).max(60),
-    subtitle: z.string().regex(/^Séance \d{1,2} · .+/),
+    subtitle: z.string().regex(/^(Séance \d{1,2}|Bonus) · .+/),
     objective: z.string().min(10).max(140),
     durations: z.array(DurationSchema).min(1),
     duration_type: z.enum(['modulaire', 'native']),
@@ -137,6 +145,16 @@ export const P3ActivitySchema = z
     status: ContentStatusSchema,
   })
   .superRefine((a, ctx) => {
+    const issue = (message: string) => ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${a.id} : ${message}` });
+    if (a.programme === 'coeur') {
+      if (!a.id.startsWith('ACT-') || a.week === null || a.rank > 3 || a.after !== null) issue('fiche cœur = ACT-SS01 à 03, avec sa semaine');
+    } else if (a.programme === 'complement') {
+      if (!a.id.startsWith('ACT-') || a.week === null || a.rank < 4) issue('complément = ACT-SS04 et plus, avec sa semaine');
+      if (!a.after || a.after.slice(4, 6) !== a.id.slice(4, 6)) issue('un complément suit une fiche cœur de sa semaine');
+    } else {
+      if (!a.id.startsWith('BON-') || a.week !== null || a.phase !== null || a.role !== 'bonus') issue('bonus = BON-NN, sans semaine');
+      if (a.available_from_week === null) issue('un bonus dit à partir de quelle semaine il est proposé');
+    }
     if (a.steps.length !== a.screen_steps.length || a.steps.length !== a.guide.length) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${a.id} : écrans ≠ étapes` });
     }
@@ -151,11 +169,23 @@ export const P3ActivitySchema = z
     }
   });
 
-export const P3ContentSchema = z.object({
-  version: z.string(),
-  weeks: z.array(P3WeekSchema).length(13),
-  activities: z.array(P3ActivitySchema).length(39),
-});
+export const P3ContentSchema = z
+  .object({
+    version: z.string(),
+    weeks: z.array(P3WeekSchema).length(13),
+    activities: z.array(P3ActivitySchema),
+  })
+  .superRefine((c, ctx) => {
+    const ids = c.activities.map((a) => a.id);
+    if (new Set(ids).size !== ids.length) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'identifiants de fiche en double' });
+    const core = c.activities.filter((a) => a.programme === 'coeur');
+    if (core.length !== 39) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${core.length} fiches cœur (39 attendues)` });
+    for (const a of c.activities) {
+      if (a.after && !core.some((x) => x.id === a.after)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${a.id} : « après » vise une fiche cœur inconnue (${a.after})` });
+      }
+    }
+  });
 
 export type TP3Week = z.infer<typeof P3WeekSchema>;
 export type TP3Activity = z.infer<typeof P3ActivitySchema>;
