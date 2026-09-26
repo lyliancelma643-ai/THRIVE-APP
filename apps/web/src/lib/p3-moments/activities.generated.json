@@ -8441,7 +8441,7 @@
         }
       ],
       "why_it_fails": "Le parent pose la question comme un interrogatoire, puis corrige les réponses (« c'est pas vraiment une qualité, ça »). L'enfant comprend qu'il y a une bonne réponse, et se tait.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0204",
@@ -8654,7 +8654,7 @@
         }
       ],
       "why_it_fails": "Le parent commence par la loupe, puis glisse vers « et là, tu pourrais encore améliorer ça ». L'enfant comprend que la loupe cherchait un défaut, et ne la reprendra plus.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0304",
@@ -8890,7 +8890,7 @@
         }
       ],
       "why_it_fails": "Le parent choisit la peur et le geste (« ce serait bien que tu parles plus en classe »). L'enfant comprend que le jeu est une leçon déguisée, et il joue sans y croire.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0305",
@@ -9094,7 +9094,7 @@
         }
       ],
       "why_it_fails": "Le parent choisit le haut de l'échelle (« ce serait bien que tu arrêtes d'avoir peur du noir »), ou accepte un premier barreau à 6 sur 10. L'enfant échoue dès la première marche, et l'échelle devient la preuve qu'il n'y arrive pas.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0404",
@@ -9317,7 +9317,7 @@
         }
       ],
       "why_it_fails": "Le parent profite du monstre pour donner des conseils (« la prochaine fois, tu lui dis de partir »). Le jeu devient une leçon, et l'enfant arrête de décrire.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0504",
@@ -9529,7 +9529,7 @@
         }
       ],
       "why_it_fails": "Le parent écrit lui-même les phrases de droite, pleines d'enthousiasme (« je suis capable de tout ! »). L'enfant ne s'y reconnaît pas, n'y croit pas, et ne s'en sert jamais.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0604",
@@ -9774,7 +9774,7 @@
         }
       ],
       "why_it_fails": "Le parent présente la posture comme un pouvoir magique (« tu vas voir, tu seras invincible »). Au premier stress réel, ça ne suffit pas, et l'enfant conclut que tous les outils sont bidon.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0704",
@@ -9979,7 +9979,7 @@
         }
       ],
       "why_it_fails": "Le parent transforme le carnet en bulletin (« et les maths, t'as pas eu de victoire en maths ? »). L'enfant comprend que le carnet sert à évaluer, et ne dicte plus que ce qui plaira.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-0804",
@@ -10188,7 +10188,7 @@
         }
       ],
       "why_it_fails": "Un « talent » moqueur passe dans le chapeau (« sait bien faire la tête »), tout le monde rit, et l'enfant visé se ferme. Le jeu devient un jeu de piques.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1004",
@@ -10415,7 +10415,7 @@
         }
       ],
       "why_it_fails": "Le parent choisit un moment de victoire contre les autres (« quand t'as gagné la médaille ») et en fait l'éloge. L'enfant rallume une fierté de comparaison, qui s'effondre au premier défi raté.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1104",
@@ -10624,7 +10624,7 @@
         }
       ],
       "why_it_fails": "Le parent remplit les cartes de compliments (« tu es courageux », « tu es formidable »). L'enfant pioche une phrase qu'il ne croit pas, et la boîte devient un objet qu'on range.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1105",
@@ -10854,7 +10854,7 @@
         }
       ],
       "why_it_fails": "Le parent réagit à la première solution (« on ne frappe pas ! »). L'enfant comprend qu'il y a une bonne réponse attendue, et ne propose plus que ce que le parent veut entendre.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "ACT-1204",
@@ -11070,7 +11070,7 @@
         }
       ],
       "why_it_fails": "Le parent « aide » en reprenant la main (« attends, je vais le faire, ce sera plus rapide ») ou repasse derrière pour corriger. L'enfant comprend que sa mission n'était pas vraiment la sienne, et ne la reprendra pas.",
-      "status": "revu"
+      "status": "publie"
     },
     {
       "id": "BON-01",
@@ -11264,7 +11264,7 @@
         }
       ],
       "why_it_fails": "Le parent remplit le blason avec l'image qu'il voudrait donner de la famille (« nous sommes unis et travailleurs »). L'enfant ne s'y reconnaît pas, et le blason reste un bricolage d'adulte.",
-      "status": "revu"
+      "status": "publie"
     }
   ]
 }

@@ -24,7 +24,7 @@
 **À garder :** phrase — La devise de la famille, et ce qui est dans le blason
 **Origine :** Adapté de « Le blason familial des super-pouvoirs » (Mômes / Parents.fr) · Bonus : la Méthode développe des compétences de l'enfant, une séance à la fois ; le blason travaille le sentiment d'appartenir à une famille qui a une histoire, et ne correspond à aucune des 13 séances. Le rattacher de force affaiblirait la sincérité du lien activité → séance.
 **Sécurité :** La case « une épreuve traversée ensemble » peut réveiller un souvenir douloureux (séparation, deuil, maladie). Choisissez une épreuve déjà apaisée, et laissez chacun passer son tour. Dans une famille recomposée ou séparée, c'est l'enfant qui décide qui fait partie du blason ; il peut aussi y avoir deux blasons.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Les chevaliers avaient un blason, avec leurs forces et leur devise. On fait celui de notre famille ? »

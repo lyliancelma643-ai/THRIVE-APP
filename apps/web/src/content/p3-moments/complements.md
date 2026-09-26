@@ -31,7 +31,7 @@
 **À garder :** forces — Ce que son ami dirait de lui, le bien qu'il a fait, le nom de sa force
 **Origine :** Adapté de « Le questionnaire des forces invisibles » (Cool Parents Make Happy Kids) · Méthode S1 (identification des forces VIA, entretien de bienvenue)
 **Sécurité :** Si la question des amis réveille une souffrance (exclusion, harcèlement, « j'ai pas d'amis »), arrêtez l'activité, écoutez, et ne cherchez pas à le convaincre du contraire. Si c'est répété ou intense, consultez la page « Quand consulter ».
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « J'ai une question que je ne t'ai jamais posée, et je suis vraiment curieux de ta réponse. »
@@ -142,7 +142,7 @@ Le parent pose la question comme un interrogatoire, puis corrige les réponses (
 **À garder :** progres — Ce qu'il a fait pour progresser, et l'effort qu'il travaille ensuite
 **Origine :** Adapté de « La technique de la loupe sur l'effort » (Naître et grandir) · Méthode S2 (objectif de résultat / objectif de processus)
 **Sécurité :** Choisissez des productions dont il est à peu près content. Pas un devoir raté ni une copie annotée en rouge : l'activité n'est pas un bilan scolaire.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « J'ai sorti deux choses que t'as faites. Je veux te montrer un truc que j'ai remarqué. »
@@ -254,7 +254,7 @@ Le parent commence par la loupe, puis glisse vers « et là, tu pourrais encore 
 **À garder :** phrase — Sa phrase « Même si j'ai peur de…, je peux quand même… »
 **Origine :** Adapté de « Le jeu de rôle "Même si j'ai peur" » (Papa Positive !) · Méthode S3 (Action 3, progression maîtrisée du défi ; débriefing de transfert)
 **Sécurité :** Choisissez une peur ordinaire (parler en classe, demander quelque chose, essayer un nouveau sport). Si la peur est envahissante, qu'il l'évite depuis des mois, ou qu'elle s'accompagne de crises (pleurs, maux de ventre avant l'école, refus de sortir), n'utilisez pas l'activité : consultez la page « Quand consulter ».
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « On va jouer une scène qui fait un peu peur. Mais d'abord, on va la jouer complètement ridicule. »
@@ -372,7 +372,7 @@ Le parent choisit la peur et le geste (« ce serait bien que tu parles plus en c
 **À garder :** objectif — Le haut de son échelle, et son premier barreau
 **Origine :** Adapté de « Le défi des petits pas de l'objectif » (Cahier d'activités Grandir Zen) · Méthode S3 (Action 3) · réorienté sur la peur pour ne pas doublonner « La première marche » (l'escalier de l'objectif, semaine 2)
 **Sécurité :** Une peur ordinaire, pas une phobie installée ni une peur liée à un événement grave. Aucune marche ne doit le mettre en danger physique (eau, hauteur, route) sans adulte à côté.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Il y a un truc que t'aimerais oser, mais qui fait trop peur d'un coup ? On va le couper en morceaux. »
@@ -484,7 +484,7 @@ Le parent choisit le haut de l'échelle (« ce serait bien que tu arrêtes d'avo
 **Origine :** Adapté de « Le dessin de "Mon monstre du trac" » (Les cahiers Filliozat) · Méthode S4 (Roue des émotions : peur, nervosité)
 **Visuels :** emotions
 **Sécurité :** Le monstre représente le trac ordinaire (avant un match, un examen, un exposé). Si l'enfant dessine quelque chose de très sombre, parle de peurs de mort, de violence ou d'un adulte qui lui fait peur, arrêtez l'activité, écoutez sans interpréter, et consultez la page « Quand consulter ».
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Tu sais, le stress avant un truc important. Si c'était un monstre, il ressemblerait à quoi ? »
@@ -595,7 +595,7 @@ Le parent profite du monstre pour donner des conseils (« la prochaine fois, tu 
 **À garder :** outil — Sa phrase qui relève, celle qui marche le mieux
 **Origine :** Adapté de « L'affiche des "phrases ressources" » (Papa Positive !) · Méthode S5 (Stratégie 2 — auto-talk positif de recentrage)
 **Sécurité :** Si parmi les phrases qui coulent apparaissent des phrases très dures et répétées (« je devrais pas exister », « je me déteste »), arrêtez l'activité, accueillez sans corriger, et consultez la page « Quand consulter ».
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Quand ça rate, on se dit tous des phrases dans la tête. Je te dis les miennes, tu me dis les tiennes. »
@@ -705,7 +705,7 @@ Le parent écrit lui-même les phrases de droite, pleines d'enthousiasme (« je 
 **À garder :** outil — Sa posture d'avant : son nom, ses étapes, et où il s'en servira
 **Origine :** Adapté de « La posture du super-héros » (Cahier d'activités Grandir Zen) · Méthode S6 (Action 5, relaxation sous pression, respiration contrôlée)
 **Sécurité :** Retenir sa respiration n'est jamais demandé : on allonge l'expiration. Si l'enfant a de l'asthme ou se sent étourdi, il respire normalement et garde seulement la posture.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Avant un truc qui stresse, ton corps peut t'aider. On cherche ensemble comment, trois minutes debout. »
@@ -818,7 +818,7 @@ Le parent présente la posture comme un pouvoir magique (« tu vas voir, tu sera
 **À garder :** progres — Ses victoires de la semaine, dans ses mots, et ce qu'il a fait pour les obtenir
 **Origine :** Adapté de « Le rituel du carnet de réussites » (Cool Parents Make Happy Kids) · Méthode S7 (revue de programme par le jeune, comparaison à soi)
 **Sécurité :** Si la semaine a été vraiment difficile (deuil, conflit, maladie), acceptez une seule victoire minuscule, ou aucune ce soir.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Je suis ton secrétaire ce soir. Tu me dictes tes trois victoires de la semaine, j'écris tout, mot pour mot. »
@@ -928,7 +928,7 @@ Le parent transforme le carnet en bulletin (« et les maths, t'as pas eu de vict
 **Origine :** Adapté de « Le jeu des devinettes de talents » (Mômes / Parents.fr) · Méthode S8 (Action 4, demander de l'aide)
 **Visuels :** carte
 **Sécurité :** Si un membre de la famille risque d'écrire un « talent » moqueur ou blessant, jouez à deux seulement. Relisez tous les papiers avant qu'ils soient lus à voix haute.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « On joue au chapeau des talents. Chacun écrit en secret ce qu'un autre sait vraiment bien faire. »
@@ -1036,7 +1036,7 @@ Un « talent » moqueur passe dans le chapeau (« sait bien faire la tête »), 
 **À garder :** outil — Où il sent sa fierté, et son geste pour la rappeler
 **Origine :** Adapté de « La cartographie corporelle de la fierté » (Les cahiers Filliozat) · Méthode S10 (Action 6b, imagerie mentale : composante émotionnelle)
 **Sécurité :** Les yeux fermés ne sont jamais obligatoires. Si se souvenir d'un moment réussi fait remonter un souvenir triste (une personne disparue, un sport abandonné), accueillez-le, et proposez de choisir un autre moment.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Repense à un moment où t'étais vraiment fier de toi. On va chercher où ça se passe, dans ton corps. »
@@ -1148,7 +1148,7 @@ Le parent choisit un moment de victoire contre les autres (« quand t'as gagné 
 **À garder :** outil — Ses cartes-outils avec leur preuve, et son outil préféré
 **Origine :** Adapté de « Le kit des cartes d'auto-compliment » (Papa Positive !) · Méthode S11 (Carte Ma Boîte à Outils THRIVE, transfert conscient)
 **Visuels :** outils
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « Ta boîte à outils, on va la transformer en jeu de cartes. Chaque matin, tu en piocheras une. »
@@ -1257,7 +1257,7 @@ Le parent remplit les cartes de compliments (« tu es courageux », « tu es for
 **À garder :** outil — Sa situation, sa solution, et l'outil qui l'aide
 **Origine :** Adapté de « L'atelier des situations dilemmes » (Placote — La Montagne de la confiance) · Méthode S11 (débriefing de transfert : quand et comment il utilise ses outils hors du sport)
 **Sécurité :** Les situations proposées sont ordinaires (frustration, gêne, conflit léger). Si l'enfant raconte en réponse une situation réelle grave (harcèlement, violence, danger), arrêtez le jeu, écoutez, et consultez la page « Quand consulter ».
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « J'ai des situations difficiles. Pour chacune, tu cherches deux façons de t'en sortir. Pas de bonne réponse. »
@@ -1372,7 +1372,7 @@ Le parent réagit à la première solution (« on ne frappe pas ! »). L'enfant 
 **À garder :** phrase — Sa mission, son critère de réussite, et ce qu'elle a apporté aux autres
 **Origine :** Adapté de « L'activité de la zone d'autonomie élargie » (Naître et grandir) · Méthode S12 (le jeune dirige un exercice et explique une consigne à une autre personne ; 6ᵉ C du PYD, Contribution)
 **Sécurité :** Aucune mission avec une source de chaleur (four, cuisinière), un outil coupant ou un produit ménager sans que vous teniez vous-même ce geste. Ce sont les seules consignes que vous donnez.
-**Statut :** revu
+**Statut :** publie
 
 ### Ce que vous dites pour commencer
 « J'ai une mission de grand à te confier, pour toute la famille. C'est toi le chef. Moi, je suis ton assistant. »

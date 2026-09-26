@@ -227,8 +227,8 @@ describe('compléments et bonus (contenu 2.1.0)', () => {
     }
   });
 
-  it('statut « revu » : hors production tant que Lylian ne les a pas publiés', () => {
-    for (const a of extras) expect(a.status, a.id).toBe('revu');
+  it('publiées : les 14 fiches sortent en production', () => {
+    for (const a of extras) expect(a.status, a.id).toBe('publie');
   });
 
   it('corrections scientifiques : pas de promesse hormonale, pas d’affirmation générique', () => {
