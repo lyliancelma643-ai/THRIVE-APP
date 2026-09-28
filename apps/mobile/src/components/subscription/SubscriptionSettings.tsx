@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { useEntitlement } from '../../hooks/useEntitlement';
 import { restorePurchases, showNativeSubscriptionManagement } from '../../services/purchases';
-import { ENTITLEMENT_ID, formatDateFr } from '../../services/subscription-logic';
+import { ENTITLEMENT_ID, formatDateFr, isNativeStoreManagementUrl } from '../../services/subscription-logic';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 import { C } from './theme';
 
@@ -32,7 +32,7 @@ export function SubscriptionSettings() {
       await showNativeSubscriptionManagement();
     } catch {
       const info = useSubscriptionStore.getState().customerInfo;
-      if (info?.managementURL) Linking.openURL(info.managementURL);
+      if (isNativeStoreManagementUrl(info?.managementURL, Platform.OS)) Linking.openURL(info!.managementURL!);
     }
   };
 

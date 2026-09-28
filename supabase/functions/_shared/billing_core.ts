@@ -179,3 +179,25 @@ export function appUserIdFromCheckoutSession(session: {
   const found = candidates.find(isUuid);
   return found ? found.toLowerCase() : null;
 }
+
+// ── Historique Stripe du client (filet du checkout) ─────────────────────────
+/** Statuts d'abonnement Stripe encore facturables (accès en cours ou impayé). */
+const STRIPE_BILLABLE = new Set(["trialing", "active", "past_due", "unpaid", "paused"]);
+/** Statuts qui ne prouvent pas qu'un abonnement a réellement existé. */
+const STRIPE_NEVER_STARTED = new Set(["incomplete", "incomplete_expired"]);
+
+/**
+ * Lecture directe chez Stripe, indépendante du miroir RevenueCat :
+ *   • billable        → un abonnement web est encore facturable (refus 409) ;
+ *   • everSubscribed  → le client a déjà eu un abonnement (plus d'essai).
+ */
+export function stripeHistoryVerdict(subs: { status?: string | null }[] | null | undefined): {
+  billable: boolean;
+  everSubscribed: boolean;
+} {
+  const list = subs ?? [];
+  return {
+    billable: list.some((s) => STRIPE_BILLABLE.has(String(s.status))),
+    everSubscribed: list.some((s) => !STRIPE_NEVER_STARTED.has(String(s.status))),
+  };
+}

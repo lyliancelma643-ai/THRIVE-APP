@@ -43,6 +43,25 @@ export function managementMode(
   return 'external';
 }
 
+/**
+ * Repli de « Gérer mon abonnement » : n'ouvre une URL que si c'est la page
+ * d'abonnement du store natif du téléphone. CustomerInfo.managementURL peut
+ * pointer vers le portail Stripe quand le compte a aussi un abonnement web :
+ * l'ouvrir sur mobile serait un lien sortant de paiement (anti-steering).
+ */
+export function isNativeStoreManagementUrl(
+  url: string | null | undefined,
+  platformOS: 'ios' | 'android' | string,
+): boolean {
+  // Pas de `new URL()` : le polyfill React Native n'implémente pas hostname.
+  const m = /^(?:https|itms-apps):\/\/([^/?#:@]+)(?:[/?#]|$)/i.exec(url ?? '');
+  if (!m) return false;
+  const host = m[1].toLowerCase();
+  if (platformOS === 'ios') return host === 'apps.apple.com' || host.endsWith('.apps.apple.com');
+  if (platformOS === 'android') return host === 'play.google.com';
+  return false;
+}
+
 /** « 1 mois », « 2 semaines », « 3 jours », « 1 an » depuis une période ISO 8601 (P1M…). */
 export function isoPeriodFr(iso: string | null | undefined): string | null {
   const m = /^P(\d+)([DWMY])$/.exec(iso ?? '');

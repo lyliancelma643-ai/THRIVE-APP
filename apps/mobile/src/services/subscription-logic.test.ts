@@ -1,6 +1,6 @@
 // Lancer (vitest de l'app web) : cd apps/web && npx vitest run --root ../mobile src/services
 import { describe, expect, it } from 'vitest';
-import { isStaffRole, isoPeriodFr, managementMode, perPeriodFr, formatDateFr } from './subscription-logic';
+import { isNativeStoreManagementUrl, isStaffRole, isoPeriodFr, managementMode, perPeriodFr, formatDateFr } from './subscription-logic';
 
 describe('managementMode — gestion croisée des abonnements', () => {
   it('Apple sur iPhone / Google sur Android → réglages natifs', () => {
@@ -40,5 +40,20 @@ describe('périodes ISO en français', () => {
   it('dates', () => {
     expect(formatDateFr('2026-10-26T12:00:00Z')).toBe('26 octobre 2026');
     expect(formatDateFr(null)).toBe('');
+  });
+});
+
+describe('isNativeStoreManagementUrl — jamais de lien sortant de paiement', () => {
+  it('accepte la page d’abonnement du store du téléphone', () => {
+    expect(isNativeStoreManagementUrl('https://apps.apple.com/account/subscriptions', 'ios')).toBe(true);
+    expect(isNativeStoreManagementUrl('https://play.google.com/store/account/subscriptions?sku=x', 'android')).toBe(true);
+  });
+  it('refuse le portail Stripe, un autre store ou une URL invalide', () => {
+    expect(isNativeStoreManagementUrl('https://billing.stripe.com/p/login/abc', 'ios')).toBe(false);
+    expect(isNativeStoreManagementUrl('https://play.google.com/store/account/subscriptions', 'ios')).toBe(false);
+    expect(isNativeStoreManagementUrl('https://apps.apple.com.evil.example/x', 'ios')).toBe(false);
+    expect(isNativeStoreManagementUrl('http://apps.apple.com/account/subscriptions', 'ios')).toBe(false);
+    expect(isNativeStoreManagementUrl(null, 'android')).toBe(false);
+    expect(isNativeStoreManagementUrl('pas une url', 'android')).toBe(false);
   });
 });

@@ -49,16 +49,32 @@ dessus (`private.parent_p3_access`).
 
 | Secret | Où le trouver |
 |---|---|
-| `STRIPE_SECRET_KEY` | Stripe › Développeurs › Clés API (clé restreinte conseillée : Checkout, Customers, Prices, Billing Portal, Subscriptions en écriture/lecture) |
+| `STRIPE_SECRET_KEY` | Stripe › Développeurs › Clés API — clé **restreinte** `rk_live_…` : Checkout Sessions (écriture, pour créer et expirer les sessions), Customers (écriture), Prices et Products (lecture), Customer portal (écriture), Subscriptions (écriture : annulation à la suppression d'un compte) |
 | `STRIPE_WEBHOOK_SECRET` | Stripe › Développeurs › Webhooks › endpoint `stripe-webhook` › Clé de signature |
 | `REVENUECAT_SECRET_API_KEY` | RevenueCat › Project settings › API keys › clé secrète **v1** (`sk_…`) |
-| `REVENUECAT_STRIPE_PUBLIC_KEY` | RevenueCat › app « THRIVE Web (Stripe) » › clé publique (`strp_…`) |
+| `REVENUECAT_STRIPE_PUBLIC_KEY` | RevenueCat › app « THRIVE Web (Stripe) » › clé publique (`strp_…` en prod ; `strp_sb_…` seulement sur une préproduction branchée au Sandbox Stripe) |
 | `REVENUECAT_WEBHOOK_AUTH` | Valeur aléatoire choisie par vous, recopiée dans RevenueCat › Integrations › Webhooks › Authorization header |
 | `APP_ORIGINS` | `https://app.thrivesportpositive.com` (+ `http://localhost:3001` en dev) |
 
 Mobile (`.env`, clés **publiques**) : `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` (`appl_…`),
 `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID` (`goog_…`), `EXPO_PUBLIC_TERMS_URL`,
 `EXPO_PUBLIC_PRIVACY_URL`.
+
+## Garde-fous serveur
+
+- **Checkout** (`create-checkout-session`) : refus 409 si un abonnement est actif
+  (miroir RevenueCat **et** historique Stripe du client, relu en direct) ; pas
+  d'essai si le client Stripe a déjà eu un abonnement ; les sessions Checkout
+  encore ouvertes du compte sont expirées avant d'en créer une nouvelle (deux
+  onglets ne peuvent pas créer deux abonnements).
+- **Droits** : `authenticated` n'a que `SELECT` sur `billing_subscriptions`
+  (migration 065) ; la RLS limite à sa propre ligne.
+- **Suppression de compte** (`admin-delete-user`) : l'abonnement Stripe est annulé
+  et l'abonné RevenueCat supprimé avant la suppression ; si Stripe refuse, le
+  compte n'est pas supprimé. Un abonnement App Store / Google Play est signalé à
+  l'admin (le parent l'annule depuis son téléphone). Le client Stripe est conservé
+  pour les factures (obligations comptables) ; ses données personnelles se
+  limitent à courriel, nom et adresse de facturation.
 
 ## Règles stores (à ne jamais casser)
 
@@ -67,7 +83,9 @@ Mobile (`.env`, clés **publiques**) : `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` (`ap
   avec un message neutre, sans lien.
 - **Restaurer les achats** : sur le paywall et dans les paramètres (`Purchases.restorePurchases()`).
 - **Gérer mon abonnement** : uniquement si l'achat vient du store de ce téléphone
-  (`Purchases.showManageSubscriptions()`).
+  (`Purchases.showManageSubscriptions()`). Le repli sur `managementURL` n'ouvre
+  qu'une page `apps.apple.com` (iOS) ou `play.google.com` (Android), jamais le
+  portail Stripe (`isNativeStoreManagementUrl`).
 - Paywall : prix, période, essai, renouvellement automatique, conditions et
   politique de confidentialité visibles (exigences Apple 3.1.2).
 

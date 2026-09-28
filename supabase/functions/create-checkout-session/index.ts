@@ -7,7 +7,11 @@
 //   • Essai gratuit de TRIAL_DAYS jours, une seule fois par compte ; la carte est
 //     toujours demandée (payment_method_collection=always).
 //   • Refus si un abonnement est déjà actif, quelle que soit la plateforme
-//     (évite le double prélèvement web + App Store).
+//     (évite le double prélèvement web + App Store). Filet indépendant du
+//     miroir RevenueCat : l'historique Stripe du client est relu (abonnement
+//     encore facturable → 409 ; abonnement passé → plus d'essai).
+//   • Une seule session de paiement ouverte par compte : les précédentes sont
+//     expirées (deux onglets ne peuvent pas créer deux abonnements).
 //   • Client Stripe unique par compte, réutilisé (portail client, cartes).
 //   • success_url / cancel_url ramènent sur /parent/abonnement (origine filtrée).
 //
@@ -22,6 +26,7 @@ import {
   parseOrigins,
   PLAN_LOOKUP_KEYS,
   resolveReturnOrigin,
+  stripeHistoryVerdict,
   TRIAL_DAYS,
 } from "../_shared/billing_core.ts";
 
@@ -81,7 +86,28 @@ Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
       body?.origin ?? req.headers.get("origin"),
       parseOrigins(env("APP_ORIGINS")),
     );
-    const trialEligible = row?.ever_subscribed !== true;
+    let trialEligible = row?.ever_subscribed !== true;
+
+    // Filet Stripe (si RevenueCat a manqué un événement) + sessions ouvertes.
+    if (row?.stripe_customer_id) {
+      const history = await stripe<{ data: { status: string }[] }>("GET", "/subscriptions", {
+        customer: customerId,
+        status: "all",
+        limit: 100,
+      });
+      const verdict = stripeHistoryVerdict(history.data);
+      if (verdict.billable) return fail("already_subscribed", "Votre abonnement est déjà actif", 409);
+      if (verdict.everSubscribed) trialEligible = false;
+
+      const open = await stripe<{ data: { id: string }[] }>("GET", "/checkout/sessions", {
+        customer: customerId,
+        status: "open",
+        limit: 100,
+      });
+      for (const s of open.data) {
+        await stripe("POST", `/checkout/sessions/${s.id}/expire`);
+      }
+    }
 
     const session = await stripe<{ id: string; url: string }>("POST", "/checkout/sessions", {
       mode: "subscription",

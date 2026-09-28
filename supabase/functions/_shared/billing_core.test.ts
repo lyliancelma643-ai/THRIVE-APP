@@ -11,6 +11,7 @@ import {
   parseOrigins,
   resolveReturnOrigin,
   RC_ENTITLEMENT,
+  stripeHistoryVerdict,
 } from "./billing_core.ts";
 
 const UID = "3f2b6a1e-8c4d-4e5f-9a0b-1c2d3e4f5a6b";
@@ -117,4 +118,16 @@ Deno.test("comparaison à temps constant", () => {
   assertEquals(constantTimeEqual("abc", "abc"), true);
   assertEquals(constantTimeEqual("abc", "abd"), false);
   assertEquals(constantTimeEqual("abc", "ab"), false);
+});
+
+Deno.test("stripeHistoryVerdict : essai unique et refus du double abonnement", () => {
+  assertEquals(stripeHistoryVerdict([]), { billable: false, everSubscribed: false });
+  assertEquals(stripeHistoryVerdict(null), { billable: false, everSubscribed: false });
+  // Checkout abandonné : ni facturable, ni « déjà abonné ».
+  assertEquals(stripeHistoryVerdict([{ status: "incomplete_expired" }]), { billable: false, everSubscribed: false });
+  // Ancien abonnement annulé : plus d'essai, mais nouveau checkout permis.
+  assertEquals(stripeHistoryVerdict([{ status: "canceled" }]), { billable: false, everSubscribed: true });
+  for (const status of ["trialing", "active", "past_due", "unpaid", "paused"]) {
+    assertEquals(stripeHistoryVerdict([{ status }]), { billable: true, everSubscribed: true });
+  }
 });
