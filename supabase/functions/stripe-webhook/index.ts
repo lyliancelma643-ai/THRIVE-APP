@@ -6,8 +6,9 @@
 //     RevenueCat pour l'App User ID porté par la session (client_reference_id),
 //     mémorise le client Stripe, puis resynchronise le miroir.
 //   • customer.subscription.created / updated / deleted, invoice.paid,
-//     invoice.payment_failed : resynchronisation depuis RevenueCat (l'état fait
-//     foi chez RevenueCat, jamais ici).
+//     invoice.payment_failed : l'abonnement est redéclaré à RevenueCat (qui
+//     relit Stripe) puis le miroir est resynchronisé (l'état fait foi chez
+//     RevenueCat, jamais ici).
 //
 // Toujours 200 une fois la signature validée (sauf erreur interne) : Stripe
 // ne réessaie que sur 5xx, et chaque traitement est idempotent.
@@ -78,10 +79,14 @@ Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
       }
       if (!appUserId) return json({ received: true, ignored: "no_app_user_id" });
 
-      // Filet : la première notification d'abonnement déclare aussi l'achat à RC.
-      if (event.type === "customer.subscription.created" && typeof object.id === "string") {
-        await rcPostStripeReceipt(appUserId, object.id);
-      }
+      // On (re)déclare l'abonnement à RevenueCat à chaque événement : RC relit
+      // alors l'état chez Stripe (renouvellement, annulation, impayé, fin
+      // d'essai…) même si son propre webhook Stripe n'est pas configuré.
+      const subscriptionId: string | null = INVOICE_EVENTS.has(event.type)
+        ? (typeof object.subscription === "string" ? object.subscription : null) ??
+          object?.parent?.subscription_details?.subscription ?? null
+        : typeof object.id === "string" ? object.id : null;
+      if (subscriptionId) await rcPostStripeReceipt(appUserId, subscriptionId);
       await syncFromRevenueCat(admin, appUserId);
       return json({ received: true });
     }
