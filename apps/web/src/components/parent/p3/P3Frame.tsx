@@ -4,7 +4,9 @@
 // Cadre commun des écrans P3 « Maison » (l'onglet qui remplace Fitness).
 //
 //   1. Garde d'accès : flag serveur `p3_enabled` (app_settings, migration 062)
-//      + compte activé — la même condition que la RLS des tables p3_*.
+//      + accès P3 (compte activé par le coach OU abonnement P3, migration 064)
+//      — la même condition que la RLS des tables p3_*. Sans accès : invitation
+//      à s'abonner (P3Paywall).
 //      Indépendant de `fitness_enabled`, qui ne garde plus que les séances vidéo
 //      (/parent/fitness/seances).
 //   2. Enfant sélectionné (store) et âge : moins de 8 ans → message neutre (R6).
@@ -18,11 +20,12 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAccessStore } from '@/lib/access';
 import { useChildStore } from '@/stores/child.store';
 import { useAuthStore } from '@/stores/auth.store';
-import { FitnessConstructionNotice, LockedBanner } from '@/components/parent/AccessGate';
+import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
 import { PARENT_ONLY_PREFIX, useP3Moments, type P3Data } from '@/hooks/useP3Moments';
 import type { AgeBand } from '@/lib/p3-moments';
 import type { ChildProfile } from '@/lib/catalog';
 import { P3Skeleton } from './pieces';
+import { P3Paywall } from './P3Paywall';
 
 export type P3Ctx = {
   child: ChildProfile;
@@ -128,7 +131,7 @@ export function P3Frame({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
 
   if (isLoading || !access || p3Enabled === null) return <P3Skeleton />;
   if (!p3Enabled) return <FitnessConstructionNotice />;
-  if (!access.unlocked) return <LockedBanner />;
+  if (!access.p3Access) return <P3Paywall />;
   return <P3Inner>{children}</P3Inner>;
 }
 

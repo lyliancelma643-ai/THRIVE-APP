@@ -20,6 +20,10 @@ export type AccessState = {
   hasConfirmedChild: boolean;
   coachValidated: boolean;
   fitnessEnabled: boolean;
+  /** Abonnement P3 actif (le sien ou celui du titulaire de la famille). */
+  p3Subscribed: boolean;
+  /** Accès à « Maison » : compte activé par le coach OU abonné P3 (migration 064). */
+  p3Access: boolean;
 };
 
 const OPEN_FALLBACK: AccessState = {
@@ -29,6 +33,8 @@ const OPEN_FALLBACK: AccessState = {
   hasConfirmedChild: true,
   coachValidated: true,
   fitnessEnabled: true,
+  p3Subscribed: false,
+  p3Access: true,
 };
 
 type AccessStore = {
@@ -59,6 +65,9 @@ export const useAccessStore = create<AccessStore>((set) => ({
         hasConfirmedChild: d.has_confirmed_child === true,
         coachValidated: d.coach_validated === true,
         fitnessEnabled: d.fitness_enabled === true,
+        p3Subscribed: d.p3_subscribed === true,
+        // Avant la migration 064 la clé n'existe pas : on retombe sur `unlocked`.
+        p3Access: typeof d.p3_access === 'boolean' ? d.p3_access : d.unlocked === true,
       },
       isLoading: false,
     });

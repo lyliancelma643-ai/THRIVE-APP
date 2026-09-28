@@ -1,7 +1,7 @@
 // Tests Deno du webhook Stripe — cœur sécurité : vérification de signature.
 // Lancer : deno test supabase/functions/stripe-webhook/verify.test.ts
 import { assertEquals } from "jsr:@std/assert@1";
-import { isValidPlanCode, verifyStripeSignature } from "./verify.ts";
+import { verifyStripeSignature } from "./verify.ts";
 
 const SECRET = "whsec_test_secret";
 const encoder = new TextEncoder();
@@ -54,13 +54,4 @@ Deno.test("header vide / malformé → false", async () => {
   assertEquals(await verifyStripeSignature("{}", "", SECRET, clock), false);
   assertEquals(await verifyStripeSignature("{}", "garbage", SECRET, clock), false);
   assertEquals(await verifyStripeSignature("{}", "t=123", SECRET, clock), false); // pas de v1
-});
-
-Deno.test("plan_code : whitelist stricte", () => {
-  for (const ok of ["ESSENTIEL", "AVANCE", "PERFORMANCE"]) {
-    assertEquals(isValidPlanCode(ok), true);
-  }
-  for (const ko of ["essentiel", "GRATUIT", "", null, undefined, 42]) {
-    assertEquals(isValidPlanCode(ko), false);
-  }
 });

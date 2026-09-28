@@ -1,7 +1,6 @@
 'use client';
 
-import { useState } from 'react';
-import { supabaseClient as supabase } from '@thrive/shared';
+import Link from 'next/link';
 import { useChildStore } from '@/stores/child.store';
 import { usePlan } from '@/lib/entitlements';
 import {
@@ -17,9 +16,9 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 // Page forfaits — tableau comparatif des 3 packs (matrice packs.ts, copie
 // conforme de la table `plans`). Chaque palier reprend tout le précédent.
-// Achat : Stripe Checkout via l'edge function create-checkout-session ; le
-// webhook écrit l'entitlement qui synchronise families.pack (seul chemin
-// autorisé). Repli gracieux tant que Stripe n'est pas configuré.
+// Pas d'achat en ligne pour ces parcours coachés : le changement de forfait se
+// fait avec le coach (paiement hors app). Le seul paiement en ligne de l'app est
+// l'abonnement P3 « Le moment qui compte » (/parent/abonnement).
 // ─────────────────────────────────────────────────────────────────────────────
 
 type RowValue = boolean | string;
@@ -81,42 +80,7 @@ function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
 export default function UpgradePage() {
   const { selectedChildId } = useChildStore();
   const { pack: currentPack, isLoading } = usePlan(selectedChildId);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [pendingPack, setPendingPack] = useState<Pack | null>(null);
-
   const currentIdx = PACK_ORDER.indexOf(currentPack);
-
-  const checkout = async (target: Pack) => {
-    setNotice(null);
-    setPendingPack(target);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/create-checkout-session`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`,
-          },
-          body: JSON.stringify({ plan_code: target, origin: window.location.origin }),
-        }
-      );
-      const data = await res.json().catch(() => ({}));
-      if (res.ok && data?.url) {
-        window.location.href = data.url;
-        return;
-      }
-      throw new Error(data?.message ?? 'checkout_indisponible');
-    } catch {
-      setNotice(
-        'Le paiement en ligne arrive très bientôt. En attendant, contactez votre coach THRIVE pour changer de forfait — le changement est immédiat.'
-      );
-    } finally {
-      setPendingPack(null);
-    }
-  };
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -125,15 +89,6 @@ export default function UpgradePage() {
         Chaque forfait reprend tout le précédent et va plus loin — plus de profondeur, plus de
         suivi, plus d&apos;accès à votre coach. Paiement unique pour le parcours de 13 séances.
       </p>
-
-      {notice && (
-        <div className="mb-6 flex items-start gap-2.5 rounded-lg border border-sun/30 bg-sun/[0.08] px-4 py-3">
-          <span className="text-accent-ink mt-0.5 select-none" aria-hidden>
-            ✦
-          </span>
-          <p className="text-sm leading-relaxed text-body">{notice}</p>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {PACK_ORDER.map((p) => {
@@ -190,13 +145,12 @@ export default function UpgradePage() {
                     Forfait actuel
                   </span>
                 ) : isUpgrade ? (
-                  <button
-                    onClick={() => checkout(p)}
-                    disabled={pendingPack !== null}
-                    className="block w-full text-center px-6 py-3 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 disabled:opacity-50 disabled:cursor-wait transition-all"
+                  <Link
+                    href="/parent/messages"
+                    className="block w-full text-center px-6 py-3 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all"
                   >
-                    {pendingPack === p ? 'Redirection…' : `Passer au pack ${PACK_LABELS[p]}`}
-                  </button>
+                    {`Passer au pack ${PACK_LABELS[p]} avec mon coach`}
+                  </Link>
                 ) : (
                   <span className="block w-full text-center px-6 py-3 rounded-full border border-line text-sm font-medium text-faint select-none">
                     Inclus dans votre forfait
