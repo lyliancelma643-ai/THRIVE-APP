@@ -252,6 +252,13 @@ export default function AdminUsersPage() {
       if (!res.ok) throw new Error(out.error ?? 'Erreur inattendue');
       setDeleteTarget(null);
       setDeleteConfirm('');
+      // Un abonnement App Store / Google Play ne s'annule pas côté serveur.
+      if (out.storeSubscription) {
+        const where = out.storeSubscription === 'app_store' ? "les réglages de l'iPhone" : 'Google Play';
+        flash('err', `Compte supprimé. Son abonnement reste à annuler par la personne depuis ${where}.`);
+      } else if (out.canceledStripeSubscriptions?.length) {
+        flash('ok', 'Compte supprimé et abonnement web annulé ✓');
+      }
       await load();
     } catch (e) {
       setDeleteError(e instanceof Error ? e.message : 'Erreur inattendue');
