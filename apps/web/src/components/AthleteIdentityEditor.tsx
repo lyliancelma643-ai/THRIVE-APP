@@ -265,7 +265,7 @@ export function AthleteIdentityEditor({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-navy-100 bg-white p-4 sm:p-5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">{title}</h4>
+      <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">{title}</h4>
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -351,7 +351,7 @@ function StringList({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer"
-              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -403,7 +403,7 @@ function Toolbox({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer l'outil"
-              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>

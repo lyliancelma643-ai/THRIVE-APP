@@ -137,7 +137,7 @@ export default function AdminValidationsPage() {
               </span>
             </div>
             {pendingChildren.length === 0 ? (
-              <p className="text-sm text-slate-400">Aucune fiche en attente. ✨</p>
+              <p className="text-sm text-slate-500">Aucune fiche en attente. ✨</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {pendingChildren.map((c) => (
@@ -179,7 +179,7 @@ export default function AdminValidationsPage() {
               </span>
             </div>
             {pendingParents.length === 0 ? (
-              <p className="text-sm text-slate-400">Tous les parents actifs sont validés. ✨</p>
+              <p className="text-sm text-slate-500">Tous les parents actifs sont validés. ✨</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {pendingParents.map((p) => (

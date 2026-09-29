@@ -141,7 +141,7 @@ export default function AdminContentPage() {
         <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-sm">
+            <tr className="text-left text-gray-500 text-sm">
               <th className="px-6 py-4">Titre</th>
               <th className="px-6 py-4">Type</th>
               <th className="px-6 py-4">Groupe</th>
@@ -152,9 +152,9 @@ export default function AdminContentPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Chargement...</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Chargement...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-400">Aucune ressource.</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Aucune ressource.</td></tr>
             ) : (
               items.map((item) => (
                 <tr key={item.id} className="border-t hover:bg-gray-50">
@@ -164,7 +164,7 @@ export default function AdminContentPage() {
                   <td className="px-6 py-4">
                     <span className="bg-gray-100 rounded-full px-3 py-1 text-xs">{item.type}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-400 text-sm">{item.age_group ?? 'Tous'}</td>
+                  <td className="px-6 py-4 text-gray-500 text-sm">{item.age_group ?? 'Tous'}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
                       {(item.tags ?? []).slice(0, 3).map((tag, i) => (

@@ -101,7 +101,7 @@ export default function AdminReglagesPage() {
               <div>
                 <p className="font-bold text-navy-900">{meta.title}</p>
                 <p className="text-sm text-slate-500 mt-1 leading-relaxed">{meta.description}</p>
-                <p className="text-xs text-slate-400 mt-2">
+                <p className="text-xs text-slate-500 mt-2">
                   Dernière modification : {new Date(s.updated_at).toLocaleString('fr-CA')}
                 </p>
               </div>

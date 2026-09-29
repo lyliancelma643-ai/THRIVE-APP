@@ -275,7 +275,7 @@ export default function AdminCoachesPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Coach</th>
               <th className="px-6 py-4 hidden md:table-cell">Email</th>
               <th className="px-6 py-4 hidden lg:table-cell">Spécialité</th>
@@ -329,7 +329,7 @@ export default function AdminCoachesPage() {
                           {coach.first_name} {coach.last_name}
                         </p>
                         {getPhone(coach) && (
-                          <p className="text-xs text-gray-400">{getPhone(coach)}</p>
+                          <p className="text-xs text-gray-500">{getPhone(coach)}</p>
                         )}
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export default function AdminCoachesPage() {
                         {coach.speciality}
                       </span>
                     ) : (
-                      <span className="text-gray-300 text-xs">—</span>
+                      <span className="text-gray-500 text-xs">—</span>
                     )}
                   </td>
                   {/* Stats */}
@@ -355,7 +355,7 @@ export default function AdminCoachesPage() {
                     </div>
                   </td>
                   {/* Date */}
-                  <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
+                  <td className="px-6 py-4 text-gray-500 text-sm hidden md:table-cell">
                     {new Date(coach.created_at).toLocaleDateString('fr-CA')}
                   </td>
                   {/* Statut */}
@@ -403,7 +403,7 @@ export default function AdminCoachesPage() {
               </div>
               <button
                 onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
-                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl transition-colors"
+                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-500 hover:text-gray-700 text-xl transition-colors"
                 aria-label="Fermer"
               >
                 ×
@@ -456,7 +456,7 @@ export default function AdminCoachesPage() {
               {/* Téléphone */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Téléphone <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Téléphone <span className="text-gray-500 font-normal text-xs">(optionnel)</span>
                 </label>
                 <input
                   type="tel"
@@ -470,7 +470,7 @@ export default function AdminCoachesPage() {
               {/* Spécialité */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Spécialité <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Spécialité <span className="text-gray-500 font-normal text-xs">(optionnel)</span>
                 </label>
                 <input
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
@@ -483,7 +483,7 @@ export default function AdminCoachesPage() {
               {/* Bio */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Bio <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Bio <span className="text-gray-500 font-normal text-xs">(optionnel)</span>
                 </label>
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 resize-none"
@@ -496,7 +496,7 @@ export default function AdminCoachesPage() {
 
               {/* Mot de passe */}
               <div className="pt-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Accès</p>
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Accès</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700 block mb-1.5">
@@ -513,7 +513,7 @@ export default function AdminCoachesPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-600 text-xs"
                       >
                         {showPassword ? 'Masquer' : 'Voir'}
                       </button>
@@ -548,7 +548,7 @@ export default function AdminCoachesPage() {
                         }`}
                       />
                     ))}
-                    <span className="text-xs text-gray-400 ml-1 w-10">{STRENGTH_LABELS[strength]}</span>
+                    <span className="text-xs text-gray-500 ml-1 w-10">{STRENGTH_LABELS[strength]}</span>
                   </div>
                 )}
               </div>

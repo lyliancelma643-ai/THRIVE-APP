@@ -155,7 +155,7 @@ export default function AdminDashboardPage() {
       <div className="mb-10 flex items-start justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl md:text-4xl font-semibold text-navy-900 tracking-tight mb-2">Dashboard</h1>
-          <p className="text-navy-600/70 font-medium">Vue globale de la plateforme THRIVE — mise à jour en temps réel</p>
+          <p className="text-navy-600/80 font-medium">Vue globale de la plateforme THRIVE — mise à jour en temps réel</p>
         </div>
         {/* Indicateur Realtime */}
         <div className="flex items-center gap-2 text-sm text-navy-700 font-semibold bg-sage-light px-4 py-2 rounded-full shrink-0">
@@ -175,7 +175,7 @@ export default function AdminDashboardPage() {
                 <Icon name={card.icon} className="w-6 h-6" />
               </div>
               <p className="font-display text-3xl md:text-4xl font-semibold text-navy-900 tracking-tight mb-1">{card.value}</p>
-              <p className="text-navy-600/70 font-medium text-sm">{card.label}</p>
+              <p className="text-navy-600/80 font-medium text-sm">{card.label}</p>
             </div>
           </Link>
         ))}
@@ -192,7 +192,7 @@ export default function AdminDashboardPage() {
 
         {stats.recentSignups.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-navy-600/50 font-medium">Aucune inscription pour le moment.</p>
+            <p className="text-navy-600/80 font-medium">Aucune inscription pour le moment.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">

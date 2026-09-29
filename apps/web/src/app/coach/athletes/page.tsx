@@ -22,7 +22,7 @@ export default function CoachAthletesPage() {
   return (
     <div className="max-w-4xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Mes athlètes</h1>
-      <p className="text-navy-600/70 mb-8">
+      <p className="text-navy-600/80 mb-8">
         Les enfants que l&apos;administrateur vous a confiés.
       </p>
 
@@ -35,7 +35,7 @@ export default function CoachAthletesPage() {
           ))}
         </div>
       ) : children.length === 0 ? (
-        <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
+        <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
           Aucun athlète assigné pour l&apos;instant.
         </p>
       ) : (
@@ -53,11 +53,11 @@ export default function CoachAthletesPage() {
                 <span className="block font-semibold text-navy-900">
                   {c.first_name} {c.last_name ?? ''}
                 </span>
-                <span className="block text-xs text-navy-600/60">
+                <span className="block text-xs text-navy-600/80">
                   {childAge(c.date_of_birth) ?? '–'} ans · {c.sport ?? 'Hockey'}
                 </span>
               </span>
-              <span className="text-xs text-navy-400">Programme & bilans →</span>
+              <span className="text-xs text-navy-500">Programme & bilans →</span>
             </Link>
           ))}
         </div>

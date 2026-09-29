@@ -74,7 +74,7 @@ export default function CoachDashboardPage() {
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-1">
         Bonjour {user?.firstName} 👋
       </h1>
-      <p className="text-navy-600/70 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
+      <p className="text-navy-600/80 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
 
       <IncompleteBanner href="/coach/dossiers" />
 
@@ -101,7 +101,7 @@ export default function CoachDashboardPage() {
         {loading ? (
           <div className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
         ) : upcoming.length === 0 ? (
-          <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
+          <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
             Aucune séance planifiée. Ouvrez la fiche d&apos;un athlète pour planifier son programme.
           </p>
         ) : (
@@ -119,7 +119,7 @@ export default function CoachDashboardPage() {
                   <span className="block font-semibold text-navy-900 truncate">
                     {s.childName} — {s.title}
                   </span>
-                  <span className="block text-xs text-navy-600/60">
+                  <span className="block text-xs text-navy-600/80">
                     {s.scheduled_at &&
                       new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                         weekday: 'long', day: 'numeric', month: 'long',
@@ -127,7 +127,7 @@ export default function CoachDashboardPage() {
                       })}
                   </span>
                 </span>
-                <span className="text-xs text-navy-400">Ouvrir →</span>
+                <span className="text-xs text-navy-500">Ouvrir →</span>
               </Link>
             ))}
           </div>
@@ -143,7 +143,7 @@ export default function CoachDashboardPage() {
           </Link>
         </div>
         {children.length === 0 && !loading ? (
-          <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
+          <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
             Aucun athlète assigné pour l&apos;instant. L&apos;administrateur vous attribuera vos
             athlètes depuis son tableau de bord.
           </p>
@@ -161,7 +161,7 @@ export default function CoachDashboardPage() {
                   </span>
                   <span>
                     <span className="block font-semibold text-navy-900">{c.first_name}</span>
-                    <span className="block text-xs text-navy-600/60">
+                    <span className="block text-xs text-navy-600/80">
                       {childAge(c.date_of_birth) ?? '–'} ans · {c.sport ?? 'Hockey'}
                     </span>
                   </span>

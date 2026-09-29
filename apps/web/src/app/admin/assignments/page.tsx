@@ -124,13 +124,13 @@ export default function AdminAssignmentsPage() {
           ))}
         </div>
       ) : children.length === 0 ? (
-        <p className="text-gray-400">Aucun enfant enregistré pour l&apos;instant.</p>
+        <p className="text-gray-500">Aucun enfant enregistré pour l&apos;instant.</p>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-gray-500 border-b border-gray-100">
                 <th className="px-5 py-3 font-medium">Enfant</th>
                 <th className="px-5 py-3 font-medium">Âge</th>
                 <th className="px-5 py-3 font-medium">Coach assigné</th>

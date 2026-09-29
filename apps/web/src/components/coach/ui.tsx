@@ -21,7 +21,7 @@ export function SectionCard({
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h4 className="text-sm font-bold text-navy-900">{title}</h4>
-          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-600 mt-0.5">{subtitle}</p>}
         </div>
         {right}
       </div>
@@ -45,13 +45,13 @@ export function TextInput({
 }) {
   return (
     <label className="block">
-      {label && <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>}
+      {label && <span className="block text-xs font-semibold text-navy-700 mb-1">{label}</span>}
       <input
         type={type}
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
+        className="w-full min-h-[44px] border border-navy-100 rounded-field px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
       />
     </label>
   );
@@ -72,13 +72,13 @@ export function TextArea({
 }) {
   return (
     <label className="block">
-      {label && <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>}
+      {label && <span className="block text-xs font-semibold text-navy-700 mb-1">{label}</span>}
       <textarea
         value={value}
         placeholder={placeholder}
         onChange={(e) => onChange(e.target.value)}
         rows={rows}
-        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20 resize-y"
+        className="w-full min-h-[44px] border border-navy-100 rounded-field px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20 resize-y"
       />
     </label>
   );
@@ -97,11 +97,11 @@ export function Select({
 }) {
   return (
     <label className="block">
-      {label && <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>}
+      {label && <span className="block text-xs font-semibold text-navy-700 mb-1">{label}</span>}
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border border-navy-100 rounded-field px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
+        className="w-full min-h-[44px] border border-navy-100 rounded-field px-3 py-2 text-sm bg-white transition-colors focus:outline-none focus:border-navy-400 focus:ring-2 focus:ring-navy-600/20"
       >
         {options.map((o) => (
           <option key={o.value} value={o.value}>
@@ -137,7 +137,7 @@ export function Btn({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`px-4 py-2 min-h-[40px] rounded-full text-sm font-bold disabled:opacity-50 transition-colors cursor-pointer ${cls}`}
+      className={`inline-flex items-center justify-center px-4 py-2 min-h-[44px] rounded-full text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-fast cursor-pointer ${cls}`}
     >
       {children}
     </button>

@@ -101,8 +101,8 @@ export function LsssPanel({ childId }: { childId: string }) {
                 ) : q?.status === 'COMPLETED' ? (
                   <div>
                     <span className="text-2xl font-bold text-emerald-600">{score ?? '✓'}</span>
-                    {score != null && <span className="text-sm text-gray-400"> /100</span>}
-                    <p className="text-[11px] text-gray-400">
+                    {score != null && <span className="text-sm text-gray-500"> /100</span>}
+                    <p className="text-[11px] text-gray-500">
                       Complété le {q.completed_at && new Date(q.completed_at).toLocaleDateString('fr-CA')}
                     </p>
                   </div>
@@ -111,7 +111,7 @@ export function LsssPanel({ childId }: { childId: string }) {
                     En attente de l&apos;enfant
                   </span>
                 ) : (
-                  <span className="text-xs text-gray-400">Non envoyé</span>
+                  <span className="text-xs text-gray-500">Non envoyé</span>
                 )}
               </div>
               {q ? (
@@ -150,7 +150,7 @@ export function LsssPanel({ childId }: { childId: string }) {
           );
         })}
       </div>
-      <p className="text-[11px] text-gray-400">
+      <p className="text-[11px] text-gray-500">
         Le questionnaire est répondu par l&apos;enfant. Une notification est envoyée au parent avec le
         lien. Les résultats alimentent automatiquement la progression des compétences de vie du bilan.
       </p>

@@ -220,7 +220,7 @@ export default function AdminNotificationsPage() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <p className="text-gray-400 p-6">Chargement...</p>
+          <p className="text-gray-500 p-6">Chargement...</p>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-3xl mb-3">🔔</p>
@@ -254,7 +254,7 @@ export default function AdminNotificationsPage() {
                     <p className="text-sm font-medium">
                       {n.profile ? `${n.profile.first_name} ${n.profile.last_name}` : n.user_id.slice(0, 8)}
                     </p>
-                    {n.profile && <p className="text-xs text-gray-400">{n.profile.role}</p>}
+                    {n.profile && <p className="text-xs text-gray-500">{n.profile.role}</p>}
                   </td>
                   <td className="px-6 py-4 max-w-xs">
                     <p className="text-sm font-medium">{n.title}</p>
@@ -267,7 +267,7 @@ export default function AdminNotificationsPage() {
                       {n.is_read ? '✓ Lue' : '● Non lue'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-gray-400">
+                  <td className="px-6 py-4 text-xs text-gray-500">
                     {new Date(n.created_at).toLocaleString('fr-CA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
                   </td>
                 </tr>

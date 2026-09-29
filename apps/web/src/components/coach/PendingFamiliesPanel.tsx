@@ -66,7 +66,7 @@ export function PendingFamiliesPanel({ coachId }: { coachId: string }) {
   return (
     <div className="mb-8 rounded-2xl bg-sun/15 border border-sun/40 p-5">
       <h2 className="font-semibold text-navy-900">Familles en attente de votre validation</h2>
-      <p className="text-sm text-navy-600/70 mt-0.5 mb-4">
+      <p className="text-sm text-navy-600/80 mt-0.5 mb-4">
         Leur espace reste en aperçu tant que vous n&apos;avez pas ouvert l&apos;accès.
       </p>
       <ul className="space-y-2">
@@ -77,7 +77,7 @@ export function PendingFamiliesPanel({ coachId }: { coachId: string }) {
           >
             <div>
               <p className="font-semibold text-navy-900 text-sm">{p.name}</p>
-              <p className="text-xs text-navy-600/60">Enfant(s) : {p.childNames}</p>
+              <p className="text-xs text-navy-600/80">Enfant(s) : {p.childNames}</p>
             </div>
             <button
               onClick={() => validate(p.id)}

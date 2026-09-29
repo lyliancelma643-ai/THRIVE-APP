@@ -72,7 +72,7 @@ function CoachMessagesInner() {
           </span>
         )}
       </h1>
-      <p className="text-sm text-navy-600/60 mb-6">
+      <p className="text-sm text-navy-600/80 mb-6">
         {totalUnread > 0
           ? 'Des parents attendent votre réponse.'
           : 'Vos échanges directs avec les parents, entre les séances.'}
@@ -128,14 +128,14 @@ function CoachMessagesInner() {
                 </button>
               }
               emptyState={
-                <p className="text-sm text-slate-400 text-center py-10">
+                <p className="text-sm text-slate-500 text-center py-10">
                   Aucun message dans cette conversation.
                 </p>
               }
             />
           ) : (
             <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-card">
-              <p className="text-sm text-navy-600/60">
+              <p className="text-sm text-navy-600/80">
                 Sélectionnez une conversation pour lire et répondre.
               </p>
             </div>

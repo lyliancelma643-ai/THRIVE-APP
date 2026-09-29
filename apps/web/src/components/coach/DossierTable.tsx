@@ -91,7 +91,7 @@ export function DossierTable({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-gray-400 p-6 rounded-2xl bg-white border border-navy-50">
+        <p className="text-sm text-gray-500 p-6 rounded-2xl bg-white border border-navy-50">
           {filter === 'incomplete' ? 'Tous les dossiers sont complets 🎉' : 'Aucun dossier.'}
         </p>
       ) : (
@@ -99,7 +99,7 @@ export function DossierTable({
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="text-left text-gray-400 text-xs uppercase tracking-wide border-b border-navy-50">
+                <tr className="text-left text-gray-500 text-xs uppercase tracking-wide border-b border-navy-50">
                   <th className="px-4 py-3">Athlète</th>
                   <th className="px-4 py-3">Coach</th>
                   {showAdmin && <th className="px-4 py-3">Admin</th>}
@@ -139,7 +139,7 @@ export function DossierTable({
                           En attente
                         </span>
                       ) : (
-                        <span className="text-[11px] text-gray-300">—</span>
+                        <span className="text-[11px] text-gray-500">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

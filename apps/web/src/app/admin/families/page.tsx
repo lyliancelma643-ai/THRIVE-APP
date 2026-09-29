@@ -182,7 +182,7 @@ export default function AdminFamiliesPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Parent</th>
               <th className="px-6 py-4 hidden md:table-cell">Email</th>
               <th className="px-6 py-4">Famille</th>
@@ -230,7 +230,7 @@ export default function AdminFamiliesPage() {
                           <p className="font-semibold text-sm">
                             {parent.first_name} {parent.last_name}
                           </p>
-                          <p className="text-xs text-gray-400 md:hidden">{parent.email}</p>
+                          <p className="text-xs text-gray-500 md:hidden">{parent.email}</p>
                         </div>
                       </div>
                     </td>
@@ -282,7 +282,7 @@ export default function AdminFamiliesPage() {
                           ))}
                         </select>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-gray-500">—</span>
                       )}
                     </td>
 
@@ -294,7 +294,7 @@ export default function AdminFamiliesPage() {
                     </td>
 
                     {/* Date */}
-                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-400">
+                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-500">
                       {new Date(parent.created_at).toLocaleDateString('fr-CA')}
                     </td>
                   </tr>

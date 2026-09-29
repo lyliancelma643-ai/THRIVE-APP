@@ -114,7 +114,7 @@ export default function SecuritySettingsPage() {
       <div className="w-full max-w-lg pt-10">
         <button
           onClick={() => router.back()}
-          className="mb-4 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
+          className="mb-4 text-sm text-navy-600/80 hover:text-navy-900 transition-colors"
         >
           ← Retour
         </button>
@@ -123,7 +123,7 @@ export default function SecuritySettingsPage() {
           <h1 className="font-display text-2xl font-semibold text-navy-900 mb-1">
             Sécurité du compte
           </h1>
-          <p className="text-sm text-navy-600/70 mb-6">
+          <p className="text-sm text-navy-600/80 mb-6">
             Double authentification (2FA) par application d&apos;authentification.
           </p>
 
@@ -157,7 +157,7 @@ export default function SecuritySettingsPage() {
                 <span className="text-2xl" aria-hidden>🔒</span>
                 <div>
                   <p className="font-bold text-navy-900">Double authentification activée</p>
-                  <p className="text-sm text-navy-600/70">
+                  <p className="text-sm text-navy-600/80">
                     Un second facteur est requis pour les accès sensibles.
                   </p>
                 </div>
@@ -204,7 +204,7 @@ export default function SecuritySettingsPage() {
               </div>
 
               <div className="rounded-2xl bg-white/60 px-4 py-3">
-                <p className="text-[11px] font-bold uppercase tracking-wide text-navy-600/60 mb-1">
+                <p className="text-[11px] font-bold uppercase tracking-wide text-navy-600/80 mb-1">
                   Clé manuelle
                 </p>
                 <code className="text-xs break-all text-navy-800 select-all">
@@ -213,7 +213,7 @@ export default function SecuritySettingsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                <label className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
                   Code à 6 chiffres
                 </label>
                 <input

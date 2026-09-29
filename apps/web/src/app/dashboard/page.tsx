@@ -26,7 +26,7 @@ export default function DashboardPage() {
     <main className="min-h-dvh flex items-center justify-center bg-cream" aria-busy>
       <div className="flex flex-col items-center gap-4" role="status" aria-label="Redirection">
         <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
-        <p className="text-navy-600/60 text-sm font-medium">Redirection vers ton espace…</p>
+        <p className="text-navy-600/80 text-sm font-medium">Redirection vers ton espace…</p>
       </div>
     </main>
   );

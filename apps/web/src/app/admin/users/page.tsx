@@ -438,7 +438,7 @@ export default function AdminUsersPage() {
         <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-gray-500 border-b border-gray-100">
                 <th className="px-5 py-3 font-medium">Nom</th>
                 <th className="px-5 py-3 font-medium">Email</th>
                 <th className="px-5 py-3 font-medium">Rôle</th>
@@ -464,7 +464,7 @@ export default function AdminUsersPage() {
                   >
                     <td className="px-5 py-3 font-medium">
                       {p.first_name} {p.last_name}
-                      {isSelf && <span className="ml-2 text-xs text-gray-400">(vous)</span>}
+                      {isSelf && <span className="ml-2 text-xs text-gray-500">(vous)</span>}
                       {rowDirty && (
                         <span className="ml-2 align-middle text-[11px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
                           ● modifié
@@ -549,7 +549,7 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <p className="p-8 text-center text-gray-400 text-sm">Aucun compte trouvé.</p>
+            <p className="p-8 text-center text-gray-500 text-sm">Aucun compte trouvé.</p>
           )}
         </div>
       )}
@@ -597,7 +597,7 @@ export default function AdminUsersPage() {
               className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : `Créer le compte ${ROLE_META[createRole].label}`}
             </button>
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-gray-500 text-center">
               Compte actif immédiatement, aucun email de validation requis.
             </p>
           </form>
@@ -639,7 +639,7 @@ export default function AdminUsersPage() {
               className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : "Créer l'enfant"}
             </button>
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-gray-500 text-center">
               L&apos;enfant apparaît immédiatement chez le parent et dans « Assignations ».
             </p>
           </form>
@@ -761,7 +761,7 @@ function Modal({
           <button
             onClick={onClose}
             aria-label="Fermer"
-            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xl transition-colors"
+            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 text-xl transition-colors"
           >
             ×
           </button>

@@ -24,7 +24,7 @@ function Kpi({ label, value, accent }: { label: string; value: number | string; 
   return (
     <div className="rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/10 shadow-sm px-4 py-3">
       <p className={`text-2xl font-bold ${accent ?? 'text-navy-900 dark:text-white'}`}>{value}</p>
-      <p className="text-[11px] text-slate-400 mt-0.5">{label}</p>
+      <p className="text-[11px] text-slate-500 mt-0.5">{label}</p>
     </div>
   );
 }
@@ -111,7 +111,7 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
                     >
                       <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{t.title}</p>
                       <p className="text-xs text-red-600 dark:text-red-300 mt-0.5 line-clamp-2">{t.problem}</p>
-                      <p className="text-[10px] text-slate-400 mt-1">
+                      <p className="text-[10px] text-slate-500 mt-1">
                         Signalé par {fullName(adminById[t.problem_by ?? ''])}
                         {t.problem_at ? ` · ${fmtDateTime(t.problem_at)}` : ''}
                       </p>
@@ -126,7 +126,7 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
           <section className="rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/10 shadow-sm p-5">
             <h2 className="font-bold text-navy-900 dark:text-white mb-3">Échéances</h2>
             {stats.overdue.length === 0 && stats.upcoming.length === 0 ? (
-              <p className="text-sm text-slate-400">Rien d&apos;urgent à l&apos;horizon. ✨</p>
+              <p className="text-sm text-slate-500">Rien d&apos;urgent à l&apos;horizon. ✨</p>
             ) : (
               <ul className="divide-y divide-slate-100 dark:divide-white/5">
                 {[...stats.overdue, ...stats.upcoming].map((t) => (
@@ -150,7 +150,7 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
                       <span className={`shrink-0 text-[10px] font-semibold px-2 py-0.5 rounded-full ${CATEGORIES[t.category].chip}`}>
                         {CATEGORIES[t.category].label}
                       </span>
-                      <span className="shrink-0 text-[11px] text-slate-400 hidden md:block">
+                      <span className="shrink-0 text-[11px] text-slate-500 hidden md:block">
                         {t.assignee ? fullName(adminById[t.assignee]) : 'Non assignée'}
                       </span>
                     </button>
@@ -167,7 +167,7 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
               {byCategory.map(({ key, count }) => (
                 <Bar key={key} label={CATEGORIES[key].label} count={count} total={tasks.length} cls={CATEGORIES[key].dot} />
               ))}
-              {byCategory.length === 0 && <p className="text-sm text-slate-400">Aucune tâche.</p>}
+              {byCategory.length === 0 && <p className="text-sm text-slate-500">Aucune tâche.</p>}
             </section>
             <section className="rounded-2xl bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/10 shadow-sm p-5 space-y-3">
               <h2 className="font-bold text-navy-900 dark:text-white">Charge de l&apos;équipe</h2>
@@ -176,14 +176,14 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
                   <span className="text-slate-600 dark:text-slate-300">
                     {fullName(admin)}{admin.role === 'SUPER_ADMIN' ? ' ★' : ''}
                   </span>
-                  <span className="text-[11px] text-slate-400">
+                  <span className="text-[11px] text-slate-500">
                     <span className="font-bold text-navy-700 dark:text-sun">{open}</span> ouverte{open > 1 ? 's' : ''}
                     {' · '}
                     <span className="font-bold text-emerald-600 dark:text-emerald-400">{done}</span> complétée{done > 1 ? 's' : ''}
                   </span>
                 </div>
               ))}
-              {workload.length === 0 && <p className="text-sm text-slate-400">Aucune attribution.</p>}
+              {workload.length === 0 && <p className="text-sm text-slate-500">Aucune attribution.</p>}
             </section>
           </div>
         </div>
@@ -201,12 +201,12 @@ export function DashboardView({ tasks, activity, admins, onOpen }: Props) {
                   {fullName(adminById[h.actor ?? ''])}
                 </span>{' '}
                 {describeHistory(h, adminById)}
-                <span className="block text-[10px] text-slate-400/80">
+                <span className="block text-[10px] text-slate-500">
                   {h.task_title} · {fmtDateTime(h.created_at)}
                 </span>
               </li>
             ))}
-            {activity.length === 0 && <li className="text-sm text-slate-400">Aucune action récente.</li>}
+            {activity.length === 0 && <li className="text-sm text-slate-500">Aucune action récente.</li>}
           </ul>
         </section>
       </div>

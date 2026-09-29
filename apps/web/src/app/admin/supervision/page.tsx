@@ -119,7 +119,7 @@ export default function SupervisionPage() {
             <p className="font-semibold text-slate-900">
               {a.first_name} {a.last_name}
             </p>
-            <p className="text-xs text-slate-400">{a.email}</p>
+            <p className="text-xs text-slate-500">{a.email}</p>
             <p className="text-sm text-navy-600 font-medium mt-2">
               {countByAdmin.get(a.id) ?? 0} coach(s) supervisé(s)
             </p>
@@ -134,13 +134,13 @@ export default function SupervisionPage() {
           ))}
         </div>
       ) : coaches.length === 0 ? (
-        <p className="text-slate-400">Aucun coach actif.</p>
+        <p className="text-slate-500">Aucun coach actif.</p>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="text-left text-slate-400 text-xs uppercase tracking-wide border-b border-slate-100">
+                <tr className="text-left text-slate-500 text-xs uppercase tracking-wide border-b border-slate-100">
                   <th className="px-5 py-3">Coach</th>
                   <th className="px-5 py-3">Admin superviseur</th>
                 </tr>
@@ -152,7 +152,7 @@ export default function SupervisionPage() {
                       <p className="font-medium text-slate-900">
                         {c.first_name} {c.last_name}
                       </p>
-                      <p className="text-xs text-slate-400">{c.email}</p>
+                      <p className="text-xs text-slate-500">{c.email}</p>
                     </td>
                     <td className="px-5 py-3">
                       <select

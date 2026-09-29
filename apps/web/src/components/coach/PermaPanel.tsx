@@ -169,7 +169,7 @@ export function PermaPanel({ childId }: { childId: string }) {
           );
         })()}
       </div>
-      <p className="text-[11px] text-gray-400 -mt-1">
+      <p className="text-[11px] text-gray-500 -mt-1">
         Un seul envoi par séance : le test redevient disponible à la séance suivante.
       </p>
 
@@ -188,7 +188,7 @@ export function PermaPanel({ childId }: { childId: string }) {
       <div>
         <div className="flex items-center justify-between mb-2">
           <p className="text-xs font-semibold text-navy-900">Suivi par séance</p>
-          <span className="text-[11px] text-gray-400">{completedCount}/13 complétées</span>
+          <span className="text-[11px] text-gray-500">{completedCount}/13 complétées</span>
         </div>
         <div className="grid grid-cols-7 gap-1.5">
           {SESSIONS.map((s) => {
@@ -200,7 +200,7 @@ export function PermaPanel({ childId }: { childId: string }) {
                 ? 'bg-emerald-500 text-white'
                 : status
                 ? 'bg-amber-100 text-amber-700 border border-amber-300'
-                : 'bg-gray-100 text-gray-400';
+                : 'bg-gray-100 text-gray-500';
             return (
               <div
                 key={s}
@@ -222,7 +222,7 @@ export function PermaPanel({ childId }: { childId: string }) {
       </div>
 
       {loading && <div className="h-4 w-24 rounded bg-gray-100 animate-pulse" />}
-      <p className="text-[11px] text-gray-400">
+      <p className="text-[11px] text-gray-500">
         Le questionnaire EPOCH (20 questions, échelle « presque jamais » → « presque toujours ») est
         répondu par l&apos;enfant après chaque séance. Une notification est envoyée au parent avec le
         lien. Les résultats alimentent la courbe de bien-être du bilan.

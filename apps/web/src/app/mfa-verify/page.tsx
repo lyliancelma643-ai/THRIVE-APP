@@ -69,7 +69,7 @@ function MfaVerifyInner() {
         <h1 className="font-display text-xl font-semibold text-navy-900 text-center mb-1">
           Vérification en deux étapes
         </h1>
-        <p className="text-sm text-navy-600/70 text-center mb-6">
+        <p className="text-sm text-navy-600/80 text-center mb-6">
           Entre le code à 6 chiffres de ton application d&apos;authentification.
         </p>
 
@@ -94,7 +94,7 @@ function MfaVerifyInner() {
           <button
             type="button"
             onClick={() => logout()}
-            className="w-full py-2 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
+            className="w-full py-2 text-sm text-navy-600/80 hover:text-navy-900 transition-colors"
           >
             Se déconnecter
           </button>

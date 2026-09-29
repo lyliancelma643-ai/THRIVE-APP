@@ -48,7 +48,7 @@ export default function CoachAthletePage() {
 
   return (
     <div className="max-w-4xl">
-      <Link href="/coach/athletes" className="text-sm text-navy-600/70 hover:text-navy-900">
+      <Link href="/coach/athletes" className="text-sm text-navy-600/80 hover:text-navy-900">
         ← Mes athlètes
       </Link>
 
@@ -60,7 +60,7 @@ export default function CoachAthletePage() {
           <h1 className="font-display text-3xl font-semibold text-navy-900">
             {child.first_name} {child.last_name ?? ''}
           </h1>
-          <p className="text-sm text-navy-600/70">
+          <p className="text-sm text-navy-600/80">
             {childAge(child.date_of_birth) ?? '–'} ans (groupe {ageGroup}) · {child.sport ?? 'Hockey'}
           </p>
         </div>

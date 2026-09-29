@@ -76,7 +76,7 @@ export function CalendarView({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Tas
       <div className="bg-white dark:bg-white/[0.04] rounded-2xl shadow-sm border border-slate-100 dark:border-white/10 overflow-hidden">
         <div className="grid grid-cols-7 border-b border-slate-100 dark:border-white/10">
           {WEEKDAYS.map((d) => (
-            <div key={d} className="px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-slate-400">
+            <div key={d} className="px-2 py-2 text-center text-[11px] font-bold uppercase tracking-wide text-slate-500">
               {d}
             </div>
           ))}
@@ -97,7 +97,7 @@ export function CalendarView({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Tas
                   <>
                     <span
                       className={`inline-flex items-center justify-center w-6 h-6 text-[11px] font-semibold rounded-full ${
-                        isToday ? 'bg-sun text-navy-900' : 'text-slate-400'
+                        isToday ? 'bg-sun text-navy-900' : 'text-slate-500'
                       }`}
                     >
                       {date.getDate()}
@@ -124,7 +124,7 @@ export function CalendarView({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Tas
                       {dayTasks.length > 3 && (
                         <button
                           onClick={() => onOpen(dayTasks[3])}
-                          className="w-full text-left text-[10px] text-slate-400 px-1.5"
+                          className="w-full text-left text-[10px] text-slate-500 px-1.5"
                         >
                           +{dayTasks.length - 3} autre{dayTasks.length - 3 > 1 ? 's' : ''}
                         </button>
@@ -141,7 +141,7 @@ export function CalendarView({ tasks, onOpen }: { tasks: Task[]; onOpen: (t: Tas
       {/* Sans échéance */}
       {noDeadline.length > 0 && (
         <div className="bg-white dark:bg-white/[0.04] rounded-2xl shadow-sm border border-slate-100 dark:border-white/10 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
+          <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
             Sans échéance ({noDeadline.length})
           </p>
           <div className="flex flex-wrap gap-1.5">

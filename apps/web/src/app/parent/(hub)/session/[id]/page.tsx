@@ -13,6 +13,7 @@ import {
   themeAccent,
 } from '@/lib/catalog';
 import { InteractivePlayer } from '@/components/player/InteractivePlayer';
+import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
 import { useEffect as useEffectGate } from 'react';
@@ -62,9 +63,10 @@ function SessionDetailPageInner() {
         <p className="text-soft mb-4">Séance introuvable.</p>
         <button
           onClick={() => router.back()}
-          className="px-6 py-3 rounded-full glass-navy text-sm font-semibold text-ink hover:bg-chip transition-colors"
+          className="inline-flex items-center gap-1.5 min-h-[44px] px-6 rounded-full bg-night-surface text-sm font-semibold text-ink hover:bg-chip transition-colors"
         >
-          ← Retour
+          <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+          Retour
         </button>
       </div>
     );
@@ -76,9 +78,10 @@ function SessionDetailPageInner() {
     <div className="max-w-5xl">
       <Link
         href="/parent/fitness/seances"
-        className="inline-flex items-center gap-2 text-sm text-soft hover:text-ink active:text-ink mb-4 py-3 pr-4 -my-1 transition-colors select-none"
+        className="inline-flex items-center gap-1.5 min-h-[44px] mb-3 text-[15px] font-semibold text-soft hover:text-ink transition-colors select-none"
       >
-        ← Retour aux séances
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        Les séances vidéo
       </Link>
 
       {started && selectedChild && user ? (
@@ -90,7 +93,7 @@ function SessionDetailPageInner() {
         />
       ) : (
         <div
-          className={`relative aspect-video rounded-2xl overflow-hidden bg-gradient-to-br ${accent.glow} shadow-card`}
+          className={`relative aspect-video rounded-card overflow-hidden bg-gradient-to-br ${accent.glow} shadow-card`}
         >
           <span className="absolute -right-4 -bottom-16 font-display text-[14rem] leading-none text-white/10 select-none">
             {session.session_number}
@@ -98,27 +101,28 @@ function SessionDetailPageInner() {
           <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
             {selectedChild ? (
               <>
-                <p className="text-accent-ink text-xs font-bold uppercase tracking-[0.2em] mb-4">
+                <p className="text-sun text-xs font-bold uppercase tracking-[0.2em] mb-4">
                   Prêt avec {selectedChild.first_name} ?
                 </p>
                 <button
                   onClick={() => setStarted(true)}
-                  className="w-20 h-20 rounded-full bg-accent text-navy-900 flex items-center justify-center text-3xl shadow-card hover:scale-105 transition-transform mb-4"
+                  aria-label={`Lancer la séance ${session.session_number} avec ${selectedChild.first_name}`}
+                  className="w-20 h-20 rounded-full bg-sun text-navy-900 grid place-items-center shadow-card hover:scale-105 active:scale-95 transition-transform mb-4"
                 >
-                  ▶
+                  <Icon name="play" className="w-8 h-8 translate-x-0.5" />
                 </button>
-                <p className="text-navy-100/80 text-sm">
+                <p className="text-white/80 text-sm">
                   {interactions.length} moments interactifs pendant la vidéo
                 </p>
               </>
             ) : (
               <>
-                <p className="text-ink font-display text-xl mb-4">
+                <p className="text-white font-display text-xl mb-4">
                   Sélectionne d&apos;abord un profil enfant
                 </p>
                 <Link
                   href="/parent/select-profile"
-                  className="px-6 py-3 rounded-full bg-accent text-navy-900 font-bold text-sm"
+                  className="inline-flex items-center min-h-[44px] px-6 rounded-full bg-sun text-navy-900 font-bold text-sm"
                 >
                   + Ajouter un enfant
                 </Link>
@@ -139,15 +143,15 @@ function SessionDetailPageInner() {
               {PHASE_LABELS[session.phase]}
             </span>
           </div>
-          <h1 className="font-display text-3xl font-semibold text-ink mb-1">
+          <h1 className="font-display text-[28px] md:text-3xl leading-[1.15] font-semibold text-ink mb-1 text-balance">
             {session.title}
           </h1>
           <p className="text-soft mb-4">{session.subtitle}</p>
-          <p className="text-body leading-relaxed">{session.description}</p>
+          <p className="text-body leading-relaxed max-w-prose text-pretty">{session.description}</p>
         </div>
 
-        <div className="p-5 rounded-2xl glass-navy h-fit">
-          <h3 className="text-xs font-bold uppercase tracking-wide text-faint mb-4">
+        <div className="p-5 rounded-card bg-night-surface shadow-[var(--shadow)] h-fit">
+          <h3 className="nc-eyebrow mb-4">
             Cette séance
           </h3>
           <dl className="space-y-3 text-sm">

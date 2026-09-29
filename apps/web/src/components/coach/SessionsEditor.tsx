@@ -219,7 +219,7 @@ export function SessionsEditor({
               </span>
               <div className="flex-1 min-w-0 basis-[45%]">
                 <p className="text-sm font-semibold text-navy-900 truncate">{s.title}</p>
-                <p className="text-[11px] text-gray-400">
+                <p className="text-[11px] text-gray-500">
                   {s.scheduled_at &&
                     new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -299,7 +299,7 @@ export function SessionsEditor({
                   placeholder="Notes du coach pour cette séance…"
                   className="w-full border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
                 />
-                <p className="text-[11px] text-gray-400 mt-1">Enregistré automatiquement.</p>
+                <p className="text-[11px] text-gray-500 mt-1">Enregistré automatiquement.</p>
               </div>
             )}
 

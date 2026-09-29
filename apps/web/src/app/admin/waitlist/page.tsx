@@ -226,7 +226,7 @@ export default function AdminWaitlistPage() {
         <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-gray-400">
+              <tr className="border-b border-gray-100 text-left text-gray-500">
                 <th className="px-5 py-3 font-medium">Prospect</th>
                 <th className="px-5 py-3 font-medium">Le jeune</th>
                 <th className="px-5 py-3 font-medium">Rappel souhaité</th>
@@ -253,10 +253,10 @@ export default function AdminWaitlistPage() {
                   >
                     <td className="px-5 py-3">
                       <p className="font-medium text-navy-900">{r.first_name}</p>
-                      <p className="text-xs text-gray-400">
+                      <p className="text-xs text-gray-500">
                         {r.phone} · {sourceLabel(r.source)}
                       </p>
-                      <p className="text-xs text-gray-400">Inscrit le {formatDate(r.created_at)}</p>
+                      <p className="text-xs text-gray-500">Inscrit le {formatDate(r.created_at)}</p>
                     </td>
                     <td className="px-5 py-3">
                       {r.child_first_name ? (
@@ -266,11 +266,11 @@ export default function AdminWaitlistPage() {
                             {r.child_age ? ` · ${r.child_age} ans` : ''}
                           </p>
                           {r.main_need && (
-                            <p className="text-xs text-gray-400">{r.main_need}</p>
+                            <p className="text-xs text-gray-500">{r.main_need}</p>
                           )}
                         </>
                       ) : (
-                        <span className="text-xs italic text-gray-300">non renseigné</span>
+                        <span className="text-xs italic text-gray-500">non renseigné</span>
                       )}
                     </td>
                     <td className="px-5 py-3 text-xs text-gray-500">
@@ -287,11 +287,11 @@ export default function AdminWaitlistPage() {
                           {overdue && <span className="block text-[11px]">à relancer</span>}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-300">—</span>
+                        <span className="text-xs text-gray-500">—</span>
                       )}
                     </td>
                     <td className="px-5 py-3 text-xs text-gray-600">
-                      {formatPack(r.pack) || <span className="text-gray-300">—</span>}
+                      {formatPack(r.pack) || <span className="text-gray-500">—</span>}
                     </td>
                     <td className="px-5 py-3">
                       <span
@@ -308,7 +308,7 @@ export default function AdminWaitlistPage() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <p className="p-8 text-center text-sm text-gray-400">
+            <p className="p-8 text-center text-sm text-gray-500">
               {rows.length === 0
                 ? 'Personne dans la liste d’attente pour l’instant.'
                 : 'Aucun inscrit ne correspond à cette recherche.'}
@@ -373,7 +373,7 @@ function Stat({
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <p className={`text-2xl font-bold ${tones[tone]}`}>{value}</p>
-      <p className="text-xs text-gray-400">{label}</p>
+      <p className="text-xs text-gray-500">{label}</p>
     </div>
   );
 }

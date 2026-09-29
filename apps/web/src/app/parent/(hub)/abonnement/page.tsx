@@ -253,7 +253,7 @@ function ActiveSubscription() {
               Une question sur votre abonnement ? Écrivez-nous depuis la messagerie.
             </p>
           )}
-          {error && <p className="text-[13px] text-red-300 text-center">{error}</p>}
+          {error && <p className="text-[13px] text-danger-ink text-center">{error}</p>}
         </div>
       </section>
 

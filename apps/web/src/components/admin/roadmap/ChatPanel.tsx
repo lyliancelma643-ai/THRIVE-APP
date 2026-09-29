@@ -83,7 +83,7 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
             <button
               onClick={onClose}
               aria-label="Fermer le chat"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10"
             >
               ✕
             </button>
@@ -120,14 +120,14 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
                 >
                   {m.body}
                 </div>
-                <p className={`text-[10px] text-slate-400 mt-0.5 ${mine ? 'text-right' : ''}`}>
+                <p className={`text-[10px] text-slate-500 mt-0.5 ${mine ? 'text-right' : ''}`}>
                   {fullName(adminById[m.author])} · {fmtDateTime(m.created_at)}
                 </p>
               </div>
             );
           })}
           {messages.length === 0 && (
-            <p className="text-sm text-slate-400 text-center pt-8">
+            <p className="text-sm text-slate-500 text-center pt-8">
               Aucun message dans ce canal. Lance la discussion !
             </p>
           )}

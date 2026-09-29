@@ -42,7 +42,7 @@ function Accordion({
           <p className="font-semibold text-navy-900">{title}</p>
           {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
         </div>
-        <span className="text-gray-400 text-sm shrink-0">{open ? '▲' : '▼'}</span>
+        <span className="text-gray-500 text-sm shrink-0">{open ? '▲' : '▼'}</span>
       </button>
       {open && <div className="px-4 pb-4 border-t border-navy-50 pt-4">{children}</div>}
     </div>

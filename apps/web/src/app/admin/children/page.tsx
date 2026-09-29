@@ -210,7 +210,7 @@ export default function AdminChildrenPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-500 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Enfant</th>
               <th className="px-6 py-4 hidden md:table-cell">Famille</th>
               <th className="px-6 py-4 hidden lg:table-cell">Parent</th>
@@ -254,23 +254,23 @@ export default function AdminChildrenPage() {
                       <div>
                         <p className="font-semibold text-sm">{child.first_name} {child.last_name}</p>
                         {child.gender && (
-                          <p className="text-xs text-gray-400">{GENDER_LABEL[child.gender] ?? child.gender}</p>
+                          <p className="text-xs text-gray-500">{GENDER_LABEL[child.gender] ?? child.gender}</p>
                         )}
                       </div>
                     </div>
                   </td>
                   {/* Famille */}
                   <td className="px-6 py-4 hidden md:table-cell text-sm text-gray-600">
-                    {child.family_name ?? <span className="text-gray-300">—</span>}
+                    {child.family_name ?? <span className="text-gray-500">—</span>}
                   </td>
                   {/* Parent */}
                   <td className="px-6 py-4 hidden lg:table-cell">
                     {child.parent_name ? (
                       <div>
                         <p className="text-sm font-medium">{child.parent_name}</p>
-                        <p className="text-xs text-gray-400">{child.parent_email}</p>
+                        <p className="text-xs text-gray-500">{child.parent_email}</p>
                       </div>
-                    ) : <span className="text-gray-300 text-sm">—</span>}
+                    ) : <span className="text-gray-500 text-sm">—</span>}
                   </td>
                   {/* Âge */}
                   <td className="px-6 py-4 text-sm font-medium">
@@ -385,7 +385,7 @@ export default function AdminChildrenPage() {
               <button
                 onClick={() => setIdentityChild(null)}
                 aria-label="Fermer"
-                className="w-11 h-11 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
+                className="w-11 h-11 rounded-full text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
               >
                 ✕
               </button>

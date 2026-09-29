@@ -117,7 +117,7 @@ function FitnessPageInner() {
           href={`/parent/session/${nextSession.id}`}
           className="block group relative animate-om-up"
         >
-          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52dvh] md:min-h-[440px] bg-night-surface">
+          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52dvh] md:min-h-[440px] bg-navy-900">
             {/* Image de la séance quand elle existe ; sinon une trame discrète */}
             {nextSession.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
@@ -152,10 +152,10 @@ function FitnessPageInner() {
                 Séance {nextSession.session_number} · {nextSession.duration_minutes} min
                 {selectedChild ? ` · ${selectedChild.first_name}` : ''}
               </p>
-              <h1 className="font-display text-[32px] md:text-5xl text-night-ink font-semibold leading-[1.12] mb-2">
+              <h1 className="font-display text-[32px] md:text-5xl text-white font-semibold leading-[1.12] mb-2 text-balance">
                 {nextSession.title}
               </h1>
-              <p className="text-[15px] md:text-lg leading-[1.5] text-body mb-5">
+              <p className="text-[15px] md:text-lg leading-[1.5] text-white/80 mb-5">
                 {nextSession.subtitle}
               </p>
               <span className="inline-flex items-center gap-2 h-[52px] px-6 rounded-full bg-accent text-navy-900 font-bold text-base group-hover:bg-sun-dark transition-colors">

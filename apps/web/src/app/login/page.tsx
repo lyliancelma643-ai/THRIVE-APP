@@ -308,7 +308,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
           <BrandLogo className="w-20 h-20 shadow-card mb-3" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/80 font-bold">
             Sport Positive
           </span>
         </div>
@@ -373,7 +373,7 @@ export default function LoginPage() {
                   <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
                     Mot de passe oublié
                   </h2>
-                  <p className="text-sm text-navy-600/70">
+                  <p className="text-sm text-navy-600/80">
                     Entre ton email : on t&apos;envoie un lien pour choisir un nouveau mot de passe.
                   </p>
                 </div>
@@ -399,7 +399,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setMode('signin'); setError(''); }}
-                  className="w-full min-h-[44px] py-2 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
+                  className="w-full min-h-[44px] py-2 text-sm text-navy-600/80 hover:text-navy-900 transition-colors"
                 >
                   ← Retour à la connexion
                 </button>
@@ -437,7 +437,7 @@ export default function LoginPage() {
                   setMode('forgot');
                   setError('');
                 }}
-                className="block ml-auto -my-1 py-2 px-1 text-xs font-medium text-navy-600/70 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
+                className="block ml-auto -my-1 py-2 px-1 text-xs font-medium text-navy-600/80 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
               >
                 Mot de passe oublié ?
               </button>
@@ -476,14 +476,14 @@ export default function LoginPage() {
 
               {/* Enfants dès l'inscription */}
               <div className="pt-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-2">
+                <p className="text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-2">
                   Vos enfants (8–17 ans)
                 </p>
                 <div className="space-y-3">
                   {childRows.map((c, i) => (
                     <div key={i} className="rounded-2xl bg-white/60 p-3 space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-navy-600/60 shrink-0">
+                        <span className="text-[11px] font-bold text-navy-600/80 shrink-0">
                           Enfant {i + 1}
                         </span>
                         <div className="flex-1 border-t border-navy-100/60" />
@@ -556,7 +556,7 @@ export default function LoginPage() {
               >
                 {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
-              <p className="text-[11px] text-navy-600/60 text-center">
+              <p className="text-[11px] text-navy-600/80 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
               </p>
             </form>
@@ -583,7 +583,7 @@ function ButtonSpinner({ light = true }: { light?: boolean }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+      <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
         {label}
       </span>
       {children}

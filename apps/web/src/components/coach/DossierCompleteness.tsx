@@ -65,7 +65,7 @@ export function DossierCompleteness({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 mt-4">
         {data.items.map((it) => (
           <div key={it.key} className="flex items-center gap-2 text-sm">
-            <span className={it.ok ? 'text-emerald-600' : 'text-gray-300'}>
+            <span className={it.ok ? 'text-emerald-600' : 'text-gray-500'}>
               {it.ok ? '✓' : '○'}
             </span>
             <span className={it.ok ? 'text-navy-700' : 'text-gray-500'}>{it.label}</span>

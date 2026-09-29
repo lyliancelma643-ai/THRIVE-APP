@@ -98,7 +98,7 @@ export default function UpgradePage() {
           return (
             <section
               key={p}
-              className={`glass-navy rounded-2xl p-6 flex flex-col ${
+              className={`bg-night-surface shadow-[var(--shadow)] rounded-card p-6 flex flex-col ${
                 isCurrent ? 'ring-2 ring-sage/60' : 'ring-1 ring-line'
               }`}
             >

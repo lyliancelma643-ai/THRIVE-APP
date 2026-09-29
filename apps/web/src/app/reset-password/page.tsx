@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
           <BrandLogo className="w-20 h-20 shadow-card mb-3" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/80 font-bold">
             Sport Positive
           </span>
         </div>
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
           {phase === 'loading' && (
             <div className="flex flex-col items-center py-8 gap-4">
               <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-navy-600/70">Vérification du lien…</p>
+              <p className="text-sm text-navy-600/80">Vérification du lien…</p>
             </div>
           )}
 
@@ -132,10 +132,10 @@ export default function ResetPasswordPage() {
                 <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
                   Nouveau mot de passe
                 </h2>
-                <p className="text-sm text-navy-600/70">Choisis un nouveau mot de passe sécurisé.</p>
+                <p className="text-sm text-navy-600/80">Choisis un nouveau mot de passe sécurisé.</p>
               </div>
               <label className="block">
-                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
                   Nouveau mot de passe (min. 8 caractères)
                 </span>
                 <input
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
                 />
               </label>
               <label className="block">
-                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
                   Confirme le mot de passe
                 </span>
                 <input

@@ -528,16 +528,16 @@ export default function AdminRoadmapPage() {
                   <div className="px-4 pt-4">
                     <div className="flex items-baseline justify-between">
                       <h2 className="font-bold text-navy-900 dark:text-white">{h.label}</h2>
-                      <span className="text-[11px] text-slate-400">{done}/{total}</span>
+                      <span className="text-[11px] text-slate-500">{done}/{total}</span>
                     </div>
-                    <p className="text-[11px] text-slate-400">{h.hint} · classement automatique par date</p>
+                    <p className="text-[11px] text-slate-500">{h.hint} · classement automatique par date</p>
                     <div className="mt-2.5 h-1 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                       <div className="h-full rounded-full bg-navy-500 dark:bg-sun transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                   <ul className="p-2.5 space-y-1.5">
                     {list.length === 0 && (
-                      <li className="px-2 py-4 text-sm text-slate-400 text-center">—</li>
+                      <li className="px-2 py-4 text-sm text-slate-500 text-center">—</li>
                     )}
                     {list.map((t) => {
                       const canToggle = isSuperAdmin || t.assignee === me;

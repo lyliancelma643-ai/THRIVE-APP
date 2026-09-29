@@ -314,7 +314,7 @@ export default function SelectProfilePage() {
               <button
                 onClick={() => { setStep('choose'); setMemberType(null); }}
                 aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
               >
                 ←
               </button>
@@ -322,7 +322,7 @@ export default function SelectProfilePage() {
                 <h2 className="text-xl font-bold text-slate-900">
                   {memberType === 'CHILD' ? '🧒 Ajouter un enfant' : '👨‍👩‍👧 Ajouter un parent'}
                 </h2>
-                <p className="text-xs text-slate-400">Forfait {PACK_LABELS[pack]}</p>
+                <p className="text-xs text-slate-500">Forfait {PACK_LABELS[pack]}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3.5 mb-6">
@@ -361,7 +361,7 @@ export default function SelectProfilePage() {
               <button
                 onClick={() => { setStep('choose'); setError(null); }}
                 aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
               >
                 ←
               </button>
@@ -369,7 +369,7 @@ export default function SelectProfilePage() {
                 <h2 className="text-xl font-bold text-slate-900">
                   {memberType === 'PARENT' ? '👨‍👩‍👧 Nouveau parent' : '🧒 Nouvel enfant'}
                 </h2>
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-slate-500">
                   {memberType === 'CHILD' && !familyId ? 'La famille sera créée automatiquement' : 'Les champs * sont obligatoires'}
                 </p>
               </div>

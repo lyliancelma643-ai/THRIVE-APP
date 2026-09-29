@@ -250,12 +250,12 @@ export default function CoachLiveSessionPage() {
       {/* En-tête */}
       <Link
         href={`/coach/athletes/${child.id}`}
-        className="text-sm text-navy-600/70 hover:text-navy-900"
+        className="text-sm text-navy-600/80 hover:text-navy-900"
       >
         ← {child.first_name}
       </Link>
       <div className="mt-3 mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy-600/60 mb-1">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy-600/80 mb-1">
           Séance {session.session_number} · {ageGroup} ans ({childAge(child.date_of_birth)} ans) ·{' '}
           {session.scheduled_at &&
             new Date(session.scheduled_at).toLocaleDateString('fr-CA', {
@@ -431,7 +431,7 @@ export default function CoachLiveSessionPage() {
             case 'grid':
               return (
                 <div key={bi} className="p-4 rounded-2xl bg-white shadow-card space-y-2">
-                  <span className="block text-[11px] font-bold uppercase tracking-wide text-navy-600/60">
+                  <span className="block text-[11px] font-bold uppercase tracking-wide text-navy-600/80">
                     Grille d&apos;observation — 1 fragile · 5 solide
                   </span>
                   {b.items.map((ind) => {
@@ -450,7 +450,7 @@ export default function CoachLiveSessionPage() {
                               className={`w-9 h-9 md:w-7 md:h-7 rounded-full text-sm md:text-xs font-bold transition-colors ${
                                 (ratings[k] ?? 0) >= n
                                   ? 'bg-navy-600 text-white'
-                                  : 'bg-navy-50 text-navy-400 hover:bg-navy-100'
+                                  : 'bg-navy-50 text-navy-500 hover:bg-navy-100'
                               }`}
                             >
                               {n}
@@ -465,7 +465,7 @@ export default function CoachLiveSessionPage() {
             case 'field':
               return (
                 <label key={bi} className="block">
-                  <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                  <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
                     ✏️ {b.label}
                   </span>
                   <textarea
@@ -515,7 +515,7 @@ export default function CoachLiveSessionPage() {
               {currentStep && <span className="ml-1.5 text-[10px] text-sage">↓ {currentStep.label}</span>}
             </button>
           )}
-          <span className="hidden sm:inline text-xs text-navy-600/70">
+          <span className="hidden sm:inline text-xs text-navy-600/80">
             {ratedCount} indicateur{ratedCount > 1 ? 's' : ''} coté{ratedCount > 1 ? 's' : ''} ·{' '}
             {Object.values(fields).filter((v) => v.trim()).length} notes · brouillon auto
           </span>

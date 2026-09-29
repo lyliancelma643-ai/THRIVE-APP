@@ -33,7 +33,7 @@ export function IncompleteBanner({ href }: { href: string }) {
             ? `${incomplete.length} dossier${incomplete.length > 1 ? 's' : ''} à compléter`
             : 'Questionnaires en attente'}
         </span>
-        <span className="block text-xs text-navy-600/70">
+        <span className="block text-xs text-navy-600/80">
           {pending.length > 0 && `${pending.length} questionnaire(s) LSSS en attente · `}
           Ouvrir le suivi des dossiers →
         </span>

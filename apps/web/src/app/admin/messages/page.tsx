@@ -301,7 +301,7 @@ function AdminMessagesInner() {
                 </>
               }
               emptyState={
-                <p className="text-sm text-slate-400 text-center py-10">
+                <p className="text-sm text-slate-500 text-center py-10">
                   {selected.kind === 'SUPPORT'
                     ? 'Le parent n’a pas encore écrit. Vous pouvez ouvrir l’échange.'
                     : 'Aucun message échangé dans ce fil.'}
@@ -311,7 +311,7 @@ function AdminMessagesInner() {
           ) : (
             <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-sm border border-slate-100">
               <div className="text-center">
-                <span className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 grid place-items-center text-slate-400">
+                <span className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 grid place-items-center text-slate-500">
                   <Icon name="message" className="w-7 h-7" />
                 </span>
                 <p className="text-base font-bold text-slate-900 mb-1">Aucune conversation ouverte</p>

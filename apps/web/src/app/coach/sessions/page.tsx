@@ -84,7 +84,7 @@ export default function CoachSessionsPage() {
   return (
     <div className="max-w-4xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Séances</h1>
-      <p className="text-navy-600/70 mb-8">
+      <p className="text-navy-600/80 mb-8">
         Les 13 séances de chaque athlète. Validez une séance : elle s&apos;éclaire
         instantanément chez le parent.
       </p>
@@ -92,7 +92,7 @@ export default function CoachSessionsPage() {
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
 
       {children.length === 0 ? (
-        <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
+        <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
           Aucun athlète assigné pour l&apos;instant.
         </p>
       ) : (
@@ -108,7 +108,7 @@ export default function CoachSessionsPage() {
                 <h2 className="font-display text-xl font-semibold text-navy-900">
                   {child.first_name}
                 </h2>
-                <span className="text-sm text-navy-600/60">{done} / 13 validées</span>
+                <span className="text-sm text-navy-600/80">{done} / 13 validées</span>
               </div>
 
               <div className="space-y-2">
@@ -135,7 +135,7 @@ export default function CoachSessionsPage() {
                         <span className="block font-semibold text-navy-900 truncate group-hover:underline">
                           {s.title}
                         </span>
-                        <span className="block text-xs text-navy-600/60">
+                        <span className="block text-xs text-navy-600/80">
                           {s.scheduled_at &&
                             new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                               weekday: 'long', day: 'numeric', month: 'long',

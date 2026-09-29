@@ -29,7 +29,7 @@ export default function CoachBilanPage() {
   return (
     <div className="max-w-6xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Bilans</h1>
-      <p className="text-navy-600/70 mb-8">
+      <p className="text-navy-600/80 mb-8">
         Crée, modifie ou supprime chaque section de la carte d&apos;identité de tes athlètes. Tout
         s&apos;actualise en direct sur l&apos;espace parent.
       </p>
@@ -44,14 +44,14 @@ export default function CoachBilanPage() {
           <div className="h-96 rounded-2xl bg-navy-50 animate-pulse" />
         </div>
       ) : children.length === 0 ? (
-        <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
+        <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
           Aucun athlète assigné pour l&apos;instant.
         </p>
       ) : (
         <div className="grid lg:grid-cols-[300px_1fr] gap-6 items-start">
           {/* ── Liste des athlètes ── */}
           <div className="space-y-2 lg:sticky lg:top-8">
-            <p className="text-xs font-bold uppercase tracking-wide text-navy-400 px-1 mb-1">
+            <p className="text-xs font-bold uppercase tracking-wide text-navy-500 px-1 mb-1">
               {children.length} athlète{children.length > 1 ? 's' : ''}
             </p>
             {children.map((c) => {
@@ -77,7 +77,7 @@ export default function CoachBilanPage() {
                     <span className="block font-semibold truncate">
                       {c.first_name} {c.last_name ?? ''}
                     </span>
-                    <span className={`block text-xs truncate ${active ? 'text-white/60' : 'text-navy-600/60'}`}>
+                    <span className={`block text-xs truncate ${active ? 'text-white/60' : 'text-navy-600/80'}`}>
                       {childAge(c.date_of_birth) ?? '–'} ans · {c.sport ?? 'Hockey'}
                     </span>
                   </span>
@@ -98,7 +98,7 @@ export default function CoachBilanPage() {
                     <h2 className="font-display text-2xl font-semibold text-navy-900">
                       Fiche de {selected.first_name} {selected.last_name ?? ''}
                     </h2>
-                    <p className="text-sm text-navy-600/70 mt-0.5">
+                    <p className="text-sm text-navy-600/80 mt-0.5">
                       {childAge(selected.date_of_birth) ?? '–'} ans · {selected.sport ?? 'Hockey'}
                     </p>
                   </div>
@@ -116,13 +116,13 @@ export default function CoachBilanPage() {
               </div>
             ) : (
               <div className="h-full min-h-[300px] flex flex-col items-center justify-center text-center p-10 rounded-2xl border-2 border-dashed border-navy-200 bg-white/50">
-                <div className="w-14 h-14 rounded-full bg-navy-50 flex items-center justify-center text-2xl text-navy-400 mb-4">
+                <div className="w-14 h-14 rounded-full bg-navy-50 flex items-center justify-center text-2xl text-navy-500 mb-4">
                   ◈
                 </div>
                 <p className="font-display text-lg font-semibold text-navy-900 mb-1">
                   Sélectionne un athlète
                 </p>
-                <p className="text-sm text-navy-600/60 max-w-xs">
+                <p className="text-sm text-navy-600/80 max-w-xs">
                   Choisis un enfant dans la liste pour ouvrir et modifier l&apos;intégralité de sa
                   carte d&apos;identité.
                 </p>

@@ -206,7 +206,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
             <button
               onClick={onClose}
               aria-label="Fermer"
-              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10 text-lg"
+              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10 text-lg"
             >
               ✕
             </button>
@@ -256,7 +256,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                 className={`text-xs font-semibold px-3 py-1.5 rounded-full transition-all disabled:cursor-not-allowed ${
                   task.status === s
                     ? STATUSES[s].chip + ' ring-2 ring-navy-300 dark:ring-sun/50'
-                    : 'bg-slate-50 text-slate-400 dark:bg-white/5 dark:text-slate-500 ' +
+                    : 'bg-slate-50 text-slate-500 dark:bg-white/5 dark:text-slate-500 ' +
                       (canStatus ? 'hover:bg-slate-100 dark:hover:bg-white/10' : 'opacity-60')
                 }`}
               >
@@ -324,7 +324,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
 
           {/* ── Propriétés ── */}
           <div className="grid grid-cols-2 gap-3">
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-500">
               Groupe
               <select
                 value={task.category}
@@ -337,7 +337,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                 ))}
               </select>
             </label>
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-500">
               Priorité
               <select
                 value={task.priority}
@@ -350,7 +350,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                 ))}
               </select>
             </label>
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-500">
               Récurrence
               <select
                 value={task.recurrence ?? 'NONE'}
@@ -362,11 +362,11 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                   <option key={r} value={r}>{r === 'NONE' ? 'Pas de récurrence' : `🔁 ${RECURRENCES[r].label}`}</option>
                 ))}
               </select>
-              <span className="block mt-1 text-[10px] text-slate-400">
+              <span className="block mt-1 text-[10px] text-slate-500">
                 Une fois terminée, la tâche se reprogramme automatiquement à l&apos;intervalle choisi.
               </span>
             </label>
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-500">
               Échéance {isOverdue(task) && <span className="text-red-500 font-bold">· en retard</span>}
               <input
                 type="date"
@@ -375,11 +375,11 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                 onChange={(e) => patch({ deadline: e.target.value || null })}
                 className={inputCls + ' mt-1 disabled:opacity-60'}
               />
-              <span className="block mt-1 text-[10px] text-slate-400">
+              <span className="block mt-1 text-[10px] text-slate-500">
                 Classement automatique : semaine / mois / 3 mois / année selon la date.
               </span>
             </label>
-            <label className="text-xs text-slate-400">
+            <label className="text-xs text-slate-500">
               Attribuée à
               {isSuperAdmin ? (
                 <select
@@ -422,7 +422,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
           </div>
 
           {/* ── Description ── */}
-          <label className="block text-xs text-slate-400">
+          <label className="block text-xs text-slate-500">
             Description
             {isSuperAdmin ? (
               <textarea
@@ -444,7 +444,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
 
           {/* ── Pièces jointes ── */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
               Pièces jointes · Google Drive, Dropbox, upload…
             </p>
             <ul className="space-y-1.5 mb-2">
@@ -455,7 +455,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                     className="flex-1 min-w-0 text-left truncate rounded-lg px-3 py-2 bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 text-navy-700 dark:text-sky-300"
                   >
                     {a.kind === 'FILE' ? '📄' : '🔗'} {a.label}
-                    <span className="text-[10px] text-slate-400 ml-2">
+                    <span className="text-[10px] text-slate-500 ml-2">
                       par {fullName(adminById[a.created_by])} · {fmtDate(a.created_at)}
                     </span>
                   </button>
@@ -463,7 +463,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                     <button
                       onClick={() => removeAttachment(a)}
                       aria-label={`Supprimer ${a.label}`}
-                      className="shrink-0 text-slate-300 hover:text-red-500 px-1"
+                      className="shrink-0 text-slate-500 hover:text-red-500 px-1"
                     >
                       ✕
                     </button>
@@ -498,7 +498,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
 
           {/* ── Écriture libre : fil de commentaires signés + mentions ── */}
           <div>
-            <p className="text-xs font-bold uppercase tracking-wide text-slate-400 mb-2">
+            <p className="text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
               Discussion · notes libres, liens, décisions
             </p>
             <ul className="space-y-3 mb-3">
@@ -516,13 +516,13 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                       ),
                     )}
                   </p>
-                  <p className="text-[10px] text-slate-400 mt-1.5">
+                  <p className="text-[10px] text-slate-500 mt-1.5">
                     ✍︎ {fullName(adminById[c.author])} · {fmtDateTime(c.created_at)}
                   </p>
                 </li>
               ))}
               {comments.length === 0 && (
-                <li className="text-sm text-slate-400">Aucune note pour l&apos;instant.</li>
+                <li className="text-sm text-slate-500">Aucune note pour l&apos;instant.</li>
               )}
             </ul>
             <div className="space-y-2">
@@ -542,7 +542,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                   </span>
                 ) : (
                   <>
-                    <span className="text-[10px] text-slate-400 mr-1">Mentionner :</span>
+                    <span className="text-[10px] text-slate-500 mr-1">Mentionner :</span>
                     {admins.filter((a) => a.id !== me).map((a) => (
                       <button
                         key={a.id}
@@ -573,7 +573,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
           <div>
             <button
               onClick={() => setShowHistory(!showHistory)}
-              className="text-xs font-bold uppercase tracking-wide text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              className="text-xs font-bold uppercase tracking-wide text-slate-500 hover:text-slate-600 dark:hover:text-slate-200"
             >
               Historique ({history.length}) {showHistory ? '▾' : '▸'}
             </button>
@@ -585,7 +585,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
                       {fullName(adminById[h.actor ?? ''])}
                     </span>{' '}
                     {describeHistory(h, adminById)}
-                    <span className="text-slate-300 dark:text-slate-500"> · {fmtDateTime(h.created_at)}</span>
+                    <span className="text-slate-500 dark:text-slate-500"> · {fmtDateTime(h.created_at)}</span>
                   </li>
                 ))}
               </ul>
@@ -595,7 +595,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
 
         {/* ── Pied : signatures + suppression ── */}
         <div className="px-5 py-3 border-t border-slate-100 dark:border-white/10 flex flex-wrap items-center gap-x-4 gap-y-1">
-          <p className="text-[11px] text-slate-400">
+          <p className="text-[11px] text-slate-500">
             Créée par <span className="font-semibold">{fullName(adminById[task.created_by])}</span> · {fmtDate(task.created_at)}
           </p>
           {task.completed_by && (

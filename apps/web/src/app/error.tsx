@@ -29,7 +29,7 @@ export default function Error({
         contacte l&apos;équipe THRIVE.
       </p>
       {error.digest && (
-        <p className="text-xs text-navy-400 mb-4">Code : {error.digest}</p>
+        <p className="text-xs text-navy-500 mb-4">Code : {error.digest}</p>
       )}
       <button
         onClick={reset}
