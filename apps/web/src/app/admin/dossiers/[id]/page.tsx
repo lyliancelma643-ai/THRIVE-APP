@@ -47,7 +47,7 @@ export default function AdminDossierPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Link href="/admin/dossiers" className="text-sm text-slate-600 hover:text-slate-900">
+      <Link href="/admin/dossiers" className="inline-flex items-center min-h-[44px] text-sm text-slate-600 hover:text-slate-900">
         ← Suivi des dossiers
       </Link>
 

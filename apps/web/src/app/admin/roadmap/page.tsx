@@ -651,7 +651,7 @@ export default function AdminRoadmapPage() {
                     {doneTasks.length}
                   </span>
                 </h2>
-                <span className="shrink-0 text-xs font-semibold text-emerald-700/80 dark:text-emerald-300/80">
+                <span className="shrink-0 text-xs font-semibold text-emerald-700 dark:text-emerald-300/80">
                   {doneOpen ? 'Replier ▲' : 'Afficher ▼'}
                 </span>
               </button>
@@ -693,7 +693,7 @@ export default function AdminRoadmapPage() {
                               <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full ${CATEGORIES[t.category].chip}`}>
                                 {CATEGORIES[t.category].label}
                               </span>
-                              <span className="text-[10px] text-emerald-700/80 dark:text-emerald-300/80">
+                              <span className="text-[10px] text-emerald-700 dark:text-emerald-300/80">
                                 Terminée{t.completed_by ? ` par ${fullName(adminById[t.completed_by])}${t.completed_by === me ? ' (moi)' : ''}` : ''}
                                 {' · '}
                                 {fmtDate(t.completed_at ?? t.updated_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}

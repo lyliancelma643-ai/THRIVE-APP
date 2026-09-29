@@ -267,7 +267,7 @@ function AthleteIdentityPageInner() {
           {pendingLsss.token && (
             <a
               href={`/q/${pendingLsss.token}`}
-              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-11 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>
@@ -291,7 +291,7 @@ function AthleteIdentityPageInner() {
           {pendingPerma.token && (
             <a
               href={`/q/${pendingPerma.token}`}
-              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-sage text-navy-900 text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-11 px-5 rounded-full bg-sage text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>

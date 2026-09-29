@@ -176,7 +176,7 @@ export function PassportEditModal({
               <button
                 onClick={() => { setFile(null); setRemovePhoto(true); }}
                 style={{
-                  minHeight: 36, padding: '0 16px', borderRadius: 12, border: 'none',
+                  minHeight: 44, padding: '0 16px', borderRadius: 12, border: 'none',
                   background: 'transparent', color: 'var(--text3)',
                   fontWeight: 500, fontSize: 12, cursor: 'pointer', textAlign: 'left',
                 }}

@@ -110,7 +110,7 @@ export const CATEGORIES: Record<Category, { label: string; dot: string; chip: st
 export const PRIORITIES: Record<Priority, { label: string; chip: string; weight: number }> = {
   HIGH:   { label: 'Très important',        chip: 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300', weight: 0 },
   MEDIUM: { label: 'Moyennement important', chip: 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300', weight: 1 },
-  LOW:    { label: 'Pas important',         chip: 'bg-slate-100 text-slate-500 dark:bg-slate-500/20 dark:text-slate-400', weight: 2 },
+  LOW:    { label: 'Pas important',         chip: 'bg-slate-100 text-slate-600 dark:bg-slate-500/20 dark:text-slate-400', weight: 2 },
 };
 
 // Tâches récurrentes : à la complétion, un trigger (migration 054) crée la

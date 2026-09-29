@@ -145,7 +145,7 @@ export function DossierTable({
                     <td className="px-4 py-3 text-right">
                       <Link
                         href={`${basePath}/${r.child_id}`}
-                        className="text-navy-600 font-semibold hover:underline"
+                        className="inline-flex items-center min-h-[44px] px-2 -mx-2 text-navy-600 font-semibold hover:underline"
                       >
                         Ouvrir →
                       </Link>

@@ -196,7 +196,7 @@ export default function AdminBadgesPage() {
               <div 
                 key={badge.id} 
                 className={`relative bg-white rounded-[24px] p-6 border-2 transition-all duration-300 group ${
-                  isInactive ? 'opacity-80 border-slate-200' : 'border-transparent shadow-sm hover:shadow-xl hover:-translate-y-1'
+                  isInactive ? 'bg-slate-50 border-slate-200' : 'border-transparent shadow-sm hover:shadow-xl hover:-translate-y-1'
                 }`}
                 style={!isInactive ? { borderColor: badge.color + '40' } : {}}
               >
@@ -234,7 +234,7 @@ export default function AdminBadgesPage() {
                       disabled={togglingId === badge.id}
                       className={`text-xs font-bold px-3 py-2 min-h-[36px] rounded-lg transition-colors disabled:opacity-50 ${
                         badge.is_active 
-                          ? 'text-rose-600 hover:bg-rose-50' 
+                          ? 'text-rose-700 hover:bg-rose-50' 
                           : 'text-emerald-700 hover:bg-emerald-50'
                       }`}
                     >

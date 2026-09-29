@@ -390,7 +390,7 @@ function Toolbox({
               onChange={(e) =>
                 onChange(items.map((x, j) => (j === i ? { ...x, tool: e.target.value } : x)))
               }
-              className="w-1/3 border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
+              className="w-1/3 min-w-[7rem] border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
             />
             <input
               type="text"

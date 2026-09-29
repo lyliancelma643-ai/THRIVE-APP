@@ -293,7 +293,7 @@ export function buildHtml(d: {
   const lockNote = (txt: string) =>
     `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(249,235,80,.07);border:1px solid rgba(249,235,80,.28);">
       <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px;flex-shrink:0;margin-top:2px;color:var(--accent-ink);" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
-      <span style="font-size:14px;line-height:1.5;color:var(--text2);"><b style="color:var(--accent-ink);">Contenu réservé.</b> ${txt} <span class="b-hover" data-href="/parent/upgrade" style="color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:2px;">Voir les forfaits</span></span>
+      <span style="font-size:14px;line-height:1.5;color:var(--text2);"><b style="color:var(--accent-ink);">Contenu réservé.</b> ${txt} <span class="b-hover" data-href="/parent/upgrade" style="display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:2px;">Voir les forfaits</span></span>
     </div>`;
 
   // Barres décoratives floutées (aucune donnée réelle) pour les visuels verrouillés

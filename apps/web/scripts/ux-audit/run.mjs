@@ -150,7 +150,12 @@ function pageChecks({ touch }) {
       if (el.type === 'checkbox' || el.type === 'radio') {
         if (el.closest('label')) continue;
       }
-      const r = el.getBoundingClientRect();
+      let r = el.getBoundingClientRect();
+      // Champ visuellement masqué (sr-only) : la cible réelle est son <label>.
+      if (r.width <= 1 && r.height <= 1 && el.id) {
+        const lab = document.querySelector(`label[for="${CSS.escape(el.id)}"]`);
+        if (lab) r = lab.getBoundingClientRect();
+      }
       if (r.width < 43.5 || r.height < 43.5) small.push(`${describe(el)} ${Math.round(r.width)}×${Math.round(r.height)}`);
     }
     for (const el of document.querySelectorAll('input:not([type=hidden]):not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]), textarea, select')) {

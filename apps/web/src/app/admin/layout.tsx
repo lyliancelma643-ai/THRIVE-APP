@@ -215,7 +215,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     href={item.href}
                     title={item.label}
                     aria-current={active ? 'page' : undefined}
-                    className={`relative flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 min-h-[52px] lg:min-h-[40px] rounded-xl mb-0.5 text-[11px] lg:text-sm transition-colors duration-fast ${
+                    className={`relative flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2 min-h-[52px] lg:min-h-[40px] lg:[@media(pointer:coarse)]:min-h-[44px] rounded-xl mb-0.5 text-[11px] lg:text-sm transition-colors duration-fast ${
                       active
                         ? 'bg-white text-navy-900 font-semibold'
                         : 'text-navy-100/85 hover:bg-navy-800 hover:text-white'

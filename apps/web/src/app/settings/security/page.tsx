@@ -114,7 +114,7 @@ export default function SecuritySettingsPage() {
       <div className="w-full max-w-lg pt-10">
         <button
           onClick={() => router.back()}
-          className="mb-4 text-sm text-navy-600/80 hover:text-navy-900 transition-colors"
+          className="mb-2 inline-flex items-center min-h-[44px] text-sm text-navy-700 hover:text-navy-900 transition-colors"
         >
           ← Retour
         </button>

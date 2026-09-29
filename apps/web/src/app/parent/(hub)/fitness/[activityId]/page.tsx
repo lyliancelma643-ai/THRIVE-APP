@@ -115,7 +115,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         aria-label="Ce qu’on travaille"
         className="mt-5 rounded-[24px] p-5 md:p-6 bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] ring-2 ring-accent-line"
       >
-        <p className="nc-eyebrow">Ce qu’on travaille</p>
+        <p className="nc-eyebrow !text-soft">Ce qu’on travaille</p>
         <p className="mt-2 font-display text-[26px] md:text-[30px] leading-[1.15] font-semibold text-ink">
           {week?.skill ?? activity.subtitle}
         </p>
