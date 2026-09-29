@@ -1,103 +1,145 @@
 // Edge Function : create-checkout-session
-// Crée une session Stripe Checkout (paiement unique, CAD) pour l'upgrade de
-// forfait d'une famille. Le paiement validé déclenche le webhook stripe-webhook
-// qui écrit l'entitlement — jamais d'écriture directe de families.pack ici.
-// verify_jwt: true  ·  rôle: PARENT (propriétaire de la famille)
-// Secrets requis : STRIPE_SECRET_KEY (sinon 503 not_configured, repli UI).
+// Crée une session Stripe Checkout (abonnement P3, web) pour le parent connecté.
+//
+//   • App User ID = id Supabase, posé à la fois dans `client_reference_id`, dans
+//     les metadata de la session ET dans celles de l'abonnement (`app_user_id`) :
+//     RevenueCat et notre webhook retrouvent le compte quoi qu'il arrive.
+//   • Essai gratuit de TRIAL_DAYS jours, une seule fois par compte ; la carte est
+//     toujours demandée (payment_method_collection=always).
+//   • Refus si un abonnement est déjà actif, quelle que soit la plateforme
+//     (évite le double prélèvement web + App Store). Filet indépendant du
+//     miroir RevenueCat : l'historique Stripe du client est relu (abonnement
+//     encore facturable → 409 ; abonnement passé → plus d'essai).
+//   • Une seule session de paiement ouverte par compte : les précédentes sont
+//     expirées (deux onglets ne peuvent pas créer deux abonnements).
+//   • Client Stripe unique par compte, réutilisé (portail client, cartes).
+//   • success_url / cancel_url ramènent sur /parent/abonnement (origine filtrée).
+//
+// verify_jwt: true · rôle : PARENT.
+// Secrets : STRIPE_SECRET_KEY, APP_ORIGINS (optionnel).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "jsr:@supabase/supabase-js@2";
 import { withSentry, captureError } from "../_shared/sentry.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
-const json = (body: unknown, status = 200) =>
-  new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-const fail = (code: string, message: string, status: number) => json({ code, message }, status);
-
-const PACK_ORDER = ["ESSENTIEL", "AVANCE", "PERFORMANCE"];
+import { adminClient, authUser, corsHeaders, env, fail, json, stripe, StripeError } from "../_shared/billing.ts";
+import {
+  isPlanCode,
+  parseOrigins,
+  PLAN_LOOKUP_KEYS,
+  resolveReturnOrigin,
+  stripeHistoryVerdict,
+  TRIAL_DAYS,
+} from "../_shared/billing_core.ts";
 
 Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return fail("method_not_allowed", "Méthode non autorisée", 405);
 
   try {
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
-    if (!stripeKey) return fail("not_configured", "Paiement en ligne non configuré", 503);
-
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) return fail("unauthorized", "Authentification requise", 401);
-
-    const userClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    );
-    const { data: { user }, error: uErr } = await userClient.auth.getUser();
-    if (uErr || !user) return fail("unauthorized", "Utilisateur introuvable", 401);
+    const user = await authUser(req);
+    if (!user) return fail("unauthorized", "Authentification requise", 401);
+    if (user.role !== "PARENT") {
+      return fail("forbidden", "Votre rôle donne déjà accès à tout le contenu", 403);
+    }
 
     const body = await req.json().catch(() => ({}));
-    const planCode = String(body?.plan_code ?? "");
-    if (!PACK_ORDER.includes(planCode)) return fail("validation", "plan_code invalide", 422);
+    const plan = body?.plan;
+    if (!isPlanCode(plan)) return fail("validation", "Plan invalide (mensuel | annuel)", 422);
 
-    const admin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } },
+    const admin = adminClient();
+    const { data: row } = await admin
+      .from("billing_subscriptions")
+      .select("active, expires_at, ever_subscribed, stripe_customer_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const stillActive = row?.active === true && (!row.expires_at || new Date(row.expires_at) > new Date());
+    if (stillActive) {
+      return fail("already_subscribed", "Votre abonnement est déjà actif", 409);
+    }
+
+    // Prix actif par lookup_key (le montant vit dans Stripe, jamais ici).
+    const prices = await stripe<{ data: { id: string }[] }>("GET", "/prices", {
+      active: true,
+      lookup_keys: [PLAN_LOOKUP_KEYS[plan]],
+      limit: 1,
+    });
+    const priceId = prices.data[0]?.id;
+    if (!priceId) return fail("not_found", "Offre introuvable", 404);
+
+    // Client Stripe unique par compte.
+    let customerId = row?.stripe_customer_id ?? null;
+    if (!customerId) {
+      const customer = await stripe<{ id: string }>("POST", "/customers", {
+        email: user.email ?? undefined,
+        preferred_locales: ["fr-CA", "fr"],
+        metadata: { app_user_id: user.id },
+      }, `customer-${user.id}`);
+      customerId = customer.id;
+      const { error } = await admin.from("billing_subscriptions").upsert(
+        { user_id: user.id, stripe_customer_id: customerId },
+        { onConflict: "user_id" },
+      );
+      if (error) throw new Error(`billing_subscriptions: ${error.message}`);
+    }
+
+    const origin = resolveReturnOrigin(
+      body?.origin ?? req.headers.get("origin"),
+      parseOrigins(env("APP_ORIGINS")),
     );
+    let trialEligible = row?.ever_subscribed !== true;
 
-    // La famille du parent connecté (le payeur)
-    const { data: family } = await admin
-      .from("families").select("id, pack").eq("parent_id", user.id).maybeSingle();
-    if (!family) return fail("not_found", "Aucune famille associée à ce compte", 404);
+    // Filet Stripe (si RevenueCat a manqué un événement) + sessions ouvertes.
+    if (row?.stripe_customer_id) {
+      const history = await stripe<{ data: { status: string }[] }>("GET", "/subscriptions", {
+        customer: customerId,
+        status: "all",
+        limit: 100,
+      });
+      const verdict = stripeHistoryVerdict(history.data);
+      if (verdict.billable) return fail("already_subscribed", "Votre abonnement est déjà actif", 409);
+      if (verdict.everSubscribed) trialEligible = false;
 
-    // Upgrade uniquement (jamais de downgrade par paiement)
-    if (PACK_ORDER.indexOf(planCode) <= PACK_ORDER.indexOf(String(family.pack))) {
-      return fail("validation", "Ce forfait est déjà inclus dans votre abonnement", 400);
+      const open = await stripe<{ data: { id: string }[] }>("GET", "/checkout/sessions", {
+        customer: customerId,
+        status: "open",
+        limit: 100,
+      });
+      for (const s of open.data) {
+        await stripe("POST", `/checkout/sessions/${s.id}/expire`);
+      }
     }
 
-    const { data: plan } = await admin
-      .from("plans").select("code, label, price_cents, currency").eq("code", planCode).maybeSingle();
-    if (!plan) return fail("not_found", "Forfait introuvable", 404);
-
-    // Origine de retour : l'app (jamais une origine arbitraire non listée)
-    const allowedOrigins = [
-      "https://app.thrivesportpositive.com",
-      "http://localhost:3001",
-    ];
-    const requested = String(body?.origin ?? req.headers.get("origin") ?? "");
-    const origin = allowedOrigins.includes(requested) ? requested : allowedOrigins[0];
-
-    const form = new URLSearchParams({
-      mode: "payment",
-      success_url: `${origin}/parent/upgrade?checkout=success`,
-      cancel_url: `${origin}/parent/upgrade?checkout=cancelled`,
-      "line_items[0][price_data][currency]": String(plan.currency ?? "CAD").toLowerCase(),
-      "line_items[0][price_data][unit_amount]": String(plan.price_cents),
-      "line_items[0][price_data][product_data][name]": `THRIVE — Forfait ${plan.label} (parcours 13 séances)`,
-      "line_items[0][quantity]": "1",
-      "metadata[family_id]": family.id,
-      "metadata[plan_code]": plan.code,
-    });
-    if (user.email) form.set("customer_email", user.email);
-
-    const stripeRes = await fetch("https://api.stripe.com/v1/checkout/sessions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${stripeKey}`,
-        "Content-Type": "application/x-www-form-urlencoded",
+    const session = await stripe<{ id: string; url: string }>("POST", "/checkout/sessions", {
+      mode: "subscription",
+      customer: customerId,
+      client_reference_id: user.id,
+      line_items: [{ price: priceId, quantity: 1 }],
+      payment_method_collection: "always",
+      allow_promotion_codes: true,
+      locale: "fr-CA",
+      billing_address_collection: "auto",
+      customer_update: { address: "auto", name: "auto" },
+      metadata: { app_user_id: user.id, plan },
+      subscription_data: {
+        metadata: { app_user_id: user.id, plan },
+        ...(trialEligible
+          ? {
+              trial_period_days: TRIAL_DAYS,
+              trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+            }
+          : {}),
       },
-      body: form.toString(),
+      success_url: `${origin}/parent/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/parent/abonnement?checkout=cancel`,
     });
-    const session = await stripeRes.json();
-    if (!stripeRes.ok || !session?.url) {
-      return fail("stripe_error", session?.error?.message ?? "Création de session impossible", 502);
-    }
 
-    return json({ url: session.url }, 200);
+    return json({ url: session.url, id: session.id });
   } catch (e) {
+    if (e instanceof StripeError && e.code === "not_configured") {
+      return fail("not_configured", "Paiement web non configuré", 503);
+    }
     await captureError(e);
-    return fail("internal", e instanceof Error ? e.message : "Erreur interne", 500);
+    const message = e instanceof Error ? e.message : "Erreur interne";
+    return fail(e instanceof StripeError ? "stripe_error" : "internal", message, e instanceof StripeError ? 502 : 500);
   }
 }));

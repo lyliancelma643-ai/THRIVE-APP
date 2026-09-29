@@ -33,6 +33,7 @@ const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: '/parent/my-sessions', label: 'Mes séances', icon: 'star' },
   { href: '/parent/fitness', label: 'Maison', icon: 'home' },
 ];
+const MAISON_TAB = 2;
 
 // Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;
 // la messagerie et la page forfaits vivent hors onglets (accès par le header).
@@ -40,7 +41,12 @@ function activeTabIndex(pathname: string): number {
   const i = TABS.findIndex((t) => pathname.startsWith(t.href));
   if (i >= 0) return i;
   if (pathname.startsWith('/parent/session')) return 2;
-  if (pathname.startsWith('/parent/messages') || pathname.startsWith('/parent/upgrade')) return -1;
+  if (
+    pathname.startsWith('/parent/messages') ||
+    pathname.startsWith('/parent/upgrade') ||
+    pathname.startsWith('/parent/abonnement')
+  )
+    return -1;
   return 0;
 }
 
@@ -57,6 +63,9 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
 
   // Compte en préparation : onglets visibles mais non cliquables (aperçu).
   const locked = !accessLoading && access ? !access.unlocked : false;
+  // Bilan et Maison restent toujours ouverts : Maison s'ouvre aux abonnés P3
+  // sans activation par un coach, et montre l'invitation à s'abonner sinon.
+  const tabOpen = (i: number) => !locked || i === 0 || i === MAISON_TAB;
 
   // Sens de la dernière navigation : l'écran entrant glisse depuis ce côté.
   const [enterFrom, setEnterFrom] = useState(30);
@@ -65,10 +74,11 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const goToTab = useCallback(
     (next: number, direction: 1 | -1) => {
       const target = TABS[next];
-      if (!target || (locked && next !== 0)) return;
+      if (!target || !tabOpen(next)) return;
       setEnterFrom(direction === 1 ? 30 : -30);
       router.push(target.href);
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [locked, router]
   );
 
@@ -186,7 +196,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             {TABS.map((tab, i) =>
               // Compte en préparation : hors onglets (active < 0), Bilan reste
               // cliquable pour ne jamais enfermer l'utilisateur.
-              locked && (active >= 0 ? active !== i : i !== 0) ? (
+              !tabOpen(i) && active !== i ? (
                 // Compte en préparation : les autres sections restent visibles
                 // mais non cliquables (aperçu de ce qui attend l'utilisateur)
                 <span

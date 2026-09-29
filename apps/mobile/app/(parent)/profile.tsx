@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useAuth } from '@thrive/shared';
 import { useProfile } from '@thrive/shared';
+import { SubscriptionSettings } from '../../src/components/subscription/SubscriptionSettings';
 
 export default function ParentProfile() {
   const { user, signOut } = useAuth();
@@ -189,6 +190,8 @@ export default function ParentProfile() {
             </TouchableOpacity>
           </View>
         )}
+
+        <SubscriptionSettings />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>COMPTE</Text>

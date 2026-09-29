@@ -5,12 +5,16 @@ import { useRouter } from 'expo-router';
 import type { EventSubscription } from 'expo-modules-core';
 import { NotificationService } from '@thrive/shared/services/NotificationService';
 import { useAuthStore } from '../src/stores/auth.store';
-import { initPurchases } from '../src/services/purchases';
+import { useRevenueCatIdentity } from '../src/hooks/useRevenueCatIdentity';
 
 export default function RootLayout() {
   const router = useRouter();
   const { isAuthenticated, hydrate } = useAuthStore();
   const responseListener = useRef<EventSubscription | null>(null);
+
+  // RevenueCat : App User ID = id Supabase (logIn à la connexion, logOut à la
+  // déconnexion) + état d'abonnement en direct pour toute l'app.
+  useRevenueCatIdentity();
 
   useEffect(() => {
     hydrate();
@@ -20,8 +24,6 @@ export default function RootLayout() {
     if (!isAuthenticated) return;
 
     NotificationService.registerForPushNotifications();
-    // RevenueCat : no-op si clé absente ou module natif indisponible (Expo Go)
-    initPurchases(useAuthStore.getState().user?.id);
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(
       (response: Notifications.NotificationResponse) => {

@@ -69,7 +69,7 @@ export const usePlanStore = create<PlanStore>((set) => ({
   },
 }));
 
-// Un upgrade (webhook Stripe, admin) se reflète en direct dans toute l'UI.
+// Un changement de forfait (admin) se reflète en direct dans toute l'UI.
 let realtimeStarted = false;
 function ensureRealtime() {
   if (realtimeStarted) return;

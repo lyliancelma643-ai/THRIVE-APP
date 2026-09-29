@@ -4,13 +4,6 @@
 
 const encoder = new TextEncoder();
 
-export const PLAN_CODES = ["ESSENTIEL", "AVANCE", "PERFORMANCE"] as const;
-export type PlanCode = (typeof PLAN_CODES)[number];
-
-export function isValidPlanCode(code: unknown): code is PlanCode {
-  return typeof code === "string" && (PLAN_CODES as readonly string[]).includes(code);
-}
-
 export async function verifyStripeSignature(
   payload: string,
   header: string,
