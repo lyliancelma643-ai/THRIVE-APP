@@ -246,7 +246,7 @@ export default function CoachLiveSessionPage() {
   const isDone = session.status === 'COMPLETED';
 
   return (
-    <div className="max-w-3xl pb-44 lg:pb-28">
+    <div className="max-w-3xl pb-44 md:pb-28">
       {/* En-tête */}
       <Link
         href={`/coach/athletes/${child.id}`}
@@ -319,7 +319,7 @@ export default function CoachLiveSessionPage() {
 
       {/* Navigation rapide entre les étapes minutées */}
       {steps.length > 1 && (
-        <div className="sticky top-2 lg:top-2 z-30 -mx-1 mb-4">
+        <div className="sticky top-[calc(64px+env(safe-area-inset-top))] md:top-2 z-sticky -mx-1 mb-4">
           <div className="glass-strong rounded-full px-2 py-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
             {steps.map((s) => {
               const isCurrent = currentStep?.bi === s.bi;
@@ -503,7 +503,7 @@ export default function CoachLiveSessionPage() {
       </div>
 
       {/* Barre d'envoi */}
-      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
+      <div className="fixed bottom-[calc(60px+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[88px] lg:left-64 right-0 z-sticky px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
         <div className="max-w-3xl flex items-center gap-3">
           {startedAt && !isDone && (
             <button

@@ -175,7 +175,7 @@ function MySessionsPageInner() {
     : null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] gap-6 lg:gap-10">
       {/* Colonne gauche — le programme de séances */}
       <div>
       <div className="animate-om-up" style={{ ['--om-d' as string]: '0.04s' }}>
@@ -311,9 +311,9 @@ function MySessionsPageInner() {
                 )}
               </button>
 
-              {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ lg) */}
+              {/* Lecture inline — réservée au mobile (le panneau latéral prend le relais ≥ md, dès l’iPad) */}
               {isSelected && hasDetails && s && (
-                <div className="lg:hidden px-4 pb-[18px] pt-1 animate-om-fade">
+                <div className="md:hidden px-4 pb-[18px] pt-1 animate-om-fade">
                   <div className="h-px bg-chip mb-3.5" />
                   <BilanDetails bilan={bilan} pack={pack} />
                 </div>
@@ -325,7 +325,7 @@ function MySessionsPageInner() {
       </div>
 
       {/* Colonne droite — lecteur du bilan du coach */}
-      <div className="hidden lg:block">
+      <div className="hidden md:block">
         <div className="sticky top-24">
           {selectedSession ? (
             <BilanPanel
