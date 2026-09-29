@@ -28,6 +28,8 @@ import {
 import { PILLAR_PLAIN, ROLE_LABELS } from '@/lib/p3-moments/guide';
 import { timerSummary } from '@/components/parent/p3/StepTimer';
 import { VISUAL_LABELS } from '@/components/parent/p3/Visuals';
+import { Vignette } from '@/components/parent/p3/Poster';
+import { vignetteSrc } from '@/components/parent/p3/vignettes';
 import { BAND_LABELS } from '@/lib/p3-moments/shelves';
 import { P3_BASE, p3Pool, parseBand, parseDuration, parsePlace } from '@/lib/p3-moments/app';
 
@@ -62,6 +64,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
   const after = activity.after ? getActivity(activity.after) : null;
   const fav = ctx.data.saved.favoris.has(activity.id);
   const aside = ctx.data.saved.deCote.has(activity.id);
+  const vignette = vignetteSrc(activity.id);
   const launchHref = `${P3_BASE}/${activity.id}/moment?duree=${r.duration}&lieu=${place}${bandOverride ? `&bande=${ctx.band}` : ''}`;
 
   const copy = async () => {
@@ -100,6 +103,11 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </Link>
           {ctx.data.doneIds.has(after.id) ? ' (déjà vécue)' : ''}
         </p>
+      )}
+
+      {/* La vignette mascotte : l'enfant comprend l'activité sans lire son but */}
+      {vignette && (
+        <Vignette src={vignette} className="mt-5 w-full max-w-[360px] aspect-square rounded-[24px] ring-1 ring-line2" />
       )}
 
       {/* L'objectif de développement, relié à la séance : ce qu'on travaille vraiment */}

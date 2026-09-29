@@ -5,9 +5,9 @@
 //
 // Même grammaire que les séances vidéo (SessionRow / SessionCard) : carrousel
 // qui déborde jusqu'aux bords, accroche snap-start, texte SOUS la vignette.
-// Les fiches n'ont pas d'image : l'affiche est une composition par pilier
-// (une couleur, l'icône du pilier, le numéro de semaine). Comme une image, elle
-// reste sombre dans les deux ambiances — le texte posé dessus est donc blanc.
+// Chaque fiche a sa vignette mascotte (voir vignettes.ts). Tant qu'elle manque,
+// l'affiche est une composition par pilier (une couleur, l'icône du pilier, le
+// numéro de semaine), sombre dans les deux ambiances : le texte dessus est blanc.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import Link from 'next/link';
@@ -17,6 +17,7 @@ import type { P3Activity, PillarCode } from '@/lib/p3-moments';
 import { PILLAR_PLAIN } from '@/lib/p3-moments/guide';
 import { PILLAR_ICON } from './pieces';
 import { useHScroll } from './useHScroll';
+import { vignetteSrc } from './vignettes';
 
 /** Une teinte par pilier : c'est elle qui fait reconnaître une famille d'un coup d'œil. */
 const PILLAR_HUE: Record<PillarCode, string> = {
@@ -30,8 +31,35 @@ const PILLAR_HUE: Record<PillarCode, string> = {
   P8: '#8f9bff',
 };
 
+/**
+ * La vignette mascotte, entière : jamais recadrée (la planche n'est pas toujours
+ * carrée). Les marges éventuelles sont comblées par la même image, floutée.
+ */
+export function Vignette({ src, className = '' }: { src: string; className?: string }) {
+  return (
+    <div aria-hidden className={`relative overflow-hidden bg-[#f3efe6] ${className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" draggable={false} className="absolute inset-0 w-full h-full object-cover scale-110 blur-xl" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={src} alt="" draggable={false} className="relative w-full h-full object-contain" />
+    </div>
+  );
+}
+
 export function PosterArt({ activity, big = false, done = false }: { activity: P3Activity; big?: boolean; done?: boolean }) {
   const hue = PILLAR_HUE[activity.pillar_main];
+  const src = big ? null : vignetteSrc(activity.id);
+  if (src)
+    return (
+      <div aria-hidden className="absolute inset-0">
+        <Vignette src={src} className="w-full h-full" />
+        {done && (
+          <span className="absolute top-2.5 right-2.5 w-6 h-6 rounded-full bg-sage text-navy-900 flex items-center justify-center">
+            <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.6} />
+          </span>
+        )}
+      </div>
+    );
   return (
     <div
       aria-hidden
@@ -86,7 +114,7 @@ export function PosterCard({
       draggable={false}
       className={`${wide ? 'w-full' : 'w-[152px] md:w-[176px] shrink-0 snap-start'} group select-none [-webkit-touch-callout:none]`}
     >
-      <div className="relative aspect-[3/4] rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5 transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
+      <div className="relative aspect-square rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5 transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
         <PosterArt activity={activity} done={done} />
         <span className="absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
           <span className="w-11 h-11 rounded-full bg-accent text-navy-900 flex items-center justify-center">
