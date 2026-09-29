@@ -7,6 +7,7 @@
 // Réutilise les classes .b-modal-ov / .b-modal du DESIGN_CSS injecté par la page.
 
 import { useEffect, useRef, useState } from 'react';
+import { BilanSheet } from './sheet';
 import type { ChildProfile } from '@/lib/catalog';
 import {
   ACCENT_PRESETS,
@@ -59,19 +60,6 @@ export function PassportEditModal({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
 
   // Aperçu local de la photo choisie (révoqué au démontage / changement).
   useEffect(() => {
@@ -129,20 +117,7 @@ export function PassportEditModal({
   };
 
   return (
-    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label="Personnaliser le passeport" onClick={onClose}>
-      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Fermer"
-          style={{
-            position: 'absolute', top: 12, right: 12, width: 44, height: 44,
-            borderRadius: 14, background: 'var(--line)',
-            border: '1px solid var(--line2)', color: 'var(--text3)',
-            fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
-          }}
-        >
-          ✕
-        </button>
+    <BilanSheet label="Personnaliser le passeport" onClose={onClose}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 20, paddingRight: 56 }}>
           <span style={{
@@ -201,7 +176,7 @@ export function PassportEditModal({
               <button
                 onClick={() => { setFile(null); setRemovePhoto(true); }}
                 style={{
-                  minHeight: 36, padding: '0 16px', borderRadius: 12, border: 'none',
+                  minHeight: 44, padding: '0 16px', borderRadius: 12, border: 'none',
                   background: 'transparent', color: 'var(--text3)',
                   fontWeight: 500, fontSize: 12, cursor: 'pointer', textAlign: 'left',
                 }}
@@ -287,7 +262,6 @@ export function PassportEditModal({
         <p style={{ textAlign: 'center', fontSize: 11, color: 'var(--text4)', margin: '12px 0 0' }}>
           La photo reste privée : visible uniquement par la famille, le coach et l’équipe THRIVE.
         </p>
-      </div>
-    </div>
+    </BilanSheet>
   );
 }

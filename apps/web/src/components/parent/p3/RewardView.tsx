@@ -44,7 +44,7 @@ function blocksFor(id: RewardId, payload: Record<string, unknown> | null): Block
       return [
         { label: 'Son podium', lines: list(p.podium) },
         { label: 'Son objectif, ajusté', lines: list(p.objectif) },
-        { label: 'Ce que vous avez vu changer', lines: list(p.vu_par_le_parent) },
+        { label: 'Ce que tu as vu changer', lines: list(p.vu_par_le_parent) },
       ];
     case 'boite_a_outils':
       return [{ label: 'Ses outils, nommés par lui', lines: list(p.outils) }];
@@ -147,7 +147,7 @@ export function RewardView({
         <p className="nc-eyebrow">La lettre</p>
         <p className="mt-2 text-[17px] leading-[1.5] text-ink">
           {sealed
-            ? `Lettre scellée le ${formatFullDate(sealed)}. Elle vous reviendra le ${formatFullDate(inOneYear(new Date(sealed)))}.`
+            ? `Lettre scellée le ${formatFullDate(sealed)}. Elle te reviendra le ${formatFullDate(inOneYear(new Date(sealed)))}.`
             : `La lettre de ${firstName} se garde sur papier, dans son enveloppe fermée.`}
         </p>
       </div>

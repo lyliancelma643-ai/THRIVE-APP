@@ -39,7 +39,7 @@ import {
 
 const PROMISES = [
   'Une activité de 10 minutes par jour, rien à préparer',
-  'Choisie pour votre enfant, et de mieux en mieux au fil de vos retours',
+  'Choisie pour ton enfant, et de mieux en mieux au fil de tes retours',
   'Adossée aux 13 séances de la Méthode THRIVE',
   'Le carnet des moments et les objets à gagner ensemble',
   'Accès pour les deux parents',
@@ -93,7 +93,7 @@ function Abonnement() {
 
     (async () => {
       if (checkout === 'cancel') {
-        setNotice({ tone: 'info', text: 'Paiement interrompu : rien n’a été prélevé. Vous pouvez reprendre quand vous voulez.' });
+        setNotice({ tone: 'info', text: 'Paiement interrompu : rien n’a été prélevé. Tu peux reprendre quand tu veux.' });
       } else if (checkout === 'success') {
         setActivating(true);
         let active = false;
@@ -109,10 +109,10 @@ function Abonnement() {
         await refreshAccess();
         setNotice(
           active
-            ? { tone: 'ok', text: 'Bienvenue ! Votre accès à Maison est ouvert.' }
+            ? { tone: 'ok', text: 'Bienvenue ! Ton accès à Maison est ouvert.' }
             : {
                 tone: 'warn',
-                text: 'Votre paiement est bien reçu ; l’activation prend un peu plus de temps que prévu. Touchez « Actualiser mon accès » dans une minute.',
+                text: 'Ton paiement est bien reçu ; l’activation prend un peu plus de temps que prévu. Touche « Actualiser mon accès » dans une minute.',
               }
         );
       } else if (portal === 'return') {
@@ -132,7 +132,7 @@ function Abonnement() {
       <Shell>
         <section className="nc-card">
           <p className="text-[15px] leading-[1.55] text-body">
-            Votre rôle donne accès à tout le contenu de THRIVE, sans abonnement.
+            Ton rôle donne accès à tout le contenu de THRIVE, sans abonnement.
           </p>
         </section>
       </Shell>
@@ -144,8 +144,8 @@ function Abonnement() {
       <Shell>
         <section className="nc-card text-center py-10" aria-live="polite">
           <div className="mx-auto w-10 h-10 rounded-full border-2 border-line border-t-accent animate-spin" aria-hidden />
-          <p className="font-display text-[20px] font-semibold text-night-ink mt-5">Nous activons votre accès…</p>
-          <p className="text-[14px] text-soft mt-1.5">Quelques secondes, ne fermez pas la page.</p>
+          <p className="font-display text-[20px] font-semibold text-night-ink mt-5">Nous activons ton accès…</p>
+          <p className="text-[14px] text-soft mt-1.5">Quelques secondes, ne ferme pas la page.</p>
         </section>
       </Shell>
     ) : (
@@ -181,7 +181,7 @@ function ActiveSubscription() {
     try {
       await openCustomerPortal();
     } catch (e) {
-      setError(e instanceof BillingError ? e.message : 'Le portail ne répond pas. Réessayez dans un instant.');
+      setError(e instanceof BillingError ? e.message : 'Le portail ne répond pas. Réessaie dans un instant.');
       setOpening(false);
     }
   };
@@ -190,7 +190,7 @@ function ActiveSubscription() {
     <>
       <section className="nc-card">
         <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-sage/15 text-sage flex items-center justify-center shrink-0">
+          <span className="w-10 h-10 rounded-xl bg-sage/15 text-sage-ink flex items-center justify-center shrink-0">
             <Icon name="check" className="w-5 h-5" />
           </span>
           <div>
@@ -204,20 +204,20 @@ function ActiveSubscription() {
         {end && (
           <p className="text-[15px] leading-[1.55] text-body mt-4">
             {channel === 'offert'
-              ? `Votre accès est ouvert jusqu’au ${end}.`
+              ? `Ton accès est ouvert jusqu’au ${end}.`
               : isTrial
                 ? row.will_renew
-                  ? `Gratuit jusqu’au ${end}. Le premier prélèvement aura lieu ce jour-là, sauf annulation avant.`
+                  ? `Gratuit jusqu’au ${end}. Le premier prélèvement aura lieu ce jour-là, sauf si tu annules avant.`
                   : `Gratuit jusqu’au ${end}. L’abonnement est annulé : aucun prélèvement ne sera fait.`
                 : row.will_renew
                   ? `Prochain renouvellement le ${end}.`
-                  : `Votre accès reste ouvert jusqu’au ${end}, sans renouvellement.`}
+                  : `Ton accès reste ouvert jusqu’au ${end}, sans renouvellement.`}
           </p>
         )}
 
         {row.billing_issue_at && (
           <p className="mt-4 rounded-lg border border-sun/30 bg-sun/[0.08] px-4 py-3 text-[14px] leading-relaxed text-body">
-            Le dernier paiement n’est pas passé. Mettez à jour votre moyen de paiement pour garder votre accès.
+            Le dernier paiement n’est pas passé. Mets à jour ton moyen de paiement pour garder ton accès.
           </p>
         )}
 
@@ -232,28 +232,28 @@ function ActiveSubscription() {
                 {opening ? 'Ouverture…' : 'Gérer mon abonnement'}
               </button>
               <p className="text-[13px] text-faint text-center">
-                Annuler, changer de carte ou de formule, télécharger vos factures.
+                Annuler, changer de carte ou de formule, télécharger tes factures.
               </p>
             </>
           )}
           {channel === 'app_store' && (
             <p className="text-[14px] leading-[1.55] text-body">
-              Vous avez souscrit sur iPhone. Pour modifier ou annuler : <strong>Réglages</strong> › votre nom ›{' '}
+              Tu as souscrit sur iPhone. Pour modifier ou annuler : <strong>Réglages</strong> › ton nom ›{' '}
               <strong>Abonnements</strong> › THRIVE.
             </p>
           )}
           {channel === 'play_store' && (
             <p className="text-[14px] leading-[1.55] text-body">
-              Vous avez souscrit sur Android. Pour modifier ou annuler : <strong>Google Play</strong> › votre profil ›{' '}
+              Tu as souscrit sur Android. Pour modifier ou annuler : <strong>Google Play</strong> › ton profil ›{' '}
               <strong>Paiements et abonnements</strong> › Abonnements.
             </p>
           )}
           {channel === 'autre' && (
             <p className="text-[14px] leading-[1.55] text-body">
-              Une question sur votre abonnement ? Écrivez-nous depuis la messagerie.
+              Une question sur ton abonnement ? Écris-nous depuis la messagerie.
             </p>
           )}
-          {error && <p className="text-[13px] text-red-300 text-center">{error}</p>}
+          {error && <p className="text-[13px] text-danger-ink text-center">{error}</p>}
         </div>
       </section>
 
@@ -288,7 +288,7 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
       setLoadError(
         e instanceof BillingError && e.code === 'not_configured'
           ? 'Le paiement en ligne ouvre très bientôt.'
-          : 'L’offre ne s’affiche pas pour le moment. Réessayez dans un instant.'
+          : 'L’offre ne s’affiche pas pour le moment. Réessaie dans un instant.'
       );
     }
   }, []);
@@ -314,7 +314,7 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
         await refreshAccess();
         return;
       }
-      onNotice({ tone: 'warn', text: e instanceof BillingError ? e.message : 'Le paiement ne s’ouvre pas. Réessayez.' });
+      onNotice({ tone: 'warn', text: e instanceof BillingError ? e.message : 'Le paiement ne s’ouvre pas. Réessaie.' });
     }
   };
 
@@ -371,7 +371,7 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
               </button>
               <p className="text-[13px] leading-[1.5] text-faint text-center mt-3 text-pretty">
                 {data.trial_eligible
-                  ? `Gratuit pendant ${trialDuration(data.trial_days)}, puis ${formatMoney(chosen.amount, chosen.currency)} par ${periodLabel(chosen)}. Annulez avant la fin de l’essai : aucun prélèvement.`
+                  ? `Gratuit pendant ${trialDuration(data.trial_days)}, puis ${formatMoney(chosen.amount, chosen.currency)} par ${periodLabel(chosen)}. Annule avant la fin de l’essai : aucun prélèvement.`
                   : `${formatMoney(chosen.amount, chosen.currency)} par ${periodLabel(chosen)}, sans engagement.`}{' '}
                 Renouvellement automatique jusqu’à annulation, en deux clics. Paiement sécurisé par Stripe.
               </p>
@@ -389,8 +389,8 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
               await refreshAccess();
               onNotice(
                 ok
-                  ? { tone: 'ok', text: 'Votre abonnement est retrouvé : l’accès à Maison est ouvert.' }
-                  : { tone: 'info', text: 'Aucun abonnement actif n’est rattaché à ce compte. Vérifiez que vous êtes connecté avec la même adresse que sur votre téléphone.' }
+                  ? { tone: 'ok', text: 'Ton abonnement est retrouvé : l’accès à Maison est ouvert.' }
+                  : { tone: 'info', text: 'Aucun abonnement actif n’est rattaché à ce compte. Vérifie que tu es connecté avec la même adresse que sur ton téléphone.' }
               );
             }}
           />
@@ -481,7 +481,7 @@ function Shell({ children }: { children: React.ReactNode }) {
           Le moment qui compte
         </h1>
         <p className="text-[15px] leading-[1.5] text-soft mt-1.5">
-          10 minutes par jour avec votre enfant. Ce n’est pas le nombre d’heures qui compte, c’est la qualité du moment.
+          10 minutes par jour avec ton enfant. Ce n’est pas le nombre d’heures qui compte, c’est la qualité du moment.
         </p>
       </header>
       {children}

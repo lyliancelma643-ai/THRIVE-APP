@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -41,6 +41,7 @@ function AthleteIdentityPageInner() {
   const [infoKey, setInfoKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const htmlRef = useRef<HTMLDivElement>(null);
   const { data, isPending } = useBilanData(selectedChildId);
 
   // Photo de profil : children.avatar_url stocke un chemin storage (bucket
@@ -127,6 +128,36 @@ function AthleteIdentityPageInner() {
     const url = await signedDocUrl(doc.storage_path, 120);
     if (url) window.open(url, '_blank', 'noopener');
   };
+
+  // Accès clavier du gabarit : les zones d'action simples deviennent des
+  // boutons ; une carte qui contient d'autres actions (télécharger, voir les
+  // forfaits…) garde son contenu lisible et confie l'ouverture de sa fiche à son
+  // chevron, promu bouton de 44 px — jamais de bouton dans un bouton.
+  useEffect(() => {
+    const root = htmlRef.current;
+    // Déjà traité : React ne réécrit le gabarit que si son HTML change, ce
+    // qui remplace aussi l'élément marqué.
+    const first = root?.firstElementChild as HTMLElement | null;
+    if (!root || !first || first.dataset.kbd) return;
+    const ACT = '[data-info],[data-href],[data-doc],[data-action]';
+    root.querySelectorAll<HTMLElement>(ACT).forEach((el) => {
+      const hint = el.querySelector<HTMLElement>(':scope > .b-hint');
+      if (el.dataset.info && (hint || el.querySelector(ACT))) {
+        el.removeAttribute('tabindex');
+        if (el.getAttribute('role') === 'button') el.removeAttribute('role');
+        if (hint) {
+          const title = el.querySelector('.b-eye, h2, h3')?.textContent?.trim();
+          hint.setAttribute('role', 'button');
+          hint.setAttribute('tabindex', '0');
+          hint.setAttribute('aria-label', title ? `Voir le détail : ${title}` : 'Voir le détail');
+        }
+        return;
+      }
+      if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
+      if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
+    });
+    first.dataset.kbd = '1';
+  });
 
   // Liste des enfants ou données du bilan encore en chargement : squelette
   // plutôt qu'un flash d'état vide ou de carte à 0 %.
@@ -240,7 +271,7 @@ function AthleteIdentityPageInner() {
           {pendingLsss.token && (
             <a
               href={`/q/${pendingLsss.token}`}
-              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-11 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>
@@ -249,7 +280,7 @@ function AthleteIdentityPageInner() {
       )}
       {pendingPerma && (
         <div className="mb-3 p-4 rounded-[18px] bg-night-surface ring-1 ring-sage/30 flex items-center gap-3 animate-om-up">
-          <span className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center text-sage shrink-0">
+          <span className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center text-sage-ink shrink-0">
             <Icon name="chart" className="w-5 h-5" />
           </span>
           <div className="flex-1 min-w-0">
@@ -264,14 +295,26 @@ function AthleteIdentityPageInner() {
           {pendingPerma.token && (
             <a
               href={`/q/${pendingPerma.token}`}
-              className="shrink-0 inline-flex items-center h-10 px-5 rounded-full bg-sage text-navy-900 text-sm font-bold"
+              className="shrink-0 inline-flex items-center h-11 px-5 rounded-full bg-sage text-navy-900 text-sm font-bold"
             >
               Ouvrir
             </a>
           )}
         </div>
       )}
-      <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+      <div
+        ref={htmlRef}
+        onClick={onClick}
+        // Clavier : Entrée / Espace activent la carte comme un clic.
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          const el = e.target as HTMLElement;
+          if (el.getAttribute('role') !== 'button') return;
+          e.preventDefault();
+          el.click();
+        }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
       {detailKey &&
         typeof document !== 'undefined' &&
         // Portal vers <body> : la modale (position:fixed) doit se référer à

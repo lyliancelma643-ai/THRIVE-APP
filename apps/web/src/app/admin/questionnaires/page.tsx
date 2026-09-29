@@ -53,8 +53,8 @@ export default function AdminQuestionnairesPage() {
       <div className={`transition-all duration-500 ease-in-out ${selected ? 'hidden lg:block lg:w-2/3' : 'w-full'}`}>
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-2">Questionnaires 📝</h1>
-            <p className="text-slate-500 font-medium">{questionnaires.length} questionnaire{questionnaires.length > 1 ? 's' : ''}</p>
+            <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Questionnaires</h1>
+            <p className="text-slate-600 font-medium">{questionnaires.length} questionnaire{questionnaires.length > 1 ? 's' : ''}</p>
           </div>
         </div>
 
@@ -68,7 +68,7 @@ export default function AdminQuestionnairesPage() {
               <span className="text-5xl">📝</span>
             </div>
             <h3 className="text-xl font-bold text-slate-900 mb-2">Aucun questionnaire</h3>
-            <p className="text-slate-500">Créez-en un depuis l’application coach mobile.</p>
+            <p className="text-slate-600">Créez-en un depuis l’application coach mobile.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
@@ -91,11 +91,11 @@ export default function AdminQuestionnairesPage() {
                       {q.title}
                     </h3>
                     {q.description && (
-                      <p className="text-slate-500 text-sm mb-4 line-clamp-2 leading-relaxed">
+                      <p className="text-slate-600 text-sm mb-4 line-clamp-2 leading-relaxed">
                         {q.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-400">
+                    <div className="flex items-center gap-4 text-xs font-semibold text-slate-600">
                       <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-md text-slate-600">
                         <span>📋</span> {q.questions?.length ?? 0} question{(q.questions?.length ?? 0) > 1 ? 's' : ''}
                       </div>
@@ -114,7 +114,7 @@ export default function AdminQuestionnairesPage() {
                     </div>
                   </div>
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
-                    selected?.id === q.id ? 'bg-navy-600 text-white shadow-lg shadow-navy-500/30' : 'bg-slate-50 text-slate-400 group-hover:bg-navy-50 group-hover:text-navy-500'
+                    selected?.id === q.id ? 'bg-navy-600 text-white shadow-lg shadow-navy-500/30' : 'bg-slate-50 text-slate-600 group-hover:bg-navy-50 group-hover:text-navy-500'
                   }`}>
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                   </div>
@@ -128,14 +128,14 @@ export default function AdminQuestionnairesPage() {
       {/* Détail Glassmorphic */}
       {selected && (
         <div className="w-full lg:w-1/3">
-          <div className="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-white p-8 sticky top-8 h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-white p-8 sticky top-8 h-[calc(100dvh-6rem)] overflow-y-auto">
             <div className="absolute top-0 right-0 w-32 h-32 bg-navy-100 rounded-full blur-3xl -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
             
             <div className="relative z-10">
               {/* Retour à la liste — visible sur mobile où la liste est masquée */}
               <button
                 onClick={() => setSelected(null)}
-                className="lg:hidden inline-flex items-center gap-1.5 mb-4 min-h-[44px] pr-3 text-sm font-semibold text-slate-500 hover:text-navy-700 transition-colors"
+                className="lg:hidden inline-flex items-center gap-1.5 mb-4 min-h-[44px] pr-3 text-sm font-semibold text-slate-600 hover:text-navy-700 transition-colors"
               >
                 ← Retour à la liste
               </button>
@@ -146,7 +146,7 @@ export default function AdminQuestionnairesPage() {
                 <button
                   onClick={() => setSelected(null)}
                   aria-label="Fermer"
-                  className="w-11 h-11 rounded-full bg-slate-100 text-slate-400 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"
+                  className="w-11 h-11 rounded-full bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-500 flex items-center justify-center transition-colors"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
                 </button>
@@ -154,17 +154,17 @@ export default function AdminQuestionnairesPage() {
               
               <h2 className="text-2xl font-black text-slate-900 mb-2 leading-tight">{selected.title}</h2>
               {selected.description && (
-                <p className="text-slate-500 text-sm mb-8 leading-relaxed">{selected.description}</p>
+                <p className="text-slate-600 text-sm mb-8 leading-relaxed">{selected.description}</p>
               )}
               
               <div className="space-y-4">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4">Questions ({selected.questions?.length ?? 0})</h3>
+                <h3 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-4">Questions ({selected.questions?.length ?? 0})</h3>
                 {(selected.questions ?? []).sort((a, b) => a.order_index - b.order_index).map((q, i) => (
                   <div key={q.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 relative overflow-hidden group">
                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-slate-200 group-hover:bg-navy-400 transition-colors" />
                     <div className="flex justify-between items-start mb-2 pl-2">
-                      <span className="text-xs font-bold text-slate-400">Q{i + 1}</span>
-                      <span className="text-[10px] uppercase tracking-wider font-bold bg-slate-50 text-slate-500 rounded-md px-2 py-1 border border-slate-100">
+                      <span className="text-xs font-bold text-slate-600">Q{i + 1}</span>
+                      <span className="text-[10px] uppercase tracking-wider font-bold bg-slate-50 text-slate-600 rounded-md px-2 py-1 border border-slate-100">
                         {TYPE_LABELS[q.type] ?? q.type}
                       </span>
                     </div>

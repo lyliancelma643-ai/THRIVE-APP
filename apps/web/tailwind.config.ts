@@ -6,6 +6,9 @@ import type { Config } from 'tailwindcss';
 // Jaune soleil #F9EB50 — énergie, optimisme, jeunesse (accent)
 // Vert-bleu sage #A7C4BC — sérénité, croissance, bien-être (secondaire)
 const config: Config = {
+  // Survol réservé aux appareils qui survolent vraiment (souris, trackpad) :
+  // plus d'état « hover » collé sur iPhone / iPad après un tap.
+  future: { hoverOnlyWhenSupported: true },
   // Mode sombre par classe (opt-in par page — utilisé par la roadmap admin)
   darkMode: 'class',
   content: ['./src/**/*.{ts,tsx}'],
@@ -66,17 +69,47 @@ const config: Config = {
           light: '#C9DCD6',
           DEFAULT: '#A7C4BC',
           dark: '#7FA197',
+          // Sauge lisible en TEXTE dans les deux ambiances (AA) — le sage de
+          // marque reste réservé aux aplats, puces et graphiques.
+          ink: 'var(--sage-ink)',
         },
         // Couleurs sémantiques — alias iso-valeur des tons Tailwind déjà employés
         // dans l'app (Badge, boutons danger, pastilles d'état). Centralisées ici
         // pour harmoniser succès/alerte/erreur sans changer le rendu existant.
         success: { light: '#DCFCE7', DEFAULT: '#16A34A', dark: '#15803D' },
         warning: { light: '#FEF3C7', DEFAULT: '#D97706', dark: '#B45309' },
-        danger: { light: '#FEE2E2', DEFAULT: '#DC2626', dark: '#B91C1C' },
+        danger: { light: '#FEE2E2', DEFAULT: '#DC2626', dark: '#B91C1C', ink: 'var(--danger-ink)' },
       },
       borderRadius: {
         // Rayon des champs de saisie (aligne input-auth : 0.85rem)
         field: '0.85rem',
+        // Échelle de rayons de la marque (voir DESIGN_TOKENS.md)
+        chip: '12px',
+        tile: '16px',
+        row: '18px',
+        card: '22px',
+        sheet: '26px',
+      },
+      // Couches d'empilement : une seule échelle pour toute l'app.
+      zIndex: {
+        sticky: '30',
+        header: '40',
+        nav: '50',
+        backdrop: '60',
+        popover: '70',
+        overlay: '80',
+        modal: '90',
+        toast: '100',
+      },
+      transitionTimingFunction: {
+        // Courbe « iOS » de la marque (entrées) et sortie plus vive.
+        brand: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
+        exit: 'cubic-bezier(0.4, 0, 1, 1)',
+      },
+      transitionDuration: {
+        fast: '150ms',
+        base: '220ms',
+        slow: '300ms',
       },
       fontFamily: {
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],

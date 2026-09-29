@@ -27,7 +27,7 @@ export const PACK_PRICE_CENTS: Record<Pack, number> = {
 };
 
 export const PACK_TAGLINES: Record<Pack, string> = {
-  ESSENTIEL: 'Le parcours THRIVE complet avec votre coach.',
+  ESSENTIEL: 'Le parcours THRIVE complet avec ton coach.',
   AVANCE: 'Comprenez la progression, aux moments clés.',
   PERFORMANCE: "L'accompagnement le plus profond et le plus personnalisé.",
 };
@@ -154,7 +154,7 @@ export function canSeePremium(pack: Pack, sessionNumber: number | null): boolean
 // Phrase d'incitation à l'upgrade, adaptée au pack courant.
 export function upgradeHint(pack: Pack): string {
   if (pack === 'AVANCE') {
-    return `Votre pack Avancé donne accès aux bilans des séances 3, 7 et 13. Passez au pack Performance (${PACK_PRICES.PERFORMANCE}) pour débloquer toutes les séances.`;
+    return `Ton pack Avancé donne accès aux bilans des séances 3, 7 et 13. Passe au pack Performance (${PACK_PRICES.PERFORMANCE}) pour débloquer toutes les séances.`;
   }
   return `Inclus dès le pack Avancé (${PACK_PRICES.AVANCE} — bilans des séances 3, 7 et 13) et Performance (${PACK_PRICES.PERFORMANCE} — toutes les séances).`;
 }

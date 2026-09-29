@@ -220,7 +220,7 @@ export default function QuestionnairePage() {
   const Shell = ({ children }: { children: React.ReactNode }) => (
     <div
       style={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         background: isPerma
           ? 'radial-gradient(125% 85% at 50% -12%, #3a2a10 0%, #2e2410 24%, #241a08 52%, #140e04 100%)'
           : 'radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%)',

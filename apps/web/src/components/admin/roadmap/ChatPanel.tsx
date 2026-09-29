@@ -83,7 +83,7 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
             <button
               onClick={onClose}
               aria-label="Fermer le chat"
-              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-400 hover:bg-slate-100 dark:hover:bg-white/10"
+              className="w-9 h-9 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 dark:hover:bg-white/10"
             >
               ✕
             </button>
@@ -96,7 +96,7 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
                 className={`shrink-0 text-xs font-semibold px-3 py-1.5 rounded-full transition-colors ${
                   channel === c.key
                     ? 'bg-navy-600 text-white'
-                    : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-200'
+                    : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
                 }`}
               >
                 {c.label}
@@ -120,14 +120,14 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
                 >
                   {m.body}
                 </div>
-                <p className={`text-[10px] text-slate-400 mt-0.5 ${mine ? 'text-right' : ''}`}>
+                <p className={`text-[10px] text-slate-600 mt-0.5 ${mine ? 'text-right' : ''}`}>
                   {fullName(adminById[m.author])} · {fmtDateTime(m.created_at)}
                 </p>
               </div>
             );
           })}
           {messages.length === 0 && (
-            <p className="text-sm text-slate-400 text-center pt-8">
+            <p className="text-sm text-slate-600 text-center pt-8">
               Aucun message dans ce canal. Lance la discussion !
             </p>
           )}
@@ -144,7 +144,7 @@ export function ChatPanel({ me, admins, dark, onClose }: Props) {
                 className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                   mentions.includes(a.id)
                     ? 'bg-navy-600 text-white'
-                    : 'bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-slate-300'
+                    : 'bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300'
                 }`}
               >
                 @{fullName(a)}

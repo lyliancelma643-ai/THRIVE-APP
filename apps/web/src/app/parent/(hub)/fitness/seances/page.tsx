@@ -117,13 +117,17 @@ function FitnessPageInner() {
           href={`/parent/session/${nextSession.id}`}
           className="block group relative animate-om-up"
         >
-          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52vh] md:min-h-[440px] bg-night-surface">
+          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52dvh] md:min-h-[440px] bg-navy-900">
             {/* Image de la séance quand elle existe ; sinon une trame discrète */}
             {nextSession.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={nextSession.thumbnail_url}
                 alt=""
+                width={1280}
+                height={720}
+                fetchPriority="high"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
@@ -152,10 +156,10 @@ function FitnessPageInner() {
                 Séance {nextSession.session_number} · {nextSession.duration_minutes} min
                 {selectedChild ? ` · ${selectedChild.first_name}` : ''}
               </p>
-              <h1 className="font-display text-[32px] md:text-5xl text-night-ink font-semibold leading-[1.12] mb-2">
+              <h1 className="font-display text-[32px] md:text-5xl text-white font-semibold leading-[1.12] mb-2 text-balance">
                 {nextSession.title}
               </h1>
-              <p className="text-[15px] md:text-lg leading-[1.5] text-body mb-5">
+              <p className="text-[15px] md:text-lg leading-[1.5] text-white/80 mb-5">
                 {nextSession.subtitle}
               </p>
               <span className="inline-flex items-center gap-2 h-[52px] px-6 rounded-full bg-accent text-navy-900 font-bold text-base group-hover:bg-sun-dark transition-colors">
@@ -299,6 +303,8 @@ function FilterGroup({
 // qui l'attend sans pouvoir lancer une séance avant l'activation.
 function LockedFitnessPreview() {
   const [freeSessions, setFreeSessions] = useState<VideoSession[]>([]);
+  // Purement visuel : réserve la place des cartes pendant le chargement.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -310,16 +316,31 @@ function LockedFitnessPreview() {
         .eq('is_free', true)
         .order('session_number');
       setFreeSessions((data ?? []) as VideoSession[]);
+      setLoaded(true);
     })();
   }, []);
 
   return (
     <div className="space-y-8">
       <LockedBanner />
+      {!loaded && (
+        <div aria-hidden>
+          <div className="h-7 w-48 rounded-lg bg-night-surface animate-pulse mb-2" />
+          <div className="h-4 w-72 max-w-full rounded bg-night-surface animate-pulse mb-5" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className={`aspect-[4/3] rounded-[22px] bg-night-surface animate-pulse ${i > 0 ? 'hidden md:block' : ''} ${i > 1 ? 'md:hidden xl:block' : ''}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       {freeSessions.length > 0 && (
         <GreyedSection
           title="Séances découverte"
-          subtitle="Un aperçu offert du parcours — jouable dès l'activation de votre espace"
+          subtitle="Un aperçu offert du parcours — jouable dès l'activation de ton espace"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {freeSessions.map((s) => (
@@ -332,7 +353,7 @@ function LockedFitnessPreview() {
       )}
       <GreyedSection
         title="Fitness"
-        subtitle="La bibliothèque de séances vidéo de votre enfant"
+        subtitle="La bibliothèque de séances vidéo de ton enfant"
       />
     </div>
   );

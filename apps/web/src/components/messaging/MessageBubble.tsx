@@ -240,6 +240,7 @@ export function MessageBubble({
             <span>{messageTime(message.created_at)}</span>
             {mine && !message.pending && (
               <span
+                role="img"
                 aria-label={read ? 'Lu' : 'Envoyé'}
                 title={read ? 'Lu' : 'Envoyé'}
                 className="grid"
@@ -252,7 +253,7 @@ export function MessageBubble({
                 </svg>
               </span>
             )}
-            {message.pending === 'sending' && <span aria-label="Envoi en cours">…</span>}
+            {message.pending === 'sending' && <span role="status" aria-label="Envoi en cours">…</span>}
           </span>
         </div>
       </div>

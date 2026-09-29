@@ -72,3 +72,9 @@ apps/web/public/swe-worker*.js
 apps/web/test-results/
 apps/web/playwright-report/
 apps/web/.playwright/
+
+# Audit UX : captures et rapports bruts régénérables (node apps/web/scripts/ux-audit/run.mjs)
+ux-audit/**/*.png
+ux-audit/**/report.json
+ux-audit/smoke/
+ux-audit/lighthouse/**/*.json

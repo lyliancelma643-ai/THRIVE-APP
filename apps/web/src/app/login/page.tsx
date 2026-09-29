@@ -103,7 +103,7 @@ export default function LoginPage() {
     }
     if (reason === 'disabled') {
       setAccountNotice(
-        'Votre compte a été désactivé. Contactez un administrateur pour le réactiver.'
+        'Ton compte a été désactivé. Contacte un administrateur pour le réactiver.'
       );
     }
   }, []);
@@ -263,7 +263,7 @@ export default function LoginPage() {
   // centaines de ms, 6 s au pire), on affiche aussi ce même état.
   if (confirmed || (isAuthenticated && !sessionVerified)) {
     return (
-      <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
+      <main className="min-h-dvh bg-cream flex items-center justify-center" aria-busy>
         <div
           className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"
           role="status"
@@ -274,7 +274,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream relative flex items-center justify-center p-4">
+    <main className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
       {/* Retour vers le site vitrine */}
       <a
         href={SITE_URL}
@@ -308,9 +308,10 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex flex-col items-center mb-6">
           <BrandLogo className="w-20 h-20 shadow-card mb-3" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-700 font-bold">
             Sport Positive
           </span>
+          <h1 className="sr-only">Espace membres THRIVE Sport Positive</h1>
         </div>
 
         <div className="glass-strong rounded-3xl p-6 md:p-8">
@@ -351,7 +352,7 @@ export default function LoginPage() {
                 <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
                   Email envoyé !
                 </h2>
-                <p className="text-sm text-navy-600/80 mb-6">
+                <p className="text-sm text-navy-700 mb-6">
                   Si un compte existe pour <span className="font-medium">{forgotEmail}</span>,
                   un lien de réinitialisation vient d&apos;être envoyé. Vérifie ta boîte de
                   réception (et tes spams).
@@ -373,7 +374,7 @@ export default function LoginPage() {
                   <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
                     Mot de passe oublié
                   </h2>
-                  <p className="text-sm text-navy-600/70">
+                  <p className="text-sm text-navy-700">
                     Entre ton email : on t&apos;envoie un lien pour choisir un nouveau mot de passe.
                   </p>
                 </div>
@@ -399,7 +400,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setMode('signin'); setError(''); }}
-                  className="w-full min-h-[44px] py-2 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
+                  className="w-full min-h-[44px] py-2 text-sm text-navy-700 hover:text-navy-900 transition-colors"
                 >
                   ← Retour à la connexion
                 </button>
@@ -437,7 +438,7 @@ export default function LoginPage() {
                   setMode('forgot');
                   setError('');
                 }}
-                className="block ml-auto -my-1 py-2 px-1 text-xs font-medium text-navy-600/70 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
+                className="block ml-auto -my-2 py-3 px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
               >
                 Mot de passe oublié ?
               </button>
@@ -455,11 +456,11 @@ export default function LoginPage() {
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Prénom">
-                  <input className="input-auth" value={signup.firstName}
+                  <input className="input-auth" value={signup.firstName} autoComplete="given-name" autoCapitalize="words" enterKeyHint="next"
                     onChange={(e) => setSignup({ ...signup, firstName: e.target.value })} />
                 </Field>
                 <Field label="Nom">
-                  <input className="input-auth" value={signup.lastName}
+                  <input className="input-auth" value={signup.lastName} autoComplete="family-name" autoCapitalize="words" enterKeyHint="next"
                     onChange={(e) => setSignup({ ...signup, lastName: e.target.value })} />
                 </Field>
               </div>
@@ -476,14 +477,14 @@ export default function LoginPage() {
 
               {/* Enfants dès l'inscription */}
               <div className="pt-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-2">
-                  Vos enfants (8–17 ans)
+                <p className="text-xs font-bold uppercase tracking-wide text-navy-700 mb-2">
+                  Tes enfants (8–17 ans)
                 </p>
                 <div className="space-y-3">
                   {childRows.map((c, i) => (
                     <div key={i} className="rounded-2xl bg-white/60 p-3 space-y-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-navy-600/60 shrink-0">
+                        <span className="text-[11px] font-bold text-navy-700 shrink-0">
                           Enfant {i + 1}
                         </span>
                         <div className="flex-1 border-t border-navy-100/60" />
@@ -499,6 +500,9 @@ export default function LoginPage() {
                         )}
                       </div>
                       <input
+                        aria-label={`Prénom de l'enfant ${i + 1}`}
+                        autoComplete="off"
+                        autoCapitalize="words"
                         placeholder="Prénom de l'enfant"
                         className="input-auth"
                         value={c.firstName}
@@ -510,6 +514,7 @@ export default function LoginPage() {
                       />
                       <div className="flex gap-2">
                         <input
+                          aria-label={`Âge de l'enfant ${i + 1}`}
                           type="number" min={8} max={17} placeholder="Âge (8-17)"
                           inputMode="numeric"
                           className="input-auth w-24"
@@ -521,6 +526,7 @@ export default function LoginPage() {
                           }}
                         />
                         <select
+                          aria-label={`Sport de l'enfant ${i + 1}`}
                           className="input-auth flex-1"
                           value={c.sport}
                           onChange={(e) => {
@@ -556,7 +562,7 @@ export default function LoginPage() {
               >
                 {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
-              <p className="text-[11px] text-navy-600/60 text-center">
+              <p className="text-[11px] text-navy-700 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
               </p>
             </form>
@@ -583,7 +589,7 @@ function ButtonSpinner({ light = true }: { light?: boolean }) {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+      <span className="block text-xs font-bold uppercase tracking-wide text-navy-700 mb-1">
         {label}
       </span>
       {children}

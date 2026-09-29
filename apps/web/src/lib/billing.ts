@@ -123,7 +123,7 @@ async function invoke<T>(name: string, body: Record<string, unknown> = {}): Prom
   const { data, error } = await supabase.functions.invoke(name, { body });
   if (error) {
     let code = 'internal';
-    let message = 'Le service de paiement ne répond pas. Réessayez dans un instant.';
+    let message = 'Le service de paiement ne répond pas. Réessaie dans un instant.';
     const ctx = (error as { context?: Response }).context;
     if (ctx && typeof ctx.json === 'function') {
       const payload = await ctx.json().catch(() => null);

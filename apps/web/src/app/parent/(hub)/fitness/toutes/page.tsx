@@ -72,7 +72,7 @@ function Catalogue({ ctx }: { ctx: P3Ctx }) {
       <BackLink href={P3_BASE} label="Maison" />
       <h1 className="font-display text-[30px] md:text-[40px] font-semibold text-ink mt-2 leading-[1.1]">Toutes les activités</h1>
       <p className="text-[15px] text-soft mt-1.5 max-w-xl">
-        {all.length} activités, toutes pensées pour les 8–17 ans. Choisissez l&apos;âge : la phrase à dire et la fiche s&apos;adaptent.
+        {all.length} activités, toutes pensées pour les 8–17 ans. Choisis l&apos;âge : la phrase à dire et la fiche s&apos;adaptent.
       </p>
 
       {/* Tri par âge */}

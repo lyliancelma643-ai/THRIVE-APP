@@ -95,7 +95,7 @@ export default function SupervisionPage() {
   if (!isSuper) {
     return (
       <div className="max-w-2xl mx-auto p-8 text-center">
-        <p className="text-slate-500">
+        <p className="text-slate-600">
           Seul le super administrateur peut gérer la structure de supervision.
         </p>
       </div>
@@ -104,8 +104,8 @@ export default function SupervisionPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-slate-900 mb-1">Structure de supervision 🧭</h1>
-      <p className="text-slate-500 mb-8">
+      <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-1">Structure de supervision</h1>
+      <p className="text-slate-600 mb-8">
         Assignez chaque coach à un administrateur superviseur. L&apos;admin ne voit et ne gère que
         les dossiers des coachs qui lui sont confiés.
       </p>
@@ -119,7 +119,7 @@ export default function SupervisionPage() {
             <p className="font-semibold text-slate-900">
               {a.first_name} {a.last_name}
             </p>
-            <p className="text-xs text-slate-400">{a.email}</p>
+            <p className="text-xs text-slate-600">{a.email}</p>
             <p className="text-sm text-navy-600 font-medium mt-2">
               {countByAdmin.get(a.id) ?? 0} coach(s) supervisé(s)
             </p>
@@ -134,13 +134,13 @@ export default function SupervisionPage() {
           ))}
         </div>
       ) : coaches.length === 0 ? (
-        <p className="text-slate-400">Aucun coach actif.</p>
+        <p className="text-slate-600">Aucun coach actif.</p>
       ) : (
         <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[560px]">
               <thead>
-                <tr className="text-left text-slate-400 text-xs uppercase tracking-wide border-b border-slate-100">
+                <tr className="text-left text-slate-600 text-xs uppercase tracking-wide border-b border-slate-100">
                   <th className="px-5 py-3">Coach</th>
                   <th className="px-5 py-3">Admin superviseur</th>
                 </tr>
@@ -152,10 +152,11 @@ export default function SupervisionPage() {
                       <p className="font-medium text-slate-900">
                         {c.first_name} {c.last_name}
                       </p>
-                      <p className="text-xs text-slate-400">{c.email}</p>
+                      <p className="text-xs text-slate-600">{c.email}</p>
                     </td>
                     <td className="px-5 py-3">
                       <select
+                        aria-label={`Superviseur de ${c.first_name} ${c.last_name}`}
                         value={supervisorOf(c.id)}
                         disabled={savingId === c.id}
                         onChange={(e) => reassign(c.id, e.target.value)}

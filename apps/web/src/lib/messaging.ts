@@ -91,13 +91,13 @@ export type MessagingErrorCode =
   | 'UNKNOWN';
 
 const ERROR_LABELS: Record<MessagingErrorCode, string> = {
-  FEATURE_LOCKED: "Votre forfait n'inclut pas la messagerie avec le coach.",
+  FEATURE_LOCKED: "Ton forfait n'inclut pas la messagerie avec le coach.",
   NO_COACH: "Aucun coach n'est encore attribué à cet enfant.",
-  FORBIDDEN: "Vous n'avez pas accès à cette conversation.",
+  FORBIDDEN: "Tu n'as pas accès à cette conversation.",
   PARENT_ONLY: 'Le guichet support est réservé aux comptes parents.',
   CHILD_NOT_FOUND: 'Profil enfant introuvable.',
-  AUTH_REQUIRED: 'Session expirée — reconnectez-vous.',
-  UNKNOWN: "L'envoi n'a pas abouti. Réessayez dans un instant.",
+  AUTH_REQUIRED: 'Session expirée — reconnecte-toi.',
+  UNKNOWN: "L'envoi n'a pas abouti. Réessaie dans un instant.",
 };
 
 function toCode(error: { message?: string } | null | undefined): MessagingErrorCode {

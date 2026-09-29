@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { WebPushToggle } from '@/components/WebPushToggle';
@@ -66,13 +67,14 @@ export default function ComptePage() {
     <div className="max-w-xl mx-auto">
       <Link
         href="/parent/bilans"
-        className="inline-flex items-center gap-2 text-sm text-soft hover:text-ink active:text-ink mb-4 py-3 pr-4 -my-1 transition-colors select-none"
+        className="inline-flex items-center gap-1.5 min-h-[44px] mb-3 text-[15px] font-semibold text-soft hover:text-ink transition-colors select-none"
       >
-        ← Retour
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        Bilan
       </Link>
 
       <div className="flex items-center gap-4 mb-8">
-        <span className="w-16 h-16 rounded-full bg-navy-700 ring-1 ring-line2 text-ink flex items-center justify-center text-xl font-bold shrink-0">
+        <span className="w-16 h-16 rounded-full bg-navy-600 ring-1 ring-line2 text-white flex items-center justify-center text-xl font-bold shrink-0">
           {initials}
         </span>
         <div className="min-w-0">
@@ -84,8 +86,8 @@ export default function ComptePage() {
       </div>
 
       {/* Informations du profil */}
-      <section className="rounded-2xl glass-navy p-5 md:p-6 mb-5">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-faint mb-4">
+      <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+        <h2 className="nc-eyebrow mb-4">
           Mon profil
         </h2>
 
@@ -121,15 +123,15 @@ export default function ComptePage() {
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
           {savedAt && (
-            <span className="text-sm text-sage font-medium">✓ Enregistré</span>
+            <span className="text-sm text-sage-ink font-medium">✓ Enregistré</span>
           )}
-          {error && <span className="text-sm text-red-300">{error}</span>}
+          {error && <span role="alert" className="text-sm text-danger-ink">{error}</span>}
         </div>
       </section>
 
       {/* Détails du compte (lecture seule) */}
-      <section className="rounded-2xl glass-navy p-5 md:p-6 mb-5">
-        <h2 className="text-xs font-bold uppercase tracking-wide text-faint mb-4">
+      <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+        <h2 className="nc-eyebrow mb-4">
           Compte
         </h2>
         <dl className="divide-y divide-line text-sm">
@@ -154,17 +156,17 @@ export default function ComptePage() {
       {user?.id && <WebPushToggle userId={user.id} />}
 
       {/* Déconnexion */}
-      <section className="rounded-2xl border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
+      <section className="rounded-card border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
         <h2 className="text-sm font-semibold text-ink mb-1">Se déconnecter</h2>
-        <p className="text-xs text-faint mb-4 leading-relaxed">
+        <p className="text-xs text-soft mb-4 leading-relaxed">
           Tu devras te reconnecter avec ton e-mail et ton mot de passe.
         </p>
         <button
           onClick={handleLogout}
           disabled={signingOut}
-          className="w-full sm:w-auto h-12 px-6 rounded-full bg-red-500/20 border border-red-400/40 text-red-100 text-sm font-bold hover:bg-red-500/30 active:scale-95 transition-all disabled:opacity-60 disabled:active:scale-100"
+          className="w-full sm:w-auto h-12 px-6 rounded-full bg-red-500/15 border border-red-500/40 text-danger-ink text-sm font-bold hover:bg-red-500/25 active:scale-95 transition-all disabled:opacity-60 disabled:active:scale-100"
         >
-          {signingOut ? 'Déconnexion…' : '⏻ Se déconnecter'}
+          {signingOut ? 'Déconnexion…' : 'Se déconnecter'}
         </button>
       </section>
     </div>

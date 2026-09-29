@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useChildStore } from '@/stores/child.store';
 import { usePlan } from '@/lib/entitlements';
 import {
@@ -62,8 +63,8 @@ function fmtCount(n: number | null): string {
 function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
   if (v === true) {
     return (
-      <span className="text-sage" aria-label="Inclus">
-        ✓
+      <span className="inline-flex text-sage-ink" role="img" aria-label="Inclus">
+        <Icon name="check" className="w-4 h-4" strokeWidth={2.4} />
       </span>
     );
   }
@@ -87,7 +88,7 @@ export default function UpgradePage() {
       <h1 className="font-display text-3xl font-semibold text-ink mb-2">Les forfaits THRIVE</h1>
       <p className="text-soft mb-8 max-w-2xl">
         Chaque forfait reprend tout le précédent et va plus loin — plus de profondeur, plus de
-        suivi, plus d&apos;accès à votre coach. Paiement unique pour le parcours de 13 séances.
+        suivi, plus d&apos;accès à ton coach. Paiement unique pour le parcours de 13 séances.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
@@ -98,7 +99,7 @@ export default function UpgradePage() {
           return (
             <section
               key={p}
-              className={`glass-navy rounded-2xl p-6 flex flex-col ${
+              className={`bg-night-surface shadow-[var(--shadow)] rounded-card p-6 flex flex-col ${
                 isCurrent ? 'ring-2 ring-sage/60' : 'ring-1 ring-line'
               }`}
             >
@@ -109,7 +110,7 @@ export default function UpgradePage() {
                   </h2>
                   {isCurrent && (
                     <span className="px-3 py-1 rounded-full bg-sage text-navy-900 text-xs font-bold">
-                      Votre forfait
+                      Ton forfait
                     </span>
                   )}
                 </div>
@@ -141,7 +142,7 @@ export default function UpgradePage() {
 
               <div className="mt-6 pt-5 border-t border-line">
                 {isCurrent ? (
-                  <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-faint select-none">
+                  <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-soft select-none">
                     Forfait actuel
                   </span>
                 ) : isUpgrade ? (
@@ -153,7 +154,7 @@ export default function UpgradePage() {
                   </Link>
                 ) : (
                   <span className="block w-full text-center px-6 py-3 rounded-full border border-line text-sm font-medium text-faint select-none">
-                    Inclus dans votre forfait
+                    Inclus dans ton forfait
                   </span>
                 )}
               </div>
@@ -164,8 +165,8 @@ export default function UpgradePage() {
 
       <p className="text-xs text-faint mt-8 max-w-2xl leading-relaxed">
         Le changement de forfait s&apos;applique immédiatement après le paiement, pour toute la
-        famille. Les bilans déjà reçus sont régénérés à la profondeur de votre nouveau forfait par
-        votre coach. Prix en dollars canadiens, taxes en sus le cas échéant.
+        famille. Les bilans déjà reçus sont régénérés à la profondeur de ton nouveau forfait par
+        ton coach. Prix en dollars canadiens, taxes en sus le cas échéant.
       </p>
     </div>
   );

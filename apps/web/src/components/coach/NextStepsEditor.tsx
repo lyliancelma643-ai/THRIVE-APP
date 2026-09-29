@@ -64,7 +64,7 @@ export function NextStepsEditor({ childId }: { childId: string }) {
     <div className="space-y-3">
       {error && <p className="p-2 rounded-lg bg-red-50 text-red-700 text-sm">{error}</p>}
       {items.length === 0 && (
-        <p className="text-sm text-gray-400">Aucune prochaine étape définie.</p>
+        <p className="text-sm text-gray-600">Aucune prochaine étape définie.</p>
       )}
       {items.map((s) => (
         <div key={s.id} className="flex flex-col sm:flex-row sm:items-center gap-2">
@@ -87,7 +87,7 @@ export function NextStepsEditor({ childId }: { childId: string }) {
           </div>
           <button
             onClick={() => remove(s.id)}
-            className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 hover:border-red-200 cursor-pointer"
+            className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-600 hover:text-red-600 hover:border-red-200 cursor-pointer"
             aria-label="Supprimer"
           >
             ✕

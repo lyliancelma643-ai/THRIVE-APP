@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
+import { useMenuKeyboard } from '@/hooks/useMenuKeyboard';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useAuthStore, logout } from '@/stores/auth.store';
@@ -37,14 +38,9 @@ export function UserMenu() {
     setOpen((v) => !v);
   };
 
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeMenu = useCallback(() => setOpen(false), []);
+  useMenuKeyboard(menuRef, triggerRef, open, closeMenu);
 
   const initials =
     `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() ||
@@ -79,7 +75,7 @@ export function UserMenu() {
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label="Menu du compte"
-        className="w-11 h-11 rounded-full bg-navy-500 text-ink flex items-center justify-center text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all select-none"
+        className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold hover:brightness-110 active:scale-95 transition-all select-none"
       >
         {initials}
       </button>
@@ -89,23 +85,25 @@ export function UserMenu() {
         createPortal(
           <>
             <div
-              className="fixed inset-0 z-[60] cursor-default"
+              className="fixed inset-0 z-backdrop cursor-default"
               aria-hidden
               onClick={() => setOpen(false)}
             />
             <div
+              ref={menuRef}
               role="menu"
-              className="fixed z-[70] w-64 rounded-2xl bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              aria-label="Compte"
+              className="fixed z-popover w-64 rounded-row bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)] animate-menu-in origin-top-right"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
               {/* En-tête : identité */}
               <div className="flex items-center gap-3 px-4 py-4 border-b border-line">
-                <span className="w-11 h-11 rounded-full bg-navy-500 text-ink flex items-center justify-center text-[13px] font-bold shrink-0">
+                <span className="w-11 h-11 rounded-full bg-navy-500 text-white flex items-center justify-center text-[13px] font-bold shrink-0">
                   {initials}
                 </span>
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink truncate">{fullName}</p>
-                  <p className="text-[11px] text-faint truncate">{user.email}</p>
+                  <p className="text-xs text-faint truncate">{user.email}</p>
                   {user.role && (
                     <span className="inline-block mt-1 px-2 py-0.5 rounded-full bg-chip text-[10px] font-semibold text-soft uppercase tracking-wide">
                       {ROLE_LABELS[user.role] ?? user.role}
@@ -140,7 +138,7 @@ export function UserMenu() {
                 onClick={handleLogout}
                 disabled={signingOut}
                 role="menuitem"
-                className="flex items-center gap-3 w-full text-left px-4 py-3 min-h-[48px] text-sm font-semibold text-red-300 hover:bg-red-500/15 active:bg-red-500/20 transition-colors border-t border-line disabled:opacity-60"
+                className="flex items-center gap-3 w-full text-left px-4 py-3 min-h-[48px] text-sm font-semibold text-danger-ink hover:bg-red-500/15 active:bg-red-500/20 transition-colors border-t border-line disabled:opacity-60"
               >
                 <Icon name="power" className="w-5 h-5 shrink-0" />
                 {signingOut ? 'Déconnexion…' : 'Se déconnecter'}

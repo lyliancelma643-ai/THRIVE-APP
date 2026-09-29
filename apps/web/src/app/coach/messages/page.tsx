@@ -72,10 +72,10 @@ function CoachMessagesInner() {
           </span>
         )}
       </h1>
-      <p className="text-sm text-navy-600/60 mb-6">
+      <p className="text-sm text-navy-600/80 mb-6">
         {totalUnread > 0
-          ? 'Des parents attendent votre réponse.'
-          : 'Vos échanges directs avec les parents, entre les séances.'}
+          ? 'Des parents attendent ta réponse.'
+          : 'Tes échanges directs avec les parents, entre les séances.'}
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-14rem)]">
@@ -100,7 +100,7 @@ function CoachMessagesInner() {
               emptyLabel={
                 search
                   ? 'Aucune conversation ne correspond à cette recherche.'
-                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent vous écrire depuis leur espace.'
+                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent t’écrire depuis leur espace.'
               }
             />
           </div>
@@ -122,21 +122,21 @@ function CoachMessagesInner() {
                   type="button"
                   onClick={() => setSelectedId(null)}
                   aria-label="Retour à la liste des conversations"
-                  className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                  className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
                 </button>
               }
               emptyState={
-                <p className="text-sm text-slate-400 text-center py-10">
+                <p className="text-sm text-slate-600 text-center py-10">
                   Aucun message dans cette conversation.
                 </p>
               }
             />
           ) : (
             <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-card">
-              <p className="text-sm text-navy-600/60">
-                Sélectionnez une conversation pour lire et répondre.
+              <p className="text-sm text-navy-600/80">
+                Sélectionne une conversation pour lire et répondre.
               </p>
             </div>
           )}

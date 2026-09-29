@@ -73,14 +73,20 @@ export const DESIGN_CSS = `
 .bilan-root .b-clk,.bilan-root .b-hover{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;cursor:pointer;}
 /* Retour au survol/appui : un simple éclaircissement du fond, jamais de lueur. */
 .bilan-root .b-card.b-clk{transition:background-color .18s ease,transform .18s ease;}
-.bilan-root .b-card.b-clk:hover{background:var(--surface);}
 .bilan-root .b-card.b-clk:active{transform:scale(.995);}
-.bilan-root .b-hover{transition:opacity .15s ease,background-color .15s ease;}
-.bilan-root .b-hover:hover{opacity:.85;}
+.bilan-root .b-hover{transition:opacity .15s ease,background-color .15s ease,transform .15s ease;}
 .bilan-root .b-hover:active{transform:scale(.98);}
+@media(hover:hover) and (pointer:fine){
+  .bilan-root .b-hover:hover{opacity:.85;}
+  .bilan-root .b-clk:hover .b-hint{color:var(--text3);}
+}
+/* Focus clavier : les cartes sont des boutons (role/tabindex posés par la page). */
+.bilan-root [role=button]:focus-visible{outline:2px solid #F9EB50;outline-offset:3px;box-shadow:0 0 0 5px rgba(2,37,57,.55);border-radius:14px;}
+/* Chevron d'une carte = son bouton clavier (44 px), le reste de la carte reste lisible. */
+.bilan-root .b-hint[role=button]{pointer-events:none;}
+.bilan-root .b-doc{min-height:44px;}
 /* Chevron d'affordance : les cartes ouvrent une fiche détaillée. */
-.bilan-root .b-hint{position:absolute;right:16px;top:18px;z-index:3;color:var(--text4);line-height:0;pointer-events:none;transition:color .18s ease;}
-.bilan-root .b-clk:hover .b-hint{color:var(--text3);}
+.bilan-root .b-hint{position:absolute;right:2px;top:4px;z-index:3;width:44px;height:44px;display:grid;place-items:center;color:var(--text4);line-height:0;pointer-events:none;transition:color .18s ease;}
 @media(max-width:1100px){
   .bilan-root .b-row2{grid-template-columns:1fr;gap:12px;}
   .bilan-root .b-tools{grid-template-columns:1fr 1fr;gap:12px;}
@@ -95,7 +101,7 @@ export const DESIGN_CSS = `
   .bilan-root .b-pct{font-size:76px!important;}
   .bilan-root .b-pctsign{font-size:26px!important;}
   .bilan-root .b-toolstitle{font-size:23px!important;}
-  .bilan-root .b-hint{right:14px;top:16px;}
+  .bilan-root .b-hint{right:0;top:2px;}
 }
 @media(max-width:400px){
   .bilan-root{--bnode:32px;}
@@ -104,16 +110,29 @@ export const DESIGN_CSS = `
 /* Surbrillance d'arrivée depuis une notification (?focus=<carte>) */
 @keyframes b-flash{0%,55%{box-shadow:0 0 0 2px rgba(249,235,80,.85);}100%{box-shadow:0 0 0 2px rgba(249,235,80,0);}}
 .bilan-root .b-flash{animation:b-flash 2.4s ease-out 1;}
-/* Modales (fiches détaillées et fiches d'explication) — même aplat que les cartes. */
-.b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(3,12,17,.72);display:flex;align-items:center;justify-content:center;padding:18px;animation:b-fadeIn .22s ease both;}
-.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;}
+/* Modales (fiches détaillées, explications, passeport) — même aplat que les cartes.
+   Entrée 300 ms, sortie 180 ms (plus vive) ; feuille du bas sur téléphone. */
+@keyframes b-fadeOut{from{opacity:1;}to{opacity:0;}}
+@keyframes b-cardOut{from{opacity:1;transform:translateY(0) scale(1);}to{opacity:0;transform:translateY(10px) scale(.985);}}
+@keyframes b-sheetIn{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes b-sheetOut{from{transform:translateY(var(--b-from,0px));}to{transform:translateY(100%);}}
+.b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(3,12,17,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:b-fadeIn .22s ease both;}
+.b-modal-ov.b-closing{animation:b-fadeOut .18s ease both;}
+.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;outline:none;}
+.b-closing .b-modal{animation:b-cardOut .18s cubic-bezier(.4,0,1,1) both;}
 .b-modal .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
+.b-modal .b-grip{display:none;}
+.b-modal .b-close{position:absolute;top:12px;right:12px;z-index:2;width:44px;height:44px;border-radius:14px;background:var(--chip);border:1px solid var(--line2);color:var(--text3);display:grid;place-items:center;cursor:pointer;transition:background-color .15s ease,color .15s ease;}
+.b-modal .b-close:active{transform:scale(.94);}
+@media(hover:hover) and (pointer:fine){.b-modal .b-close:hover{color:var(--text);background:var(--line2);}}
 @media(max-width:680px){
   .b-modal-ov{padding:0;align-items:flex-end;}
-  .b-modal{max-height:90vh;border-radius:24px 24px 0 0;padding:30px 18px calc(24px + env(safe-area-inset-bottom,0px));}
-  /* Poignée de feuille (bottom sheet) façon iOS */
-  .b-modal::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:3px;background:var(--chip);}
+  .b-modal{max-height:92vh;max-height:92dvh;border-radius:24px 24px 0 0;padding:34px 18px calc(24px + env(safe-area-inset-bottom,0px));animation:b-sheetIn .32s cubic-bezier(.22,.61,.36,1) backwards;transition:transform .22s cubic-bezier(.22,.61,.36,1);}
+  .b-closing .b-modal{animation:b-sheetOut .2s cubic-bezier(.4,0,1,1) both;}
+  /* Poignée de feuille (bottom sheet) façon iOS : on peut la tirer vers le bas. */
+  .b-modal .b-grip{display:block;margin:-25px auto 14px;width:40px;height:5px;border-radius:3px;background:var(--line2);}
 }
+@media(prefers-reduced-motion:reduce){.b-modal,.b-modal-ov{animation-duration:.01ms!important;}}
 `;
 
 // Chevron d'affordance (les cartes ouvrent une fiche détaillée)
@@ -274,7 +293,7 @@ export function buildHtml(d: {
   const lockNote = (txt: string) =>
     `<div style="display:flex;align-items:flex-start;gap:10px;padding:12px 14px;border-radius:14px;background:rgba(249,235,80,.07);border:1px solid rgba(249,235,80,.28);">
       <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px;flex-shrink:0;margin-top:2px;color:var(--accent-ink);" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" stroke-width="1.8"></rect><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"></path></svg>
-      <span style="font-size:14px;line-height:1.5;color:var(--text2);"><b style="color:var(--accent-ink);">Contenu réservé.</b> ${txt} <span class="b-hover" data-href="/parent/upgrade" style="color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:2px;">Voir les forfaits</span></span>
+      <span style="font-size:14px;line-height:1.5;color:var(--text2);"><b style="color:var(--accent-ink);">Contenu réservé.</b> ${txt} <span class="b-hover" data-href="/parent/upgrade" style="display:inline-flex;align-items:center;min-height:44px;color:var(--accent-ink);font-weight:600;text-decoration:underline;text-underline-offset:2px;">Voir les forfaits</span></span>
     </div>`;
 
   // Barres décoratives floutées (aucune donnée réelle) pour les visuels verrouillés
@@ -327,17 +346,17 @@ export function buildHtml(d: {
       circle = `<span class="disp bx" style="${node}background:#A7C4BC;color:#06222A;">${n}</span>`;
       subColor = 'var(--text3)';
     } else if (missed) {
-      circle = `<span class="disp bx" style="${node}background:rgba(220,80,80,.14);border:1px solid rgba(220,80,80,.5);color:#ffb4b4;">${n}</span>`;
-      subColor = '#e78a8a';
+      circle = `<span class="disp bx" style="${node}background:rgba(220,80,80,.14);border:1px solid rgba(220,80,80,.5);color:var(--bad-num);">${n}</span>`;
+      subColor = 'var(--bad-ink)';
       subOverride = `S${n} · manquée`;
     } else if (postponed) {
-      circle = `<span class="disp bx" style="${node}background:rgba(230,170,40,.14);border:1px solid rgba(230,170,40,.5);color:#f2d18a;">${n}</span>`;
-      subColor = '#e0b45a';
+      circle = `<span class="disp bx" style="${node}background:rgba(230,170,40,.14);border:1px solid rgba(230,170,40,.5);color:var(--warn-num);">${n}</span>`;
+      subColor = 'var(--warn-ink)';
       subOverride = `S${n} · reportée`;
     } else if (isCur) {
       // Le seul effet permanent de l'écran : l'anneau de la séance en cours.
       circle = `<span class="disp bx" style="${node}background:#F9EB50;color:#06222A;animation:b-ring 2.6s ease-in-out infinite;">${n}</span>`;
-      subColor = '#F9EB50';
+      subColor = 'var(--accent-ink)';
     } else {
       circle = `<span class="disp bx" style="${node}border:1px solid var(--line2);color:var(--text3);font-weight:600;">${n}</span>`;
     }
@@ -410,11 +429,11 @@ export function buildHtml(d: {
         <div>
           <p class="b-eye" style="margin-bottom:6px;">Histoire sportive</p>
           <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:var(--text2);white-space:pre-line;">${sportStory ? esc(sportStory) : '<span style="color:var(--text4);">À renseigner avec le coach.</span>'}</p>
-          ${seasonDream ? `<div style="padding:16px 18px;border-radius:16px;background:rgba(249,235,80,.06);"><p class="b-eye" style="margin-bottom:4px;color:rgba(249,235,80,.8);">Rêve de saison</p><p class="disp" style="margin:0;font-style:italic;font-size:17px;line-height:1.4;color:var(--text);">${esc(seasonDream)}</p></div>` : ''}
+          ${seasonDream ? `<div style="padding:16px 18px;border-radius:16px;background:rgba(249,235,80,.06);"><p class="b-eye" style="margin-bottom:4px;color:var(--accent-ink);">Rêve de saison</p><p class="disp" style="margin:0;font-style:italic;font-size:17px;line-height:1.4;color:var(--text);">${esc(seasonDream)}</p></div>` : ''}
         </div>
         <div>
           <p class="b-eye" style="margin-bottom:10px;">Forces (VIA)</p>
-          ${strengthChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${strengthChips.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>${esc(s)}</span>`).join('')}</div>` : '<span style="font-size:15px;color:var(--text4);">Forces à identifier ensemble.</span>'}
+          ${strengthChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${strengthChips.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:var(--sage-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>${esc(s)}</span>`).join('')}</div>` : '<span style="font-size:15px;color:var(--text4);">Forces à identifier ensemble.</span>'}
         </div>
       </div>
     </div>`;
@@ -441,7 +460,7 @@ export function buildHtml(d: {
       <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
         <span class="disp" style="font-size:17px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${esc(fullName)}</span>
         <span style="font-size:13px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${
-          nickname ? `<span style="font-style:italic;color:${esc(accentColor)};">« ${esc(nickname)} »</span> · ` : ''
+          nickname ? `<span style="font-style:italic;color:color-mix(in srgb, ${esc(accentColor)} var(--kid-mix,100%), var(--text));">« ${esc(nickname)} »</span> · ` : ''
         }${subLine}</span>
       </span>
       <span style="flex-shrink:0;color:var(--text4);line-height:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></span>
@@ -461,7 +480,7 @@ export function buildHtml(d: {
           ? `<p style="margin:12px 0 0;font-size:15px;font-weight:500;color:var(--text3);">En attente de la première mesure LSSS.</p>`
           : `<div style="display:flex;align-items:baseline;gap:10px;margin-top:10px;">
         <span class="disp" style="font-size:52px;line-height:1;font-weight:600;color:var(--text);">${gaugeGlobal}</span>
-        <span style="font-size:15px;font-weight:600;color:#A7C4BC;">${
+        <span style="font-size:15px;font-weight:600;color:var(--sage-ink);">${
           gaugeDelta != null
             ? `${gaugeDelta >= 0 ? '+' : ''}${gaugeDelta} pts depuis le départ`
             : 'Première mesure'
@@ -548,7 +567,7 @@ export function buildHtml(d: {
                     : s.status === 'doing'
                     ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>'
                     : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"></rect></svg>';
-                  const iconColor = done ? '#A7C4BC' : '#F9EB50';
+                  const iconColor = done ? 'var(--sage-ink)' : 'var(--accent-ink)';
                   const bg = done ? 'rgba(167,196,188,.08)' : 'var(--surface-sub)';
                   const dueTxt = s.due_date
                     ? ` <span style="color:var(--text3);">· ${new Date(s.due_date).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}</span>`
@@ -559,7 +578,7 @@ export function buildHtml(d: {
             : `<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:var(--surface-sub);"><span style="width:30px;height:30px;border-radius:10px;background:var(--chip);display:grid;place-items:center;color:var(--accent-ink);flex-shrink:0;line-height:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span style="font-size:15px;line-height:1.4;color:var(--text3);">Le coach précisera bientôt les prochaines étapes.</span></div>`
         }
       </div>
-      <div class="b-hover bx" data-href="/parent/fitness/seances" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:#A7C4BC;">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
+      <div class="b-hover bx" data-href="/parent/fitness/seances" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:var(--sage-ink);">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
     </div>
   </div>
 
@@ -624,7 +643,7 @@ export function buildHtml(d: {
         ent.emotionWheel
           ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:7px;">
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(249,235,80,.1);font-size:13px;font-weight:500;color:var(--accent-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#F9EB50;"></span>Trac</span>
-        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:var(--sage-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:var(--surface-sub);font-size:13px;font-weight:500;color:var(--text3);"><span style="width:6px;height:6px;border-radius:50%;background:var(--text3);"></span>Détermination</span>
       </div>`
           : lockNote('La roue des émotions et le suivi de séance en séance sont inclus dès le pack Avancé.')
@@ -666,10 +685,10 @@ export function buildHtml(d: {
       ]
         .map(
           ([role, val], i, arr) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;${i < arr.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}"><span style="min-width:0;display:flex;flex-direction:column;gap:2px;"><span class="b-eye" style="font-size:11px;">${role}</span><span class="disp" style="font-style:italic;font-size:18px;color:var(--text);overflow-wrap:anywhere;">${val}</span></span><span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(167,196,188,.16);color:#A7C4BC;display:grid;place-items:center;line-height:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></span></div>`
+            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;${i < arr.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}"><span style="min-width:0;display:flex;flex-direction:column;gap:2px;"><span class="b-eye" style="font-size:11px;">${role}</span><span class="disp" style="font-style:italic;font-size:18px;color:var(--text);overflow-wrap:anywhere;">${val}</span></span><span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(167,196,188,.16);color:var(--sage-ink);display:grid;place-items:center;line-height:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></span></div>`
         )
         .join('')}
-      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:${docIds.contract ? '#A7C4BC' : 'var(--text4)'};">${
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:${docIds.contract ? 'var(--sage-ink)' : 'var(--text4)'};">${
         docIds.contract
           ? `<span class="b-doc b-hover" data-doc="${docIds.contract}" style="display:inline-flex;align-items:center;gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"></path></svg>Télécharger le contrat signé</span>`
           : 'Les 3 parties engagées'
@@ -688,7 +707,7 @@ export function buildHtml(d: {
           <div style="height:7px;width:60%;border-radius:4px;background:var(--text4);"></div>
         </div>
       </div>
-      <p style="margin:14px 0 0;font-size:14px;font-weight:500;color:${docIds.letter ? '#A7C4BC' : 'var(--text3)'};">${
+      <p style="margin:14px 0 0;font-size:14px;font-weight:500;color:${docIds.letter ? 'var(--sage-ink)' : 'var(--text3)'};">${
         docIds.letter
           ? `<span class="b-doc b-hover" data-doc="${docIds.letter}" style="display:inline-flex;align-items:center;gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"></path></svg>Télécharger la lettre (PDF)</span>`
           : letter

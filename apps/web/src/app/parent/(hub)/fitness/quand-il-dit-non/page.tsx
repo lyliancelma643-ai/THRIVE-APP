@@ -14,7 +14,7 @@ import { P3_BASE, p3Pool } from '@/lib/p3-moments/app';
 
 function PageNon({ ctx }: { ctx: P3Ctx }) {
   const [others, setOthers] = useState(false);
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), []);
+  useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), []);
 
   const mine = PAGE_NON.byAge.find((b) => b.band === ctx.band) ?? PAGE_NON.byAge[0];
   const rest = PAGE_NON.byAge.filter((b) => b !== mine);

@@ -168,16 +168,19 @@ export function Composer({
               type="file"
               accept={ATTACHMENT_MIME_TYPES.join(',')}
               onChange={pickFile}
-              className="hidden"
+              // Visuellement masqué mais atteignable au clavier : le focus
+              // s'affiche sur le bouton « + » qui lui sert d'étiquette.
+              className="peer sr-only"
+              disabled={uploading}
               id={`attach-${conversationId}`}
             />
             <label
               htmlFor={`attach-${conversationId}`}
-              aria-label="Joindre une image ou un PDF"
-              className={`shrink-0 w-11 h-11 rounded-full grid place-items-center cursor-pointer transition-colors ${t.iconButton} ${
+              className={`shrink-0 w-11 h-11 rounded-full grid place-items-center cursor-pointer transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-offset-2 peer-focus-visible:ring-sky-500 ${t.iconButton} ${
                 uploading ? 'opacity-50 pointer-events-none' : ''
               }`}
             >
+              <span className="sr-only">Joindre une image ou un PDF</span>
               <Icon name="plus" className="w-5 h-5" />
             </label>
           </>

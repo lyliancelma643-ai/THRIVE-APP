@@ -168,8 +168,8 @@ export default function AdminChildrenPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Enfants 🧒</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Enfants</h1>
+          <p className="text-gray-600 mt-1">
             {children.length} enfant{children.length > 1 ? 's' : ''} enregistré{children.length > 1 ? 's' : ''}
           </p>
         </div>
@@ -210,7 +210,7 @@ export default function AdminChildrenPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-600 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Enfant</th>
               <th className="px-6 py-4 hidden md:table-cell">Famille</th>
               <th className="px-6 py-4 hidden lg:table-cell">Parent</th>
@@ -237,7 +237,7 @@ export default function AdminChildrenPage() {
               <tr>
                 <td colSpan={9} className="px-6 py-14 text-center">
                   <div className="text-4xl mb-3">🧒</div>
-                  <p className="text-gray-500 font-medium">
+                  <p className="text-gray-600 font-medium">
                     {search || filterActive !== 'all' ? 'Aucun résultat.' : 'Aucun enfant enregistré pour le moment.'}
                   </p>
                 </td>
@@ -254,30 +254,30 @@ export default function AdminChildrenPage() {
                       <div>
                         <p className="font-semibold text-sm">{child.first_name} {child.last_name}</p>
                         {child.gender && (
-                          <p className="text-xs text-gray-400">{GENDER_LABEL[child.gender] ?? child.gender}</p>
+                          <p className="text-xs text-gray-600">{GENDER_LABEL[child.gender] ?? child.gender}</p>
                         )}
                       </div>
                     </div>
                   </td>
                   {/* Famille */}
                   <td className="px-6 py-4 hidden md:table-cell text-sm text-gray-600">
-                    {child.family_name ?? <span className="text-gray-300">—</span>}
+                    {child.family_name ?? <span className="text-gray-600">—</span>}
                   </td>
                   {/* Parent */}
                   <td className="px-6 py-4 hidden lg:table-cell">
                     {child.parent_name ? (
                       <div>
                         <p className="text-sm font-medium">{child.parent_name}</p>
-                        <p className="text-xs text-gray-400">{child.parent_email}</p>
+                        <p className="text-xs text-gray-600">{child.parent_email}</p>
                       </div>
-                    ) : <span className="text-gray-300 text-sm">—</span>}
+                    ) : <span className="text-gray-600 text-sm">—</span>}
                   </td>
                   {/* Âge */}
                   <td className="px-6 py-4 text-sm font-medium">
                     {age(child.date_of_birth)} ans
                   </td>
                   {/* Sport */}
-                  <td className="px-6 py-4 hidden sm:table-cell text-sm text-gray-500">
+                  <td className="px-6 py-4 hidden sm:table-cell text-sm text-gray-600">
                     {child.sport ?? '—'}
                   </td>
                   {/* Programmes */}
@@ -311,7 +311,7 @@ export default function AdminChildrenPage() {
                       </button>
                       <button
                         onClick={() => { setDeleteError(''); setConfirmChild(child); }}
-                        className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-600 hover:bg-red-100 transition-colors"
+                        className="px-3 py-2 rounded-lg text-xs font-semibold bg-red-50 text-red-700 hover:bg-red-100 transition-colors"
                       >
                         Supprimer
                       </button>
@@ -333,13 +333,13 @@ export default function AdminChildrenPage() {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-2">Supprimer définitivement ?</h2>
             <p className="text-sm text-gray-600 mb-1">
-              Vous allez supprimer{' '}
+              Tu vas supprimer{' '}
               <span className="font-semibold">{confirmChild.first_name} {confirmChild.last_name}</span>
               {confirmChild.parent_name ? <> — famille de {confirmChild.parent_name}</> : null}.
             </p>
             <p className="text-sm text-gray-600 mb-4">
               Cela supprime aussi <span className="font-medium">toutes ses séances, rapports, badges,
-              inscriptions et assignations</span>. C&apos;est <span className="font-semibold text-red-600">irréversible</span>
+              inscriptions et assignations</span>. C&apos;est <span className="font-semibold text-red-700">irréversible</span>
               {' '}et se répercute immédiatement sur le compte parent et les coachs.
             </p>
             {deleteError && (
@@ -380,12 +380,12 @@ export default function AdminChildrenPage() {
                 <h2 className="text-lg font-bold">
                   Carte d&apos;identité — {identityChild.first_name} {identityChild.last_name}
                 </h2>
-                <p className="text-xs text-gray-500">Modifiable par l&apos;admin et le coach.</p>
+                <p className="text-xs text-gray-600">Modifiable par l&apos;admin et le coach.</p>
               </div>
               <button
                 onClick={() => setIdentityChild(null)}
                 aria-label="Fermer"
-                className="w-11 h-11 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
+                className="w-11 h-11 rounded-full text-gray-600 hover:bg-gray-100 hover:text-gray-700 transition-colors shrink-0 cursor-pointer flex items-center justify-center"
               >
                 ✕
               </button>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
@@ -216,8 +217,8 @@ export default function CoachLiveSessionPage() {
     exitAnchor.current = null;
     requestAnimationFrame(() => {
       const el = bi >= 0 ? document.getElementById(`sec-${bi}`) : null;
-      if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
-      else window.scrollTo({ top: 0, behavior: 'auto' });
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'instant' });
     });
   }, [fieldMode]);
 
@@ -246,16 +247,17 @@ export default function CoachLiveSessionPage() {
   const isDone = session.status === 'COMPLETED';
 
   return (
-    <div className="max-w-3xl pb-44 lg:pb-28">
+    <div className="max-w-3xl pb-44 md:pb-28">
       {/* En-tête */}
       <Link
         href={`/coach/athletes/${child.id}`}
-        className="text-sm text-navy-600/70 hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 min-h-[44px] text-sm font-semibold text-navy-600 hover:text-navy-900"
       >
-        ← {child.first_name}
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        {child.first_name}
       </Link>
       <div className="mt-3 mb-6">
-        <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy-600/60 mb-1">
+        <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy-600/80 mb-1">
           Séance {session.session_number} · {ageGroup} ans ({childAge(child.date_of_birth)} ans) ·{' '}
           {session.scheduled_at &&
             new Date(session.scheduled_at).toLocaleDateString('fr-CA', {
@@ -319,7 +321,7 @@ export default function CoachLiveSessionPage() {
 
       {/* Navigation rapide entre les étapes minutées */}
       {steps.length > 1 && (
-        <div className="sticky top-2 lg:top-2 z-30 -mx-1 mb-4">
+        <div className="sticky top-[calc(64px+env(safe-area-inset-top))] md:top-2 z-sticky -mx-1 mb-4">
           <div className="glass-strong rounded-full px-2 py-1.5 flex gap-1 overflow-x-auto scrollbar-hide">
             {steps.map((s) => {
               const isCurrent = currentStep?.bi === s.bi;
@@ -431,26 +433,28 @@ export default function CoachLiveSessionPage() {
             case 'grid':
               return (
                 <div key={bi} className="p-4 rounded-2xl bg-white shadow-card space-y-2">
-                  <span className="block text-[11px] font-bold uppercase tracking-wide text-navy-600/60">
+                  <span className="block text-[11px] font-bold uppercase tracking-wide text-navy-600/80">
                     Grille d&apos;observation — 1 fragile · 5 solide
                   </span>
                   {b.items.map((ind) => {
                     const k = `${bi}|${ind}`;
                     return (
-                      <div key={k} className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-navy-900 flex-1">{ind}</span>
-                        <span className="flex gap-1">
+                      <div key={k} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                        <span className="text-sm text-navy-900 flex-1 min-w-[9rem]">{ind}</span>
+                        <span role="group" aria-label={ind} className="flex gap-1 shrink-0">
                           {[1, 2, 3, 4, 5].map((n) => (
                             <button
                               key={n}
                               type="button"
+                              aria-label={`${ind} : ${n} sur 5`}
+                              aria-pressed={(ratings[k] ?? 0) === n}
                               onClick={() =>
                                 setRatings((r) => ({ ...r, [k]: r[k] === n ? 0 : n }))
                               }
-                              className={`w-9 h-9 md:w-7 md:h-7 rounded-full text-sm md:text-xs font-bold transition-colors ${
+                              className={`w-11 h-11 [@media(pointer:fine)]:w-8 [@media(pointer:fine)]:h-8 rounded-full text-sm font-bold tabular-nums transition-colors ${
                                 (ratings[k] ?? 0) >= n
                                   ? 'bg-navy-600 text-white'
-                                  : 'bg-navy-50 text-navy-400 hover:bg-navy-100'
+                                  : 'bg-navy-50 text-navy-500 hover:bg-navy-100'
                               }`}
                             >
                               {n}
@@ -465,8 +469,8 @@ export default function CoachLiveSessionPage() {
             case 'field':
               return (
                 <label key={bi} className="block">
-                  <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
-                    ✏️ {b.label}
+                  <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
+                    {b.label}
                   </span>
                   <textarea
                     rows={2}
@@ -489,12 +493,13 @@ export default function CoachLiveSessionPage() {
 
       {/* Message aux parents */}
       <div className="mt-10 p-5 rounded-2xl bg-navy-900 text-white">
-        <h2 className="font-display text-lg mb-1">📩 Message bilan pour les parents</h2>
-        <p className="text-xs text-navy-100/70 mb-3">
-          Pré-rempli depuis la méthode avec le prénom de {child.first_name} — personnalisez
-          les passages « … » puis envoyez.
+        <h2 id="parent-msg-title" className="font-display text-lg mb-1">Message bilan pour les parents</h2>
+        <p className="text-xs text-navy-100/85 mb-3">
+          Pré-rempli depuis la méthode avec le prénom de {child.first_name} — personnalise
+          les passages « … » puis envoie.
         </p>
         <textarea
+          aria-labelledby="parent-msg-title"
           rows={12}
           value={parentMsg}
           onChange={(e) => setParentMsg(e.target.value)}
@@ -503,7 +508,7 @@ export default function CoachLiveSessionPage() {
       </div>
 
       {/* Barre d'envoi */}
-      <div className="fixed bottom-[calc(3.5rem+env(safe-area-inset-bottom))] lg:bottom-0 left-0 lg:left-64 right-0 z-40 px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
+      <div className="fixed bottom-[calc(60px+env(safe-area-inset-bottom))] md:bottom-0 left-0 md:left-[88px] lg:left-64 right-0 z-sticky px-4 py-3 lg:px-10 lg:py-4 bg-cream/85 backdrop-blur-xl border-t border-navy-100">
         <div className="max-w-3xl flex items-center gap-3">
           {startedAt && !isDone && (
             <button
@@ -515,7 +520,7 @@ export default function CoachLiveSessionPage() {
               {currentStep && <span className="ml-1.5 text-[10px] text-sage">↓ {currentStep.label}</span>}
             </button>
           )}
-          <span className="hidden sm:inline text-xs text-navy-600/70">
+          <span className="hidden sm:inline text-xs text-navy-600/80">
             {ratedCount} indicateur{ratedCount > 1 ? 's' : ''} coté{ratedCount > 1 ? 's' : ''} ·{' '}
             {Object.values(fields).filter((v) => v.trim()).length} notes · brouillon auto
           </span>

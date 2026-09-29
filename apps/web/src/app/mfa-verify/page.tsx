@@ -54,14 +54,14 @@ function MfaVerifyInner() {
 
   if (checking) {
     return (
-      <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
+      <main className="min-h-dvh bg-cream flex items-center justify-center" aria-busy>
         <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" role="status" />
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-cream flex items-center justify-center p-4">
+    <main className="min-h-dvh bg-cream flex items-center justify-center p-4">
       <div className="w-full max-w-sm glass-strong rounded-3xl p-6 md:p-8">
         <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-navy-600/10 flex items-center justify-center text-2xl" aria-hidden>
           🔐
@@ -69,7 +69,7 @@ function MfaVerifyInner() {
         <h1 className="font-display text-xl font-semibold text-navy-900 text-center mb-1">
           Vérification en deux étapes
         </h1>
-        <p className="text-sm text-navy-600/70 text-center mb-6">
+        <p className="text-sm text-navy-600/80 text-center mb-6">
           Entre le code à 6 chiffres de ton application d&apos;authentification.
         </p>
 
@@ -94,7 +94,7 @@ function MfaVerifyInner() {
           <button
             type="button"
             onClick={() => logout()}
-            className="w-full py-2 text-sm text-navy-600/70 hover:text-navy-900 transition-colors"
+            className="w-full py-2 text-sm text-navy-600/80 hover:text-navy-900 transition-colors"
           >
             Se déconnecter
           </button>

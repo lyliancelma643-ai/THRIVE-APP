@@ -77,7 +77,7 @@ export function RoutineEditor({ childId }: { childId: string }) {
             />
             <button
               onClick={() => setSteps((xs) => xs.filter((_, j) => j !== i))}
-              className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-400 hover:text-red-600 cursor-pointer"
+              className="shrink-0 w-10 h-10 rounded-lg border border-navy-100 text-gray-600 hover:text-red-600 cursor-pointer"
               aria-label="Supprimer l'étape"
             >
               ✕

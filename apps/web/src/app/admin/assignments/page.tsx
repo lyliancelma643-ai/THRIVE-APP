@@ -110,9 +110,9 @@ export default function AdminAssignmentsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">Assignations coach ↔ enfants 🤝</h1>
-      <p className="text-gray-500 mb-8">
-        Chaque coach n&apos;a accès qu&apos;aux enfants que vous lui confiez ici.
+      <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Assignations coach ↔ enfants</h1>
+      <p className="text-gray-600 mb-8">
+        Chaque coach n&apos;a accès qu&apos;aux enfants que tu lui confies ici.
       </p>
 
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
@@ -124,13 +124,13 @@ export default function AdminAssignmentsPage() {
           ))}
         </div>
       ) : children.length === 0 ? (
-        <p className="text-gray-400">Aucun enfant enregistré pour l&apos;instant.</p>
+        <p className="text-gray-600">Aucun enfant enregistré pour l&apos;instant.</p>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
           <table className="w-full text-sm min-w-[640px]">
             <thead>
-              <tr className="text-left text-gray-400 border-b border-gray-100">
+              <tr className="text-left text-gray-600 border-b border-gray-100">
                 <th className="px-5 py-3 font-medium">Enfant</th>
                 <th className="px-5 py-3 font-medium">Âge</th>
                 <th className="px-5 py-3 font-medium">Coach assigné</th>
@@ -142,7 +142,7 @@ export default function AdminAssignmentsPage() {
                   <td className="px-5 py-3 font-medium">
                     {c.first_name} {c.last_name ?? ''}
                   </td>
-                  <td className="px-5 py-3 text-gray-500">
+                  <td className="px-5 py-3 text-gray-600">
                     {c.date_of_birth
                       ? `${Math.floor(
                           (Date.now() - new Date(c.date_of_birth).getTime()) /
@@ -152,6 +152,7 @@ export default function AdminAssignmentsPage() {
                   </td>
                   <td className="px-5 py-3">
                     <select
+                      aria-label={`Coach de ${c.first_name}`}
                       value={c.coach_id ?? ''}
                       disabled={savingId === c.id}
                       onChange={(e) => assign(c, e.target.value)}

@@ -1,20 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useResponsiveTables } from '@/components/ResponsiveTables';
 
-const NAV_ITEMS: { href: string; label: string; icon: IconName }[] = [
-  { href: '/coach/dashboard', label: 'Tableau de bord', icon: 'home' },
-  { href: '/coach/sessions', label: 'Séances', icon: 'check' },
-  { href: '/coach/athletes', label: 'Mes athlètes', icon: 'star' },
-  { href: '/coach/bilan', label: 'Bilans', icon: 'sparkle' },
-  { href: '/coach/dossiers', label: 'Suivi', icon: 'pie' },
-  { href: '/coach/messages', label: 'Messages', icon: 'mail' },
+// `short` : libellé de la barre d'onglets du téléphone et du rail iPad (une ligne).
+const NAV_ITEMS: { href: string; label: string; short: string; icon: IconName }[] = [
+  { href: '/coach/dashboard', label: 'Tableau de bord', short: 'Accueil', icon: 'home' },
+  { href: '/coach/sessions', label: 'Séances', short: 'Séances', icon: 'check' },
+  { href: '/coach/athletes', label: 'Mes athlètes', short: 'Athlètes', icon: 'star' },
+  { href: '/coach/bilan', label: 'Bilans', short: 'Bilans', icon: 'sparkle' },
+  { href: '/coach/dossiers', label: 'Suivi', short: 'Suivi', icon: 'pie' },
+  { href: '/coach/messages', label: 'Messages', short: 'Messages', icon: 'mail' },
 ];
 
 export default function CoachLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +24,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
   const unreadMessages = useUnreadMessages(isAuthenticated);
+  const mainRef = useRef<HTMLElement>(null);
+  useResponsiveTables(mainRef, !isLoading && !!user);
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -38,31 +42,43 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
-        <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-cream" role="status" aria-label="Chargement de ton espace">
+        <div className="flex flex-col items-center gap-5 animate-om-fade">
+          <BrandLogo className="w-14 h-14 shadow-card" />
+          <span className="w-6 h-6 rounded-full border-2 border-navy-100 border-t-navy-600 animate-spin" aria-hidden />
+        </div>
       </div>
     );
   }
 
+  const badge = (href: string, cls: string) =>
+    href === '/coach/messages' && unreadMessages > 0 ? (
+      <span className={cls}>
+        <span aria-hidden>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
+        <span className="sr-only">{`${unreadMessages} message(s) non lu(s)`}</span>
+      </span>
+    ) : null;
+
   return (
-    <div className="min-h-screen bg-cream">
-      {/* Mini-barre mobile */}
-      <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white safe-top">
+    <div className="min-h-dvh bg-cream">
+      {/* Téléphone : mini-barre haute */}
+      <div className="md:hidden sticky top-0 z-header flex items-center justify-between px-4 py-2 bg-navy-900 text-white safe-top">
         <span className="flex items-center gap-2">
           <BrandLogo className="w-7 h-7" />
-          <span className="text-[10px] uppercase tracking-[0.2em] text-sage">Coach</span>
+          <span className="text-[11px] uppercase tracking-[0.2em] text-sage">Coach</span>
         </span>
         <button
           onClick={() => logout()}
-          className="text-xs text-navy-200/80 hover:text-white min-h-[44px] px-2 -mr-2 transition-colors"
+          className="text-sm text-navy-100 hover:text-white min-h-[44px] px-3 -mr-3 transition-colors"
         >
-          Quitter
+          Se déconnecter
         </button>
       </div>
 
-      {/* Barre d'onglets mobile (en bas, comme une app) */}
+      {/* Téléphone : barre d'onglets en bas (pouce), une ligne par libellé */}
       <nav
-        className="lg:hidden fixed bottom-0 inset-x-0 z-50 flex bg-navy-900/95 backdrop-blur-xl border-t border-navy-800"
+        aria-label="Navigation coach"
+        className="md:hidden fixed bottom-0 inset-x-0 z-nav grid grid-cols-6 bg-navy-900/95 backdrop-blur-xl border-t border-navy-800"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         {NAV_ITEMS.map((item) => {
@@ -71,78 +87,80 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
             <Link
               key={item.href}
               href={item.href}
-              className={`flex-1 min-w-0 flex flex-col items-center gap-1 py-2 font-medium transition-colors ${
-                active ? 'text-sun' : 'text-navy-100/70'
+              aria-current={active ? 'page' : undefined}
+              className={`min-w-0 h-[60px] flex flex-col items-center justify-center gap-1 font-medium transition-colors duration-fast ${
+                active ? 'text-sun' : 'text-navy-100/80'
               }`}
             >
               <span className="relative">
                 <Icon name={item.icon} className="w-[22px] h-[22px] shrink-0" />
-                {item.href === '/coach/messages' && unreadMessages > 0 && (
-                  <span className="absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-sun text-navy-900 text-[9px] font-bold flex items-center justify-center">
-                    {unreadMessages > 9 ? '9+' : unreadMessages}
-                  </span>
-                )}
+                {badge(item.href, 'absolute -top-1 -right-2 min-w-[16px] h-4 px-1 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center')}
               </span>
-              {/* Hauteur de 2 lignes réservée : les libellés longs (« Tableau de
-                  bord », « Mes athlètes ») s'alignent avec les courts sur mobile. */}
-              <span className="min-h-[26px] flex items-center text-center text-[11px] leading-[1.05] px-0.5">
-                {item.label}
-              </span>
+              <span className="max-w-full truncate text-[11px] leading-none px-0.5">{item.short}</span>
             </Link>
           );
         })}
       </nav>
 
-      <aside className="hidden lg:flex fixed inset-y-0 left-0 w-64 bg-navy-900 text-white flex-col z-40">
-        <div className="px-6 pt-8 pb-6">
-          <Link href="/coach/dashboard" className="block">
+      {/* iPad (768–1023 px) : rail d'icônes ; ≥ 1024 px : barre latérale complète */}
+      <aside className="hidden md:flex fixed inset-y-0 left-0 z-header w-[88px] lg:w-64 bg-navy-900 text-white flex-col safe-top">
+        <div className="px-4 lg:px-6 pt-6 lg:pt-8 pb-5 lg:pb-6 flex justify-center lg:block">
+          <Link href="/coach/dashboard" className="block" aria-label="Tableau de bord coach">
             <BrandLogo className="w-10 h-10 shadow-card" />
-            <span className="block text-[11px] uppercase tracking-[0.2em] text-sage mt-2">
+            <span className="hidden lg:block text-[11px] uppercase tracking-[0.2em] text-sage mt-2">
               Espace coach
             </span>
           </Link>
         </div>
 
-        <nav className="flex-1 px-3 space-y-1">
+        <nav aria-label="Navigation coach" className="flex-1 px-2 lg:px-3 space-y-1 overflow-y-auto">
           {NAV_ITEMS.map((item) => {
             const active = pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex flex-col lg:flex-row items-center gap-1 lg:gap-3 px-1 lg:px-3 py-2.5 min-h-[56px] lg:min-h-[44px] rounded-xl text-[11px] lg:text-sm font-medium transition-colors duration-fast ${
                   active
                     ? 'bg-navy-600 text-white'
-                    : 'text-navy-100/80 hover:bg-navy-800 hover:text-white'
+                    : 'text-navy-100/85 hover:bg-navy-800 hover:text-white'
                 }`}
               >
                 <Icon name={item.icon} className="w-5 h-5 shrink-0" />
-                {item.label}
-                {item.href === '/coach/messages' && unreadMessages > 0 && (
-                  <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center">
-                    {unreadMessages > 9 ? '9+' : unreadMessages}
-                  </span>
+                <span className="lg:hidden truncate max-w-full">{item.short}</span>
+                <span className="hidden lg:inline">{item.label}</span>
+                {badge(
+                  item.href,
+                  'absolute top-1.5 right-3 lg:static lg:ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center'
                 )}
               </Link>
             );
           })}
         </nav>
 
-        <div className="px-4 py-5 border-t border-navy-800">
-          <p className="text-sm font-medium truncate">
-            {user.firstName} {user.lastName}
-          </p>
-          <p className="text-xs text-navy-200/60 truncate mb-3">{user.email}</p>
+        <div className="px-2 lg:px-4 py-4 lg:py-5 border-t border-navy-800">
+          <div className="hidden lg:block">
+            <p className="text-sm font-medium truncate">
+              {user.firstName} {user.lastName}
+            </p>
+            <p className="text-xs text-navy-200/80 truncate mb-3">{user.email}</p>
+          </div>
           <button
             onClick={() => logout()}
-            className="text-xs text-navy-200/80 hover:text-sun transition-colors min-h-[44px] px-2 -mx-2"
+            aria-label="Se déconnecter"
+            className="w-full flex flex-col lg:flex-row items-center gap-1 lg:gap-2 min-h-[44px] px-1 lg:px-2 lg:-mx-2 rounded-xl text-[11px] lg:text-xs text-navy-100/85 hover:text-sun hover:bg-navy-800 transition-colors"
           >
-            Se déconnecter
+            <Icon name="power" className="w-5 h-5 lg:w-4 lg:h-4" />
+            <span className="lg:hidden">Quitter</span>
+            <span className="hidden lg:inline">Se déconnecter</span>
           </button>
         </div>
       </aside>
 
-      <main className="px-4 py-5 pb-24 md:px-8 lg:ml-64 lg:px-10 lg:py-8 lg:pb-8">{children}</main>
+      <main ref={mainRef} className="rt-scope px-4 pt-5 pb-28 md:pb-10 md:ml-[88px] md:px-8 lg:ml-64 lg:px-10 lg:py-8">
+        <div className="mx-auto w-full max-w-6xl">{children}</div>
+      </main>
     </div>
   );
 }

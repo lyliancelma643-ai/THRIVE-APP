@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useParams } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { childAge, AssignedChild } from '@/lib/coach';
@@ -48,8 +49,9 @@ export default function CoachAthletePage() {
 
   return (
     <div className="max-w-4xl">
-      <Link href="/coach/athletes" className="text-sm text-navy-600/70 hover:text-navy-900">
-        ← Mes athlètes
+      <Link href="/coach/athletes" className="inline-flex items-center gap-1.5 min-h-[44px] text-sm font-semibold text-navy-600 hover:text-navy-900">
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        Mes athlètes
       </Link>
 
       <div className="flex flex-wrap items-center gap-4 mt-4 mb-6">
@@ -60,7 +62,7 @@ export default function CoachAthletePage() {
           <h1 className="font-display text-3xl font-semibold text-navy-900">
             {child.first_name} {child.last_name ?? ''}
           </h1>
-          <p className="text-sm text-navy-600/70">
+          <p className="text-sm text-navy-600/80">
             {childAge(child.date_of_birth) ?? '–'} ans (groupe {ageGroup}) · {child.sport ?? 'Hockey'}
           </p>
         </div>

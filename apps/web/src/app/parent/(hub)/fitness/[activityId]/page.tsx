@@ -56,7 +56,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   const r = resolveActivity(activity, duration, ctx.band)!;
@@ -115,7 +115,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         aria-label="Ce qu’on travaille"
         className="mt-5 rounded-[24px] p-5 md:p-6 bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] ring-2 ring-accent-line"
       >
-        <p className="nc-eyebrow">Ce qu’on travaille</p>
+        <p className="nc-eyebrow !text-soft">Ce qu’on travaille</p>
         <p className="mt-2 font-display text-[26px] md:text-[30px] leading-[1.15] font-semibold text-ink">
           {week?.skill ?? activity.subtitle}
         </p>
@@ -166,7 +166,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
       )}
 
       {/* Le seul endroit où le texte est aussi grand que le titre */}
-      <Section title="Ce que vous dites pour commencer">
+      <Section title="Ce que tu dis pour commencer">
         <div className="nc-card ring-1 ring-accent-line">
           <p className="font-display text-[26px] md:text-[32px] leading-[1.25] text-ink" aria-live="polite">
             {r.opener}
@@ -237,7 +237,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         </ul>
       </Section>
 
-      <Section title="Ce que vous allez voir">
+      <Section title="Ce que tu vas voir">
         <p className="text-[16px] leading-[1.6] text-body">
           <InlineMd text={r.what_you_will_see} />
         </p>
@@ -308,7 +308,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 
 
       {/* Actions — collantes sur mobile, au-dessus de la barre d'onglets */}
-      <div className="fixed md:static inset-x-0 bottom-[84px] z-40 px-5 md:px-0 md:mt-8">
+      <div className="fixed md:static inset-x-0 bottom-[calc(66px+max(20px,env(safe-area-inset-bottom)))] z-sticky px-4 sm:px-5 md:px-0 md:mt-8">
         <div className="max-w-2xl mx-auto flex items-center gap-2 rounded-full md:rounded-none p-2 md:p-0 bg-night-bg md:bg-transparent">
           <Link
             href={launchHref}
@@ -335,8 +335,18 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           >
             <Icon name="flag" className={`w-5 h-5 ${aside ? 'text-accent-ink' : ''}`} />
           </button>
-          <button type="button" onClick={otherActivity} className="nc-pill min-h-[44px] shrink-0">
+          {/* Très petit écran : icône seule (même action), pour que « Lancer » garde sa place. */}
+          <button type="button" onClick={otherActivity} className="nc-pill min-h-[44px] shrink-0 max-[400px]:hidden">
             Autre activité
+          </button>
+          <button
+            type="button"
+            onClick={otherActivity}
+            aria-label="Autre activité"
+            title="Autre activité"
+            className="nc-iconbtn shrink-0 min-[401px]:hidden"
+          >
+            <Icon name="refresh" className="w-5 h-5" />
           </button>
         </div>
       </div>

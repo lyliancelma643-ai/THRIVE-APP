@@ -102,8 +102,8 @@ export default function AdminNotificationsPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-navy-900">🔔 Notifications</h1>
-          <p className="text-gray-500 mt-1">Centre de notifications de l'application</p>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Notifications</h1>
+          <p className="text-gray-600 mt-1">Centre de notifications de l'application</p>
         </div>
         <button
           onClick={() => setShowSendForm(!showSendForm)}
@@ -124,7 +124,7 @@ export default function AdminNotificationsPage() {
               <span className="text-2xl">{s.icon}</span>
               <div>
                 <p className="text-2xl font-bold">{s.value}</p>
-                <p className="text-sm text-gray-500">{s.label}</p>
+                <p className="text-sm text-gray-600">{s.label}</p>
               </div>
             </div>
           </div>
@@ -136,7 +136,7 @@ export default function AdminNotificationsPage() {
           <h2 className="text-lg font-bold mb-4">Envoyer une notification manuelle</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Destinataire</label>
+              <label className="text-sm text-gray-600 mb-1 block">Destinataire</label>
               <select
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
                 value={form.user_id}
@@ -149,7 +149,7 @@ export default function AdminNotificationsPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Type</label>
+              <label className="text-sm text-gray-600 mb-1 block">Type</label>
               <select
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
                 value={form.type}
@@ -161,7 +161,7 @@ export default function AdminNotificationsPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Titre</label>
+              <label className="text-sm text-gray-600 mb-1 block">Titre</label>
               <input
                 required
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
@@ -171,7 +171,7 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Message</label>
+              <label className="text-sm text-gray-600 mb-1 block">Message</label>
               <input
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
                 value={form.body}
@@ -180,7 +180,7 @@ export default function AdminNotificationsPage() {
               />
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Lien au clic (optionnel)</label>
+              <label className="text-sm text-gray-600 mb-1 block">Lien au clic (optionnel)</label>
               <input
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
                 value={form.path}
@@ -220,22 +220,22 @@ export default function AdminNotificationsPage() {
 
       <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
         {isLoading ? (
-          <p className="text-gray-400 p-6">Chargement...</p>
+          <p className="text-gray-600 p-6">Chargement...</p>
         ) : filtered.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-3xl mb-3">🔔</p>
-            <p className="text-gray-500">Aucune notification</p>
+            <p className="text-gray-600">Aucune notification</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
           <table className="w-full min-w-[720px]">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Type</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Destinataire</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Contenu</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Statut</th>
-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Date</th>
+                <th className="text-left text-xs text-gray-600 font-semibold px-6 py-3">Type</th>
+                <th className="text-left text-xs text-gray-600 font-semibold px-6 py-3">Destinataire</th>
+                <th className="text-left text-xs text-gray-600 font-semibold px-6 py-3">Contenu</th>
+                <th className="text-left text-xs text-gray-600 font-semibold px-6 py-3">Statut</th>
+                <th className="text-left text-xs text-gray-600 font-semibold px-6 py-3">Date</th>
               </tr>
             </thead>
             <tbody>
@@ -254,11 +254,11 @@ export default function AdminNotificationsPage() {
                     <p className="text-sm font-medium">
                       {n.profile ? `${n.profile.first_name} ${n.profile.last_name}` : n.user_id.slice(0, 8)}
                     </p>
-                    {n.profile && <p className="text-xs text-gray-400">{n.profile.role}</p>}
+                    {n.profile && <p className="text-xs text-gray-600">{n.profile.role}</p>}
                   </td>
                   <td className="px-6 py-4 max-w-xs">
                     <p className="text-sm font-medium">{n.title}</p>
-                    {n.body && <p className="text-xs text-gray-500 truncate">{n.body}</p>}
+                    {n.body && <p className="text-xs text-gray-600 truncate">{n.body}</p>}
                   </td>
                   <td className="px-6 py-4">
                     <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
@@ -267,7 +267,7 @@ export default function AdminNotificationsPage() {
                       {n.is_read ? '✓ Lue' : '● Non lue'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-xs text-gray-400">
+                  <td className="px-6 py-4 text-xs text-gray-600">
                     {new Date(n.created_at).toLocaleString('fr-CA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
                   </td>
                 </tr>

@@ -17,7 +17,7 @@ function ObjetInner({ ctx, id }: { ctx: P3Ctx; id: string }) {
   const [bilan4Pending, setBilan4Pending] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
     const saved = readLocalJSON<{ answers?: string[] } | null>(`thrive.p3.bilan4.${ctx.child.id}`, null);
     setBilan4Pending(!saved?.answers?.some((a) => a.trim()));
   }, [ctx.child.id]);

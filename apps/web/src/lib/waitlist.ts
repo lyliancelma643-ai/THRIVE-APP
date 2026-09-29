@@ -26,7 +26,7 @@ export const STATUS_META: Record<WaitlistStatus, { label: string; cls: string }>
   appelé: { label: 'Appelé', cls: 'bg-indigo-100 text-indigo-700' },
   'sans réponse': { label: 'Sans réponse', cls: 'bg-amber-100 text-amber-700' },
   converti: { label: 'Converti', cls: 'bg-emerald-100 text-emerald-700' },
-  perdu: { label: 'Perdu', cls: 'bg-gray-100 text-gray-500' },
+  perdu: { label: 'Perdu', cls: 'bg-gray-100 text-gray-600' },
 };
 
 // ── Sources d'acquisition ────────────────────────────────────────────────────

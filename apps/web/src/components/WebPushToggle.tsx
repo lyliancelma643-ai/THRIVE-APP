@@ -50,7 +50,7 @@ export function WebPushToggle({ userId }: { userId: string }) {
   };
 
   return (
-    <section className="rounded-2xl glass-navy p-5 md:p-6 mb-5">
+    <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
       <h2 className="text-xs font-bold uppercase tracking-wide text-white/45 mb-4">
         Notifications
       </h2>

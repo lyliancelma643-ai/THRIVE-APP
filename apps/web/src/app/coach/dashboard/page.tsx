@@ -72,9 +72,9 @@ export default function CoachDashboardPage() {
   return (
     <div className="max-w-5xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-1">
-        Bonjour {user?.firstName} 👋
+        Bonjour {user?.firstName}
       </h1>
-      <p className="text-navy-600/70 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
+      <p className="text-navy-600/80 mb-8">Ta journée THRIVE en un coup d&apos;œil.</p>
 
       <IncompleteBanner href="/coach/dossiers" />
 
@@ -82,7 +82,7 @@ export default function CoachDashboardPage() {
       <div className="grid grid-cols-3 gap-2 md:gap-5 mb-8 md:mb-10">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 md:h-24 rounded-2xl bg-navy-100/60 animate-pulse" aria-hidden />
+            <div key={i} className="h-[104px] md:h-24 rounded-2xl bg-navy-100/60 animate-pulse" aria-hidden />
           ))
         ) : (
           <>
@@ -99,10 +99,14 @@ export default function CoachDashboardPage() {
           Prochaines séances 1:1
         </h2>
         {loading ? (
-          <div className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
+          <div className="space-y-2" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[72px] rounded-2xl bg-navy-50 animate-pulse" />
+            ))}
+          </div>
         ) : upcoming.length === 0 ? (
-          <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
-            Aucune séance planifiée. Ouvrez la fiche d&apos;un athlète pour planifier son programme.
+          <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
+            Aucune séance planifiée. Ouvre la fiche d&apos;un athlète pour planifier son programme.
           </p>
         ) : (
           <div className="space-y-2">
@@ -119,7 +123,7 @@ export default function CoachDashboardPage() {
                   <span className="block font-semibold text-navy-900 truncate">
                     {s.childName} — {s.title}
                   </span>
-                  <span className="block text-xs text-navy-600/60">
+                  <span className="block text-xs text-navy-600/80">
                     {s.scheduled_at &&
                       new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                         weekday: 'long', day: 'numeric', month: 'long',
@@ -127,7 +131,7 @@ export default function CoachDashboardPage() {
                       })}
                   </span>
                 </span>
-                <span className="text-xs text-navy-400">Ouvrir →</span>
+                <span className="text-xs text-navy-500">Ouvrir <span aria-hidden>→</span></span>
               </Link>
             ))}
           </div>
@@ -139,12 +143,18 @@ export default function CoachDashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-semibold text-navy-900">Mes athlètes</h2>
           <Link href="/coach/athletes" className="text-sm text-navy-600 hover:text-navy-900">
-            Tout voir →
+            Tout voir <span aria-hidden>→</span>
           </Link>
         </div>
-        {children.length === 0 && !loading ? (
-          <p className="text-sm text-navy-600/60 p-6 rounded-2xl bg-white shadow-card">
-            Aucun athlète assigné pour l&apos;instant. L&apos;administrateur vous attribuera vos
+        {loading && children.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[84px] rounded-2xl bg-navy-50 animate-pulse" />
+            ))}
+          </div>
+        ) : children.length === 0 ? (
+          <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
+            Aucun athlète assigné pour l&apos;instant. L&apos;administrateur t&apos;attribuera tes
             athlètes depuis son tableau de bord.
           </p>
         ) : (
@@ -161,7 +171,7 @@ export default function CoachDashboardPage() {
                   </span>
                   <span>
                     <span className="block font-semibold text-navy-900">{c.first_name}</span>
-                    <span className="block text-xs text-navy-600/60">
+                    <span className="block text-xs text-navy-600/80">
                       {childAge(c.date_of_birth) ?? '–'} ans · {c.sport ?? 'Hockey'}
                     </span>
                   </span>

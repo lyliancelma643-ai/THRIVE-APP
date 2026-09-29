@@ -73,7 +73,7 @@ export default function ResetPasswordPage() {
   };
 
   return (
-    <main className="min-h-screen bg-cream relative flex items-center justify-center p-4">
+    <main className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
       <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
         <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-200/50 blur-3xl" />
         <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-sage/40 blur-3xl" />
@@ -83,7 +83,7 @@ export default function ResetPasswordPage() {
       <div className="relative w-full max-w-md">
         <div className="flex flex-col items-center mb-6">
           <BrandLogo className="w-20 h-20 shadow-card mb-3" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/60 font-bold">
+          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-700 font-bold">
             Sport Positive
           </span>
         </div>
@@ -92,7 +92,7 @@ export default function ResetPasswordPage() {
           {phase === 'loading' && (
             <div className="flex flex-col items-center py-8 gap-4">
               <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
-              <p className="text-sm text-navy-600/70">Vérification du lien…</p>
+              <p className="text-sm text-navy-700">Vérification du lien…</p>
             </div>
           )}
 
@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
               <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
                 Lien invalide ou expiré
               </h2>
-              <p className="text-sm text-navy-600/80 mb-6">
+              <p className="text-sm text-navy-700 mb-6">
                 Ce lien de réinitialisation n&apos;est plus valable. Redemande un nouvel email
                 depuis la page de connexion.
               </p>
@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
               <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
                 Mot de passe mis à jour
               </h2>
-              <p className="text-sm text-navy-600/80">Redirection vers ton espace…</p>
+              <p className="text-sm text-navy-700">Redirection vers ton espace…</p>
             </div>
           )}
 
@@ -132,10 +132,10 @@ export default function ResetPasswordPage() {
                 <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
                   Nouveau mot de passe
                 </h2>
-                <p className="text-sm text-navy-600/70">Choisis un nouveau mot de passe sécurisé.</p>
+                <p className="text-sm text-navy-700">Choisis un nouveau mot de passe sécurisé.</p>
               </div>
               <label className="block">
-                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                <span className="block text-xs font-bold uppercase tracking-wide text-navy-700 mb-1">
                   Nouveau mot de passe (min. 8 caractères)
                 </span>
                 <input
@@ -149,7 +149,7 @@ export default function ResetPasswordPage() {
                 />
               </label>
               <label className="block">
-                <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/70 mb-1">
+                <span className="block text-xs font-bold uppercase tracking-wide text-navy-700 mb-1">
                   Confirme le mot de passe
                 </span>
                 <input

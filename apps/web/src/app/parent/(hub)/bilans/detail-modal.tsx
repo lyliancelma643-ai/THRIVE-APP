@@ -6,7 +6,8 @@
 // d'explication existante (CARD_INFO → InfoModal) par-dessus.
 // Rendue via createPortal(document.body) — cf. transform du layout parent.
 
-import { useEffect } from 'react';
+import { Icon } from '@/components/ui';
+import { BilanSheet } from './sheet';
 
 export const DETAIL_KEYS = [
   'boite',
@@ -79,6 +80,8 @@ function Section({ label, children }: { label: string; children: React.ReactNode
 
 function Body({ k, d }: { k: DetailKey; d: DetailData }) {
   const accent = d.accent;
+  // Couleur de l'enfant utilisée comme texte : mêlée au texte en Jour (AA).
+  const accentText = `color-mix(in srgb, ${accent} var(--kid-mix, 100%), var(--text))`;
 
   if (k === 'boite') {
     return (
@@ -120,7 +123,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
             }}
           >
             <span style={{ fontSize: 12, color: 'var(--text3)' }}>Focus word</span>
-            <span className="disp" style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 22, color: accent }}>
+            <span className="disp" style={{ marginLeft: 'auto', fontWeight: 600, fontSize: 22, color: accentText }}>
               {d.focusWord}
             </span>
           </div>
@@ -148,7 +151,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
                 style={{
                   width: 40, height: 40, borderRadius: 12, flexShrink: 0,
                   background: 'var(--chip)', display: 'grid', placeItems: 'center',
-                  color: done ? '#A7C4BC' : accent, fontSize: 17,
+                  color: done ? 'var(--sage-ink)' : accentText, fontSize: 17,
                 }}
               >
                 {icon}
@@ -205,7 +208,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
                 <span
                   key={s}
                   style={{
-                    padding: '9px 15px', borderRadius: 12, fontWeight: 600, fontSize: 15, color: '#A7C4BC',
+                    padding: '9px 15px', borderRadius: 12, fontWeight: 600, fontSize: 15, color: 'var(--sage-ink)',
                     background: 'rgba(167,196,188,.14)', border: '1px solid rgba(167,196,188,.25)',
                   }}
                 >
@@ -227,7 +230,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
             <span className="disp" style={{ position: 'absolute', left: 14, top: 6, fontSize: 36, color: `${accent}73`, lineHeight: 1 }}>
               “
             </span>
-            <div style={{ ...LABEL, color: `${accent}b3`, marginBottom: 4 }}>Rêve de saison</div>
+            <div style={{ ...LABEL, color: accentText, marginBottom: 4 }}>Rêve de saison</div>
             <p className="disp" style={{ margin: 0, fontStyle: 'italic', fontSize: 19, lineHeight: 1.45, color: 'var(--text2)' }}>
               {d.seasonDream}
             </p>
@@ -264,7 +267,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {d.myActions.map((a, i) => (
                 <div key={i} style={{ display: 'flex', gap: 11, alignItems: 'baseline' }}>
-                  <span style={{ color: accent, fontSize: 15, flexShrink: 0 }}>✓</span>
+                  <span style={{ color: accentText, fontSize: 15, flexShrink: 0 }}>✓</span>
                   <span style={{ fontWeight: 500, fontSize: 16, lineHeight: 1.5, color: 'var(--text2)' }}>{a}</span>
                 </div>
               ))}
@@ -273,7 +276,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
         )}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 }}>
           <span style={{ fontSize: 13, color: 'var(--text3)' }}>Progression du parcours</span>
-          <span className="disp" style={{ fontWeight: 600, fontSize: 17, color: accent }}>{d.pct}%</span>
+          <span className="disp" style={{ fontWeight: 600, fontSize: 17, color: accentText }}>{d.pct}%</span>
         </div>
         <div style={{ height: 10, borderRadius: 5, background: 'var(--line)', overflow: 'hidden' }}>
           <div style={{ width: `${d.pct}%`, height: '100%', borderRadius: 5, background: `linear-gradient(90deg,#A7C4BC,${accent})` }} />
@@ -413,44 +416,20 @@ export function DetailModal({
   onExplain: () => void;
   onOpenDoc: (docId: string) => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const meta = TITLES[k];
   const docId =
     k === 'lettre' ? d.docIds.letter : k === 'certificat' && d.certificateReady ? d.docIds.certificate : undefined;
 
   return (
-    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label={meta.title} onClick={onClose}>
-      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Fermer"
-          style={{
-            position: 'absolute', top: 12, right: 12, width: 44, height: 44, borderRadius: 14,
-            background: 'var(--chip)', border: '1px solid var(--line2)',
-            color: 'var(--text3)', fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
-          }}
-        >
-          ✕
-        </button>
+    <BilanSheet label={meta.title} onClose={onClose}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, paddingRight: 56 }}>
           <span
+            aria-hidden
             style={{
               width: 42, height: 42, borderRadius: 13, background: `${d.accent}17`,
               border: `1px solid ${d.accent}3d`, display: 'grid', placeItems: 'center',
-              fontSize: 18, color: d.accent, flexShrink: 0,
+              fontSize: 18, color: `color-mix(in srgb, ${d.accent} var(--kid-mix, 100%), var(--text))`, flexShrink: 0,
             }}
           >
             {meta.icon}
@@ -472,10 +451,13 @@ export function DetailModal({
             onClick={() => onOpenDoc(docId)}
             style={{
               width: '100%', minHeight: 48, marginTop: 16, borderRadius: 13, border: `1px solid ${d.accent}4d`,
-              background: `${d.accent}1f`, color: d.accent, fontWeight: 700, fontSize: 14, cursor: 'pointer',
+              background: `${d.accent}1f`, color: `color-mix(in srgb, ${d.accent} var(--kid-mix, 100%), var(--text))`, fontWeight: 700, fontSize: 14, cursor: 'pointer',
             }}
           >
-            ⤓ Télécharger le PDF
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="download" className="w-[18px] h-[18px]" />
+              Télécharger le PDF
+            </span>
           </button>
         )}
 
@@ -492,10 +474,9 @@ export function DetailModal({
               display: 'grid', placeItems: 'center',
             }}
           >
-            →
+            <Icon name="arrow-right" className="w-[22px] h-[22px]" />
           </button>
         </div>
-      </div>
-    </div>
+    </BilanSheet>
   );
 }

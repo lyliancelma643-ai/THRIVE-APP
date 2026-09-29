@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMenuKeyboard } from '@/hooks/useMenuKeyboard';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
@@ -38,15 +39,10 @@ export function ChildSwitcher() {
     setOpen((v) => !v);
   };
 
-  // Échap referme le menu (cohérent avec les modales)
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [open]);
+  // Clavier : focus sur la 1re entrée, ↑↓, Échap rend le focus au bouton.
+  const menuRef = useRef<HTMLDivElement>(null);
+  const closeMenu = useCallback(() => setOpen(false), []);
+  useMenuKeyboard(menuRef, triggerRef, open, closeMenu);
 
   useEffect(() => {
     if (user?.id) loadChildren(user.id);
@@ -116,17 +112,22 @@ export function ChildSwitcher() {
             {/* Voile plein écran : un tap hors du menu le referme SANS activer
                 l'élément situé dessous (évite les clics fantômes) */}
             <div
-              className="fixed inset-0 z-[60] cursor-default"
+              className="fixed inset-0 z-backdrop cursor-default"
               aria-hidden
               onClick={() => setOpen(false)}
             />
             <div
-              className="fixed z-[70] w-60 rounded-2xl bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)]"
+              ref={menuRef}
+              role="menu"
+              aria-label="Choisir un enfant"
+              className="fixed z-popover w-64 rounded-row bg-night-surface ring-1 ring-line overflow-hidden shadow-[0_18px_50px_rgba(0,10,20,0.5)] animate-menu-in origin-top-right"
               style={{ top: menuPos.top, right: menuPos.right }}
             >
             {children.map((child) => (
               <button
                 key={child.id}
+                role="menuitemradio"
+                aria-checked={child.id === selectedChildId}
                 onClick={() => {
                   selectChild(child.id);
                   setOpen(false);
@@ -143,7 +144,7 @@ export function ChildSwitcher() {
                   <Icon name="check" className="w-4 h-4 text-accent-ink shrink-0" />
                 )}
                 {ageGroupFromBirthDate(child.date_of_birth) && (
-                  <span className="text-[10px] text-soft">
+                  <span className="text-[11px] text-soft">
                     {ageGroupFromBirthDate(child.date_of_birth)} ans
                   </span>
                 )}
@@ -151,6 +152,7 @@ export function ChildSwitcher() {
             ))}
             <Link
               href="/parent/select-profile"
+              role="menuitem"
               className="flex items-center px-4 py-3 min-h-[48px] text-[13px] font-semibold text-accent-ink hover:bg-chip active:bg-chip transition-colors border-t border-line"
               onClick={() => setOpen(false)}
             >

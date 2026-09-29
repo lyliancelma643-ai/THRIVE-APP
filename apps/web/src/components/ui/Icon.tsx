@@ -37,7 +37,13 @@ export type IconName =
   | 'chevron-up'
   | 'chevron-right'
   | 'play'
-  | 'download';
+  | 'pause'
+  | 'download'
+  | 'menu'
+  | 'close'
+  | 'expand'
+  | 'arrow-left'
+  | 'refresh';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -176,6 +182,17 @@ const PATHS: Record<IconName, React.ReactNode> = {
   play: <path d="M8 5.5v13l11-6.5z" fill="currentColor" strokeLinejoin="round" />,
   // ⤓ Téléchargement d'un livrable (contrat, lettre, certificat)
   download: <path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14" />,
+  pause: (
+    <>
+      <rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none" />
+      <rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor" stroke="none" />
+    </>
+  ),
+  menu: <path d="M4 7h16M4 12h16M4 17h16" />,
+  close: <path d="M6 6l12 12M18 6 6 18" />,
+  expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
+  'arrow-left': <path d="M20 12H5m6-6-6 6 6 6" />,
+  refresh: <path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5M20 20v-4h-4" />,
 };
 
 export function Icon({

@@ -157,7 +157,7 @@ export default function AdminCoachesPage() {
     setSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
+      if (!session) throw new Error('Session expirée : reconnecte-toi.');
 
       // Appel Edge Function sécurisé — pas de getFunctionUrl() qui n'existe pas
       const { data, error: fnError } = await supabase.functions.invoke('admin-create-coach', {
@@ -218,8 +218,8 @@ export default function AdminCoachesPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Coaches 🎯</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Coaches</h1>
+          <p className="text-gray-600 mt-1">
             {coaches.length} coach{coaches.length > 1 ? 'es' : ''} enregistré{coaches.length > 1 ? 's' : ''}
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function AdminCoachesPage() {
       {success && (
         <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-6 text-green-700 text-sm flex items-center justify-between">
           <span>{success}</span>
-          <button onClick={() => setSuccess('')} className="text-green-500 hover:text-green-700 text-lg leading-none">×</button>
+          <button onClick={() => setSuccess('')} className="text-green-700 hover:text-green-700 text-lg leading-none">×</button>
         </div>
       )}
 
@@ -243,7 +243,7 @@ export default function AdminCoachesPage() {
       {rowError && (
         <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-red-700 text-sm flex items-center justify-between">
           <span>{rowError}</span>
-          <button onClick={() => setRowError('')} className="text-red-500 hover:text-red-700 text-lg leading-none">×</button>
+          <button onClick={() => setRowError('')} className="text-red-700 hover:text-red-700 text-lg leading-none">×</button>
         </div>
       )}
 
@@ -275,7 +275,7 @@ export default function AdminCoachesPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-600 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Coach</th>
               <th className="px-6 py-4 hidden md:table-cell">Email</th>
               <th className="px-6 py-4 hidden lg:table-cell">Spécialité</th>
@@ -300,7 +300,7 @@ export default function AdminCoachesPage() {
               <tr>
                 <td colSpan={7} className="px-6 py-12 text-center">
                   <div className="text-4xl mb-3">🎯</div>
-                  <p className="text-gray-500 font-medium">
+                  <p className="text-gray-600 font-medium">
                     {search || filterActive !== 'all'
                       ? 'Aucun résultat pour cette recherche'
                       : 'Aucun coach enregistré'}
@@ -329,13 +329,13 @@ export default function AdminCoachesPage() {
                           {coach.first_name} {coach.last_name}
                         </p>
                         {getPhone(coach) && (
-                          <p className="text-xs text-gray-400">{getPhone(coach)}</p>
+                          <p className="text-xs text-gray-600">{getPhone(coach)}</p>
                         )}
                       </div>
                     </div>
                   </td>
                   {/* Email */}
-                  <td className="px-6 py-4 text-gray-500 text-sm hidden md:table-cell">{coach.email}</td>
+                  <td className="px-6 py-4 text-gray-600 text-sm hidden md:table-cell">{coach.email}</td>
                   {/* Spécialité */}
                   <td className="px-6 py-4 hidden lg:table-cell">
                     {coach.speciality ? (
@@ -343,19 +343,19 @@ export default function AdminCoachesPage() {
                         {coach.speciality}
                       </span>
                     ) : (
-                      <span className="text-gray-300 text-xs">—</span>
+                      <span className="text-gray-600 text-xs">—</span>
                     )}
                   </td>
                   {/* Stats */}
                   <td className="px-6 py-4 hidden lg:table-cell">
-                    <div className="flex gap-3 text-xs text-gray-500">
+                    <div className="flex gap-3 text-xs text-gray-600">
                       <span title="Programmes">📋 {coach.program_count ?? 0}</span>
                       <span title="Séances">🗓️ {coach.session_count ?? 0}</span>
                       <span title="Enfants suivis">👶 {coach.children_count ?? 0}</span>
                     </div>
                   </td>
                   {/* Date */}
-                  <td className="px-6 py-4 text-gray-400 text-sm hidden md:table-cell">
+                  <td className="px-6 py-4 text-gray-600 text-sm hidden md:table-cell">
                     {new Date(coach.created_at).toLocaleDateString('fr-CA')}
                   </td>
                   {/* Statut */}
@@ -373,7 +373,7 @@ export default function AdminCoachesPage() {
                       disabled={togglingId === coach.id}
                       className={`px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-40 transition-colors ${
                         coach.is_active
-                          ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                          ? 'bg-red-50 text-red-700 hover:bg-red-100'
                           : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                       }`}
                     >
@@ -394,16 +394,16 @@ export default function AdminCoachesPage() {
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
           />
-          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[90dvh] overflow-y-auto">
             {/* Header */}
             <div className="flex items-center justify-between p-6 border-b">
               <div>
                 <h2 className="text-xl font-bold">Créer un coach</h2>
-                <p className="text-gray-500 text-sm mt-0.5">Le coach peut se connecter immédiatement</p>
+                <p className="text-gray-600 text-sm mt-0.5">Le coach peut se connecter immédiatement</p>
               </div>
               <button
                 onClick={() => { if (!saving) { setShowModal(false); setError(''); } }}
-                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-700 text-xl transition-colors"
+                className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full hover:bg-gray-100 text-gray-600 hover:text-gray-700 text-xl transition-colors"
                 aria-label="Fermer"
               >
                 ×
@@ -416,7 +416,7 @@ export default function AdminCoachesPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                    Prénom <span className="text-red-500">*</span>
+                    Prénom <span className="text-red-700">*</span>
                   </label>
                   <input
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
@@ -428,7 +428,7 @@ export default function AdminCoachesPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                    Nom <span className="text-red-500">*</span>
+                    Nom <span className="text-red-700">*</span>
                   </label>
                   <input
                     className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
@@ -442,7 +442,7 @@ export default function AdminCoachesPage() {
               {/* Email */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Adresse email <span className="text-red-500">*</span>
+                  Adresse email <span className="text-red-700">*</span>
                 </label>
                 <input
                   type="email"
@@ -456,7 +456,7 @@ export default function AdminCoachesPage() {
               {/* Téléphone */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Téléphone <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Téléphone <span className="text-gray-600 font-normal text-xs">(optionnel)</span>
                 </label>
                 <input
                   type="tel"
@@ -470,7 +470,7 @@ export default function AdminCoachesPage() {
               {/* Spécialité */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Spécialité <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Spécialité <span className="text-gray-600 font-normal text-xs">(optionnel)</span>
                 </label>
                 <input
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30"
@@ -483,7 +483,7 @@ export default function AdminCoachesPage() {
               {/* Bio */}
               <div>
                 <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                  Bio <span className="text-gray-400 font-normal text-xs">(optionnel)</span>
+                  Bio <span className="text-gray-600 font-normal text-xs">(optionnel)</span>
                 </label>
                 <textarea
                   className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-black/10 focus:border-black/30 resize-none"
@@ -496,11 +496,11 @@ export default function AdminCoachesPage() {
 
               {/* Mot de passe */}
               <div className="pt-1">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Accès</p>
+                <p className="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-3">Accès</p>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                      Mot de passe <span className="text-red-500">*</span>
+                      Mot de passe <span className="text-red-700">*</span>
                     </label>
                     <div className="relative">
                       <input
@@ -513,7 +513,7 @@ export default function AdminCoachesPage() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 text-xs"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 hover:text-gray-600 text-xs"
                       >
                         {showPassword ? 'Masquer' : 'Voir'}
                       </button>
@@ -521,7 +521,7 @@ export default function AdminCoachesPage() {
                   </div>
                   <div>
                     <label className="text-sm font-medium text-gray-700 block mb-1.5">
-                      Confirmer <span className="text-red-500">*</span>
+                      Confirmer <span className="text-red-700">*</span>
                     </label>
                     <input
                       type={showPassword ? 'text' : 'password'}
@@ -548,14 +548,14 @@ export default function AdminCoachesPage() {
                         }`}
                       />
                     ))}
-                    <span className="text-xs text-gray-400 ml-1 w-10">{STRENGTH_LABELS[strength]}</span>
+                    <span className="text-xs text-gray-600 ml-1 w-10">{STRENGTH_LABELS[strength]}</span>
                   </div>
                 )}
               </div>
 
               {/* Erreur */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-600 text-sm">
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-red-700 text-sm">
                   {error}
                 </div>
               )}

@@ -28,11 +28,11 @@ const STATUS_LABELS: Record<string, { label: string; color: string }> = {
   pending:   { label: 'En attente',  color: 'bg-yellow-100 text-yellow-700' },
   active:    { label: 'Actif',       color: 'bg-green-100 text-green-700'   },
   completed: { label: 'Complété',    color: 'bg-navy-100 text-navy-700'     },
-  inactive:  { label: 'Inactif',     color: 'bg-gray-100 text-gray-500'     },
+  inactive:  { label: 'Inactif',     color: 'bg-gray-100 text-gray-600'     },
 };
 
 const getStatus = (s?: string | null) =>
-  STATUS_LABELS[s ?? ''] ?? { label: s ?? '—', color: 'bg-gray-100 text-gray-500' };
+  STATUS_LABELS[s ?? ''] ?? { label: s ?? '—', color: 'bg-gray-100 text-gray-600' };
 
 // ─── Composant principal ───────────────────────────────────────────────────────
 export default function AdminFamiliesPage() {
@@ -141,11 +141,11 @@ export default function AdminFamiliesPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Familles & Parents 👨‍👩‍👧‍👦</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Familles & Parents</h1>
+          <p className="text-gray-600 mt-1">
             {parents.length} parent{parents.length > 1 ? 's' : ''} inscrit{parents.length > 1 ? 's' : ''}
-            {' · '}<span className="text-green-600 font-medium">{withFamily} avec famille</span>
-            {' · '}<span className="text-yellow-600 font-medium">{withoutFamily} sans famille</span>
+            {' · '}<span className="text-green-700 font-medium">{withFamily} avec famille</span>
+            {' · '}<span className="text-yellow-700 font-medium">{withoutFamily} sans famille</span>
           </p>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function AdminFamiliesPage() {
       <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-400 text-xs uppercase tracking-wider">
+            <tr className="text-left text-gray-600 text-xs uppercase tracking-wider">
               <th className="px-6 py-4">Parent</th>
               <th className="px-6 py-4 hidden md:table-cell">Email</th>
               <th className="px-6 py-4">Famille</th>
@@ -208,7 +208,7 @@ export default function AdminFamiliesPage() {
               <tr>
                 <td colSpan={8} className="px-6 py-14 text-center">
                   <div className="text-4xl mb-3">👨‍👩‍👧‍👦</div>
-                  <p className="text-gray-500 font-medium">
+                  <p className="text-gray-600 font-medium">
                     {search || filter !== 'all'
                       ? 'Aucun résultat pour cette recherche'
                       : 'Aucun parent inscrit pour le moment'}
@@ -230,13 +230,13 @@ export default function AdminFamiliesPage() {
                           <p className="font-semibold text-sm">
                             {parent.first_name} {parent.last_name}
                           </p>
-                          <p className="text-xs text-gray-400 md:hidden">{parent.email}</p>
+                          <p className="text-xs text-gray-600 md:hidden">{parent.email}</p>
                         </div>
                       </div>
                     </td>
 
                     {/* Email */}
-                    <td className="px-6 py-4 hidden md:table-cell text-sm text-gray-500">
+                    <td className="px-6 py-4 hidden md:table-cell text-sm text-gray-600">
                       {parent.email}
                     </td>
 
@@ -245,14 +245,14 @@ export default function AdminFamiliesPage() {
                       {parent.family_name ? (
                         <span className="font-medium text-sm">{parent.family_name}</span>
                       ) : (
-                        <span className="text-xs text-yellow-600 bg-yellow-50 rounded-full px-2 py-1">
+                        <span className="text-xs text-yellow-700 bg-yellow-50 rounded-full px-2 py-1">
                           Non créée
                         </span>
                       )}
                     </td>
 
                     {/* Ville */}
-                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-500">
+                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-600">
                       {parent.city
                         ? `${parent.city}${parent.province ? `, ${parent.province}` : ''}`
                         : '—'}
@@ -282,7 +282,7 @@ export default function AdminFamiliesPage() {
                           ))}
                         </select>
                       ) : (
-                        <span className="text-xs text-gray-400">—</span>
+                        <span className="text-xs text-gray-600">—</span>
                       )}
                     </td>
 
@@ -294,7 +294,7 @@ export default function AdminFamiliesPage() {
                     </td>
 
                     {/* Date */}
-                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-400">
+                    <td className="px-6 py-4 hidden lg:table-cell text-sm text-gray-600">
                       {new Date(parent.created_at).toLocaleDateString('fr-CA')}
                     </td>
                   </tr>

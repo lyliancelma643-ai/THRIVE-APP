@@ -2,7 +2,7 @@
 
 // Fiches d'explication des cartes + modale + squelette de chargement —
 // extraits de page.tsx (chantier découpage 2026-07-11), contenu identique.
-import { useEffect } from 'react';
+import { BilanSheet } from './sheet';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Fiches d'explication des cartes — contenu vulgarisé pour le parent et
@@ -389,7 +389,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
         text: 'En ouvrant la lettre, ton enfant mesure le chemin parcouru avec ses propres mots. C’est souvent un moment fort — pour lui comme pour toute la famille.',
       },
     ],
-    tip: 'Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial.',
+    tip: 'Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial, lui et toi.',
   },
   certificat: {
     icon: '◈',
@@ -410,50 +410,16 @@ export const CARD_INFO: Record<string, CardInfo> = {
         text: '« Tu as des forces, tu as des outils, et tu sais t’en servir. » Ce n’est pas un trophée de performance : c’est la reconnaissance d’une identité — celle d’un jeune qui a grandi.',
       },
     ],
-    tip: 'Encadrez-le ! Les 3 forces qui y figurent sont de vrais repères que ton enfant pourra relire dans les moments de doute.',
+    tip: 'Encadre-le ! Les 3 forces qui y figurent sont de vrais repères que ton enfant pourra relire dans les moments de doute.',
   },
 };
 
 export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   return (
-    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label={info.title} onClick={onClose}>
-      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Fermer"
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            width: 44,
-            height: 44,
-            borderRadius: 14,
-            background: 'var(--chip)',
-            border: '1px solid var(--line2)',
-            color: 'var(--text3)',
-            fontSize: 16,
-            cursor: 'pointer',
-            display: 'grid',
-            placeItems: 'center',
-          }}
-        >
-          ✕
-        </button>
+    <BilanSheet label={info.title} onClose={onClose}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, paddingRight: 56 }}>
           <span
+            aria-hidden
             style={{
               width: 40,
               height: 40,
@@ -506,7 +472,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
                 fontSize: 10.5,
                 letterSpacing: '.06em',
                 textTransform: 'uppercase',
-                color: '#A7C4BC',
+                color: 'var(--sage-ink)',
                 marginBottom: 7,
               }}
             >
@@ -558,8 +524,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BilanSheet>
   );
 }
 

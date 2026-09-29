@@ -9,8 +9,10 @@ export function BrandLogo({ className = 'h-8 w-8' }: { className?: string }) {
     <Image
       src="/logo.png"
       alt="THRIVE Sport Positive"
-      width={512}
-      height={512}
+      // Affiché de 28 à 80 px : une source de 160 px suffit (srcset 1x / 2x)
+      // au lieu de 640 à 1 080 px téléchargés pour une vignette.
+      width={160}
+      height={160}
       priority
       className={`rounded-[22%] object-cover ${className}`}
     />

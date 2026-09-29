@@ -136,8 +136,8 @@ function MessagesInner() {
     {
       key: 'coach',
       id: coachId,
-      name: coachSummary?.coach_name ?? coachSummary?.counterpart_name ?? 'Votre coach THRIVE',
-      writeTo: (coachSummary?.coach_name ?? '').split(' ')[0] || 'votre coach',
+      name: coachSummary?.coach_name ?? coachSummary?.counterpart_name ?? 'Ton coach THRIVE',
+      writeTo: (coachSummary?.coach_name ?? '').split(' ')[0] || 'ton coach',
       subtitle: selectedChild ? `Coach de ${selectedChild.first_name}` : 'Coach THRIVE',
       tint: 'var(--brand)',
       error: coachError,
@@ -149,7 +149,7 @@ function MessagesInner() {
       name: 'Support THRIVE',
       writeTo: 'au support THRIVE',
       subtitle: 'Assistance · réponse sous un jour ouvrable',
-      tint: 'var(--sage)',
+      tint: '#4a7268',
       error: null,
       summary: summaryOf(supportId),
     },
@@ -228,7 +228,7 @@ function ListView({
           type="button"
           onClick={onLeave}
           aria-label="Fermer la messagerie"
-          className="shrink-0 w-10 h-10 rounded-full grid place-items-center text-body hover:bg-surface-sub cursor-pointer"
+          className="shrink-0 w-11 h-11 rounded-full grid place-items-center text-body hover:bg-surface-sub active:bg-surface-sub cursor-pointer"
         >
           {CHEVRON}
         </button>
@@ -270,8 +270,8 @@ function ListView({
           </div>
         )}
 
-        <p className="mt-5 mx-6 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
-          Deux interlocuteurs seulement : le coach dédié de votre enfant et le support THRIVE. Les
+        <p className="mt-5 mx-6 text-[12.5px] leading-[1.5] text-soft text-center text-pretty">
+          Deux interlocuteurs seulement : le coach dédié de ton enfant et le support THRIVE. Les
           échanges sont conservés dans son dossier et ne sont jamais partagés avec le club.
         </p>
       </div>
@@ -404,7 +404,7 @@ function ThreadView({
           type="button"
           onClick={onBack}
           aria-label="Retour à la liste des conversations"
-          className="relative shrink-0 w-10 h-10 rounded-full grid place-items-center text-body hover:bg-surface-sub cursor-pointer"
+          className="relative shrink-0 w-11 h-11 rounded-full grid place-items-center text-body hover:bg-surface-sub active:bg-surface-sub cursor-pointer"
         >
           {CHEVRON}
           {unreadElsewhere && (
@@ -442,10 +442,10 @@ function ThreadView({
         onDelete={thread.remove}
         className="px-0"
         emptyState={
-          <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
+          <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-soft text-center text-pretty">
             {row.key === 'support'
-              ? 'Facturation, accès, forfait, souci technique : écrivez-nous ici, notre équipe vous répond dans cette même conversation.'
-              : `Racontez ce que vous observez — ${firstName} vous répond ici, entre les séances.`}
+              ? 'Facturation, accès, forfait, souci technique : écris-nous ici, notre équipe te répond dans cette même conversation.'
+              : `Raconte ce que tu observes — ${firstName} te répond ici, entre les séances.`}
           </p>
         }
       />

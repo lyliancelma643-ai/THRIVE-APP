@@ -94,28 +94,63 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (lastTab.current === active) return;
     lastTab.current = active;
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [active]);
 
   return (
     // « Nuit calme » ou « Jour clair » : un aplat unique, ni dégradé ni halo. La
     // profondeur vient du seul contraste entre le fond et les cartes.
-    <div className="min-h-screen bg-night-bg text-night-body">
+    <div className="min-h-dvh bg-night-bg text-night-body">
       {/* Barre haute posée à même le fond : logo + enfant à gauche, actions à
           droite. Plus de carte de verre — juste un filet en bas au défilement. */}
-      <header className="sticky top-0 z-40 bg-night-bg safe-top">
-        <div className="max-w-7xl mx-auto px-5 md:px-6 py-3 flex items-center justify-between gap-3 animate-om-fade">
-          <div className="flex items-center gap-2.5 min-w-0 flex-1">
-            <Link href="/parent/bilans" className="shrink-0 select-none" aria-label="Accueil THRIVE">
+      <header className="sticky top-0 z-header bg-night-bg safe-top">
+        <div className="max-w-7xl mx-auto px-5 md:px-8 py-3 flex items-center justify-between gap-2 sm:gap-3 animate-om-fade">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 lg:basis-0">
+            {/* Zone tactile de 44 px autour du logo de 32 px. */}
+            <Link href="/parent/bilans" className="shrink-0 select-none -m-1.5 p-1.5 rounded-xl" aria-label="Accueil THRIVE">
               <BrandLogo className="w-8 h-8" />
             </Link>
             <ChildSwitcher />
           </div>
 
-          <div className="flex items-center gap-1.5 md:gap-2 shrink-0">
+          {/* ≥ 1024 px (iPad paysage, ordinateur) : les onglets montent dans
+              l'en-tête, au centre — plus de barre de téléphone en bas d'un grand écran. */}
+          <nav aria-label="Navigation principale" className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-surface-sub">
+            {TABS.map((tab, i) =>
+              !tabOpen(i) && active !== i ? (
+                <span
+                  key={tab.href}
+                  aria-disabled
+                  title="Disponible après l'activation par ton coach"
+                  className="inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold text-faint cursor-not-allowed"
+                >
+                  <Icon name={tab.icon} className="w-[18px] h-[18px]" />
+                  {tab.label}
+                </span>
+              ) : (
+                <Link
+                  key={tab.href}
+                  href={tab.href}
+                  onClick={() => setEnterFrom(i > active ? 30 : -30)}
+                  aria-current={active === i ? 'page' : undefined}
+                  className={`inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold transition-colors duration-fast ${
+                    active === i ? 'bg-night-surface text-ink shadow-[var(--shadow)]' : 'text-soft hover:text-ink'
+                  }`}
+                >
+                  <Icon
+                    name={tab.icon}
+                    className={`w-[18px] h-[18px] ${active === i ? 'text-[color:var(--nav-active)]' : ''}`}
+                  />
+                  {tab.label}
+                </Link>
+              )
+            )}
+          </nav>
+
+          <div className="flex items-center justify-end gap-1 sm:gap-1.5 md:gap-2 shrink-0 lg:flex-1 lg:basis-0">
             <Link
               href="/parent/select-profile"
-              className="hidden md:inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
+              className="hidden md:inline-flex lg:hidden xl:inline-flex items-center gap-1.5 h-11 px-5 whitespace-nowrap rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant
             </Link>
@@ -146,7 +181,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       </header>
 
       <main
-        className="max-w-7xl mx-auto px-5 md:px-6 pt-1 pb-32 md:pb-36"
+        className="max-w-7xl mx-auto px-5 md:px-8 pt-1 pb-32 md:pb-36 lg:pb-16 overflow-x-clip"
         style={{ touchAction: 'pan-y' }}
         {...handlers}
       >
@@ -156,7 +191,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         <div
           style={{
             transform: dragX ? `translateX(${dragX}px)` : undefined,
-            transition: dragging ? 'none' : 'transform .32s cubic-bezier(.22,.61,.36,1)',
+            transition: dragging ? 'none' : 'transform var(--dur-slow) var(--ease-out)',
           }}
         >
           <div
@@ -173,7 +208,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
           glissante — un filet de 2 px se déplace sous l'onglet actif. */}
       <nav
         aria-label="Navigation principale"
-        className="fixed bottom-0 inset-x-0 z-50 border-t border-line"
+        className="lg:hidden fixed bottom-0 inset-x-0 z-nav border-t border-line"
         style={{
           background: 'var(--tab)',
           boxShadow: 'var(--tab-shadow)',
@@ -188,7 +223,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
               width: `${100 / TABS.length}%`,
               background: 'var(--nav-active)',
               transform: `translateX(${(active < 0 ? 0 : active) * 100}%)`,
-              transition: 'transform .42s cubic-bezier(.22,.61,.36,1)',
+              transition: 'transform var(--dur-slow) var(--ease-out)',
               opacity: active < 0 ? 0 : 1,
             }}
           />
@@ -202,7 +237,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <span
                   key={tab.href}
                   aria-disabled
-                  title="Disponible après l'activation par votre coach"
+                  title="Disponible après l'activation par ton coach"
                   className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[22px] h-[22px]" />
@@ -217,7 +252,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] active:scale-95"
                   style={{
                     color: active === i ? 'var(--nav-active)' : 'var(--text3)',
-                    transition: 'color .32s ease',
+                    transition: 'color var(--dur-base) ease',
                   }}
                 >
                   <Icon name={tab.icon} className="w-[22px] h-[22px]" />

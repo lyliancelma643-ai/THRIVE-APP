@@ -54,7 +54,7 @@ export function WriteToParentButton({
         <Icon name="mail" className="w-4 h-4" />
         {busy ? 'Ouverture…' : 'Écrire au parent'}
       </button>
-      {error && <p className="text-xs text-red-500 mt-1.5">{error}</p>}
+      {error && <p className="text-xs text-red-700 mt-1.5">{error}</p>}
     </div>
   );
 }
