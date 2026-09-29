@@ -12,12 +12,18 @@
 //   - Interdiction de se supprimer soi-même et de supprimer un SUPER_ADMIN.
 //   - Les FK RESTRICT (programs.coach_id, reports.generated_by) font échouer
 //     proprement la suppression d'un coach encore titulaire → message clair.
+//   - Facturation P3 : l'abonnement Stripe est annulé et l'abonné RevenueCat
+//     supprimé AVANT la suppression (voir billing_cleanup.ts). Si Stripe ne
+//     peut pas être annulé, le compte n'est PAS supprimé.
+//
+// Secrets (optionnels) : STRIPE_SECRET_KEY, REVENUECAT_SECRET_API_KEY.
 //
 // verify_jwt: true
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { withSentry, captureError } from "../_shared/sentry.ts";
+import { cleanupBilling, type BillingRow } from "./billing_cleanup.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -84,6 +90,22 @@ Deno.serve(withSentry("admin-delete-user", async (req: Request) => {
       new_data: { deleted_email: targetEmail, deleted_role: target.user.app_metadata?.role },
     }).then(() => {}, () => {}); // best effort : ne bloque pas la suppression
 
+    // Facturation : arrêter tout prélèvement avant de perdre le lien client.
+    const { data: billing, error: billingErr } = await admin
+      .from("billing_subscriptions")
+      .select("stripe_customer_id, store, active")
+      .eq("user_id", userId)
+      .maybeSingle();
+    // 42P01 = table absente (base antérieure à la migration 064) : rien à nettoyer.
+    if (billingErr && billingErr.code !== "42P01") {
+      return json({ error: `Lecture de l'abonnement impossible : ${billingErr.message}` }, 500);
+    }
+    const cleanup = await cleanupBilling(userId, (billing ?? null) as BillingRow, {
+      stripeSecretKey: Deno.env.get("STRIPE_SECRET_KEY") ?? "",
+      revenueCatSecretKey: Deno.env.get("REVENUECAT_SECRET_API_KEY") ?? "",
+    });
+    if (!cleanup.ok) return json({ error: cleanup.error }, cleanup.status);
+
     // Suppression définitive (cascade profiles → familles → enfants → données)
     const { error: delErr } = await admin.auth.admin.deleteUser(userId);
     if (delErr) {
@@ -94,7 +116,13 @@ Deno.serve(withSentry("admin-delete-user", async (req: Request) => {
       return json({ error: msg }, 409);
     }
 
-    return json({ ok: true, deletedEmail: targetEmail });
+    return json({
+      ok: true,
+      deletedEmail: targetEmail,
+      canceledStripeSubscriptions: cleanup.canceledStripeSubscriptions,
+      // app_store / play_store : le parent doit annuler depuis son téléphone.
+      storeSubscription: cleanup.storeSubscription,
+    });
   } catch (e) {
     await captureError(e);
     return json({ error: e instanceof Error ? e.message : "Erreur inattendue" }, 500);

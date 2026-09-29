@@ -91,3 +91,5 @@ jobs:
       # jsx « react-native ») et refuse de démarrer. Le test n'a besoin que de jsr:.
       - name: Test signature Stripe
         run: deno test --no-config supabase/functions/stripe-webhook/verify.test.ts
+      - name: Test nettoyage facturation (suppression de compte)
+        run: deno test --no-config supabase/functions/admin-delete-user/billing_cleanup.test.ts
