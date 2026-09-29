@@ -81,9 +81,12 @@ export const DESIGN_CSS = `
   .bilan-root .b-clk:hover .b-hint{color:var(--text3);}
 }
 /* Focus clavier : les cartes sont des boutons (role/tabindex posés par la page). */
-.bilan-root [role=button]:focus-visible{outline:2px solid #F9EB50;outline-offset:3px;box-shadow:0 0 0 5px rgba(2,37,57,.55);border-radius:22px;}
+.bilan-root [role=button]:focus-visible{outline:2px solid #F9EB50;outline-offset:3px;box-shadow:0 0 0 5px rgba(2,37,57,.55);border-radius:14px;}
+/* Chevron d'une carte = son bouton clavier (44 px), le reste de la carte reste lisible. */
+.bilan-root .b-hint[role=button]{pointer-events:none;}
+.bilan-root .b-doc{min-height:44px;}
 /* Chevron d'affordance : les cartes ouvrent une fiche détaillée. */
-.bilan-root .b-hint{position:absolute;right:16px;top:18px;z-index:3;color:var(--text4);line-height:0;pointer-events:none;transition:color .18s ease;}
+.bilan-root .b-hint{position:absolute;right:2px;top:4px;z-index:3;width:44px;height:44px;display:grid;place-items:center;color:var(--text4);line-height:0;pointer-events:none;transition:color .18s ease;}
 @media(max-width:1100px){
   .bilan-root .b-row2{grid-template-columns:1fr;gap:12px;}
   .bilan-root .b-tools{grid-template-columns:1fr 1fr;gap:12px;}
@@ -98,7 +101,7 @@ export const DESIGN_CSS = `
   .bilan-root .b-pct{font-size:76px!important;}
   .bilan-root .b-pctsign{font-size:26px!important;}
   .bilan-root .b-toolstitle{font-size:23px!important;}
-  .bilan-root .b-hint{right:14px;top:16px;}
+  .bilan-root .b-hint{right:0;top:2px;}
 }
 @media(max-width:400px){
   .bilan-root{--bnode:32px;}
@@ -198,23 +201,6 @@ function permaPillarsHtml(pillars: Record<string, number>): string {
   return `<div style="display:flex;flex-direction:column;gap:11px;margin-top:18px;">${rows}</div>`;
 }
 
-
-/**
- * Les zones cliquables du gabarit sont des <div>/<span> : on leur donne le rôle
- * de bouton et une place dans l'ordre de tabulation (la page déclenche le clic
- * sur Entrée / Espace). Les zones déjà dotées d'un rôle sont laissées telles quelles.
- */
-function withKeyboardAccess(html: string): string {
-  return html.replace(
-    /<(div|span)((?:(?!>)[\s\S])*?\b(?:data-info|data-href|data-doc|data-action)="[^"]*"(?:(?!>)[\s\S])*?)>/g,
-    (_tag, name: string, attrs: string) => {
-      let a = attrs;
-      if (!/\brole=/.test(a)) a += ' role="button"';
-      if (!/\btabindex=/.test(a)) a += ' tabindex="0"';
-      return `<${name}${a}>`;
-    }
-  );
-}
 
 export function buildHtml(d: {
   firstName: string;
@@ -360,17 +346,17 @@ export function buildHtml(d: {
       circle = `<span class="disp bx" style="${node}background:#A7C4BC;color:#06222A;">${n}</span>`;
       subColor = 'var(--text3)';
     } else if (missed) {
-      circle = `<span class="disp bx" style="${node}background:rgba(220,80,80,.14);border:1px solid rgba(220,80,80,.5);color:#ffb4b4;">${n}</span>`;
-      subColor = '#e78a8a';
+      circle = `<span class="disp bx" style="${node}background:rgba(220,80,80,.14);border:1px solid rgba(220,80,80,.5);color:var(--bad-num);">${n}</span>`;
+      subColor = 'var(--bad-ink)';
       subOverride = `S${n} · manquée`;
     } else if (postponed) {
-      circle = `<span class="disp bx" style="${node}background:rgba(230,170,40,.14);border:1px solid rgba(230,170,40,.5);color:#f2d18a;">${n}</span>`;
-      subColor = '#e0b45a';
+      circle = `<span class="disp bx" style="${node}background:rgba(230,170,40,.14);border:1px solid rgba(230,170,40,.5);color:var(--warn-num);">${n}</span>`;
+      subColor = 'var(--warn-ink)';
       subOverride = `S${n} · reportée`;
     } else if (isCur) {
       // Le seul effet permanent de l'écran : l'anneau de la séance en cours.
       circle = `<span class="disp bx" style="${node}background:#F9EB50;color:#06222A;animation:b-ring 2.6s ease-in-out infinite;">${n}</span>`;
-      subColor = '#F9EB50';
+      subColor = 'var(--accent-ink)';
     } else {
       circle = `<span class="disp bx" style="${node}border:1px solid var(--line2);color:var(--text3);font-weight:600;">${n}</span>`;
     }
@@ -452,7 +438,7 @@ export function buildHtml(d: {
       </div>
     </div>`;
 
-  return withKeyboardAccess(`
+  return `
 <div class="bilan-root bx" style="padding-bottom:8px;">
 
   <!-- EN-TÊTE — « Programme complété » posé à même le fond : pas de carte, pas
@@ -474,7 +460,7 @@ export function buildHtml(d: {
       <span style="flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;">
         <span class="disp" style="font-size:17px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${esc(fullName)}</span>
         <span style="font-size:13px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex-shrink:0;">${
-          nickname ? `<span style="font-style:italic;color:${esc(accentColor)};">« ${esc(nickname)} »</span> · ` : ''
+          nickname ? `<span style="font-style:italic;color:color-mix(in srgb, ${esc(accentColor)} var(--kid-mix,100%), var(--text));">« ${esc(nickname)} »</span> · ` : ''
         }${subLine}</span>
       </span>
       <span style="flex-shrink:0;color:var(--text4);line-height:0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"></path></svg></span>
@@ -581,7 +567,7 @@ export function buildHtml(d: {
                     : s.status === 'doing'
                     ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>'
                     : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"></rect></svg>';
-                  const iconColor = done ? '#A7C4BC' : '#F9EB50';
+                  const iconColor = done ? 'var(--sage-ink)' : 'var(--accent-ink)';
                   const bg = done ? 'rgba(167,196,188,.08)' : 'var(--surface-sub)';
                   const dueTxt = s.due_date
                     ? ` <span style="color:var(--text3);">· ${new Date(s.due_date).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' })}</span>`
@@ -702,7 +688,7 @@ export function buildHtml(d: {
             `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;${i < arr.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}"><span style="min-width:0;display:flex;flex-direction:column;gap:2px;"><span class="b-eye" style="font-size:11px;">${role}</span><span class="disp" style="font-style:italic;font-size:18px;color:var(--text);overflow-wrap:anywhere;">${val}</span></span><span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(167,196,188,.16);color:var(--sage-ink);display:grid;place-items:center;line-height:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></span></div>`
         )
         .join('')}
-      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:${docIds.contract ? '#A7C4BC' : 'var(--text4)'};">${
+      <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:${docIds.contract ? 'var(--sage-ink)' : 'var(--text4)'};">${
         docIds.contract
           ? `<span class="b-doc b-hover" data-doc="${docIds.contract}" style="display:inline-flex;align-items:center;gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"></path></svg>Télécharger le contrat signé</span>`
           : 'Les 3 parties engagées'
@@ -721,7 +707,7 @@ export function buildHtml(d: {
           <div style="height:7px;width:60%;border-radius:4px;background:var(--text4);"></div>
         </div>
       </div>
-      <p style="margin:14px 0 0;font-size:14px;font-weight:500;color:${docIds.letter ? '#A7C4BC' : 'var(--text3)'};">${
+      <p style="margin:14px 0 0;font-size:14px;font-weight:500;color:${docIds.letter ? 'var(--sage-ink)' : 'var(--text3)'};">${
         docIds.letter
           ? `<span class="b-doc b-hover" data-doc="${docIds.letter}" style="display:inline-flex;align-items:center;gap:8px;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11m0 0-4-4m4 4 4-4M5 20h14"></path></svg>Télécharger la lettre (PDF)</span>`
           : letter
@@ -752,5 +738,5 @@ export function buildHtml(d: {
       }
     </div>
   </div>
-</div>`);
+</div>`;
 }

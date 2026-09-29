@@ -148,7 +148,7 @@ function SessionDetailPageInner() {
             <span className={`px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${accent.chip}`}>
               {session.theme}
             </span>
-            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-chip text-soft">
+            <span className="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide bg-chip text-body">
               {PHASE_LABELS[session.phase]}
             </span>
           </div>

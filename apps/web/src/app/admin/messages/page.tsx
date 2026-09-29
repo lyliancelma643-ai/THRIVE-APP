@@ -140,7 +140,7 @@ function AdminMessagesInner() {
             </span>
           )}
         </h1>
-        <p className="text-slate-500 font-medium">
+        <p className="text-slate-600 font-medium">
           {totalUnread > 0
             ? 'Des demandes attendent une réponse dans le guichet support.'
             : 'Le guichet support et la supervision des échanges coach ↔ parent.'}
@@ -206,7 +206,7 @@ function AdminMessagesInner() {
               className={`h-9 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer ${
                 filter === f.key
                   ? 'bg-slate-900 text-white'
-                  : 'bg-white text-slate-500 border border-slate-200 hover:bg-slate-50'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
               }`}
             >
               {f.label}
@@ -217,7 +217,7 @@ function AdminMessagesInner() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-16rem)]">
         <div className={`${selectedId ? 'hidden lg:flex' : 'flex'} flex-col min-h-0`}>
           {supervising && (
-            <p className="mb-3 px-3 py-2 rounded-xl bg-slate-100 text-[11px] leading-snug text-slate-500">
+            <p className="mb-3 px-3 py-2 rounded-xl bg-slate-100 text-[11px] leading-snug text-slate-600">
               <b className="text-slate-700">Lecture silencieuse.</b> Consulter ces fils ne laisse
               aucune trace : ni accusé « Lu » chez le parent ou le coach, ni notification.
             </p>
@@ -294,14 +294,14 @@ function AdminMessagesInner() {
                     type="button"
                     onClick={() => setSelectedId(null)}
                     aria-label="Retour à la liste des conversations"
-                    className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-500 hover:bg-slate-100 cursor-pointer"
+                    className="lg:hidden w-10 h-10 rounded-full grid place-items-center text-slate-600 hover:bg-slate-100 cursor-pointer"
                   >
                     <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
                   </button>
                 </>
               }
               emptyState={
-                <p className="text-sm text-slate-500 text-center py-10">
+                <p className="text-sm text-slate-600 text-center py-10">
                   {selected.kind === 'SUPPORT'
                     ? 'Le parent n’a pas encore écrit. Tu peux ouvrir l’échange.'
                     : 'Aucun message échangé dans ce fil.'}
@@ -311,11 +311,11 @@ function AdminMessagesInner() {
           ) : (
             <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-sm border border-slate-100">
               <div className="text-center">
-                <span className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 grid place-items-center text-slate-500">
+                <span className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-50 grid place-items-center text-slate-600">
                   <Icon name="message" className="w-7 h-7" />
                 </span>
                 <p className="text-base font-bold text-slate-900 mb-1">Aucune conversation ouverte</p>
-                <p className="text-sm text-slate-500">
+                <p className="text-sm text-slate-600">
                   Choisis une conversation dans la liste pour l’afficher ici.
                 </p>
               </div>

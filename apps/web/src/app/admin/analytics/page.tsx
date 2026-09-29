@@ -29,9 +29,9 @@ function KPICard({ icon, label, value, sub }: { icon: string; label: string; val
     <div className="bg-white rounded-2xl p-5 shadow-sm">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-sm text-gray-500 mb-1">{label}</p>
+          <p className="text-sm text-gray-600 mb-1">{label}</p>
           <p className="text-3xl font-bold">{value}</p>
-          {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+          {sub && <p className="text-xs text-gray-600 mt-1">{sub}</p>}
         </div>
         <span className="text-2xl">{icon}</span>
       </div>
@@ -64,7 +64,7 @@ export default function AdminAnalyticsPage() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-3xl mb-3">📊</p>
-          <p className="text-gray-500">Chargement des analytics...</p>
+          <p className="text-gray-600">Chargement des analytics...</p>
         </div>
       </div>
     );
@@ -81,7 +81,7 @@ export default function AdminAnalyticsPage() {
       <div className="flex justify-between items-start mb-6">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Analytics</h1>
-          <p className="text-gray-500 mt-1">Vue d'ensemble de la plateforme THRIVE</p>
+          <p className="text-gray-600 mt-1">Vue d'ensemble de la plateforme THRIVE</p>
         </div>
         <button
           onClick={handleExport}
@@ -125,22 +125,22 @@ export default function AdminAnalyticsPage() {
             <h2 className="text-lg font-bold mb-4">Activité sur 12 mois</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <div>
-                <p className="text-sm text-gray-500 mb-2">Séances</p>
+                <p className="text-sm text-gray-600 mb-2">Séances</p>
                 <MiniBarChart data={sessionTrend} color="#000" />
                 <div className="flex justify-between mt-1">
                   {monthlyActivity.map((m) => (
-                    <span key={m.month} className="text-xs text-gray-500 flex-1 text-center">
+                    <span key={m.month} className="text-xs text-gray-600 flex-1 text-center">
                       {MONTH_LABELS[m.month.slice(5, 7)]}
                     </span>
                   ))}
                 </div>
               </div>
               <div>
-                <p className="text-sm text-gray-500 mb-2">Messages</p>
+                <p className="text-sm text-gray-600 mb-2">Messages</p>
                 <MiniBarChart data={msgTrend} color="#3B82F6" />
                 <div className="flex justify-between mt-1">
                   {monthlyActivity.map((m) => (
-                    <span key={m.month} className="text-xs text-gray-500 flex-1 text-center">
+                    <span key={m.month} className="text-xs text-gray-600 flex-1 text-center">
                       {MONTH_LABELS[m.month.slice(5, 7)]}
                     </span>
                   ))}
@@ -157,14 +157,14 @@ export default function AdminAnalyticsPage() {
             <h2 className="text-lg font-bold">Performance des coaches</h2>
           </div>
           {coachPerformance.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">Aucun coach enregistré</div>
+            <div className="p-12 text-center text-gray-600">Aucun coach enregistré</div>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full min-w-[720px]">
               <thead className="bg-gray-50">
                 <tr>
                   {['Coach', 'Programmes', 'Séances', 'Complétées', 'Taux', 'Messages', 'Badges'].map((h) => (
-                    <th key={h} className="text-left text-xs text-gray-500 font-semibold px-6 py-3">{h}</th>
+                    <th key={h} className="text-left text-xs text-gray-600 font-semibold px-6 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -182,7 +182,7 @@ export default function AdminAnalyticsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm">{c.total_programs}</td>
                     <td className="px-6 py-4 text-sm">{c.total_sessions}</td>
-                    <td className="px-6 py-4 text-sm text-green-600 font-medium">{c.completed_sessions}</td>
+                    <td className="px-6 py-4 text-sm text-green-700 font-medium">{c.completed_sessions}</td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-gray-100 rounded-full h-2 w-16">
@@ -208,14 +208,14 @@ export default function AdminAnalyticsPage() {
             <h2 className="text-lg font-bold">Progression des enfants</h2>
           </div>
           {childProgress.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">Aucun enfant enregistré</div>
+            <div className="p-12 text-center text-gray-600">Aucun enfant enregistré</div>
           ) : (
             <div className="overflow-x-auto">
             <table className="w-full min-w-[720px]">
               <thead className="bg-gray-50">
                 <tr>
                   {['Enfant', 'Âge', 'Famille', 'Séances', 'Complétées', 'Badges', 'Dernière séance'].map((h) => (
-                    <th key={h} className="text-left text-xs text-gray-500 font-semibold px-6 py-3">{h}</th>
+                    <th key={h} className="text-left text-xs text-gray-600 font-semibold px-6 py-3">{h}</th>
                   ))}
                 </tr>
               </thead>
@@ -231,17 +231,17 @@ export default function AdminAnalyticsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm">{child.age ? `${child.age} ans` : '—'}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{child.family_name}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{child.family_name}</td>
                     <td className="px-6 py-4 text-sm">{child.total_sessions}</td>
-                    <td className="px-6 py-4"><span className="text-sm font-medium text-green-600">{child.completed_sessions}</span></td>
+                    <td className="px-6 py-4"><span className="text-sm font-medium text-green-700">{child.completed_sessions}</span></td>
                     <td className="px-6 py-4">
                       {child.badges_count > 0 ? (
                         <span className="bg-yellow-100 text-yellow-700 text-xs font-semibold px-2 py-1 rounded-full">🏅 {child.badges_count}</span>
                       ) : (
-                        <span className="text-gray-500 text-sm">—</span>
+                        <span className="text-gray-600 text-sm">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-xs text-gray-500">
+                    <td className="px-6 py-4 text-xs text-gray-600">
                       {child.last_session_at
                         ? new Date(child.last_session_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short', year: 'numeric' })
                         : '—'}
@@ -258,7 +258,7 @@ export default function AdminAnalyticsPage() {
       {activeTab === 'badges' && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {badgeDistribution.length === 0 ? (
-            <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-500">Aucun badge</div>
+            <div className="col-span-3 bg-white rounded-2xl p-12 text-center text-gray-600">Aucun badge</div>
           ) : badgeDistribution.map((badge, i) => (
             <div key={badge.id} className="bg-white rounded-2xl p-5 shadow-sm">
               <div className="flex items-start justify-between mb-3">
@@ -266,7 +266,7 @@ export default function AdminAnalyticsPage() {
                   <span className="text-3xl">{badge.icon ?? '🏅'}</span>
                   <div>
                     <p className="font-bold">{badge.name}</p>
-                    {badge.category && <p className="text-xs text-gray-500 capitalize">{badge.category}</p>}
+                    {badge.category && <p className="text-xs text-gray-600 capitalize">{badge.category}</p>}
                   </div>
                 </div>
                 {i === 0 && <span className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded-full font-semibold">Top 🥇</span>}
@@ -274,11 +274,11 @@ export default function AdminAnalyticsPage() {
               <div className="flex gap-4">
                 <div>
                   <p className="text-2xl font-bold">{badge.awarded_count}</p>
-                  <p className="text-xs text-gray-500">attributions</p>
+                  <p className="text-xs text-gray-600">attributions</p>
                 </div>
                 <div>
                   <p className="text-2xl font-bold">{badge.unique_children}</p>
-                  <p className="text-xs text-gray-500">enfants uniques</p>
+                  <p className="text-xs text-gray-600">enfants uniques</p>
                 </div>
               </div>
             </div>

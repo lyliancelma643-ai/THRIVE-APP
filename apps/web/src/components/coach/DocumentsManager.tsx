@@ -103,7 +103,7 @@ export function DocumentsManager({ childId }: { childId: string }) {
               <div className="flex items-center justify-between gap-2 mb-2">
                 <div>
                   <p className="text-sm font-semibold text-navy-900">{k.label}</p>
-                  {k.hint && <p className="text-[11px] text-gray-500">{k.hint}</p>}
+                  {k.hint && <p className="text-[11px] text-gray-600">{k.hint}</p>}
                 </div>
                 <input
                   ref={(el) => {
@@ -126,7 +126,7 @@ export function DocumentsManager({ childId }: { childId: string }) {
               {loading ? (
                 <div className="h-9 rounded-lg bg-gray-100 animate-pulse" />
               ) : existing.length === 0 ? (
-                <p className="text-xs text-gray-500">Aucun fichier.</p>
+                <p className="text-xs text-gray-600">Aucun fichier.</p>
               ) : (
                 <ul className="space-y-1.5">
                   {existing.map((d) => (
@@ -137,14 +137,14 @@ export function DocumentsManager({ childId }: { childId: string }) {
                         title={d.file_name ?? ''}
                       >
                         📄 {d.file_name ?? 'document.pdf'}{' '}
-                        <span className="text-gray-500">{fmtBytes(d.size_bytes)}</span>
+                        <span className="text-gray-600">{fmtBytes(d.size_bytes)}</span>
                       </button>
                       <button
                         onClick={() => toggleVisible(d)}
                         className={`text-[10px] px-2 py-1 rounded-full cursor-pointer ${
                           d.parent_visible
                             ? 'bg-emerald-50 text-emerald-700'
-                            : 'bg-gray-100 text-gray-500'
+                            : 'bg-gray-100 text-gray-600'
                         }`}
                         title="Visibilité côté parent"
                       >
@@ -152,7 +152,7 @@ export function DocumentsManager({ childId }: { childId: string }) {
                       </button>
                       <button
                         onClick={() => remove(d)}
-                        className="text-gray-500 hover:text-red-600 cursor-pointer"
+                        className="text-gray-600 hover:text-red-600 cursor-pointer"
                         aria-label="Supprimer"
                       >
                         ✕
@@ -165,7 +165,7 @@ export function DocumentsManager({ childId }: { childId: string }) {
           );
         })}
       </div>
-      <p className="text-[11px] text-gray-500">
+      <p className="text-[11px] text-gray-600">
         Le contrat de confiance est privé par défaut (données signées). La lettre et le certificat
         sont proposés au téléchargement du parent une fois complétés.
       </p>

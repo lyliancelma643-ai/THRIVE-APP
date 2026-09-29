@@ -256,20 +256,20 @@ export default function AdminRoadmapPage() {
                   >
                     <span className="font-semibold">{fullName(adminById[h.actor ?? ''])}</span>{' '}
                     {describeHistory(h, adminById)}
-                    <span className="text-red-400 dark:text-red-300/60"> · « {h.task_title} » · {fmtDate(h.created_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
+                    <span className="text-red-700 dark:text-red-300/60"> · « {h.task_title} » · {fmtDate(h.created_at, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</span>
                   </button>
                   <button
                     onClick={() => dismissOne(h.id)}
                     title="Marquer ce changement comme vu"
                     aria-label="Marquer ce changement comme vu"
-                    className="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg border border-red-300 dark:border-red-500/40 text-red-600 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
+                    className="shrink-0 text-[11px] font-bold px-2 py-1 rounded-lg border border-red-300 dark:border-red-500/40 text-red-700 dark:text-red-300 hover:bg-red-100 dark:hover:bg-red-500/15 transition-colors"
                   >
                     ✓ Vu
                   </button>
                 </li>
               ))}
               {unseen.length > 8 && (
-                <li className="text-[11px] text-red-500 dark:text-red-300/70 px-2">
+                <li className="text-[11px] text-red-700 dark:text-red-300/70 px-2">
                   + {unseen.length - 8} autre{unseen.length - 8 > 1 ? 's' : ''} changement{unseen.length - 8 > 1 ? 's' : ''}…
                 </li>
               )}
@@ -281,7 +281,7 @@ export default function AdminRoadmapPage() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight dark:text-white">Roadmap interne</h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
+            <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">
               {isSuperAdmin
                 ? 'Contrôle total : attribution, édition, suppression, résolution des problèmes — et tâches privées 🔒 que toi seul vois.'
                 : 'Prends une tâche libre, avance-la, signale un problème si tu bloques.'}
@@ -301,7 +301,7 @@ export default function AdminRoadmapPage() {
                   className={`text-xs font-bold px-3.5 py-2 rounded-lg transition-colors ${
                     view === v.key
                       ? 'bg-white dark:bg-navy-600 text-navy-900 dark:text-white shadow-sm'
-                      : 'text-slate-500 dark:text-slate-300 hover:text-slate-700'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-700'
                   }`}
                 >
                   {v.label}
@@ -409,7 +409,7 @@ export default function AdminRoadmapPage() {
           </select>
           {/* En vue Organisation, la section « Terminées » remplace ce filtre */}
           {view !== 'BOARD' && (
-            <label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-300 select-none cursor-pointer ml-auto">
+            <label className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 select-none cursor-pointer ml-auto">
               <input
                 type="checkbox"
                 checked={showDone}
@@ -437,7 +437,7 @@ export default function AdminRoadmapPage() {
             value={draft.title}
             onChange={(e) => setDraft({ ...draft, title: e.target.value })}
             placeholder="＋ Nouvel objectif ou tâche…"
-            className={selectCls + ' flex-1 min-w-[180px] !text-sm'}
+            className={selectCls + ' flex-1 min-w-[180px] !text-base [@media(pointer:fine)_and_(min-width:769px)]:!text-sm'}
           />
           <select value={draft.category} onChange={(e) => setDraft({ ...draft, category: e.target.value as Category })} className={selectCls} aria-label="Groupe">
             {(Object.keys(CATEGORIES) as Category[]).map((c) => (
@@ -480,7 +480,7 @@ export default function AdminRoadmapPage() {
               className={`shrink-0 text-xs font-bold px-3 py-2 rounded-lg border transition-colors ${
                 draft.isPrivate
                   ? 'bg-violet-600 border-violet-600 text-white'
-                  : 'bg-white dark:bg-white/[0.06] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
+                  : 'bg-white dark:bg-white/[0.06] border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-white/10'
               }`}
             >
               {draft.isPrivate ? '🔒 Privée' : '🔓 Partagée'}
@@ -528,16 +528,16 @@ export default function AdminRoadmapPage() {
                   <div className="px-4 pt-4">
                     <div className="flex items-baseline justify-between">
                       <h2 className="font-bold text-navy-900 dark:text-white">{h.label}</h2>
-                      <span className="text-[11px] text-slate-500">{done}/{total}</span>
+                      <span className="text-[11px] text-slate-600">{done}/{total}</span>
                     </div>
-                    <p className="text-[11px] text-slate-500">{h.hint} · classement automatique par date</p>
+                    <p className="text-[11px] text-slate-600">{h.hint} · classement automatique par date</p>
                     <div className="mt-2.5 h-1 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
                       <div className="h-full rounded-full bg-navy-500 dark:bg-sun transition-all duration-500" style={{ width: `${pct}%` }} />
                     </div>
                   </div>
                   <ul className="p-2.5 space-y-1.5">
                     {list.length === 0 && (
-                      <li className="px-2 py-4 text-sm text-slate-500 text-center">—</li>
+                      <li className="px-2 py-4 text-sm text-slate-600 text-center">—</li>
                     )}
                     {list.map((t) => {
                       const canToggle = isSuperAdmin || t.assignee === me;
@@ -604,7 +604,7 @@ export default function AdminRoadmapPage() {
                                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded-full ${
                                       isOverdue(t)
                                         ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300'
-                                        : 'bg-slate-100 text-slate-500 dark:bg-white/10 dark:text-slate-300'
+                                        : 'bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-300'
                                     }`}>
                                       {isOverdue(t) ? '⚠ ' : ''}{fmtDate(t.deadline)}
                                     </span>
@@ -651,7 +651,7 @@ export default function AdminRoadmapPage() {
                     {doneTasks.length}
                   </span>
                 </h2>
-                <span className="shrink-0 text-xs font-semibold text-emerald-600/80 dark:text-emerald-300/80">
+                <span className="shrink-0 text-xs font-semibold text-emerald-700/80 dark:text-emerald-300/80">
                   {doneOpen ? 'Replier ▲' : 'Afficher ▼'}
                 </span>
               </button>
@@ -678,7 +678,7 @@ export default function AdminRoadmapPage() {
                             onKeyDown={(e) => e.key === 'Enter' && setOpenTaskId(t.id)}
                             className="flex-1 min-w-0 text-left cursor-pointer"
                           >
-                            <p className="text-sm font-semibold text-slate-500 dark:text-slate-300 leading-snug line-through decoration-emerald-400/70">
+                            <p className="text-sm font-semibold text-slate-600 dark:text-slate-300 leading-snug line-through decoration-emerald-400/70">
                               {t.title}
                             </p>
                             <div className="flex flex-wrap items-center gap-1 mt-1">

@@ -86,7 +86,7 @@ export default function AdminContentPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Contenu pédagogique</h1>
-          <p className="text-gray-500 mt-1">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
+          <p className="text-gray-600 mt-1">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -107,27 +107,27 @@ export default function AdminContentPage() {
           <h2 className="text-lg font-bold mb-4">Nouvelle ressource</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
             <div className="sm:col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Titre</label>
+              <label className="text-sm text-gray-600 mb-1 block">Titre</label>
               <input required className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="Titre de la ressource" />
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Type</label>
+              <label className="text-sm text-gray-600 mb-1 block">Type</label>
               <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
                 {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
             <div>
-              <label className="text-sm text-gray-500 mb-1 block">Groupe d'âge</label>
+              <label className="text-sm text-gray-600 mb-1 block">Groupe d'âge</label>
               <select className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.age_group} onChange={(e) => setForm({ ...form, age_group: e.target.value })}>
                 {AGE_GROUPS.map((ag) => <option key={ag} value={ag}>{ag || 'Tous'}</option>)}
               </select>
             </div>
             <div className="sm:col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Contenu</label>
+              <label className="text-sm text-gray-600 mb-1 block">Contenu</label>
               <textarea className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" rows={4} value={form.body} onChange={(e) => setForm({ ...form, body: e.target.value })} placeholder="Corps du contenu..." />
             </div>
             <div className="sm:col-span-2">
-              <label className="text-sm text-gray-500 mb-1 block">Tags (séparés par virgule)</label>
+              <label className="text-sm text-gray-600 mb-1 block">Tags (séparés par virgule)</label>
               <input className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm" value={form.tags} onChange={(e) => setForm({ ...form, tags: e.target.value })} placeholder="motivation, sport, confiance" />
             </div>
           </div>
@@ -141,7 +141,7 @@ export default function AdminContentPage() {
         <div className="overflow-x-auto">
         <table className="w-full min-w-[640px]">
           <thead className="bg-gray-50">
-            <tr className="text-left text-gray-500 text-sm">
+            <tr className="text-left text-gray-600 text-sm">
               <th className="px-6 py-4">Titre</th>
               <th className="px-6 py-4">Type</th>
               <th className="px-6 py-4">Groupe</th>
@@ -152,9 +152,9 @@ export default function AdminContentPage() {
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Chargement...</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-600">Chargement...</td></tr>
             ) : items.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Aucune ressource.</td></tr>
+              <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-600">Aucune ressource.</td></tr>
             ) : (
               items.map((item) => (
                 <tr key={item.id} className="border-t hover:bg-gray-50">
@@ -164,7 +164,7 @@ export default function AdminContentPage() {
                   <td className="px-6 py-4">
                     <span className="bg-gray-100 rounded-full px-3 py-1 text-xs">{item.type}</span>
                   </td>
-                  <td className="px-6 py-4 text-gray-500 text-sm">{item.age_group ?? 'Tous'}</td>
+                  <td className="px-6 py-4 text-gray-600 text-sm">{item.age_group ?? 'Tous'}</td>
                   <td className="px-6 py-4">
                     <div className="flex gap-1 flex-wrap">
                       {(item.tags ?? []).slice(0, 3).map((tag, i) => (
@@ -174,7 +174,7 @@ export default function AdminContentPage() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                      item.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
+                      item.is_published ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
                     }`}>
                       {item.is_published ? 'Publié' : 'Brouillon'}
                     </span>

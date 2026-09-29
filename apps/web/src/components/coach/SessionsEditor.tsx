@@ -171,10 +171,10 @@ export function SessionsEditor({
   if (sessions.length === 0) {
     return (
       <div className="text-center py-6">
-        <p className="text-sm text-gray-500 mb-4">
+        <p className="text-sm text-gray-600 mb-4">
           Aucun programme. Créez les 13 séances hebdomadaires du protocole THRIVE.
         </p>
-        {error && <p className="mb-3 text-sm text-red-600">{error}</p>}
+        {error && <p className="mb-3 text-sm text-red-700">{error}</p>}
         <Btn onClick={createProgram} disabled={creating}>
           {creating ? 'Création…' : 'Créer le programme 13 séances'}
         </Btn>
@@ -203,7 +203,7 @@ export function SessionsEditor({
           </div>
         </div>
       )}
-      <p className="text-xs text-gray-500 mb-1">{completed}/13 séances complétées</p>
+      <p className="text-xs text-gray-600 mb-1">{completed}/13 séances complétées</p>
 
       {sessions.map((s) => {
         const meta = SESSION_STATUS_META[s.status as SessionStatus] ?? SESSION_STATUS_META.SCHEDULED;
@@ -219,7 +219,7 @@ export function SessionsEditor({
               </span>
               <div className="flex-1 min-w-0 basis-[45%]">
                 <p className="text-sm font-semibold text-navy-900 truncate">{s.title}</p>
-                <p className="text-[11px] text-gray-500">
+                <p className="text-[11px] text-gray-600">
                   {s.scheduled_at &&
                     new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                       day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
@@ -299,7 +299,7 @@ export function SessionsEditor({
                   placeholder="Notes du coach pour cette séance…"
                   className="w-full border border-navy-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-navy-600/20"
                 />
-                <p className="text-[11px] text-gray-500 mt-1">Enregistré automatiquement.</p>
+                <p className="text-[11px] text-gray-600 mt-1">Enregistré automatiquement.</p>
               </div>
             )}
 

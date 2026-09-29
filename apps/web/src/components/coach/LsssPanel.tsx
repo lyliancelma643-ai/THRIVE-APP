@@ -100,18 +100,18 @@ export function LsssPanel({ childId }: { childId: string }) {
                   <div className="h-6 w-24 rounded bg-gray-100 animate-pulse" />
                 ) : q?.status === 'COMPLETED' ? (
                   <div>
-                    <span className="text-2xl font-bold text-emerald-600">{score ?? '✓'}</span>
-                    {score != null && <span className="text-sm text-gray-500"> /100</span>}
-                    <p className="text-[11px] text-gray-500">
+                    <span className="text-2xl font-bold text-emerald-700">{score ?? '✓'}</span>
+                    {score != null && <span className="text-sm text-gray-600"> /100</span>}
+                    <p className="text-[11px] text-gray-600">
                       Complété le {q.completed_at && new Date(q.completed_at).toLocaleDateString('fr-CA')}
                     </p>
                   </div>
                 ) : q ? (
-                  <span className="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-1 rounded-full">
+                  <span className="text-xs font-semibold text-amber-700 bg-amber-50 px-2 py-1 rounded-full">
                     En attente de l&apos;enfant
                   </span>
                 ) : (
-                  <span className="text-xs text-gray-500">Non envoyé</span>
+                  <span className="text-xs text-gray-600">Non envoyé</span>
                 )}
               </div>
               {q ? (
@@ -150,7 +150,7 @@ export function LsssPanel({ childId }: { childId: string }) {
           );
         })}
       </div>
-      <p className="text-[11px] text-gray-500">
+      <p className="text-[11px] text-gray-600">
         Le questionnaire est répondu par l&apos;enfant. Une notification est envoyée au parent avec le
         lien. Les résultats alimentent automatiquement la progression des compétences de vie du bilan.
       </p>

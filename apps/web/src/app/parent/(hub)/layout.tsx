@@ -181,7 +181,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       </header>
 
       <main
-        className="max-w-7xl mx-auto px-5 md:px-8 pt-1 pb-32 md:pb-36 lg:pb-16"
+        className="max-w-7xl mx-auto px-5 md:px-8 pt-1 pb-32 md:pb-36 lg:pb-16 overflow-x-clip"
         style={{ touchAction: 'pan-y' }}
         {...handlers}
       >

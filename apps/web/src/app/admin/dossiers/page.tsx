@@ -28,7 +28,7 @@ export default function AdminDossiersPage() {
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-1">Suivi des dossiers</h1>
-          <p className="text-slate-500">
+          <p className="text-slate-600">
             {isSuper
               ? 'Vue globale — tous les coachs et tous les athlètes.'
               : 'Les dossiers des coachs que tu supervises.'}
@@ -42,7 +42,7 @@ export default function AdminDossiersPage() {
           >
             {sending ? 'Envoi…' : 'Envoyer les rappels (>7 j)'}
           </button>
-          {result && <p className="text-xs text-slate-500 mt-2">{result}</p>}
+          {result && <p className="text-xs text-slate-600 mt-2">{result}</p>}
         </div>
       </div>
 

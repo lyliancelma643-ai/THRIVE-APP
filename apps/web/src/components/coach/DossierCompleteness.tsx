@@ -49,14 +49,14 @@ export function DossierCompleteness({
     >
       <div className="flex items-center justify-between gap-3 mb-3">
         <div className="flex items-center gap-2">
-          <span className={`text-lg ${complete ? 'text-emerald-600' : 'text-amber-600'}`}>
+          <span className={`text-lg ${complete ? 'text-emerald-700' : 'text-amber-700'}`}>
             {complete ? '✓' : '⚠'}
           </span>
           <h4 className="text-sm font-bold text-navy-900">
             Dossier {complete ? 'complet' : 'incomplet'} · {data.pct}%
           </h4>
         </div>
-        <span className="text-xs text-gray-500">
+        <span className="text-xs text-gray-600">
           {data.done}/{data.total} éléments
         </span>
       </div>
@@ -66,10 +66,10 @@ export function DossierCompleteness({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1.5 mt-4">
         {data.items.map((it) => (
           <div key={it.key} className="flex items-center gap-2 text-sm">
-            <span className={it.ok ? 'text-emerald-600' : 'text-gray-500'}>
+            <span className={it.ok ? 'text-emerald-700' : 'text-gray-600'}>
               {it.ok ? '✓' : '○'}
             </span>
-            <span className={it.ok ? 'text-navy-700' : 'text-gray-500'}>{it.label}</span>
+            <span className={it.ok ? 'text-navy-700' : 'text-gray-600'}>{it.label}</span>
           </div>
         ))}
       </div>

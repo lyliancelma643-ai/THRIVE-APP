@@ -147,7 +147,7 @@ export function Btn({
 // Indicateur « enregistré » discret
 export function SavePill({ savedAt }: { savedAt: string | null }) {
   if (!savedAt) return null;
-  return <span className="text-xs text-green-600 font-medium">Enregistré à {savedAt}</span>;
+  return <span className="text-xs text-green-700 font-medium">Enregistré à {savedAt}</span>;
 }
 
 export function nowHM() {

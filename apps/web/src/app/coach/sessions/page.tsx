@@ -135,7 +135,7 @@ export default function CoachSessionsPage() {
                         <span className="block font-semibold text-navy-900 truncate group-hover:underline">
                           {s.title}
                         </span>
-                        <span className="block text-xs text-navy-600/80">
+                        <span className="block text-xs text-navy-700">
                           {s.scheduled_at &&
                             new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
                               weekday: 'long', day: 'numeric', month: 'long',

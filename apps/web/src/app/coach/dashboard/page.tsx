@@ -142,7 +142,13 @@ export default function CoachDashboardPage() {
             Tout voir <span aria-hidden>→</span>
           </Link>
         </div>
-        {children.length === 0 && !loading ? (
+        {loading && children.length === 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[84px] rounded-2xl bg-navy-50 animate-pulse" />
+            ))}
+          </div>
+        ) : children.length === 0 ? (
           <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
             Aucun athlète assigné pour l&apos;instant. L&apos;administrateur t&apos;attribuera tes
             athlètes depuis son tableau de bord.

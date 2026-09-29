@@ -67,7 +67,7 @@ export function ObjectivesEditor({ childId }: { childId: string }) {
       {error && <p className="p-2 rounded-lg bg-red-50 text-red-700 text-sm">{error}</p>}
 
       {items.length === 0 && (
-        <p className="text-sm text-gray-500">Aucun objectif pour l&apos;instant.</p>
+        <p className="text-sm text-gray-600">Aucun objectif pour l&apos;instant.</p>
       )}
 
       {items.map((o) => (
@@ -83,7 +83,7 @@ export function ObjectivesEditor({ childId }: { childId: string }) {
             <div className="flex-1" />
             <button
               onClick={() => remove(o.id)}
-              className="text-gray-500 hover:text-red-600 text-sm w-9 h-9 rounded-lg hover:bg-red-50 cursor-pointer"
+              className="text-gray-600 hover:text-red-600 text-sm w-9 h-9 rounded-lg hover:bg-red-50 cursor-pointer"
               aria-label="Supprimer l'objectif"
             >
               ✕
@@ -116,7 +116,7 @@ export function ObjectivesEditor({ childId }: { childId: string }) {
               options={STATUS_OPTS}
             />
             <label className="block">
-              <span className="block text-xs font-medium text-gray-500 mb-1">
+              <span className="block text-xs font-medium text-gray-600 mb-1">
                 Progression · {o.progress}%
               </span>
               <input

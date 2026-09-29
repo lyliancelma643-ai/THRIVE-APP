@@ -158,7 +158,7 @@ export default function ComptePage() {
       {/* Déconnexion */}
       <section className="rounded-card border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
         <h2 className="text-sm font-semibold text-ink mb-1">Se déconnecter</h2>
-        <p className="text-xs text-faint mb-4 leading-relaxed">
+        <p className="text-xs text-soft mb-4 leading-relaxed">
           Tu devras te reconnecter avec ton e-mail et ton mot de passe.
         </p>
         <button

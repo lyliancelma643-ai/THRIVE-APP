@@ -77,13 +77,13 @@ export function DossierTable({
         <div className="ml-auto flex rounded-full bg-gray-100 p-1 text-xs">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-full cursor-pointer ${filter === 'all' ? 'bg-white shadow font-semibold' : 'text-gray-500'}`}
+            className={`px-3 py-1.5 rounded-full cursor-pointer ${filter === 'all' ? 'bg-white shadow font-semibold' : 'text-gray-600'}`}
           >
             Tous
           </button>
           <button
             onClick={() => setFilter('incomplete')}
-            className={`px-3 py-1.5 rounded-full cursor-pointer ${filter === 'incomplete' ? 'bg-white shadow font-semibold' : 'text-gray-500'}`}
+            className={`px-3 py-1.5 rounded-full cursor-pointer ${filter === 'incomplete' ? 'bg-white shadow font-semibold' : 'text-gray-600'}`}
           >
             À compléter
           </button>
@@ -91,7 +91,7 @@ export function DossierTable({
       </div>
 
       {shown.length === 0 ? (
-        <p className="text-sm text-gray-500 p-6 rounded-2xl bg-white border border-navy-50">
+        <p className="text-sm text-gray-600 p-6 rounded-2xl bg-white border border-navy-50">
           {filter === 'incomplete' ? 'Tous les dossiers sont complets 🎉' : 'Aucun dossier.'}
         </p>
       ) : (
@@ -99,7 +99,7 @@ export function DossierTable({
           <div className="overflow-x-auto">
             <table className="w-full text-sm min-w-[720px]">
               <thead>
-                <tr className="text-left text-gray-500 text-xs uppercase tracking-wide border-b border-navy-50">
+                <tr className="text-left text-gray-600 text-xs uppercase tracking-wide border-b border-navy-50">
                   <th className="px-4 py-3">Athlète</th>
                   <th className="px-4 py-3">Coach</th>
                   {showAdmin && <th className="px-4 py-3">Admin</th>}
@@ -115,8 +115,8 @@ export function DossierTable({
                     <td className="px-4 py-3 font-medium text-navy-900">
                       {r.first_name} {r.last_name ?? ''}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{r.coach_name ?? '—'}</td>
-                    {showAdmin && <td className="px-4 py-3 text-gray-500">{r.admin_name ?? '—'}</td>}
+                    <td className="px-4 py-3 text-gray-600">{r.coach_name ?? '—'}</td>
+                    {showAdmin && <td className="px-4 py-3 text-gray-600">{r.admin_name ?? '—'}</td>}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${pctTone(r.pct)}`}>
@@ -127,10 +127,10 @@ export function DossierTable({
                         </div>
                       </div>
                       {r.missing_count > 0 && (
-                        <p className="text-[11px] text-amber-600 mt-1">{r.missing_count} manquant(s)</p>
+                        <p className="text-[11px] text-amber-700 mt-1">{r.missing_count} manquant(s)</p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-gray-500">
+                    <td className="px-4 py-3 text-gray-600">
                       {r.sessions_completed}/{r.total_sessions || 13}
                     </td>
                     <td className="px-4 py-3">
@@ -139,7 +139,7 @@ export function DossierTable({
                           En attente
                         </span>
                       ) : (
-                        <span className="text-[11px] text-gray-500">—</span>
+                        <span className="text-[11px] text-gray-600">—</span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">

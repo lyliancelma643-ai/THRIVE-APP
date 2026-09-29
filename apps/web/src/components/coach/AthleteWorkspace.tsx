@@ -40,9 +40,9 @@ function Accordion({
       >
         <div>
           <p className="font-semibold text-navy-900">{title}</p>
-          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-gray-600 mt-0.5">{subtitle}</p>}
         </div>
-        <span className="text-gray-500 text-sm shrink-0">{open ? '▲' : '▼'}</span>
+        <span className="text-gray-600 text-sm shrink-0">{open ? '▲' : '▼'}</span>
       </button>
       {open && <div className="px-4 pb-4 border-t border-navy-50 pt-4">{children}</div>}
     </div>
@@ -117,7 +117,7 @@ function ProgramPctCard({
       )}
       <div className="flex items-center gap-3">
         <Btn onClick={save}>Enregistrer le %</Btn>
-        {savedAt && <span className="text-xs text-green-600 font-medium">Enregistré à {savedAt}</span>}
+        {savedAt && <span className="text-xs text-green-700 font-medium">Enregistré à {savedAt}</span>}
       </div>
     </SectionCard>
   );

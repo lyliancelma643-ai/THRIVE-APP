@@ -68,7 +68,7 @@ export default function AdminReglagesPage() {
   if (!isSuperAdmin) {
     return (
       <div className="rounded-2xl bg-white border border-slate-100 shadow-sm p-8 text-center">
-        <p className="text-slate-500">Cette page est réservée au Super Admin.</p>
+        <p className="text-slate-600">Cette page est réservée au Super Admin.</p>
       </div>
     );
   }
@@ -77,7 +77,7 @@ export default function AdminReglagesPage() {
     <div className="space-y-6 max-w-2xl">
       <div>
         <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Réglages plateforme</h1>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-slate-600 text-sm mt-1">
           Interrupteurs globaux, appliqués côté serveur à tous les comptes.
         </p>
       </div>
@@ -100,8 +100,8 @@ export default function AdminReglagesPage() {
             >
               <div>
                 <p className="font-bold text-navy-900">{meta.title}</p>
-                <p className="text-sm text-slate-500 mt-1 leading-relaxed">{meta.description}</p>
-                <p className="text-xs text-slate-500 mt-2">
+                <p className="text-sm text-slate-600 mt-1 leading-relaxed">{meta.description}</p>
+                <p className="text-xs text-slate-600 mt-2">
                   Dernière modification : {new Date(s.updated_at).toLocaleString('fr-CA')}
                 </p>
               </div>

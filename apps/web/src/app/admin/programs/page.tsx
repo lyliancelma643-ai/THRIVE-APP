@@ -86,7 +86,7 @@ export default function AdminProgramsPage() {
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Programmes</h1>
-          <p className="text-gray-500 mt-1">{programs.length} programme{programs.length > 1 ? 's' : ''}</p>
+          <p className="text-gray-600 mt-1">{programs.length} programme{programs.length > 1 ? 's' : ''}</p>
         </div>
         <div className="flex gap-2 flex-wrap">
           {FILTER_OPTIONS.map((opt) => (
@@ -113,9 +113,9 @@ export default function AdminProgramsPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {isLoading ? (
-          <p className="text-gray-500 md:col-span-2">Chargement…</p>
+          <p className="text-gray-600 md:col-span-2">Chargement…</p>
         ) : filtered.length === 0 ? (
-          <p className="text-gray-500 md:col-span-2">Aucun programme trouvé.</p>
+          <p className="text-gray-600 md:col-span-2">Aucun programme trouvé.</p>
         ) : (
           filtered.map((program) => {
             const completedSessions = (program.sessions ?? []).filter((s) => s.status === 'COMPLETED').length;
@@ -132,9 +132,9 @@ export default function AdminProgramsPage() {
                   </span>
                 </div>
                 {program.description && (
-                  <p className="text-gray-500 text-sm mb-3 line-clamp-2">{program.description}</p>
+                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">{program.description}</p>
                 )}
-                <div className="flex gap-4 text-sm text-gray-500 mb-4">
+                <div className="flex gap-4 text-sm text-gray-600 mb-4">
                   <span>Groupe {program.age_group}</span>
                   <span>· {program.program_enrollments?.length ?? 0} inscrits</span>
                   <span>· Coach : {program.profiles?.first_name} {program.profiles?.last_name}</span>
@@ -142,7 +142,7 @@ export default function AdminProgramsPage() {
 
                 {/* Barre de progression séances */}
                 <div className="mb-4">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex justify-between text-xs text-gray-600 mb-1">
                     <span>Progression</span>
                     <span>{completedSessions}/{program.total_sessions} séances ({progressPct}%)</span>
                   </div>

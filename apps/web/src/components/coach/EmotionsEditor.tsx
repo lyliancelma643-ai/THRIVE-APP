@@ -71,7 +71,7 @@ export function EmotionsEditor({ childId }: { childId: string }) {
           options={EMOTIONS.map((e) => ({ value: e, label: e }))}
         />
         <label className="block">
-          <span className="block text-xs font-medium text-gray-500 mb-1">Intensité · {intensity}/5</span>
+          <span className="block text-xs font-medium text-gray-600 mb-1">Intensité · {intensity}/5</span>
           <input
             type="range"
             min={1}
@@ -93,25 +93,25 @@ export function EmotionsEditor({ childId }: { childId: string }) {
       {loading ? (
         <div className="h-16 rounded-xl bg-gray-100 animate-pulse" />
       ) : logs.length === 0 ? (
-        <p className="text-sm text-gray-500">Aucun relevé émotionnel.</p>
+        <p className="text-sm text-gray-600">Aucun relevé émotionnel.</p>
       ) : (
         <div className="space-y-2">
           {logs.map((l) => (
             <div key={l.id} className="flex items-center gap-3 text-sm border border-navy-50 rounded-lg px-3 py-2">
               <span className="font-semibold text-navy-900">{l.emotion}</span>
-              {l.intensity != null && <span className="text-gray-500">{l.intensity}/5</span>}
+              {l.intensity != null && <span className="text-gray-600">{l.intensity}/5</span>}
               {l.session_number != null && (
                 <span className="text-[11px] bg-navy-50 text-navy-600 px-2 py-0.5 rounded-full">
                   S{l.session_number}
                 </span>
               )}
-              {l.context && <span className="text-gray-500 truncate">— {l.context}</span>}
-              <span className="ml-auto text-[11px] text-gray-500">
+              {l.context && <span className="text-gray-600 truncate">— {l.context}</span>}
+              <span className="ml-auto text-[11px] text-gray-600">
                 {new Date(l.created_at).toLocaleDateString('fr-CA')}
               </span>
               <button
                 onClick={() => remove(l.id)}
-                className="text-gray-500 hover:text-red-600 cursor-pointer"
+                className="text-gray-600 hover:text-red-600 cursor-pointer"
                 aria-label="Supprimer"
               >
                 ✕

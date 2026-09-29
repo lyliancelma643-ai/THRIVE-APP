@@ -141,9 +141,11 @@ export function AthleteIdentityEditor({
 
   if (loading) {
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="h-10 rounded-lg bg-gray-100 animate-pulse" />
+      // Squelette à la forme du formulaire (5 sections) : l'arrivée des
+      // données ne repousse plus les sections suivantes.
+      <div className="space-y-5" aria-hidden>
+        {['h-[300px] sm:h-[250px]', 'h-[240px]', 'h-[330px]', 'h-[260px]', 'h-[330px]'].map((h, i) => (
+          <div key={i} className={`${h} rounded-2xl bg-gray-100 animate-pulse`} />
         ))}
       </div>
     );
@@ -254,7 +256,7 @@ export function AthleteIdentityEditor({
         >
           {saving ? 'Enregistrement…' : `Enregistrer la carte${childName ? ` de ${childName}` : ''}`}
         </button>
-        {savedAt && <span className="text-sm text-green-600 font-medium">Enregistré à {savedAt}</span>}
+        {savedAt && <span className="text-sm text-green-700 font-medium">Enregistré à {savedAt}</span>}
       </div>
     </div>
   );
@@ -265,7 +267,7 @@ export function AthleteIdentityEditor({
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-navy-100 bg-white p-4 sm:p-5">
-      <h4 className="text-xs font-bold uppercase tracking-wide text-gray-500 mb-3">{title}</h4>
+      <h4 className="text-xs font-bold uppercase tracking-wide text-gray-600 mb-3">{title}</h4>
       <div className="space-y-3">{children}</div>
     </div>
   );
@@ -284,7 +286,7 @@ function TextInput({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>
+      <span className="block text-xs font-medium text-gray-600 mb-1">{label}</span>
       <input
         type="text"
         value={value}
@@ -309,7 +311,7 @@ function TextArea({
 }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>
+      <span className="block text-xs font-medium text-gray-600 mb-1">{label}</span>
       <textarea
         value={value}
         placeholder={placeholder}
@@ -336,7 +338,7 @@ function StringList({
 }) {
   return (
     <div>
-      <span className="block text-xs font-medium text-gray-500 mb-1">{label}</span>
+      <span className="block text-xs font-medium text-gray-600 mb-1">{label}</span>
       <div className="space-y-2">
         {items.map((item, i) => (
           <div key={i} className="flex items-center gap-2">
@@ -351,7 +353,7 @@ function StringList({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer"
-              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-600 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>
@@ -403,7 +405,7 @@ function Toolbox({
               type="button"
               onClick={() => onChange(items.filter((_, j) => j !== i))}
               aria-label="Supprimer l'outil"
-              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-500 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
+              className="shrink-0 w-11 h-11 rounded-lg border border-navy-100 text-gray-600 hover:text-red-600 hover:border-red-200 transition-colors cursor-pointer"
             >
               ✕
             </button>

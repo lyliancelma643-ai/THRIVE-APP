@@ -79,7 +79,7 @@ export function ProspectDrawer({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="truncate text-lg font-bold text-navy-900">{row.first_name}</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600">
                 Inscrit le {formatDate(row.created_at)} · {sourceLabel(row.source)}
               </p>
             </div>
@@ -109,7 +109,7 @@ export function ProspectDrawer({
               <span className="sr-only">Écrire à {row.email}</span>
             </a>
           </div>
-          <p className="mt-2 truncate text-xs text-gray-500">{row.email}</p>
+          <p className="mt-2 truncate text-xs text-gray-600">{row.email}</p>
         </header>
 
         <div className="flex flex-col gap-5 px-5 py-5">
@@ -140,7 +140,7 @@ export function ProspectDrawer({
             <div>
               <label
                 htmlFor="wl-appointment"
-                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-600"
               >
                 Rendez-vous d’appel
               </label>
@@ -165,7 +165,7 @@ export function ProspectDrawer({
                   </button>
                 )}
               </div>
-              <p className="mt-1.5 text-xs text-gray-500">
+              <p className="mt-1.5 text-xs text-gray-600">
                 {row.appointment_at
                   ? `Fixé au ${formatDateTime(row.appointment_at)}`
                   : 'Aucun rendez-vous fixé.'}
@@ -212,7 +212,7 @@ export function ProspectDrawer({
             <div>
               <label
                 htmlFor="wl-destination"
-                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-600"
               >
                 Ville / région
               </label>
@@ -244,7 +244,7 @@ export function ProspectDrawer({
               }}
               className="w-full rounded-xl border border-navy-600/15 bg-white px-3 py-2.5 text-base leading-relaxed"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-600">
               Enregistré automatiquement en quittant le champ.
               {row.updated_at && ` Dernière modification : ${formatDateTime(row.updated_at)}.`}
             </p>
@@ -274,7 +274,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <span className="text-sm text-gray-500">{label}</span>
+      <span className="text-sm text-gray-600">{label}</span>
       {children}
     </div>
   );
@@ -284,7 +284,7 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 // l'affichage a échoué.
 function Value({ children }: { children: React.ReactNode }) {
   if (children === null || children === undefined || children === '') {
-    return <span className="text-sm italic text-gray-500">non renseigné</span>;
+    return <span className="text-sm italic text-gray-600">non renseigné</span>;
   }
   return <span className="text-sm font-medium text-navy-900">{children}</span>;
 }

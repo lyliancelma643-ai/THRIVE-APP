@@ -270,7 +270,7 @@ function ListView({
           </div>
         )}
 
-        <p className="mt-5 mx-6 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
+        <p className="mt-5 mx-6 text-[12.5px] leading-[1.5] text-soft text-center text-pretty">
           Deux interlocuteurs seulement : le coach dédié de ton enfant et le support THRIVE. Les
           échanges sont conservés dans son dossier et ne sont jamais partagés avec le club.
         </p>
@@ -442,7 +442,7 @@ function ThreadView({
         onDelete={thread.remove}
         className="px-0"
         emptyState={
-          <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
+          <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-soft text-center text-pretty">
             {row.key === 'support'
               ? 'Facturation, accès, forfait, souci technique : écris-nous ici, notre équipe te répond dans cette même conversation.'
               : `Raconte ce que tu observes — ${firstName} te répond ici, entre les séances.`}

@@ -103,7 +103,7 @@ export default function AdminBadgesPage() {
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Badges</h1>
-          <p className="text-slate-500 font-medium">{badges.length} badge{badges.length > 1 ? 's' : ''} configuré{badges.length > 1 ? 's' : ''}</p>
+          <p className="text-slate-600 font-medium">{badges.length} badge{badges.length > 1 ? 's' : ''} configuré{badges.length > 1 ? 's' : ''}</p>
         </div>
         <button
           onClick={() => setShowForm(!showForm)}
@@ -142,7 +142,7 @@ export default function AdminBadgesPage() {
                 <label className="text-sm font-semibold text-slate-700 mb-1.5 block">Couleur de fond</label>
                 <div className="flex items-center gap-3">
                   <input type="color" className="w-12 h-12 rounded-xl cursor-pointer bg-slate-50 border border-slate-200 p-1" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} />
-                  <span className="text-sm font-medium text-slate-500 uppercase">{form.color}</span>
+                  <span className="text-sm font-medium text-slate-600 uppercase">{form.color}</span>
                 </div>
               </div>
               <div>
@@ -182,7 +182,7 @@ export default function AdminBadgesPage() {
       ) : badges.length === 0 ? (
         <div className="text-center py-16 bg-white rounded-[24px] border border-slate-100">
           <p className="text-3xl mb-3">🏅</p>
-          <p className="text-slate-500">
+          <p className="text-slate-600">
             Aucun badge pour l&apos;instant — crée le premier avec «&nbsp;+ Créer un badge&nbsp;».
           </p>
         </div>
@@ -196,7 +196,7 @@ export default function AdminBadgesPage() {
               <div 
                 key={badge.id} 
                 className={`relative bg-white rounded-[24px] p-6 border-2 transition-all duration-300 group ${
-                  isInactive ? 'opacity-60 border-slate-200' : 'border-transparent shadow-sm hover:shadow-xl hover:-translate-y-1'
+                  isInactive ? 'opacity-80 border-slate-200' : 'border-transparent shadow-sm hover:shadow-xl hover:-translate-y-1'
                 }`}
                 style={!isInactive ? { borderColor: badge.color + '40' } : {}}
               >
@@ -218,7 +218,7 @@ export default function AdminBadgesPage() {
                   </div>
                   
                   <h3 className="font-extrabold text-xl text-slate-900 mb-1">{badge.name}</h3>
-                  {badge.description && <p className="text-slate-500 text-sm mb-4 leading-relaxed">{badge.description}</p>}
+                  {badge.description && <p className="text-slate-600 text-sm mb-4 leading-relaxed">{badge.description}</p>}
                   
                   <div className="bg-slate-50 rounded-xl p-3 mb-4 border border-slate-100">
                     <p className="text-xs font-semibold text-slate-700">Objectif à atteindre</p>
@@ -226,7 +226,7 @@ export default function AdminBadgesPage() {
                   </div>
                   
                   <div className="flex justify-between items-center mt-auto pt-2 border-t border-slate-100">
-                    <p className="text-xs font-semibold text-slate-500">
+                    <p className="text-xs font-semibold text-slate-600">
                       🏆 <span className="text-slate-700">{stats[badge.id] ?? 0}</span> obtention{(stats[badge.id] ?? 0) > 1 ? 's' : ''}
                     </p>
                     <button
@@ -235,7 +235,7 @@ export default function AdminBadgesPage() {
                       className={`text-xs font-bold px-3 py-2 min-h-[36px] rounded-lg transition-colors disabled:opacity-50 ${
                         badge.is_active 
                           ? 'text-rose-600 hover:bg-rose-50' 
-                          : 'text-emerald-600 hover:bg-emerald-50'
+                          : 'text-emerald-700 hover:bg-emerald-50'
                       }`}
                     >
                       {badge.is_active ? 'Désactiver' : 'Réactiver'}

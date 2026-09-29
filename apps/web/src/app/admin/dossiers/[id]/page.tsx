@@ -47,7 +47,7 @@ export default function AdminDossierPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Link href="/admin/dossiers" className="text-sm text-slate-500 hover:text-slate-900">
+      <Link href="/admin/dossiers" className="text-sm text-slate-600 hover:text-slate-900">
         ← Suivi des dossiers
       </Link>
 
@@ -59,7 +59,7 @@ export default function AdminDossierPage() {
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">
             {child.first_name} {child.last_name ?? ''}
           </h1>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600">
             {childAge(child.date_of_birth) ?? '–'} ans · {child.sport ?? 'Hockey'} · correction admin
           </p>
         </div>

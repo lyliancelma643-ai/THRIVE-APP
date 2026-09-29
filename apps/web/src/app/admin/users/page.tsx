@@ -389,7 +389,7 @@ export default function AdminUsersPage() {
           </button>
         </div>
       </div>
-      <p className="text-gray-500 mb-6">
+      <p className="text-gray-600 mb-6">
         {profiles.length} comptes · {childrenCount} profils enfants — les changements de rôle et
         d&apos;activation sont mis en attente, puis appliqués d&apos;un clic sur « Enregistrer ».
       </p>
@@ -439,7 +439,7 @@ export default function AdminUsersPage() {
         <div className="bg-white rounded-2xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-gray-500 border-b border-gray-100">
+              <tr className="text-left text-gray-600 border-b border-gray-100">
                 <th className="px-5 py-3 font-medium">Nom</th>
                 <th className="px-5 py-3 font-medium">Email</th>
                 <th className="px-5 py-3 font-medium">Rôle</th>
@@ -465,14 +465,14 @@ export default function AdminUsersPage() {
                   >
                     <td className="px-5 py-3 font-medium">
                       {p.first_name} {p.last_name}
-                      {isSelf && <span className="ml-2 text-xs text-gray-500">(toi)</span>}
+                      {isSelf && <span className="ml-2 text-xs text-gray-600">(toi)</span>}
                       {rowDirty && (
                         <span className="ml-2 align-middle text-[11px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
                           ● modifié
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-gray-500">{p.email}</td>
+                    <td className="px-5 py-3 text-gray-600">{p.email}</td>
                     <td className="px-5 py-3">
                       {isSuperAdmin && !isSelf && p.role !== 'SUPER_ADMIN' && !parentsWithChildren.has(p.id) ? (
                         <select
@@ -505,13 +505,13 @@ export default function AdminUsersPage() {
                         </span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-gray-500">
+                    <td className="px-5 py-3 text-gray-600">
                       {new Date(p.created_at).toLocaleDateString('fr-CA')}
                     </td>
                     <td className="px-5 py-3">
                       <span
                         className={`px-2.5 py-1 rounded-full text-xs font-semibold ${
-                          effActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                          effActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-600'
                         } ${activeDirty ? 'ring-2 ring-amber-400' : ''}`}
                       >
                         {effActive ? 'Actif' : 'Désactivé'}
@@ -525,7 +525,7 @@ export default function AdminUsersPage() {
                             disabled={saving}
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50 ${
                               effActive
-                                ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                                ? 'bg-red-50 text-red-700 hover:bg-red-100'
                                 : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
                             }`}
                           >
@@ -550,7 +550,7 @@ export default function AdminUsersPage() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <p className="p-8 text-center text-gray-500 text-sm">Aucun compte trouvé.</p>
+            <p className="p-8 text-center text-gray-600 text-sm">Aucun compte trouvé.</p>
           )}
         </div>
       )}
@@ -598,7 +598,7 @@ export default function AdminUsersPage() {
               className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : `Créer le compte ${ROLE_META[createRole].label}`}
             </button>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-600 text-center">
               Compte actif immédiatement, aucun email de validation requis.
             </p>
           </form>
@@ -640,7 +640,7 @@ export default function AdminUsersPage() {
               className="w-full py-3 rounded-xl bg-navy-600 text-white font-semibold disabled:opacity-50">
               {creating ? 'Création…' : "Créer l'enfant"}
             </button>
-            <p className="text-xs text-gray-500 text-center">
+            <p className="text-xs text-gray-600 text-center">
               L&apos;enfant apparaît immédiatement chez le parent et dans « Assignations ».
             </p>
           </form>
@@ -671,7 +671,7 @@ export default function AdminUsersPage() {
               />
             </label>
             {deleteError && (
-              <p className="text-sm text-red-600">{deleteError}</p>
+              <p className="text-sm text-red-700">{deleteError}</p>
             )}
             <div className="flex gap-2">
               <button
@@ -702,7 +702,7 @@ export default function AdminUsersPage() {
           <button
             onClick={discardAll}
             disabled={saving}
-            className="px-3 py-2 rounded-xl text-sm font-semibold text-gray-500 hover:bg-gray-100 disabled:opacity-50"
+            className="px-3 py-2 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-100 disabled:opacity-50"
           >
             Annuler
           </button>
@@ -762,7 +762,7 @@ function Modal({
           <button
             onClick={onClose}
             aria-label="Fermer"
-            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-700 hover:bg-gray-100 text-xl transition-colors"
+            className="w-11 h-11 -mr-2 flex items-center justify-center rounded-full text-gray-600 hover:text-gray-700 hover:bg-gray-100 text-xl transition-colors"
           >
             ×
           </button>

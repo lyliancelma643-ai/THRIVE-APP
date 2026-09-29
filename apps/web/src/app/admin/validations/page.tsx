@@ -110,7 +110,7 @@ export default function AdminValidationsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Validations</h1>
-        <p className="text-slate-500 text-sm mt-1">
+        <p className="text-slate-600 text-sm mt-1">
           Cycle d&apos;activation : fiche enfant confirmée par l&apos;équipe, puis accès complet
           ouvert par le coach (ou ici, par un admin).
         </p>
@@ -137,7 +137,7 @@ export default function AdminValidationsPage() {
               </span>
             </div>
             {pendingChildren.length === 0 ? (
-              <p className="text-sm text-slate-500">Aucune fiche en attente. ✨</p>
+              <p className="text-sm text-slate-600">Aucune fiche en attente. ✨</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {pendingChildren.map((c) => (
@@ -146,7 +146,7 @@ export default function AdminValidationsPage() {
                       <p className="font-semibold text-slate-800">
                         {c.first_name} {c.last_name}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-600">
                         {c.families?.name ?? 'Famille inconnue'}
                         {c.families?.parent_id && parentNames[c.families.parent_id]
                           ? ` — parent : ${parentNames[c.families.parent_id]}`
@@ -179,7 +179,7 @@ export default function AdminValidationsPage() {
               </span>
             </div>
             {pendingParents.length === 0 ? (
-              <p className="text-sm text-slate-500">Tous les parents actifs sont validés. ✨</p>
+              <p className="text-sm text-slate-600">Tous les parents actifs sont validés. ✨</p>
             ) : (
               <ul className="divide-y divide-slate-100">
                 {pendingParents.map((p) => (
@@ -188,7 +188,7 @@ export default function AdminValidationsPage() {
                       <p className="font-semibold text-slate-800">
                         {`${p.first_name ?? ''} ${p.last_name ?? ''}`.trim() || p.email}
                       </p>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-600">
                         {p.email} · inscrit le {new Date(p.created_at).toLocaleDateString('fr-CA')}
                       </p>
                     </div>

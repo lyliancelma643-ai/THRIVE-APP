@@ -303,6 +303,8 @@ function FilterGroup({
 // qui l'attend sans pouvoir lancer une séance avant l'activation.
 function LockedFitnessPreview() {
   const [freeSessions, setFreeSessions] = useState<VideoSession[]>([]);
+  // Purement visuel : réserve la place des cartes pendant le chargement.
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -314,12 +316,27 @@ function LockedFitnessPreview() {
         .eq('is_free', true)
         .order('session_number');
       setFreeSessions((data ?? []) as VideoSession[]);
+      setLoaded(true);
     })();
   }, []);
 
   return (
     <div className="space-y-8">
       <LockedBanner />
+      {!loaded && (
+        <div aria-hidden>
+          <div className="h-7 w-48 rounded-lg bg-night-surface animate-pulse mb-2" />
+          <div className="h-4 w-72 max-w-full rounded bg-night-surface animate-pulse mb-5" />
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className={`aspect-[4/3] rounded-[22px] bg-night-surface animate-pulse ${i > 0 ? 'hidden md:block' : ''} ${i > 1 ? 'md:hidden xl:block' : ''}`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
       {freeSessions.length > 0 && (
         <GreyedSection
           title="Séances découverte"

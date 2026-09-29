@@ -161,7 +161,7 @@ export default function AdminWaitlistPage() {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Liste d&apos;attente</h1>
-          <p className="mt-1 text-gray-500">
+          <p className="mt-1 text-gray-600">
             Les inscrits du site vitrine, du plus récent au plus ancien. Ouvre une ligne pour voir
             la fiche complète et qualifier l&apos;appel.
           </p>
@@ -226,7 +226,7 @@ export default function AdminWaitlistPage() {
         <div className="overflow-x-auto rounded-2xl bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-100 text-left text-gray-500">
+              <tr className="border-b border-gray-100 text-left text-gray-600">
                 <th className="px-5 py-3 font-medium">Prospect</th>
                 <th className="px-5 py-3 font-medium">Le jeune</th>
                 <th className="px-5 py-3 font-medium">Rappel souhaité</th>
@@ -253,10 +253,10 @@ export default function AdminWaitlistPage() {
                   >
                     <td className="px-5 py-3">
                       <p className="font-medium text-navy-900">{r.first_name}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-600">
                         {r.phone} · {sourceLabel(r.source)}
                       </p>
-                      <p className="text-xs text-gray-500">Inscrit le {formatDate(r.created_at)}</p>
+                      <p className="text-xs text-gray-600">Inscrit le {formatDate(r.created_at)}</p>
                     </td>
                     <td className="px-5 py-3">
                       {r.child_first_name ? (
@@ -266,32 +266,32 @@ export default function AdminWaitlistPage() {
                             {r.child_age ? ` · ${r.child_age} ans` : ''}
                           </p>
                           {r.main_need && (
-                            <p className="text-xs text-gray-500">{r.main_need}</p>
+                            <p className="text-xs text-gray-600">{r.main_need}</p>
                           )}
                         </>
                       ) : (
-                        <span className="text-xs italic text-gray-500">non renseigné</span>
+                        <span className="text-xs italic text-gray-600">non renseigné</span>
                       )}
                     </td>
-                    <td className="px-5 py-3 text-xs text-gray-500">
+                    <td className="px-5 py-3 text-xs text-gray-600">
                       {callPreferenceLabel(r.call_preference)}
                     </td>
                     <td className="px-5 py-3">
                       {r.appointment_at ? (
                         <span
                           className={`text-xs font-medium ${
-                            overdue ? 'text-red-600' : 'text-navy-700'
+                            overdue ? 'text-red-700' : 'text-navy-700'
                           }`}
                         >
                           {formatDateTime(r.appointment_at)}
                           {overdue && <span className="block text-[11px]">à relancer</span>}
                         </span>
                       ) : (
-                        <span className="text-xs text-gray-500">—</span>
+                        <span className="text-xs text-gray-600">—</span>
                       )}
                     </td>
                     <td className="px-5 py-3 text-xs text-gray-600">
-                      {formatPack(r.pack) || <span className="text-gray-500">—</span>}
+                      {formatPack(r.pack) || <span className="text-gray-600">—</span>}
                     </td>
                     <td className="px-5 py-3">
                       <span
@@ -308,7 +308,7 @@ export default function AdminWaitlistPage() {
             </tbody>
           </table>
           {filtered.length === 0 && (
-            <p className="p-8 text-center text-sm text-gray-500">
+            <p className="p-8 text-center text-sm text-gray-600">
               {rows.length === 0
                 ? 'Personne dans la liste d’attente pour l’instant.'
                 : 'Aucun inscrit ne correspond à cette recherche.'}
@@ -366,14 +366,14 @@ function Stat({
 }) {
   const tones = {
     navy: 'text-navy-700',
-    amber: 'text-amber-600',
-    emerald: 'text-emerald-600',
+    amber: 'text-amber-700',
+    emerald: 'text-emerald-700',
     indigo: 'text-indigo-600',
   } as const;
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
       <p className={`text-2xl font-bold ${tones[tone]}`}>{value}</p>
-      <p className="text-xs text-gray-500">{label}</p>
+      <p className="text-xs text-gray-600">{label}</p>
     </div>
   );
 }

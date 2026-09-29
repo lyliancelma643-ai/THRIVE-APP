@@ -41,12 +41,18 @@
   --bub-in: #0c2029;
   --bub-out: #123f55;
   --bub-out-text: #eaf3f1;
-  --meta: rgba(234, 243, 241, 0.5);
+  --meta: rgba(234, 243, 241, 0.64);
   --chip: rgba(255, 255, 255, 0.07);
   --bub-shadow: none;
   --field: rgba(255, 255, 255, 0.06);
   --sage-ink: #a7c4bc;
   --danger-ink: #fca5a5;
+  --warn-ink: #e0b45a;
+  --warn-num: #f2d18a;
+  --bad-ink: #e78a8a;
+  --bad-num: #ffb4b4;
+  /* Part de la couleur d'accent d'un enfant quand elle sert de texte. */
+  --kid-mix: 100%;
 }
 
 [data-theme='day'] {
@@ -60,7 +66,7 @@
   --text3: #5b6a73;
   /* #8B979E échouait au contraste AA (2,6:1 sur le fond) : un cran plus
      soutenu, toujours plus discret que --text3. */
-  --text4: #626e77;
+  --text4: #56626b;
   --line: rgba(0, 49, 76, 0.1);
   --line2: rgba(0, 49, 76, 0.16);
   --hair: rgba(0, 49, 76, 0.04);
@@ -81,12 +87,17 @@
   --bub-in: #ffffff;
   --bub-out: #d9e8f2;
   --bub-out-text: #022539;
-  --meta: #626e77;
+  --meta: #56626b;
   --chip: rgba(0, 49, 76, 0.07);
   --bub-shadow: 0 1px 2px rgba(0, 49, 76, 0.1);
   --field: #ffffff;
   --sage-ink: #46695f;
-  --danger-ink: #b91c1c;
+  --danger-ink: #991b1b;
+  --warn-ink: #8a5a00;
+  --warn-num: #8a5a00;
+  --bad-ink: #b42318;
+  --bad-num: #b42318;
+  --kid-mix: 42%;
 }
 
 /* ─── Mouvement : durées et courbes uniques (voir DESIGN_TOKENS.md) ─────────
@@ -369,11 +380,11 @@
 /* ─── Tableaux admin / coach sur téléphone : une carte par ligne ────────────
    Les libellés de colonne sont posés par useResponsiveTables (data-label). */
 @media (max-width: 767px) {
-  .rt-scope table.rt-table {
+  .rt-scope table {
     min-width: 0 !important;
     width: 100%;
   }
-  .rt-scope table.rt-table thead {
+  .rt-scope table thead {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -381,17 +392,17 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  .rt-scope table.rt-table,
-  .rt-scope table.rt-table tbody,
-  .rt-scope table.rt-table tr,
-  .rt-scope table.rt-table td {
+  .rt-scope table,
+  .rt-scope table tbody,
+  .rt-scope table tr,
+  .rt-scope table td {
     display: block;
   }
-  .rt-scope table.rt-table tr {
+  .rt-scope table tr {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(0, 78, 122, 0.08);
   }
-  .rt-scope table.rt-table td {
+  .rt-scope table td {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -402,7 +413,7 @@
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  .rt-scope table.rt-table td::before {
+  .rt-scope table td::before {
     content: attr(data-label);
     flex-shrink: 0;
     max-width: 45%;
@@ -411,10 +422,10 @@
     font-weight: 600;
     color: #44576a;
   }
-  .rt-scope table.rt-table td[data-label='']::before {
+  .rt-scope table td[data-label='']::before {
     display: none;
   }
-  .rt-scope table.rt-table td[data-label=''] {
+  .rt-scope table td[data-label=''] {
     justify-content: flex-end;
   }
 }

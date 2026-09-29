@@ -439,8 +439,8 @@ export default function CoachLiveSessionPage() {
                   {b.items.map((ind) => {
                     const k = `${bi}|${ind}`;
                     return (
-                      <div key={k} className="flex items-center justify-between gap-3">
-                        <span className="text-sm text-navy-900 flex-1">{ind}</span>
+                      <div key={k} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
+                        <span className="text-sm text-navy-900 flex-1 min-w-[9rem]">{ind}</span>
                         <span role="group" aria-label={ind} className="flex gap-1 shrink-0">
                           {[1, 2, 3, 4, 5].map((n) => (
                             <button
