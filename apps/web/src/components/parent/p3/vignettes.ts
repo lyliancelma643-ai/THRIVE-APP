@@ -4,13 +4,13 @@
 // la liste garde l'affiche composée par pilier, le temps que sa vignette arrive.
 
 const WITH_VIGNETTE = new Set<string>([
-  // Semaines 1 à 4
   'ACT-0101', 'ACT-0104', 'ACT-0102', 'ACT-0103',
   'ACT-0201', 'ACT-0202', 'ACT-0204', 'ACT-0203',
   'ACT-0301', 'ACT-0302', 'ACT-0304', 'ACT-0305', 'ACT-0303',
-  'ACT-0401', 'ACT-0404', 'ACT-0402',
-  // En attente : ACT-0403, toute la semaine 5, ACT-0601, ACT-0602, ACT-0604, ACT-0704
-  'ACT-0603',
+  'ACT-0401', 'ACT-0404', 'ACT-0402', 'ACT-0403',
+  'ACT-0501', 'ACT-0502', 'ACT-0504', 'ACT-0503',
+  'ACT-0601', 'ACT-0602', 'ACT-0604', 'ACT-0603',
+  // En attente : ACT-0704 (no 28)
   'ACT-0701', 'ACT-0702', 'ACT-0703',
   'ACT-0801', 'ACT-0804', 'ACT-0802', 'ACT-0803',
   'ACT-0901', 'ACT-0902', 'ACT-0903',
