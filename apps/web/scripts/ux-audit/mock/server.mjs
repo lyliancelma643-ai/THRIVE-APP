@@ -199,7 +199,8 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
       }
       const out = fn(args, me);
       if (out && typeof out === 'object' && '__error' in out) return pgError(res, 400, 'P0001', out.__error);
-      return send(res, 200, out ?? null);
+      // Réponse toujours encodée en JSON (un uuid scalaire devient "…").
+      return send(res, 200, JSON.stringify(out ?? null), { 'Content-Type': 'application/json; charset=utf-8' });
     }
 
     const table = decodeURIComponent(rest.split('/')[0]);

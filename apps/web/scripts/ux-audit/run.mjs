@@ -17,7 +17,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { spawn } from 'node:child_process';
-import { mkdirSync, writeFileSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium, webkit } from '@playwright/test';
@@ -98,9 +98,12 @@ async function startNext() {
     cwd: webDir,
     env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
+    // Groupe de processus propre : l'arret emporte aussi next-server.
+    detached: true,
   });
   child.stderr.on('data', (d) => process.stderr.write(`[next] ${d}`));
   await waitHttp(`${BASE}/login`);
+  if (child.exitCode !== null) throw new Error(`Next ne demarre pas (port ${PORT} occupe ?)`);
   return child;
 }
 
@@ -260,11 +263,24 @@ async function main() {
     console.log(`✓ connexion ${role}`);
   }
 
+  // --resume : on garde les captures réussies d'un passage précédent.
+  const previous = [];
+  const reportPath = path.join(OUT, 'report.json');
+  if (flag('resume') && existsSync(reportPath)) {
+    const old = JSON.parse(readFileSync(reportPath, 'utf8'));
+    previous.push(...old.results.filter((r) => !r.error));
+  }
+  const doneKey = new Set(previous.map((r) => `${r.role}|${r.screen}|${r.viewport}`));
   const tasks = [];
-  for (const s of screens) for (const vp of viewports) for (const amb of s.ambiances ?? ['night']) tasks.push({ s, vp, amb });
+  for (const s of screens)
+    for (const vp of viewports)
+      for (const amb of s.ambiances ?? ['night']) {
+        const key = `${s.role}|${s.id}${amb === 'day' ? '-jour' : ''}|${vp.id}`;
+        if (!doneKey.has(key)) tasks.push({ s, vp, amb });
+      }
   console.log(`${tasks.length} captures · ${viewports.length} viewports · ${screens.length} écrans`);
 
-  const results = [];
+  const results = [...previous];
   let done = 0;
   const run = async ({ s, vp, amb }) => {
     const ctx = await browser.newContext({ ...contextOptions(vp), storageState: states[s.role] });
@@ -319,7 +335,11 @@ async function main() {
   );
 
   await browser.close();
-  next.kill();
+  try {
+    process.kill(-next.pid, 'SIGTERM');
+  } catch {
+    next.kill();
+  }
   await mock.close();
 
   results.sort((a, b) => `${a.role}/${a.screen}/${a.viewport}`.localeCompare(`${b.role}/${b.screen}/${b.viewport}`));
