@@ -99,7 +99,11 @@ export default function CoachDashboardPage() {
           Prochaines séances 1:1
         </h2>
         {loading ? (
-          <div className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
+          <div className="space-y-2" aria-hidden>
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-[72px] rounded-2xl bg-navy-50 animate-pulse" />
+            ))}
+          </div>
         ) : upcoming.length === 0 ? (
           <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
             Aucune séance planifiée. Ouvre la fiche d&apos;un athlète pour planifier son programme.
