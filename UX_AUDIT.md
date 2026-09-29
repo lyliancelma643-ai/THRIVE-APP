@@ -36,7 +36,7 @@ Statut : ✅ corrigé · 🟡 partiel · ⏭ reporté (voir §3).
 |---|---|---|---|---|---|---|---|---|
 | UX-001 | Séances vidéo (hero) | Parent | Tous, Jour | Titre et sous-titre en encre sombre sur voile sombre (1,2:1) | P0 | Hero toujours sombre, texte blanc (15:1) | `fitness/seances/page.tsx` | ✅ |
 | UX-002 | Compte, Forfaits, lecteur, notifications push | Parent | Tous, Jour | Cartes `glass-navy` : textes secondaires à 1,4:1 | P0 | Surface de l'ambiance | `compte`, `upgrade`, `session/[id]`, `WebPushToggle` | ✅ |
-| UX-003 | Bilan | Parent | Tous | 20 cartes cliquables inaccessibles au clavier / lecteur d'écran | P0 | Rôle bouton, tabindex, Entrée / Espace, anneau de focus | `bilan-html.ts`, `bilans/page.tsx` | ✅ |
+| UX-003 | Bilan | Parent | Tous | 20 cartes cliquables inaccessibles au clavier / lecteur d'écran | P0 | Zones d'action en rôle bouton ; cartes composites ouvertes par leur chevron (bouton 44 px nommé, sans imbrication) ; Entrée / Espace, anneau de focus | `bilan-html.ts`, `bilans/page.tsx` | ✅ |
 | UX-004 | Comptes | Admin | Téléphones | Filtres de rôles : débordement 438 px | P0 | Groupe défilant, `aria-pressed` | `admin/users` | ✅ |
 | UX-005 | Analytics | Admin | Téléphones | Onglets : débordement 409 px, emoji | P0 | Onglets défilants (`tablist`), sans emoji | `admin/analytics` | ✅ |
 | UX-006 | Roadmap | Admin | Téléphones | Barre d'outils : débordement 421 px | P0 | Passage à la ligne, sélecteur défilant | `admin/roadmap` | ✅ |
@@ -50,14 +50,14 @@ Statut : ✅ corrigé · 🟡 partiel · ⏭ reporté (voir §3).
 | UX-014 | Coque coach | Coach | iPad portrait | 6 onglets en bas, libellés sur 2 lignes | P1 | Rail d'icônes 88 px ; onglets téléphone sur une ligne | `coach/layout.tsx` | ✅ |
 | UX-015 | Coque admin | Admin / SA | Téléphone, iPad portrait | 16–19 pastilles défilantes, 19 entrées à plat | P1 | 6 sections, menu en feuille (téléphone), rail (iPad) | `admin/layout.tsx` | ✅ |
 | UX-016 | Toute l'app | Tous | Tactiles | 293 survols qui restent « collés » après un tap | P1 | `hoverOnlyWhenSupported` + survols CSS conditionnés | `tailwind.config.ts`, `globals.css` | ✅ |
-| UX-017 | Zones claires | Public, coach, admin | Tous | Gris 300/400 et marine 60–70 % sous AA (2 881 nœuds) | P1 | Remontée au niveau AA (≈ 170 textes) | 50+ fichiers | ✅ |
-| UX-018 | Espace parent | Parent | Tous, Jour | `--text4` / `--meta` à 2,6:1 | P1 | #626E77 (4,6:1) | `globals.css` | ✅ |
+| UX-017 | Zones claires | Public, coach, admin | Tous | Gris 300/400 et marine 60–70 % sous AA (2 881 nœuds) | P1 | Remontée au niveau AA (≈ 170 textes, puis gris/ardoise 600 et états 700 au lot 10) | 80+ fichiers | ✅ |
+| UX-018 | Espace parent | Parent | Tous, Jour | `--text4` / `--meta` à 2,6:1 | P1 | #56626B (≥ 4,9:1 sur fonds et bulles) ; `--meta` Nuit à 64 % | `globals.css` | ✅ |
 | UX-019 | Cartes, vignettes, bilan | Parent | Tous, Jour | Sauge utilisée en texte (1,6–1,9:1) | P1 | Token `sage-ink` (#46695F le jour) | 10 fichiers | ✅ |
 | UX-020 | Menu du compte, Compte | Parent | Tous, Jour | Avatar 2,5:1, déconnexion 1,9:1 et 1,3:1 | P1 | Blanc sur marine, token `danger-ink` | `UserMenu`, `compte` | ✅ |
 | UX-021 | Fiches du Bilan, passeport | Parent | Tous | Ni piège ni retour du focus, scroll iOS, pas d'anim. de sortie, poignée décorative | P1 | Feuille commune : entrée 300 / sortie 180 ms, glisser pour fermer, focus géré | `bilans/sheet.tsx`, `useModalDismiss` | ✅ |
 | UX-022 | Menus enfant / compte / notifications | Parent | Tous | Pas de focus initial, ni flèches, ni animation | P1 | `useMenuKeyboard`, `animate-menu-in`, rôles ARIA | 3 composants | ✅ |
 | UX-023 | Rangées Maison et vidéo | Parent | Tous | Pas de clavier, pas de glisser souris, pas d'indicateur, flèches mal centrées | P1 | Composant `Rail` | `Rail.tsx`, `useHScroll`, `Poster`, `SessionRow` | ✅ |
-| UX-024 | Dossier admin, lecteur, tableau coach | Admin, parent, coach | Tous | CLS 0,35 → 0,70 | P1 | Squelettes à la forme finale, pas de squelette à l'actualisation | 3 fichiers | 🟡 |
+| UX-024 | Dossier admin, lecteur, tableau coach | Admin, parent, coach | Tous | CLS 0,35 → 0,70 | P1 | Squelettes à la forme finale, places réservées, tableaux empilés en CSS pur ; CLS max 0,70 → 0,30 (reste : alertes asynchrones, §3 n° 10) | 8 fichiers | 🟡 |
 | UX-025 | 13 tableaux | Admin, coach | Téléphones | Tableaux défilant horizontalement | P1 | Cartes « libellé : valeur » automatiques, `scope`, régions focusables | `ResponsiveTables.tsx`, `globals.css` | ✅ |
 | UX-026 | Espaces coach / admin | Coach, admin | Tactiles | Boutons 27–40 px, notes 1–5 à 28 px sur iPad | P1 | 44 px sur pointeur grossier, notes 44 px | `globals.css`, séance coach | ✅ |
 | UX-027 | Arrivée dans l'espace parent | Parent | Tous | Éclair crème avant l'interface sombre | P1 | Écran d'attente aux couleurs de l'ambiance | `parent/layout.tsx` | ✅ |
