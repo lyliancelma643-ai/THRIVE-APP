@@ -190,7 +190,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         <div
           style={{
             transform: dragX ? `translateX(${dragX}px)` : undefined,
-            transition: dragging ? 'none' : 'transform .32s cubic-bezier(.22,.61,.36,1)',
+            transition: dragging ? 'none' : 'transform var(--dur-slow) var(--ease-out)',
           }}
         >
           <div
@@ -222,7 +222,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
               width: `${100 / TABS.length}%`,
               background: 'var(--nav-active)',
               transform: `translateX(${(active < 0 ? 0 : active) * 100}%)`,
-              transition: 'transform .42s cubic-bezier(.22,.61,.36,1)',
+              transition: 'transform var(--dur-slow) var(--ease-out)',
               opacity: active < 0 ? 0 : 1,
             }}
           />
@@ -251,7 +251,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] active:scale-95"
                   style={{
                     color: active === i ? 'var(--nav-active)' : 'var(--text3)',
-                    transition: 'color .32s ease',
+                    transition: 'color var(--dur-base) ease',
                   }}
                 >
                   <Icon name={tab.icon} className="w-[22px] h-[22px]" />

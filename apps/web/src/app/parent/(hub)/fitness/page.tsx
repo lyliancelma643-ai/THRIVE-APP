@@ -342,6 +342,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           {vignetteSrc(a.id) && (
             <div className="relative px-6 pt-6 md:p-0 md:absolute md:right-10 md:top-1/2 md:-translate-y-1/2">
               <Vignette
+                priority
                 src={vignetteSrc(a.id)!}
                 className="w-[58%] max-w-[240px] md:w-[min(34vw,340px)] md:max-w-none aspect-square rounded-[22px] ring-1 ring-white/10 shadow-2xl"
               />

@@ -14,12 +14,12 @@ type Props = {
 // (et non en surimpression). Pas de dégradé de thème, pas d'ombre — un aplat
 // var(--surface) quand l'image manque, et le sage pour la ligne de contexte.
 export function SessionCard({ session, size = 'md', completed = false }: Props) {
-  const width = size === 'lg' ? 'w-[264px]' : 'w-[230px]';
+  const width = size === 'lg' ? 'w-[264px]' : 'w-[230px] lg:w-[264px]';
 
   return (
     <Link
       href={`/parent/session/${session.id}`}
-      className={`${width} shrink-0 group snap-start select-none`}
+      className={`${width} shrink-0 group snap-start select-none rounded-row`}
     >
       <div className="relative aspect-video rounded-[18px] overflow-hidden bg-night-surface">
         {session.thumbnail_url ? (
@@ -27,6 +27,10 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
           <img
             src={session.thumbnail_url}
             alt=""
+            width={640}
+            height={360}
+            loading="lazy"
+            decoding="async"
             draggable={false}
             className="absolute inset-0 w-full h-full object-cover"
           />

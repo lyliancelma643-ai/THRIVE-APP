@@ -124,6 +124,10 @@ function FitnessPageInner() {
               <img
                 src={nextSession.thumbnail_url}
                 alt=""
+                width={1280}
+                height={720}
+                fetchPriority="high"
+                decoding="async"
                 className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
