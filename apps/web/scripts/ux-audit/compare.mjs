@@ -1,19 +1,25 @@
 // Page de comparaison avant / après : ux-audit/compare.html
-//   node scripts/ux-audit/compare.mjs [before] [after]
-// Les captures restent dans ux-audit/<dossier>/ (régénérables, non versionnées).
-import { readFileSync, writeFileSync } from 'node:fs';
+//   node scripts/ux-audit/compare.mjs [before] [after] [--light]
+// Sans option, la page pointe vers les captures PNG pleine taille de
+// ux-audit/<dossier>/ (régénérables, non versionnées). Avec --light, elle
+// embarque des miniatures JPEG (3 formats clés) dans ux-audit/compare/ :
+// légère, elle est versionnée et s'ouvre depuis un simple clone.
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { chromium } from '@playwright/test';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../../ux-audit');
-const [A = 'before', B = 'after'] = process.argv.slice(2);
+const LIGHT = process.argv.includes('--light');
+const [A = 'before', B = 'after'] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
+const LIGHT_VIEWPORTS = ['iphone-15', 'ipad-portrait', 'desktop'];
 const load = (n) => JSON.parse(readFileSync(path.join(root, n, 'report.json'), 'utf8')).results;
 const before = load(A);
 const after = load(B);
 const key = (r) => `${r.viewport}|${r.role}|${r.screen}`;
 const bMap = new Map(before.map((r) => [key(r), r]));
 const rows = after
-  .filter((r) => !r.error)
+  .filter((r) => !r.error && (!LIGHT || LIGHT_VIEWPORTS.includes(r.viewport)))
   .map((r) => ({ a: r, b: bMap.get(key(r)) }))
   .sort((x, y) => key(x.a).localeCompare(key(y.a)));
 
@@ -37,6 +43,29 @@ const data = rows.map(({ a, b }) => ({
   bi: issues(b),
   ai: issues(a),
 }));
+// Miniatures : largeur 360 px, hauteur plafonnée, JPEG (sans dépendance :
+// Chromium de Playwright fait la conversion).
+if (LIGHT) {
+  const out = path.join(root, 'compare');
+  rmSync(out, { recursive: true, force: true });
+  mkdirSync(out, { recursive: true });
+  const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || '/opt/pw-browsers/chromium' });
+  const page = await browser.newPage({ viewport: { width: 360, height: 800 } });
+  for (const d of data) {
+    for (const side of ['before', 'after']) {
+      if (!d[side]) continue;
+      const src = path.join(root, d[side]);
+      const name = `${side}-${d.v}-${d.r}-${d.s}.jpg`;
+      const b64 = readFileSync(src).toString('base64');
+      await page.setContent(`<body style="margin:0"><img id="i" style="display:block;width:360px" src="data:image/png;base64,${b64}"></body>`);
+      const h = await page.$eval('#i', (i) => i.getBoundingClientRect().height);
+      await page.setViewportSize({ width: 360, height: Math.max(200, Math.min(1400, Math.ceil(h))) });
+      await page.screenshot({ path: path.join(out, name), type: 'jpeg', quality: 62 });
+      d[side] = `compare/${name}`;
+    }
+  }
+  await browser.close();
+}
 const uniq = (k) => [...new Set(data.map((d) => d[k]))];
 
 const html = `<!doctype html>
@@ -88,7 +117,7 @@ function render(){
    '<figure><figcaption>Après — '+fmt(d.ai)+'</figcaption><div class="frame"><img loading="lazy" alt="Après : '+d.s+'" src="'+d.after+'"></div></figure></div></article>').join('');
 }
 ['v','r','s'].forEach(id=>document.getElementById(id).addEventListener('input',render));
-document.getElementById('v').value='iphone-se';render();
+document.getElementById('v').value='${LIGHT ? 'iphone-15' : 'iphone-se'}';render();
 </script>
 </body>
 </html>`;
