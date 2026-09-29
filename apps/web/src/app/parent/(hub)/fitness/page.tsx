@@ -18,7 +18,8 @@ import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { DurationPills, PillGroup } from '@/components/parent/p3/pieces';
-import { PosterArt, PosterRow } from '@/components/parent/p3/Poster';
+import { PosterArt, PosterRow, Vignette } from '@/components/parent/p3/Poster';
+import { vignetteSrc } from '@/components/parent/p3/vignettes';
 import { usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
 import { useHScroll } from '@/components/parent/p3/useHScroll';
 import {
@@ -337,6 +338,15 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         >
           <PosterArt activity={a} big />
           <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
+          {/* La vignette mascotte, entière, hors du voile : au-dessus du texte sur mobile, à droite sur grand écran */}
+          {vignetteSrc(a.id) && (
+            <div className="relative px-6 pt-6 md:p-0 md:absolute md:right-10 md:top-1/2 md:-translate-y-1/2">
+              <Vignette
+                src={vignetteSrc(a.id)!}
+                className="w-[58%] max-w-[240px] md:w-[min(34vw,340px)] md:max-w-none aspect-square rounded-[22px] ring-1 ring-white/10 shadow-2xl"
+              />
+            </div>
+          )}
 
           <button
             type="button"
