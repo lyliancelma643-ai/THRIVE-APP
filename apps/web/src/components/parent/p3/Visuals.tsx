@@ -21,7 +21,7 @@ export const VISUAL_LABELS: Record<VisualId, string> = {
 };
 
 const VISUAL_HINTS: Record<VisualId, string> = {
-  emotions: 'Il montre du doigt l’émotion. Touchez-la pour l’agrandir.',
+  emotions: 'Il montre du doigt l’émotion. Touche-la pour l’agrandir.',
   thermometre: 'Il montre son chiffre, de 1 (tout calme) à 10 (ça déborde).',
   colonnes: 'Le modèle à recopier sur une feuille. L’exemple est volontairement sur un autre sujet.',
   escalier: 'Le modèle à dessiner : son objectif tout en haut, la marche la plus facile en bas.',
@@ -266,7 +266,7 @@ function Outils({ notes }: { notes: Record<string, string> }) {
             {his && <span className="block mt-2 text-[14px] text-soft">Dans ses mots : « {his} »</span>}
             {open && (
               <span className="block mt-3 rounded-[14px] bg-surface-sub p-3 text-[16px] text-ink">
-                Demandez : « {t.ask}, tu pourrais t’en servir où ? »
+                Demande : « {t.ask}, tu pourrais t’en servir où ? »
               </span>
             )}
           </button>

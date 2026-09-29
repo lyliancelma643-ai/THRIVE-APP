@@ -166,7 +166,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
       )}
 
       {/* Le seul endroit où le texte est aussi grand que le titre */}
-      <Section title="Ce que vous dites pour commencer">
+      <Section title="Ce que tu dis pour commencer">
         <div className="nc-card ring-1 ring-accent-line">
           <p className="font-display text-[26px] md:text-[32px] leading-[1.25] text-ink" aria-live="polite">
             {r.opener}
@@ -237,7 +237,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         </ul>
       </Section>
 
-      <Section title="Ce que vous allez voir">
+      <Section title="Ce que tu vas voir">
         <p className="text-[16px] leading-[1.6] text-body">
           <InlineMd text={r.what_you_will_see} />
         </p>

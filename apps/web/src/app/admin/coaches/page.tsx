@@ -157,7 +157,7 @@ export default function AdminCoachesPage() {
     setSaving(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
-      if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
+      if (!session) throw new Error('Session expirée : reconnecte-toi.');
 
       // Appel Edge Function sécurisé — pas de getFunctionUrl() qui n'existe pas
       const { data, error: fnError } = await supabase.functions.invoke('admin-create-coach', {

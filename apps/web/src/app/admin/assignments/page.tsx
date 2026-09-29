@@ -112,7 +112,7 @@ export default function AdminAssignmentsPage() {
     <div>
       <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Assignations coach ↔ enfants</h1>
       <p className="text-gray-500 mb-8">
-        Chaque coach n&apos;a accès qu&apos;aux enfants que vous lui confiez ici.
+        Chaque coach n&apos;a accès qu&apos;aux enfants que tu lui confies ici.
       </p>
 
       {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}

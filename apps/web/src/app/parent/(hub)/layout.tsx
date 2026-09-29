@@ -121,7 +121,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <span
                   key={tab.href}
                   aria-disabled
-                  title="Disponible après l'activation par votre coach"
+                  title="Disponible après l'activation par ton coach"
                   className="inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[18px] h-[18px]" />
@@ -237,7 +237,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <span
                   key={tab.href}
                   aria-disabled
-                  title="Disponible après l'activation par votre coach"
+                  title="Disponible après l'activation par ton coach"
                   className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[22px] h-[22px]" />

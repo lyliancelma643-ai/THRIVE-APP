@@ -19,7 +19,7 @@ export function LockedBanner({ message }: { message?: string }) {
         </span>
         <div>
           <p className="font-display text-[19px] font-semibold text-night-ink">
-            Votre espace se prépare
+            Ton espace se prépare
           </p>
           <p className="text-[15px] leading-[1.55] text-soft mt-1 max-w-xl text-pretty">
             {message ?? ACCESS_MESSAGES.welcomeLocked}
@@ -87,12 +87,12 @@ function NoticeScreen({
 
 // Aperçu verrouillé de la page Bilan : structure et titres visibles, zéro clic.
 const BILAN_SECTIONS: { title: string; subtitle: string }[] = [
-  { title: 'Résumé', subtitle: "L'essentiel du parcours de votre enfant, en un regard" },
-  { title: 'Le dossier de votre enfant', subtitle: 'Identité sportive, objectifs et mot-focus' },
+  { title: 'Résumé', subtitle: "L'essentiel du parcours de ton enfant, en un regard" },
+  { title: 'Le dossier de ton enfant', subtitle: 'Identité sportive, objectifs et mot-focus' },
   { title: 'La jauge de progression', subtitle: '8 familles de compétences de vie mesurées' },
   { title: 'Les 13 séances', subtitle: 'Ancrer · Développer · Intégrer — le parcours complet' },
   { title: 'Émotions & routines', subtitle: 'Ce que le coach observe séance après séance' },
-  { title: 'Prochaines étapes', subtitle: "Le plan d'action personnalisé de votre coach" },
+  { title: 'Prochaines étapes', subtitle: "Le plan d'action personnalisé de ton coach" },
 ];
 
 export function BilanLockedPreview() {
@@ -111,7 +111,7 @@ export function SessionsLockedNotice() {
     <NoticeScreen
       icon="star"
       tone="sun"
-      title="Vos séances arrivent"
+      title="Tes séances arrivent"
       body={ACCESS_MESSAGES.sessionsLocked}
     />
   );

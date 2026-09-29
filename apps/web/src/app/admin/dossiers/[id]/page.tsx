@@ -42,7 +42,7 @@ export default function AdminDossierPage() {
   }
 
   if (!child) {
-    return <p className="text-slate-600">Athlète introuvable ou hors de votre périmètre.</p>;
+    return <p className="text-slate-600">Athlète introuvable ou hors de ton périmètre.</p>;
   }
 
   return (

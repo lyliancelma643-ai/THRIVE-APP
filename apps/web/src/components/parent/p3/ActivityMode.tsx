@@ -526,7 +526,7 @@ export function ActivityMode({
           <p className="mt-8 text-[18px] text-soft">Pour commencer, dites :</p>
           <BigText className="mt-3 !text-[34px] md:!text-[46px]">{r.opener}</BigText>
           <p className="mt-6 text-[15px] leading-[1.5] text-soft">
-            Le minuteur démarre sur {r.duration} minutes. Ensuite, touchez « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
+            Le minuteur démarre sur {r.duration} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
           </p>
           <div className="mt-8">
             <PrimaryButton onClick={startActivity}>C’est dit, on commence</PrimaryButton>
@@ -607,7 +607,7 @@ export function ActivityMode({
           {/* Approfondir : un bouton par palier de 10 min ; le minuteur s'anime */}
           {allRevealed && activity.extensions.length > 0 && (
             <div className="mt-10 pt-8 border-t border-line space-y-4">
-              <p className="nc-eyebrow">Vous avez encore envie ?</p>
+              <p className="nc-eyebrow">Vous avez encore envie, tous les deux ?</p>
               {activity.extensions.map((ext, i) => {
                 const open = extOpen.includes(i);
                 const planned = ext.adds_to <= r.duration;
@@ -632,7 +632,7 @@ export function ActivityMode({
                     <span className="flex-1">
                       <span className="block text-[18px] font-bold text-ink">{EXT_LABELS[ext.kind]}</span>
                       <span className="block text-[14px] text-soft">
-                        {planned ? 'Prévu dans votre temps choisi' : 'Ajoute 10 minutes au minuteur'}
+                        {planned ? 'Prévu dans ton temps choisi' : 'Ajoute 10 minutes au minuteur'}
                       </span>
                     </span>
                     <Icon name="chevron-right" className="w-5 h-5 text-soft" />
@@ -850,7 +850,7 @@ export function ActivityMode({
 
           {isLetter && sealedAt && (
             <p className="mt-6 text-[15px] text-soft">
-              Lettre scellée. Elle vous reviendra par courriel le {formatFullDate(inOneYear(sealedAt))}.
+              Lettre scellée. Elle te reviendra par courriel le {formatFullDate(inOneYear(sealedAt))}.
             </p>
           )}
 
@@ -943,7 +943,7 @@ export function ActivityMode({
           ) : letterStep === 'confirm' ? (
             <>
               <p className="mt-5 text-[17px] leading-[1.5] text-body">
-                Une fois scellée, personne ne pourra la lire avant le {letterOpenDate}, pas même vous.
+                Une fois scellée, personne ne pourra la lire avant le {letterOpenDate}, pas même toi.
               </p>
               <div className="mt-6 flex gap-3 flex-wrap">
                 <PrimaryButton
@@ -966,7 +966,7 @@ export function ActivityMode({
           ) : letterStep === 'sealed' ? (
             <>
               <p className="mt-5 text-[18px] leading-[1.5] text-ink">
-                Lettre scellée. Elle vous reviendra par courriel le {sealedAt ? formatFullDate(inOneYear(sealedAt)) : letterOpenDate}.
+                Lettre scellée. Elle te reviendra par courriel le {sealedAt ? formatFullDate(inOneYear(sealedAt)) : letterOpenDate}.
               </p>
               <div className="mt-6">
                 <PrimaryButton onClick={() => setCaptureOpen(false)}>Continuer</PrimaryButton>

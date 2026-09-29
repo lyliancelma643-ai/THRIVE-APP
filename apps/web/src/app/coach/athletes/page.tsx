@@ -24,7 +24,7 @@ export default function CoachAthletesPage() {
     <div className="max-w-4xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Mes athlètes</h1>
       <p className="text-navy-600/80 mb-8">
-        Les enfants que l&apos;administrateur vous a confiés.
+        Les enfants que l&apos;administrateur t&apos;a confiés.
       </p>
 
       {user?.id && <PendingFamiliesPanel coachId={user.id} />}

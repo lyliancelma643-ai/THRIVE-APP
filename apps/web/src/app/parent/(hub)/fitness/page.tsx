@@ -67,17 +67,17 @@ function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => vo
   const screens = [
     <>
       <h1 className="font-display text-[32px] md:text-[42px] leading-[1.15] font-semibold text-ink">
-        13 semaines. 10 minutes. Vous et {firstName}.
+        13 semaines. 10 minutes. Toi et {firstName}.
       </h1>
       <p className="mt-4 text-[17px] leading-[1.55] text-body">
-        Chaque semaine reprend une étape de la Méthode THRIVE. Vous n&apos;avez rien à préparer et rien à évaluer.
+        Chaque semaine reprend une étape de la Méthode THRIVE. Tu n&apos;as rien à préparer et rien à évaluer.
       </p>
     </>,
     <>
       <p className="font-display text-[28px] md:text-[36px] leading-[1.25] text-ink">
         « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
       </p>
-      <p className="mt-4 text-[17px] leading-[1.55] text-body">Voilà la phrase qui ouvre tout. Vous la direz souvent.</p>
+      <p className="mt-4 text-[17px] leading-[1.55] text-body">Voilà la phrase qui ouvre tout. Tu la diras souvent.</p>
     </>,
     <>
       <h1 className="font-display text-[28px] md:text-[36px] leading-[1.2] font-semibold text-ink">Et s&apos;il dit non ?</h1>
@@ -139,7 +139,7 @@ function Bilan4Semaines({ ctx }: { ctx: P3Ctx }) {
 
   return (
     <section className="nc-card mt-8">
-      <p className="nc-eyebrow">Pour vous</p>
+      <p className="nc-eyebrow">Pour toi</p>
       <p className="font-display text-[21px] font-semibold text-ink mt-1">{title}</p>
       {state === 'closed' ? (
         <div className="mt-4 flex gap-3">
@@ -414,14 +414,14 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           <p className="text-[17px] leading-[1.5] text-ink">
             {favourite ? (
               <>
-                Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Refaites{' '}
+                Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Tu refais{' '}
                 <Link href={ficheHref(favourite)} className="font-semibold text-accent-ink underline">
                   “{favourite.title}”
                 </Link>{' '}
                 ?
               </>
             ) : (
-              <>Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Choisissez librement ci-dessous.</>
+              <>Rien de nouveau pour {place === 'voiture' ? 'ce trajet' : 'ce soir'}. Choisis librement ci-dessous.</>
             )}
           </p>
         </div>

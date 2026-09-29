@@ -389,7 +389,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
         text: 'En ouvrant la lettre, ton enfant mesure le chemin parcouru avec ses propres mots. C’est souvent un moment fort — pour lui comme pour toute la famille.',
       },
     ],
-    tip: 'Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial.',
+    tip: 'Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial, lui et toi.',
   },
   certificat: {
     icon: '◈',
@@ -410,7 +410,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
         text: '« Tu as des forces, tu as des outils, et tu sais t’en servir. » Ce n’est pas un trophée de performance : c’est la reconnaissance d’une identité — celle d’un jeune qui a grandi.',
       },
     ],
-    tip: 'Encadrez-le ! Les 3 forces qui y figurent sont de vrais repères que ton enfant pourra relire dans les moments de doute.',
+    tip: 'Encadre-le ! Les 3 forces qui y figurent sont de vrais repères que ton enfant pourra relire dans les moments de doute.',
   },
 };
 

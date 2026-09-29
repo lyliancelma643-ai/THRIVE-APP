@@ -441,12 +441,12 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
             <h3 className="font-display text-xl sm:text-3xl text-white mb-2 sm:mb-3">Séance terminée, bravo !</h3>
             <p className="text-navy-100/85 max-w-md mb-2 text-sm sm:text-base">
               {session.life_skill
-                ? `Aujourd'hui, vous avez travaillé : ${session.life_skill.toLowerCase()}.`
+                ? `Aujourd'hui, vous avez travaillé ensemble : ${session.life_skill.toLowerCase()}.`
                 : 'Belle séance parent-enfant.'}
             </p>
             <p className="text-sage text-xs sm:text-sm max-w-md">
-              Suggestion à la maison : reparlez d&apos;un moment de la séance au souper, et
-              demandez à votre enfant ce qu&apos;il a préféré.
+              Suggestion à la maison : reparle d&apos;un moment de la séance au souper, et
+              demande à ton enfant ce qu&apos;il a préféré.
             </p>
           </div>
         </div>

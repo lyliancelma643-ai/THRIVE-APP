@@ -11,8 +11,8 @@ import { Icon } from '@/components/ui';
 
 const PROMISES = [
   'Une activité de 10 minutes par jour, rien à préparer',
-  'Choisie pour votre enfant, selon son âge et ce qui a marché',
-  'Le carnet des moments, pour garder ce que vous vivez ensemble',
+  'Choisie pour ton enfant, selon son âge et ce qui a marché',
+  'Le carnet des moments, pour garder ce que vous vivez ensemble, lui et toi',
 ];
 
 export function P3Paywall() {

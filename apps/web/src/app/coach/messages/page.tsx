@@ -74,8 +74,8 @@ function CoachMessagesInner() {
       </h1>
       <p className="text-sm text-navy-600/80 mb-6">
         {totalUnread > 0
-          ? 'Des parents attendent votre réponse.'
-          : 'Vos échanges directs avec les parents, entre les séances.'}
+          ? 'Des parents attendent ta réponse.'
+          : 'Tes échanges directs avec les parents, entre les séances.'}
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:h-[calc(100dvh-14rem)]">
@@ -100,7 +100,7 @@ function CoachMessagesInner() {
               emptyLabel={
                 search
                   ? 'Aucune conversation ne correspond à cette recherche.'
-                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent vous écrire depuis leur espace.'
+                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent t’écrire depuis leur espace.'
               }
             />
           </div>
@@ -136,7 +136,7 @@ function CoachMessagesInner() {
           ) : (
             <div className="hidden lg:flex flex-1 items-center justify-center rounded-3xl bg-white shadow-card">
               <p className="text-sm text-navy-600/80">
-                Sélectionnez une conversation pour lire et répondre.
+                Sélectionne une conversation pour lire et répondre.
               </p>
             </div>
           )}

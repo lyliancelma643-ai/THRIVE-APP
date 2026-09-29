@@ -256,7 +256,7 @@ function AdminMessagesInner() {
               subtitle={
                 selected.kind === 'SUPPORT'
                   ? `Support · ${selected.status === 'CLOSED' ? 'résolu' : 'en cours'}${
-                      selected.assigned_admin_id ? (isMine ? ' · pris en charge par vous' : ' · pris en charge') : ''
+                      selected.assigned_admin_id ? (isMine ? ' · pris en charge par toi' : ' · pris en charge') : ''
                     }`
                   : `Coach ${selected.coach_name ?? '—'}${selected.child_name ? ` · ${selected.child_name}` : ''}`
               }
@@ -265,7 +265,7 @@ function AdminMessagesInner() {
               readOnlyHint={
                 selected.kind === 'COACH'
                   ? 'Supervision — lecture seule : personne n’écrit à la place du coach.'
-                  : 'Vue d’ensemble — lecture seule. Répondez depuis l’onglet « Support client ».'
+                  : 'Vue d’ensemble — lecture seule. Réponds depuis l’onglet « Support client ».'
               }
               className="flex-1 min-h-[26rem]"
               actions={
@@ -303,7 +303,7 @@ function AdminMessagesInner() {
               emptyState={
                 <p className="text-sm text-slate-500 text-center py-10">
                   {selected.kind === 'SUPPORT'
-                    ? 'Le parent n’a pas encore écrit. Vous pouvez ouvrir l’échange.'
+                    ? 'Le parent n’a pas encore écrit. Tu peux ouvrir l’échange.'
                     : 'Aucun message échangé dans ce fil.'}
                 </p>
               }
@@ -316,7 +316,7 @@ function AdminMessagesInner() {
                 </span>
                 <p className="text-base font-bold text-slate-900 mb-1">Aucune conversation ouverte</p>
                 <p className="text-sm text-slate-500">
-                  Choisissez une conversation dans la liste pour l’afficher ici.
+                  Choisis une conversation dans la liste pour l’afficher ici.
                 </p>
               </div>
             </div>

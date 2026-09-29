@@ -31,7 +31,7 @@ export default function AdminDossiersPage() {
           <p className="text-slate-500">
             {isSuper
               ? 'Vue globale — tous les coachs et tous les athlètes.'
-              : 'Les dossiers des coachs que vous supervisez.'}
+              : 'Les dossiers des coachs que tu supervises.'}
           </p>
         </div>
         <div className="text-right">

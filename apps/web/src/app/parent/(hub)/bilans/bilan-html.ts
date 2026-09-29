@@ -199,6 +199,23 @@ function permaPillarsHtml(pillars: Record<string, number>): string {
 }
 
 
+/**
+ * Les zones cliquables du gabarit sont des <div>/<span> : on leur donne le rôle
+ * de bouton et une place dans l'ordre de tabulation (la page déclenche le clic
+ * sur Entrée / Espace). Les zones déjà dotées d'un rôle sont laissées telles quelles.
+ */
+function withKeyboardAccess(html: string): string {
+  return html.replace(
+    /<(div|span)((?:(?!>)[\s\S])*?\b(?:data-info|data-href|data-doc|data-action)="[^"]*"(?:(?!>)[\s\S])*?)>/g,
+    (_tag, name: string, attrs: string) => {
+      let a = attrs;
+      if (!/\brole=/.test(a)) a += ' role="button"';
+      if (!/\btabindex=/.test(a)) a += ' tabindex="0"';
+      return `<${name}${a}>`;
+    }
+  );
+}
+
 export function buildHtml(d: {
   firstName: string;
   fullName: string;
@@ -435,7 +452,7 @@ export function buildHtml(d: {
       </div>
     </div>`;
 
-  return `
+  return withKeyboardAccess(`
 <div class="bilan-root bx" style="padding-bottom:8px;">
 
   <!-- EN-TÊTE — « Programme complété » posé à même le fond : pas de carte, pas
@@ -735,5 +752,5 @@ export function buildHtml(d: {
       }
     </div>
   </div>
-</div>`;
+</div>`);
 }

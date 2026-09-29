@@ -77,18 +77,18 @@ export const useAccessStore = create<AccessStore>((set) => ({
 // Messages in-app — ton cordial, premium, orienté accompagnement humain.
 export const ACCESS_MESSAGES = {
   welcomeLocked:
-    'Bienvenue chez THRIVE. Votre espace se prépare : votre coach finalise ' +
-    "l'activation de votre accès complet. Vous découvrirez très prochainement " +
-    "l'ensemble de votre parcours.",
+    'Bienvenue chez THRIVE. Ton espace se prépare : ton coach finalise ' +
+    "l'activation de ton accès complet. Tu découvriras très prochainement " +
+    "l'ensemble de ton parcours.",
   sessionsLocked:
-    "L'accès à vos séances sera ouvert dès la validation de votre coach. " +
-    'Il vous accompagnera personnellement pour démarrer.',
+    "L'accès à tes séances sera ouvert dès la validation de ton coach. " +
+    'Il t’accompagnera personnellement pour démarrer.',
   fitnessConstruction:
     'Cette section est actuellement en construction. Elle sera bientôt disponible.',
   childPending:
-    'La fiche de votre enfant a bien été enregistrée. Elle est en cours de ' +
-    "validation par notre équipe avant l'ouverture complète de votre espace.",
+    'La fiche de ton enfant a bien été enregistrée. Elle est en cours de ' +
+    "validation par notre équipe avant l'ouverture complète de ton espace.",
   childRequired:
-    'Pour personnaliser le parcours de votre famille, commencez par créer la ' +
-    'fiche de votre enfant. Votre coach prendra ensuite le relais.',
+    'Pour personnaliser le parcours de ta famille, commence par créer la ' +
+    'fiche de ton enfant. Ton coach prendra ensuite le relais.',
 } as const;

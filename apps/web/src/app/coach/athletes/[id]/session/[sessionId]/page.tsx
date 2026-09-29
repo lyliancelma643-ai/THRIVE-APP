@@ -495,8 +495,8 @@ export default function CoachLiveSessionPage() {
       <div className="mt-10 p-5 rounded-2xl bg-navy-900 text-white">
         <h2 id="parent-msg-title" className="font-display text-lg mb-1">Message bilan pour les parents</h2>
         <p className="text-xs text-navy-100/85 mb-3">
-          Pré-rempli depuis la méthode avec le prénom de {child.first_name} — personnalisez
-          les passages « … » puis envoyez.
+          Pré-rempli depuis la méthode avec le prénom de {child.first_name} — personnalise
+          les passages « … » puis envoie.
         </p>
         <textarea
           aria-labelledby="parent-msg-title"

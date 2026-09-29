@@ -74,7 +74,7 @@ export default function CoachDashboardPage() {
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-1">
         Bonjour {user?.firstName}
       </h1>
-      <p className="text-navy-600/80 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
+      <p className="text-navy-600/80 mb-8">Ta journée THRIVE en un coup d&apos;œil.</p>
 
       <IncompleteBanner href="/coach/dossiers" />
 
@@ -102,7 +102,7 @@ export default function CoachDashboardPage() {
           <div className="h-24 rounded-2xl bg-navy-50 animate-pulse" />
         ) : upcoming.length === 0 ? (
           <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
-            Aucune séance planifiée. Ouvrez la fiche d&apos;un athlète pour planifier son programme.
+            Aucune séance planifiée. Ouvre la fiche d&apos;un athlète pour planifier son programme.
           </p>
         ) : (
           <div className="space-y-2">
@@ -144,7 +144,7 @@ export default function CoachDashboardPage() {
         </div>
         {children.length === 0 && !loading ? (
           <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
-            Aucun athlète assigné pour l&apos;instant. L&apos;administrateur vous attribuera vos
+            Aucun athlète assigné pour l&apos;instant. L&apos;administrateur t&apos;attribuera tes
             athlètes depuis son tableau de bord.
           </p>
         ) : (

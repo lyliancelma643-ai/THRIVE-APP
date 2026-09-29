@@ -136,8 +136,8 @@ function MessagesInner() {
     {
       key: 'coach',
       id: coachId,
-      name: coachSummary?.coach_name ?? coachSummary?.counterpart_name ?? 'Votre coach THRIVE',
-      writeTo: (coachSummary?.coach_name ?? '').split(' ')[0] || 'votre coach',
+      name: coachSummary?.coach_name ?? coachSummary?.counterpart_name ?? 'Ton coach THRIVE',
+      writeTo: (coachSummary?.coach_name ?? '').split(' ')[0] || 'ton coach',
       subtitle: selectedChild ? `Coach de ${selectedChild.first_name}` : 'Coach THRIVE',
       tint: 'var(--brand)',
       error: coachError,
@@ -271,7 +271,7 @@ function ListView({
         )}
 
         <p className="mt-5 mx-6 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
-          Deux interlocuteurs seulement : le coach dédié de votre enfant et le support THRIVE. Les
+          Deux interlocuteurs seulement : le coach dédié de ton enfant et le support THRIVE. Les
           échanges sont conservés dans son dossier et ne sont jamais partagés avec le club.
         </p>
       </div>
@@ -444,8 +444,8 @@ function ThreadView({
         emptyState={
           <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-faint text-center text-pretty">
             {row.key === 'support'
-              ? 'Facturation, accès, forfait, souci technique : écrivez-nous ici, notre équipe vous répond dans cette même conversation.'
-              : `Racontez ce que vous observez — ${firstName} vous répond ici, entre les séances.`}
+              ? 'Facturation, accès, forfait, souci technique : écris-nous ici, notre équipe te répond dans cette même conversation.'
+              : `Raconte ce que tu observes — ${firstName} te répond ici, entre les séances.`}
           </p>
         }
       />

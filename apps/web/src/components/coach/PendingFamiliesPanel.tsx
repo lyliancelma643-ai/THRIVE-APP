@@ -65,9 +65,9 @@ export function PendingFamiliesPanel({ coachId }: { coachId: string }) {
 
   return (
     <div className="mb-8 rounded-2xl bg-sun/15 border border-sun/40 p-5">
-      <h2 className="font-semibold text-navy-900">Familles en attente de votre validation</h2>
+      <h2 className="font-semibold text-navy-900">Familles en attente de ta validation</h2>
       <p className="text-sm text-navy-600/80 mt-0.5 mb-4">
-        Leur espace reste en aperçu tant que vous n&apos;avez pas ouvert l&apos;accès.
+        Leur espace reste en aperçu tant que tu n&apos;as pas ouvert l&apos;accès.
       </p>
       <ul className="space-y-2">
         {pending.map((p) => (

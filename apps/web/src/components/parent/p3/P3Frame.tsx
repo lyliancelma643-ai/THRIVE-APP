@@ -58,7 +58,7 @@ function P3Inner({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
       ? {
           id: `${PARENT_ONLY_PREFIX}${userId}`,
           family_id: '',
-          first_name: 'votre enfant',
+          first_name: 'ton enfant',
           last_name: null,
           date_of_birth: null,
           avatar_url: null,
@@ -67,7 +67,7 @@ function P3Inner({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
           accent_color: null,
         }
       : null);
-  const firstName = selected?.first_name ?? 'votre enfant';
+  const firstName = selected?.first_name ?? 'ton enfant';
   const data = useP3Moments(child?.id ?? null, child?.date_of_birth ?? null, firstName);
 
   if (!child || data.loading) return <P3Skeleton />;

@@ -323,7 +323,7 @@ function LockedFitnessPreview() {
       {freeSessions.length > 0 && (
         <GreyedSection
           title="Séances découverte"
-          subtitle="Un aperçu offert du parcours — jouable dès l'activation de votre espace"
+          subtitle="Un aperçu offert du parcours — jouable dès l'activation de ton espace"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {freeSessions.map((s) => (
@@ -336,7 +336,7 @@ function LockedFitnessPreview() {
       )}
       <GreyedSection
         title="Fitness"
-        subtitle="La bibliothèque de séances vidéo de votre enfant"
+        subtitle="La bibliothèque de séances vidéo de ton enfant"
       />
     </div>
   );

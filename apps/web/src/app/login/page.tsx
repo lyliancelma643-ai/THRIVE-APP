@@ -103,7 +103,7 @@ export default function LoginPage() {
     }
     if (reason === 'disabled') {
       setAccountNotice(
-        'Votre compte a été désactivé. Contactez un administrateur pour le réactiver.'
+        'Ton compte a été désactivé. Contacte un administrateur pour le réactiver.'
       );
     }
   }, []);
@@ -478,7 +478,7 @@ export default function LoginPage() {
               {/* Enfants dès l'inscription */}
               <div className="pt-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-2">
-                  Vos enfants (8–17 ans)
+                  Tes enfants (8–17 ans)
                 </p>
                 <div className="space-y-3">
                   {childRows.map((c, i) => (

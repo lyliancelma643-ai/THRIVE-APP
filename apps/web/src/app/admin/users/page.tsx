@@ -465,7 +465,7 @@ export default function AdminUsersPage() {
                   >
                     <td className="px-5 py-3 font-medium">
                       {p.first_name} {p.last_name}
-                      {isSelf && <span className="ml-2 text-xs text-gray-500">(vous)</span>}
+                      {isSelf && <span className="ml-2 text-xs text-gray-500">(toi)</span>}
                       {rowDirty && (
                         <span className="ml-2 align-middle text-[11px] font-semibold text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded-full">
                           ● modifié

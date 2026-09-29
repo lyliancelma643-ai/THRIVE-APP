@@ -333,7 +333,7 @@ export default function AdminChildrenPage() {
           <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
             <h2 className="text-lg font-bold mb-2">Supprimer définitivement ?</h2>
             <p className="text-sm text-gray-600 mb-1">
-              Vous allez supprimer{' '}
+              Tu vas supprimer{' '}
               <span className="font-semibold">{confirmChild.first_name} {confirmChild.last_name}</span>
               {confirmChild.parent_name ? <> — famille de {confirmChild.parent_name}</> : null}.
             </p>

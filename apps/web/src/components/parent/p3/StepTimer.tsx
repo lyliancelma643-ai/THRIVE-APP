@@ -206,8 +206,8 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
             </p>
             <p className="text-[13px] text-soft">
               {timer.rounds > 1
-                ? "Lancez une fois : l’écran enchaîne les tours tout seul."
-                : "À lancer quand vous êtes prêts."}
+                ? "Lance une fois : l’écran enchaîne les tours tout seul."
+                : "À lancer quand vous êtes prêts, tous les deux."}
             </p>
           </div>
         </div>

@@ -142,7 +142,7 @@ export default function SelectProfilePage() {
       throw new Error('Prénom, nom et email sont obligatoires.');
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) throw new Error('Session expirée, veuillez vous reconnecter.');
+    if (!session) throw new Error('Session expirée : reconnecte-toi.');
 
     const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
     const res = await fetch(
@@ -196,7 +196,7 @@ export default function SelectProfilePage() {
     if (!age || isNaN(ageNum) || ageNum < 1 || ageNum > 25)
       throw new Error('L’âge doit être entre 1 et 25 ans.');
     if (!currentUser)
-      throw new Error('Session expirée, veuillez vous reconnecter.');
+      throw new Error('Session expirée : reconnecte-toi.');
 
     // Créer famille si inexistante
     let fid = familyId;
@@ -278,7 +278,7 @@ export default function SelectProfilePage() {
             👨‍👩‍👧‍👦
           </div>
           <h1 className="text-2xl font-bold text-navy-900">Ajouter un membre</h1>
-          <p className="text-navy-600 mt-1 text-sm">Choisissez le type de profil à créer</p>
+          <p className="text-navy-600 mt-1 text-sm">Choisis le type de profil à créer</p>
         </div>
 
         {/* ─── STEP 1 : Choix ─── */}
@@ -332,13 +332,13 @@ export default function SelectProfilePage() {
               </svg>
               <p className="text-sm text-navy-800 leading-relaxed">
                 <span className="font-semibold">
-                  Votre forfait {PACK_LABELS[pack]} inclut{' '}
+                  Ton forfait {PACK_LABELS[pack]} inclut{' '}
                   {memberType === 'CHILD'
                     ? `${planLimit(pack, 'maxChildren')} profil${(planLimit(pack, 'maxChildren') ?? 0) > 1 ? 's' : ''} enfant`
                     : `${planLimit(pack, 'maxParents')} compte${(planLimit(pack, 'maxParents') ?? 0) > 1 ? 's' : ''} parent`}
                   .
                 </span>{' '}
-                Passez à un forfait supérieur pour{' '}
+                Passe à un forfait supérieur pour{' '}
                 {memberType === 'CHILD'
                   ? 'accompagner un enfant de plus'
                   : 'ajouter un parent ou superviseur'}
@@ -503,12 +503,12 @@ export default function SelectProfilePage() {
               <span className="font-semibold text-navy-800">{successName}</span>
               {memberType === 'PARENT'
                 ? ' a bien été enregistré(e) comme parent. Un email lui a été envoyé pour choisir son mot de passe.'
-                : ' a bien été ajouté(e) à votre famille.'}
+                : ' a bien été ajouté(e) à ta famille.'}
             </p>
             {memberType === 'CHILD' && (
               <p className="text-sm text-navy-600 max-w-sm mx-auto mb-2">
-                La fiche de votre enfant a bien été enregistrée. Elle est en cours de
-                validation par notre équipe avant l'ouverture complète de votre espace.
+                La fiche de ton enfant a bien été enregistrée. Elle est en cours de
+                validation par notre équipe avant l'ouverture complète de ton espace.
               </p>
             )}
             <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>

@@ -271,7 +271,18 @@ function AthleteIdentityPageInner() {
           )}
         </div>
       )}
-      <div onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
+      <div
+        onClick={onClick}
+        // Clavier : Entrée / Espace activent la carte comme un clic.
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter' && e.key !== ' ') return;
+          const el = e.target as HTMLElement;
+          if (el.getAttribute('role') !== 'button') return;
+          e.preventDefault();
+          el.click();
+        }}
+        dangerouslySetInnerHTML={{ __html: html }}
+      />
       {detailKey &&
         typeof document !== 'undefined' &&
         // Portal vers <body> : la modale (position:fixed) doit se référer à
