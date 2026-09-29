@@ -50,8 +50,9 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
 
   const badge = (href: string, cls: string) =>
     href === '/coach/messages' && unreadMessages > 0 ? (
-      <span className={cls} aria-label={`${unreadMessages} message(s) non lu(s)`}>
-        {unreadMessages > 9 ? '9+' : unreadMessages}
+      <span className={cls}>
+        <span aria-hidden>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
+        <span className="sr-only">{`${unreadMessages} message(s) non lu(s)`}</span>
       </span>
     ) : null;
 

@@ -30,12 +30,13 @@ export function DossierCompleteness({
     setLoading(false);
   }, [childId]);
 
+  // Le squelette ne s'affiche qu'au premier chargement : une actualisation
+  // garde la carte en place (pas de clignotement ni de saut de page).
   useEffect(() => {
-    setLoading(true);
     load();
   }, [load, refreshKey]);
 
-  if (loading) return <div className="h-28 rounded-2xl bg-gray-100 animate-pulse" />;
+  if (loading) return <div className="h-[176px] sm:h-[148px] rounded-2xl bg-gray-100 animate-pulse" aria-hidden />;
   if (!data) return null;
 
   const complete = data.pct >= 100;

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { InteractionPoint, InteractionAnswer, VideoSession } from '@/lib/catalog';
 import { WistiaPlayer, WistiaHandle, wistiaId } from './WistiaPlayer';
+import { Icon } from '@/components/ui';
 
 type Props = {
   session: VideoSession;
@@ -219,6 +220,35 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
     v.currentTime = ratio * duration;
   };
 
+  // Barre de progression au clavier : ← / → (5 s), Début / Fin.
+  const seekKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const v = videoRef.current;
+    if (!v || !duration) return;
+    const step = { ArrowLeft: -5, ArrowRight: 5, ArrowDown: -5, ArrowUp: 5 }[e.key];
+    if (step !== undefined) {
+      e.preventDefault();
+      v.currentTime = Math.min(duration, Math.max(0, v.currentTime + step));
+    } else if (e.key === 'Home') {
+      e.preventDefault();
+      v.currentTime = 0;
+    } else if (e.key === 'End') {
+      e.preventDefault();
+      v.currentTime = duration;
+    }
+  };
+
+  // Plein écran : API standard, sinon plein écran natif de la vidéo (iPhone).
+  const toggleFullscreen = () => {
+    const el = containerRef.current;
+    const v = videoRef.current as (HTMLVideoElement & { webkitEnterFullscreen?: () => void }) | null;
+    if (document.fullscreenElement) {
+      document.exitFullscreen();
+      return;
+    }
+    if (el?.requestFullscreen) el.requestFullscreen().catch(() => v?.webkitEnterFullscreen?.());
+    else v?.webkitEnterFullscreen?.();
+  };
+
   const fmt = (s: number) =>
     `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 
@@ -246,6 +276,8 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
         <video
           ref={videoRef}
           src={session.video_url ?? undefined}
+          poster={session.thumbnail_url ?? undefined}
+          preload="metadata"
           className="w-full h-full object-contain"
           onTimeUpdate={(e) => handleTime(e.currentTarget.currentTime)}
           onEnded={handleEnded}
@@ -274,7 +306,18 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       {!wid && stage === 'playing' && (
         <div className="absolute inset-x-0 bottom-0 px-4 md:px-5 pb-3 md:pb-4 pt-12 bg-gradient-to-t from-navy-900/90 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           {/* Zone de tap élargie autour de la barre de progression */}
-          <div className="py-3 -my-3 cursor-pointer" onClick={seek}>
+          <div
+            role="slider"
+            tabIndex={0}
+            aria-label="Position dans la vidéo"
+            aria-valuemin={0}
+            aria-valuemax={Math.round(duration) || 0}
+            aria-valuenow={Math.round(progress)}
+            aria-valuetext={`${fmt(progress)} sur ${fmt(duration)}`}
+            className="py-3 -my-3 cursor-pointer rounded-full"
+            onClick={seek}
+            onKeyDown={seekKey}
+          >
             <div className="h-1.5 rounded-full bg-white/20">
               <div
                 className="h-full rounded-full bg-sun"
@@ -286,27 +329,22 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
             <button
               onClick={togglePlay}
               aria-label={isPlaying ? 'Mettre en pause' : 'Lire'}
-              className="w-11 h-11 rounded-full bg-sun text-navy-900 flex items-center justify-center text-sm font-bold shrink-0"
+              className="w-11 h-11 rounded-full bg-sun text-navy-900 grid place-items-center shrink-0"
             >
-              {isPlaying ? '❚❚' : '▶'}
+              <Icon name={isPlaying ? 'pause' : 'play'} className="w-5 h-5" />
             </button>
-            <span className="text-white/90 text-xs font-medium tabular-nums shrink-0">
+            <span className="text-white/90 text-xs font-medium tabular-nums shrink-0" aria-hidden>
               {fmt(progress)} / {fmt(duration)}
             </span>
             <span className="ml-auto text-sage text-xs truncate hidden sm:block">
               Séance {session.session_number} · {session.title}
             </span>
             <button
-              onClick={() => {
-                const el = containerRef.current;
-                if (!el) return;
-                if (document.fullscreenElement) document.exitFullscreen();
-                else el.requestFullscreen?.();
-              }}
+              onClick={toggleFullscreen}
               aria-label="Plein écran"
-              className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center shrink-0 transition-colors"
+              className="w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white grid place-items-center shrink-0 transition-colors"
             >
-              ⛶
+              <Icon name="expand" className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -316,10 +354,11 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       {!wid && !isPlaying && stage === 'playing' && progress === 0 && (
         <button
           onClick={togglePlay}
+          aria-label="Lire la vidéo"
           className="absolute inset-0 flex items-center justify-center bg-navy-900/40"
         >
-          <span className="w-20 h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-3xl shadow-card hover:scale-105 transition-transform">
-            ▶
+          <span className="w-20 h-20 rounded-full bg-sun text-navy-900 grid place-items-center shadow-card hover:scale-105 transition-transform">
+            <Icon name="play" className="w-8 h-8 translate-x-0.5" />
           </span>
         </button>
       )}
@@ -330,7 +369,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
         // dépasse forcément — sans scroll, des réponses seraient inaccessibles.
         <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl overflow-y-auto z-10">
           <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
-            <p className="text-sun text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-4">
+            <p className="text-sun text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-4">
               À toi de jouer !
             </p>
             <h3 className="font-display text-base sm:text-2xl md:text-3xl text-white text-center max-w-2xl mb-3 sm:mb-8">
@@ -357,8 +396,8 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       {/* Feedback après réponse */}
       {stage === 'feedback' && chosen && (
         <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 z-10">
-          <span className="w-16 h-16 rounded-full bg-sage text-navy-900 flex items-center justify-center text-2xl mb-4">
-            ✓
+          <span aria-hidden className="w-16 h-16 rounded-full bg-sage text-navy-900 grid place-items-center mb-4">
+            <Icon name="check" className="w-8 h-8" strokeWidth={2.4} />
           </span>
           <p className="font-display text-2xl text-white mb-2">Super réponse !</p>
           <p className="text-sage text-sm">La séance continue…</p>
@@ -369,7 +408,7 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       {stage === 'rpe' && (
         <div className="absolute inset-0 bg-navy-900/80 backdrop-blur-xl overflow-y-auto z-10">
           <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8">
-            <p className="text-sun text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">
+            <p className="text-sun text-[11px] sm:text-xs font-bold uppercase tracking-[0.2em] mb-2 sm:mb-3">
               Dernière question
             </p>
             <h3 className="font-display text-lg sm:text-2xl text-white text-center mb-1 sm:mb-2">
@@ -381,7 +420,8 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
                 <button
                   key={i}
                   onClick={() => handleRpe(i)}
-                  className="w-11 h-11 rounded-full bg-navy-800 hover:bg-sun hover:text-navy-900 text-white font-bold transition-colors"
+                  aria-label={`Difficulté ${i} sur 10`}
+                  className="w-11 h-11 rounded-full bg-navy-800 hover:bg-sun hover:text-navy-900 text-white font-bold tabular-nums transition-colors"
                 >
                   {i}
                 </button>
@@ -395,8 +435,8 @@ export function InteractivePlayer({ session, interactions, childId, parentId, on
       {stage === 'done' && (
         <div className="absolute inset-0 bg-gradient-to-br from-navy-700 to-navy-900 overflow-y-auto z-10">
           <div className="min-h-full flex flex-col items-center justify-center p-4 sm:p-8 text-center">
-            <span className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-sun text-navy-900 flex items-center justify-center text-xl sm:text-3xl mb-3 sm:mb-5">
-              ★
+            <span aria-hidden className="w-12 h-12 sm:w-20 sm:h-20 rounded-full bg-sun text-navy-900 grid place-items-center mb-3 sm:mb-5">
+              <Icon name="star" className="w-6 h-6 sm:w-9 sm:h-9" />
             </span>
             <h3 className="font-display text-xl sm:text-3xl text-white mb-2 sm:mb-3">Séance terminée, bravo !</h3>
             <p className="text-navy-100/85 max-w-md mb-2 text-sm sm:text-base">

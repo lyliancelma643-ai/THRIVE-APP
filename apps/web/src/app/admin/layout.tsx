@@ -132,8 +132,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const current = sections.flatMap((s) => s.items).find((i) => isActive(i.href));
   const unreadBadge = (href: string, cls: string) =>
     href === '/admin/messages' && unreadMessages > 0 ? (
-      <span className={cls} aria-label={`${unreadMessages} message(s) non lu(s)`}>
-        {unreadMessages > 9 ? '9+' : unreadMessages}
+      <span className={cls}>
+        <span aria-hidden>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
+        <span className="sr-only">{`${unreadMessages} message(s) non lu(s)`}</span>
       </span>
     ) : null;
 

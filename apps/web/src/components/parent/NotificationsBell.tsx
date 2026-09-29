@@ -205,10 +205,8 @@ export function NotificationsBell() {
                   >
                     <span className="flex items-start gap-2.5">
                       {/* Pastille « non lu » : place réservée pour garder l'alignement. */}
-                      <span
-                        aria-label={n.is_read ? undefined : 'Non lue'}
-                        className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${n.is_read ? '' : 'bg-accent'}`}
-                      />
+                      <span aria-hidden className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${n.is_read ? '' : 'bg-accent'}`} />
+                      {!n.is_read && <span className="sr-only">Non lue : </span>}
                       <span className="min-w-0">
                         <span className={`block text-sm truncate ${n.is_read ? 'font-medium text-body' : 'font-semibold text-ink'}`}>{n.title}</span>
                         {n.body && (

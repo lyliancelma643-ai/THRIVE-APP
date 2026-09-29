@@ -50,9 +50,18 @@ function SessionDetailPageInner() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl space-y-6">
-        <div className="aspect-video rounded-2xl bg-surface-sub animate-pulse" />
-        <div className="h-24 rounded-2xl bg-surface-sub animate-pulse" />
+      // Squelette à la forme exacte de l'écran (lien retour, vidéo 16:9, infos) : zéro décalage.
+      <div className="max-w-5xl" aria-busy aria-label="Chargement de la séance">
+        <div className="h-11 w-44 mb-3 rounded-full bg-surface-sub animate-pulse" />
+        <div className="aspect-video rounded-card bg-surface-sub animate-pulse" />
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-3">
+            <div className="h-6 w-40 rounded-full bg-surface-sub animate-pulse" />
+            <div className="h-9 w-3/4 rounded-xl bg-surface-sub animate-pulse" />
+            <div className="h-16 rounded-xl bg-surface-sub animate-pulse" />
+          </div>
+          <div className="h-44 rounded-card bg-surface-sub animate-pulse" />
+        </div>
       </div>
     );
   }

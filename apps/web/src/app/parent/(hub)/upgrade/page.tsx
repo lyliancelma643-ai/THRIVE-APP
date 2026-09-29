@@ -142,7 +142,7 @@ export default function UpgradePage() {
 
               <div className="mt-6 pt-5 border-t border-line">
                 {isCurrent ? (
-                  <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-faint select-none">
+                  <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-soft select-none">
                     Forfait actuel
                   </span>
                 ) : isUpgrade ? (

@@ -149,7 +149,7 @@ function MessagesInner() {
       name: 'Support THRIVE',
       writeTo: 'au support THRIVE',
       subtitle: 'Assistance · réponse sous un jour ouvrable',
-      tint: 'var(--sage)',
+      tint: '#4a7268',
       error: null,
       summary: summaryOf(supportId),
     },

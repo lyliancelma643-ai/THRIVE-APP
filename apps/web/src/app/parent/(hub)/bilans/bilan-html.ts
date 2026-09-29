@@ -426,7 +426,7 @@ export function buildHtml(d: {
         <div>
           <p class="b-eye" style="margin-bottom:6px;">Histoire sportive</p>
           <p style="margin:0 0 16px;font-size:15px;line-height:1.6;color:var(--text2);white-space:pre-line;">${sportStory ? esc(sportStory) : '<span style="color:var(--text4);">À renseigner avec le coach.</span>'}</p>
-          ${seasonDream ? `<div style="padding:16px 18px;border-radius:16px;background:rgba(249,235,80,.06);"><p class="b-eye" style="margin-bottom:4px;color:rgba(249,235,80,.8);">Rêve de saison</p><p class="disp" style="margin:0;font-style:italic;font-size:17px;line-height:1.4;color:var(--text);">${esc(seasonDream)}</p></div>` : ''}
+          ${seasonDream ? `<div style="padding:16px 18px;border-radius:16px;background:rgba(249,235,80,.06);"><p class="b-eye" style="margin-bottom:4px;color:var(--accent-ink);">Rêve de saison</p><p class="disp" style="margin:0;font-style:italic;font-size:17px;line-height:1.4;color:var(--text);">${esc(seasonDream)}</p></div>` : ''}
         </div>
         <div>
           <p class="b-eye" style="margin-bottom:10px;">Forces (VIA)</p>

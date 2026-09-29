@@ -82,7 +82,7 @@ export default function CoachDashboardPage() {
       <div className="grid grid-cols-3 gap-2 md:gap-5 mb-8 md:mb-10">
         {loading ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 md:h-24 rounded-2xl bg-navy-100/60 animate-pulse" aria-hidden />
+            <div key={i} className="h-[104px] md:h-24 rounded-2xl bg-navy-100/60 animate-pulse" aria-hidden />
           ))
         ) : (
           <>

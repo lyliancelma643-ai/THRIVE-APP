@@ -122,7 +122,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   key={tab.href}
                   aria-disabled
                   title="Disponible après l'activation par votre coach"
-                  className="inline-flex items-center gap-2 h-10 px-4 rounded-full text-sm font-semibold text-faint cursor-not-allowed"
+                  className="inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[18px] h-[18px]" />
                   {tab.label}
@@ -133,7 +133,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   href={tab.href}
                   onClick={() => setEnterFrom(i > active ? 30 : -30)}
                   aria-current={active === i ? 'page' : undefined}
-                  className={`inline-flex items-center gap-2 h-10 px-4 rounded-full text-sm font-semibold transition-colors duration-fast ${
+                  className={`inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold transition-colors duration-fast ${
                     active === i ? 'bg-night-surface text-ink shadow-[var(--shadow)]' : 'text-soft hover:text-ink'
                   }`}
                 >
@@ -150,7 +150,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
           <div className="flex items-center justify-end gap-1 sm:gap-1.5 md:gap-2 shrink-0 lg:flex-1 lg:basis-0">
             <Link
               href="/parent/select-profile"
-              className="hidden md:inline-flex items-center gap-1.5 h-11 px-5 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
+              className="hidden md:inline-flex lg:hidden xl:inline-flex items-center gap-1.5 h-11 px-5 whitespace-nowrap rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant
             </Link>
