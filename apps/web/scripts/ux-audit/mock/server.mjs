@@ -119,7 +119,8 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
   // ── Réponses ───────────────────────────────────────────────────────────────
   const CORS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': '*',
+    // Liste explicite, comme Supabase : le joker « * » ne couvre pas Authorization.
+    'Access-Control-Allow-Headers': 'authorization, apikey, content-type, prefer, range, accept-profile, content-profile, x-client-info, x-supabase-api-version, x-upsert, cache-control',
     'Access-Control-Allow-Methods': 'GET,POST,PATCH,PUT,DELETE,HEAD,OPTIONS',
     'Access-Control-Expose-Headers': 'Content-Range, X-Total-Count',
   };
