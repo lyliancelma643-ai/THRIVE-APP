@@ -135,7 +135,10 @@ function AthleteIdentityPageInner() {
   // chevron, promu bouton de 44 px — jamais de bouton dans un bouton.
   useEffect(() => {
     const root = htmlRef.current;
-    if (!root) return;
+    // Déjà traité : React ne réécrit le gabarit que si son HTML change, ce
+    // qui remplace aussi l'élément marqué.
+    const first = root?.firstElementChild as HTMLElement | null;
+    if (!root || !first || first.dataset.kbd) return;
     const ACT = '[data-info],[data-href],[data-doc],[data-action]';
     root.querySelectorAll<HTMLElement>(ACT).forEach((el) => {
       const hint = el.querySelector<HTMLElement>(':scope > .b-hint');
@@ -153,6 +156,7 @@ function AthleteIdentityPageInner() {
       if (!el.hasAttribute('role')) el.setAttribute('role', 'button');
       if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0');
     });
+    first.dataset.kbd = '1';
   });
 
   // Liste des enfants ou données du bilan encore en chargement : squelette
