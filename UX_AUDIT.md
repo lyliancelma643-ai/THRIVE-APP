@@ -118,4 +118,53 @@ Ces points toucheraient au contenu, à un parcours ou à l'architecture : **non 
 
 ## 5. Résultats
 
-_Section complétée en fin de Phase 5 (voir ci-dessous)._
+### Audit automatisé (1 232 captures, 14 formats, mêmes écrans avant / après)
+
+| Contrôle | Avant | Après |
+|---|---|---|
+| Débordements horizontaux | 12 | **0** |
+| Captures avec cibles tactiles < 44 px | 783 (10 513 cibles) | 48 (88 cibles) |
+| Champs < 16 px (zoom iOS) | 95 | **0** |
+| Captures avec CLS > 0,1 | 65 (max 0,70) | 18 (max 0,30) |
+| Violations axe-core WCAG 2.2 AA | 2 928 (dont 45 critiques) | **0** |
+
+Synthèses : `ux-audit/before/summary.md`, `ux-audit/after/summary.md` (les captures PNG et `report.json`, 390 Mo par passe, se régénèrent avec `pnpm --filter web ux:build && pnpm --filter web ux:audit`, puis `node scripts/ux-audit/compare.mjs [--light]` pour la page `ux-audit/compare.html`).
+
+Cibles restantes : cases à cocher de la roadmap admin (17 px), liens « ✓ Vu » de la case rouge, quelques liens de texte de l'admin sur iPad. CLS restant : alertes asynchrones (§3 n° 10), lecteur de séance sur téléphone (≈ 0,11, poster vidéo), séances découverte d'un compte en préparation sur iPad (≈ 0,15).
+
+### Lighthouse (connecté par rôle, médiane de 3 passes)
+
+Backend simulé servi en HTTPS ; mobile = Moto G Power émulé, CPU ×4, 4G lente. INP n'est pas mesurable en navigation : le TBT sert d'indicateur.
+
+| Écran | Format | Perf | Accessibilité | Bonnes pratiques | LCP | CLS | TBT |
+|---|---|---|---|---|---|---|---|
+| connexion | mobile | 90 → 87 | 96 → 100 | 100 → 100 | 0,93 → 1,09 s | 0,000 → 0,000 | 396 → 523 ms |
+| connexion | ordinateur | 100 → 100 | 96 → 100 | 100 → 100 | 0,33 → 0,26 s | 0,000 → 0,000 | 30 → 19 ms |
+| parent-bilan | mobile | 84 → 83 | 100 → 100 | 100 → 100 | 2,32 → 2,30 s | 0,000 → 0,000 | 581 → 600 ms |
+| parent-bilan | ordinateur | 100 → 100 | 100 → 100 | 100 → 100 | 0,56 → 0,64 s | 0,005 → 0,005 | 26 → 55 ms |
+| parent-maison | mobile | 89 → 86 | 100 → 100 | 100 → 100 | 0,77 → 2,01 s ¹ | 0,000 → 0,000 | 434 → 528 ms |
+| parent-maison | ordinateur | 100 → 100 | 100 → 100 | 100 → 100 | 0,19 → 0,64 s ¹ | 0,000 → 0,000 | 22 → 53 ms |
+| parent-mes-seances | mobile | 87 → 87 | 100 → 100 | 100 → 100 | 0,68 → 1,90 s ¹ | 0,000 → 0,000 | 517 → 503 ms |
+| parent-mes-seances | ordinateur | 100 → 100 | 98 → 98 | 100 → 100 | 0,50 → 0,53 s | 0,005 → 0,005 | 18 → 30 ms |
+| parent-seances-video | mobile | 82 → 86 | 100 → 100 | 100 → 100 | 0,98 → 1,81 s ¹ | 0,000 → 0,000 | 727 → 546 ms |
+| parent-seances-video | ordinateur | 100 → 100 | 100 → 100 | 100 → 100 | 0,23 → 0,53 s ¹ | 0,005 → 0,005 | 19 → 35 ms |
+| coach-tableau-de-bord | mobile | 66 → 86 | 96 → 100 | 100 → 100 | 1,86 → 1,81 s | 0,409 → 0,063 | 552 → 486 ms |
+| coach-tableau-de-bord | ordinateur | 96 → 99 | 96 → 100 | 100 → 100 | 0,48 → 0,48 s | 0,116 → 0,067 | 28 → 30 ms |
+| admin-dashboard | mobile | 83 → 82 | 96 → 100 | 100 → 100 | 1,82 → 2,00 s | 0,118 → 0,125 | 494 → 533 ms |
+| admin-dashboard | ordinateur | 100 → 100 | 96 → 100 | 100 → 100 | 0,56 → 0,56 s | 0,052 → 0,033 | 32 → 31 ms |
+
+- **Accessibilité ≥ 98 partout** (100 sur 13 mesures sur 14).
+- **Tableau de bord coach** : performance mobile 66 → 86, CLS 0,41 → 0,06.
+- ¹ **LCP parent** : avant, l'élément LCP était le texte « Chargement… » de l'écran d'attente, affiché tôt puis retiré (Lighthouse ne peut même pas le résoudre). Depuis le lot 8, l'écran d'attente est un logo sans texte, et le LCP mesure le vrai contenu. Le *Speed Index* (contenu visible) s'améliore sur ces écrans (ex. Maison mobile 1,27 → 1,00 s ; séances vidéo 1,57 → 1,37 s).
+- Les écrans restent sous LCP 2,5 s sur mobile émulé ; le CLS dépasse 0,1 seulement sur le tableau de bord admin mobile (0,125, alertes asynchrones).
+
+### Tests
+
+typecheck, lint, 361 tests unitaires et **17 tests e2e** (build de production) au vert.
+
+### Limites de la vérification
+
+- Données de démonstration fictives (backend simulé) : aucune capture sur la base réelle.
+- WebKit (Safari réel) non installable ici : émulation iPhone / iPad sous Chromium (§3 n° 11).
+- Les captures « avant » du fil de messagerie ont été prises avant la correction d'un défaut du backend simulé (RPC scalaire) : le fil ne s'y ouvrait pas.
+- Le mode Jour et le tutoiement des fiches Maison restent à valider éditorialement (§3 n° 1).
