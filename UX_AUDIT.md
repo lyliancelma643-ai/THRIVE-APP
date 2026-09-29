@@ -96,7 +96,7 @@ Ces points toucheraient au contenu, à un parcours ou à l'architecture : **non 
 7. **Gardes d'authentification côté serveur** : les coques vérifient la session côté client (écran d'attente à chaque arrivée). Un rendu serveur de la session supprimerait cette attente mais touche à l'authentification.
 8. **`theme-color` et splash** : la couleur de la barre système suit l'ambiance parent mais reste sombre sur les écrans clairs (connexion) ; `background_color` du manifeste crème alors que l'espace parent est sombre. Choix de marque à trancher.
 9. **Onboarding de première visite** dans l'espace parent (checklist « ajoute un enfant → lance ta 1re séance ») : ajout de parcours.
-10. **Bandeaux asynchrones en tête de page coach** : « Familles en attente de ta validation » (liste athlètes) arrive après la liste et la pousse vers le bas (CLS ≈ 0,2 sur téléphone). Lui réserver une place vide en permanence gênerait le cas courant (rien à valider) ; le déplacer sous la liste changerait la hiérarchie de l'écran. À trancher.
+10. **Alertes asynchrones en tête de page** : « Familles en attente de ta validation » (liste athlètes coach) et la case rouge « changements depuis ton dernier passage » (roadmap admin) arrivent après le contenu et le poussent vers le bas (CLS ≈ 0,1–0,3). Lui réserver une place vide en permanence gênerait le cas courant (rien à valider) ; le déplacer sous la liste changerait la hiérarchie de l'écran. À trancher.
 11. **Confirmation WebKit réelle** (Safari iPhone / iPad, mode app installée) : à lancer en local ou en CI avec `pnpm ux:audit --engine webkit` (voir §5).
 
 ## 4. Plan des lots (réalisé)
