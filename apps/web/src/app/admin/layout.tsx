@@ -67,7 +67,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-dvh flex items-center justify-center bg-cream">
         <div className="flex flex-col items-center gap-4" role="status" aria-label="Chargement">
           <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-navy-600/60 text-sm font-medium">Chargement…</p>
@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const navItems = NAV_ITEMS.filter((i) => !i.superAdminOnly || user.role === 'SUPER_ADMIN');
 
   return (
-    <div className="flex min-h-screen bg-cream">
+    <div className="flex min-h-dvh bg-cream">
       {/* Barre mobile : logo + navigation horizontale défilante */}
       <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-navy-900 text-white safe-top">
         <div className="flex items-center justify-between px-4 pt-3 pb-1">

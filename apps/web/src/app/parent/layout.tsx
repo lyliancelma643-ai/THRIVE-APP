@@ -24,7 +24,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-dvh flex items-center justify-center bg-cream">
         <div className="flex flex-col items-center gap-4" role="status" aria-label="Chargement">
           <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
           <p className="text-navy-600/60 text-sm font-medium">Chargement…</p>

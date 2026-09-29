@@ -19,7 +19,7 @@ type Entry = { at: string; moment?: P3MomentRow; reward?: P3RewardRow };
 
 function Carnet({ ctx }: { ctx: P3Ctx }) {
   const { data, firstName } = ctx;
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), []);
+  useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), []);
 
   const entries = useMemo<Entry[]>(() => {
     const visibleRewards = data.rewardRows.filter((r) => REWARDS.find((x) => x.id === r.reward_id)?.available);

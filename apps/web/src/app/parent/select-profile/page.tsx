@@ -240,14 +240,14 @@ export default function SelectProfilePage() {
   // Loading init
   if (initLoading) {
     return (
-      <div className="min-h-screen bg-cream flex items-center justify-center">
+      <div className="min-h-dvh bg-cream flex items-center justify-center">
         <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream relative flex items-center justify-center p-4">
+    <div className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
       {/* Retour vers le site vitrine */}
       <a
         href={SITE_URL}

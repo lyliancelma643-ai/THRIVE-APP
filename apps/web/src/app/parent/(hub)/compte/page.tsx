@@ -121,7 +121,7 @@ export default function ComptePage() {
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
           {savedAt && (
-            <span className="text-sm text-sage font-medium">✓ Enregistré</span>
+            <span className="text-sm text-sage-ink font-medium">✓ Enregistré</span>
           )}
           {error && <span className="text-sm text-red-300">{error}</span>}
         </div>

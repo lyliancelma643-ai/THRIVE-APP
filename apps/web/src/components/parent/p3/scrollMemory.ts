@@ -30,9 +30,9 @@ export function usePageScrollMemory(key: string) {
     const saved = memory.get(key);
     if (cameBack() && typeof saved === 'number') {
       // Deux images : le temps que les rangées aient pris leur hauteur.
-      requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: saved, behavior: 'auto' })));
+      requestAnimationFrame(() => requestAnimationFrame(() => window.scrollTo({ top: saved, behavior: 'instant' })));
     } else {
-      window.scrollTo({ top: 0, behavior: 'auto' });
+      window.scrollTo({ top: 0, behavior: 'instant' });
     }
     const onScroll = () => memory.set(key, window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });

@@ -249,7 +249,7 @@ function AthleteIdentityPageInner() {
       )}
       {pendingPerma && (
         <div className="mb-3 p-4 rounded-[18px] bg-night-surface ring-1 ring-sage/30 flex items-center gap-3 animate-om-up">
-          <span className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center text-sage shrink-0">
+          <span className="w-10 h-10 rounded-xl bg-sage/10 flex items-center justify-center text-sage-ink shrink-0">
             <Icon name="chart" className="w-5 h-5" />
           </span>
           <div className="flex-1 min-w-0">

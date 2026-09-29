@@ -228,7 +228,7 @@ export default function AdminRoadmapPage() {
 
   return (
     <div className={dark ? 'dark' : ''}>
-      <div className={`space-y-5 rounded-3xl transition-colors ${dark ? 'bg-[#0a1622] -m-4 p-4 md:-m-6 md:p-6 min-h-screen' : ''}`}>
+      <div className={`space-y-5 rounded-3xl transition-colors ${dark ? 'bg-[#0a1622] -m-4 p-4 md:-m-6 md:p-6 min-h-dvh' : ''}`}>
         {/* ── Case rouge : tout changement fait par les autres depuis mon dernier « Vu » ── */}
         {unseen.length > 0 && (
           <div

@@ -62,7 +62,7 @@ function fmtCount(n: number | null): string {
 function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
   if (v === true) {
     return (
-      <span className="text-sage" aria-label="Inclus">
+      <span className="text-sage-ink" aria-label="Inclus">
         ✓
       </span>
     );

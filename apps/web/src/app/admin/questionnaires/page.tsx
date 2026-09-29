@@ -128,7 +128,7 @@ export default function AdminQuestionnairesPage() {
       {/* Détail Glassmorphic */}
       {selected && (
         <div className="w-full lg:w-1/3">
-          <div className="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-white p-8 sticky top-8 h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="bg-white/80 backdrop-blur-xl rounded-[32px] shadow-2xl shadow-slate-200/50 border border-white p-8 sticky top-8 h-[calc(100dvh-6rem)] overflow-y-auto">
             <div className="absolute top-0 right-0 w-32 h-32 bg-navy-100 rounded-full blur-3xl -mr-16 -mt-16 opacity-50 pointer-events-none"></div>
             
             <div className="relative z-10">

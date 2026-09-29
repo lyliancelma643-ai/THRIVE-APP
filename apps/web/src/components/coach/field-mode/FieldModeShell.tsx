@@ -122,7 +122,7 @@ export function FieldModeShell({
       if (next < 0 || next >= total) return;
       tap();
       onPageIndex(next);
-      scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      scrollRef.current?.scrollTo({ top: 0, behavior: 'instant' });
     },
     [total, onPageIndex]
   );

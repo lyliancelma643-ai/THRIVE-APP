@@ -117,7 +117,7 @@ function FitnessPageInner() {
           href={`/parent/session/${nextSession.id}`}
           className="block group relative animate-om-up"
         >
-          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52vh] md:min-h-[440px] bg-night-surface">
+          <div className="relative rounded-[26px] overflow-hidden flex flex-col justify-end h-[420px] md:h-[52dvh] md:min-h-[440px] bg-night-surface">
             {/* Image de la séance quand elle existe ; sinon une trame discrète */}
             {nextSession.thumbnail_url ? (
               // eslint-disable-next-line @next/next/no-img-element

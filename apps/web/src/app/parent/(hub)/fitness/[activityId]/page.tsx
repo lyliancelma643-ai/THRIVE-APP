@@ -56,7 +56,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, []);
 
   const r = resolveActivity(activity, duration, ctx.band)!;

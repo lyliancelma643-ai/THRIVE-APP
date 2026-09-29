@@ -38,14 +38,14 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
 
   if (isLoading || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-cream">
+      <div className="min-h-dvh flex items-center justify-center bg-cream">
         <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-cream">
+    <div className="min-h-dvh bg-cream">
       {/* Mini-barre mobile */}
       <div className="lg:hidden sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-navy-900 text-white safe-top">
         <span className="flex items-center gap-2">

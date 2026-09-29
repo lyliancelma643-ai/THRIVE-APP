@@ -94,13 +94,13 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (lastTab.current === active) return;
     lastTab.current = active;
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    window.scrollTo({ top: 0, behavior: 'instant' });
   }, [active]);
 
   return (
     // « Nuit calme » ou « Jour clair » : un aplat unique, ni dégradé ni halo. La
     // profondeur vient du seul contraste entre le fond et les cartes.
-    <div className="min-h-screen bg-night-bg text-night-body">
+    <div className="min-h-dvh bg-night-bg text-night-body">
       {/* Barre haute posée à même le fond : logo + enfant à gauche, actions à
           droite. Plus de carte de verre — juste un filet en bas au défilement. */}
       <header className="sticky top-0 z-40 bg-night-bg safe-top">

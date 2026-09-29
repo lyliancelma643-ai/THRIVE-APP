@@ -70,7 +70,7 @@ function NoticeScreen({
     <div className="max-w-xl mx-auto text-center py-16 md:py-24 animate-om-up">
       <div
         className={`w-14 h-14 mx-auto rounded-full flex items-center justify-center ${
-          tone === 'sun' ? 'bg-sun/10 text-accent-ink' : 'bg-sage/10 text-sage'
+          tone === 'sun' ? 'bg-sun/10 text-accent-ink' : 'bg-sage/10 text-sage-ink'
         }`}
       >
         <Icon name={icon} className="w-6 h-6" />

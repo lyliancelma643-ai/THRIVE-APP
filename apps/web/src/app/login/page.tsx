@@ -263,7 +263,7 @@ export default function LoginPage() {
   // centaines de ms, 6 s au pire), on affiche aussi ce même état.
   if (confirmed || (isAuthenticated && !sessionVerified)) {
     return (
-      <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
+      <main className="min-h-dvh bg-cream flex items-center justify-center" aria-busy>
         <div
           className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"
           role="status"
@@ -274,7 +274,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-screen bg-cream relative flex items-center justify-center p-4">
+    <main className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
       {/* Retour vers le site vitrine */}
       <a
         href={SITE_URL}

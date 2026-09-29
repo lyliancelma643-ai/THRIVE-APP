@@ -205,7 +205,7 @@ function Body({ k, d }: { k: DetailKey; d: DetailData }) {
                 <span
                   key={s}
                   style={{
-                    padding: '9px 15px', borderRadius: 12, fontWeight: 600, fontSize: 15, color: '#A7C4BC',
+                    padding: '9px 15px', borderRadius: 12, fontWeight: 600, fontSize: 15, color: 'var(--sage-ink)',
                     background: 'rgba(167,196,188,.14)', border: '1px solid rgba(167,196,188,.25)',
                   }}
                 >

@@ -168,7 +168,7 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70vh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-line shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
+          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70dvh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-line shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
           style={{ background: 'var(--surface)' }}
         >
           <div className="flex items-center justify-between px-4 pt-3 pb-2">

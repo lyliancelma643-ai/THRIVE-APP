@@ -266,7 +266,7 @@ export function TaskDetail({ task, admins, me, isSuperAdmin, dark, onPatch, onDe
           </div>
         </div>
 
-        <div className="px-5 py-4 space-y-5 max-h-[65vh] overflow-y-auto">
+        <div className="px-5 py-4 space-y-5 max-h-[65dvh] overflow-y-auto">
           {error && (
             <div className="rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 text-sm px-3 py-2">
               {error}

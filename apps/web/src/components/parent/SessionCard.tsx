@@ -61,7 +61,7 @@ export function SessionCard({ session, size = 'md', completed = false }: Props) 
         </span>
       </div>
 
-      <p className="mt-3 mb-0.5 text-[13px] font-semibold text-sage">
+      <p className="mt-3 mb-0.5 text-[13px] font-semibold text-sage-ink">
         Séance {session.session_number} · {formatDuration(session.duration_minutes)}
       </p>
       <p className="text-base font-semibold leading-[1.35] text-night-ink">{session.title}</p>

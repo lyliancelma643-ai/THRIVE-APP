@@ -63,7 +63,7 @@ const IS_DEV = process.env.NODE_ENV !== 'production';
 // ── E10 — Onboarding ─────────────────────────────────────────────────────────
 function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => void }) {
   const [i, setI] = useState(0);
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'auto' }), [i]);
+  useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), [i]);
   const screens = [
     <>
       <h1 className="font-display text-[32px] md:text-[42px] leading-[1.15] font-semibold text-ink">
@@ -329,7 +329,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       {a && pick ? (
         <section
           ref={heroRef}
-          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56vh] cursor-pointer animate-om-up select-none [-webkit-touch-callout:none]"
+          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56dvh] cursor-pointer animate-om-up select-none [-webkit-touch-callout:none]"
           onClick={() => {
             // Menu ouvert : toucher l'affiche referme le menu, sans ouvrir la fiche.
             if (menu) setMenu(false);

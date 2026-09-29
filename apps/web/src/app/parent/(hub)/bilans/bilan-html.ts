@@ -73,14 +73,17 @@ export const DESIGN_CSS = `
 .bilan-root .b-clk,.bilan-root .b-hover{touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;cursor:pointer;}
 /* Retour au survol/appui : un simple éclaircissement du fond, jamais de lueur. */
 .bilan-root .b-card.b-clk{transition:background-color .18s ease,transform .18s ease;}
-.bilan-root .b-card.b-clk:hover{background:var(--surface);}
 .bilan-root .b-card.b-clk:active{transform:scale(.995);}
-.bilan-root .b-hover{transition:opacity .15s ease,background-color .15s ease;}
-.bilan-root .b-hover:hover{opacity:.85;}
+.bilan-root .b-hover{transition:opacity .15s ease,background-color .15s ease,transform .15s ease;}
 .bilan-root .b-hover:active{transform:scale(.98);}
+@media(hover:hover) and (pointer:fine){
+  .bilan-root .b-hover:hover{opacity:.85;}
+  .bilan-root .b-clk:hover .b-hint{color:var(--text3);}
+}
+/* Focus clavier : les cartes sont des boutons (role/tabindex posés par la page). */
+.bilan-root [role=button]:focus-visible{outline:2px solid #F9EB50;outline-offset:3px;box-shadow:0 0 0 5px rgba(2,37,57,.55);border-radius:22px;}
 /* Chevron d'affordance : les cartes ouvrent une fiche détaillée. */
 .bilan-root .b-hint{position:absolute;right:16px;top:18px;z-index:3;color:var(--text4);line-height:0;pointer-events:none;transition:color .18s ease;}
-.bilan-root .b-clk:hover .b-hint{color:var(--text3);}
 @media(max-width:1100px){
   .bilan-root .b-row2{grid-template-columns:1fr;gap:12px;}
   .bilan-root .b-tools{grid-template-columns:1fr 1fr;gap:12px;}
@@ -106,11 +109,11 @@ export const DESIGN_CSS = `
 .bilan-root .b-flash{animation:b-flash 2.4s ease-out 1;}
 /* Modales (fiches détaillées et fiches d'explication) — même aplat que les cartes. */
 .b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(3,12,17,.72);display:flex;align-items:center;justify-content:center;padding:18px;animation:b-fadeIn .22s ease both;}
-.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;}
+.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;}
 .b-modal .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
 @media(max-width:680px){
   .b-modal-ov{padding:0;align-items:flex-end;}
-  .b-modal{max-height:90vh;border-radius:24px 24px 0 0;padding:30px 18px calc(24px + env(safe-area-inset-bottom,0px));}
+  .b-modal{max-height:90vh;max-height:90dvh;border-radius:24px 24px 0 0;padding:30px 18px calc(24px + env(safe-area-inset-bottom,0px));}
   /* Poignée de feuille (bottom sheet) façon iOS */
   .b-modal::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:3px;background:var(--chip);}
 }
@@ -414,7 +417,7 @@ export function buildHtml(d: {
         </div>
         <div>
           <p class="b-eye" style="margin-bottom:10px;">Forces (VIA)</p>
-          ${strengthChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${strengthChips.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>${esc(s)}</span>`).join('')}</div>` : '<span style="font-size:15px;color:var(--text4);">Forces à identifier ensemble.</span>'}
+          ${strengthChips.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${strengthChips.map((s) => `<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:var(--sage-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>${esc(s)}</span>`).join('')}</div>` : '<span style="font-size:15px;color:var(--text4);">Forces à identifier ensemble.</span>'}
         </div>
       </div>
     </div>`;
@@ -461,7 +464,7 @@ export function buildHtml(d: {
           ? `<p style="margin:12px 0 0;font-size:15px;font-weight:500;color:var(--text3);">En attente de la première mesure LSSS.</p>`
           : `<div style="display:flex;align-items:baseline;gap:10px;margin-top:10px;">
         <span class="disp" style="font-size:52px;line-height:1;font-weight:600;color:var(--text);">${gaugeGlobal}</span>
-        <span style="font-size:15px;font-weight:600;color:#A7C4BC;">${
+        <span style="font-size:15px;font-weight:600;color:var(--sage-ink);">${
           gaugeDelta != null
             ? `${gaugeDelta >= 0 ? '+' : ''}${gaugeDelta} pts depuis le départ`
             : 'Première mesure'
@@ -559,7 +562,7 @@ export function buildHtml(d: {
             : `<div style="display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:16px;background:var(--surface-sub);"><span style="width:30px;height:30px;border-radius:10px;background:var(--chip);display:grid;place-items:center;color:var(--accent-ink);flex-shrink:0;line-height:0;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg></span><span style="font-size:15px;line-height:1.4;color:var(--text3);">Le coach précisera bientôt les prochaines étapes.</span></div>`
         }
       </div>
-      <div class="b-hover bx" data-href="/parent/fitness/seances" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:#A7C4BC;">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
+      <div class="b-hover bx" data-href="/parent/fitness/seances" style="display:flex;align-items:center;justify-content:center;gap:8px;min-height:48px;margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:var(--sage-ink);">Voir le parcours complet <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h15M13 6l6 6-6 6"></path></svg></div>
     </div>
   </div>
 
@@ -624,7 +627,7 @@ export function buildHtml(d: {
         ent.emotionWheel
           ? `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:7px;">
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(249,235,80,.1);font-size:13px;font-weight:500;color:var(--accent-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#F9EB50;"></span>Trac</span>
-        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:#A7C4BC;"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
+        <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:var(--sage-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:var(--surface-sub);font-size:13px;font-weight:500;color:var(--text3);"><span style="width:6px;height:6px;border-radius:50%;background:var(--text3);"></span>Détermination</span>
       </div>`
           : lockNote('La roue des émotions et le suivi de séance en séance sont inclus dès le pack Avancé.')
@@ -666,7 +669,7 @@ export function buildHtml(d: {
       ]
         .map(
           ([role, val], i, arr) =>
-            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;${i < arr.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}"><span style="min-width:0;display:flex;flex-direction:column;gap:2px;"><span class="b-eye" style="font-size:11px;">${role}</span><span class="disp" style="font-style:italic;font-size:18px;color:var(--text);overflow-wrap:anywhere;">${val}</span></span><span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(167,196,188,.16);color:#A7C4BC;display:grid;place-items:center;line-height:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></span></div>`
+            `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;${i < arr.length - 1 ? 'border-bottom:1px solid var(--line);' : ''}"><span style="min-width:0;display:flex;flex-direction:column;gap:2px;"><span class="b-eye" style="font-size:11px;">${role}</span><span class="disp" style="font-style:italic;font-size:18px;color:var(--text);overflow-wrap:anywhere;">${val}</span></span><span style="flex-shrink:0;width:26px;height:26px;border-radius:999px;background:rgba(167,196,188,.16);color:var(--sage-ink);display:grid;place-items:center;line-height:0;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 5 5L20 7"></path></svg></span></div>`
         )
         .join('')}
       <div style="display:flex;align-items:center;gap:8px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:15px;font-weight:600;color:${docIds.contract ? '#A7C4BC' : 'var(--text4)'};">${

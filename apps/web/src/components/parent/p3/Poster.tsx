@@ -122,7 +122,7 @@ export function PosterCard({
           </span>
         </span>
       </div>
-      <p className="mt-2.5 text-[12px] font-semibold text-sage">
+      <p className="mt-2.5 text-[12px] font-semibold text-sage-ink">
         {activity.week === null ? 'Bonus' : `Semaine ${activity.week}${activity.programme === 'complement' ? ' · plus loin' : ''}`} ·{' '}
         {durationsLabel(activity)}
       </p>

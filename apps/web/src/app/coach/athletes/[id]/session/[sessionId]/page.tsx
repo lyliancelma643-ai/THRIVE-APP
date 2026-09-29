@@ -216,8 +216,8 @@ export default function CoachLiveSessionPage() {
     exitAnchor.current = null;
     requestAnimationFrame(() => {
       const el = bi >= 0 ? document.getElementById(`sec-${bi}`) : null;
-      if (el) el.scrollIntoView({ behavior: 'auto', block: 'start' });
-      else window.scrollTo({ top: 0, behavior: 'auto' });
+      if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+      else window.scrollTo({ top: 0, behavior: 'instant' });
     });
   }, [fieldMode]);
 

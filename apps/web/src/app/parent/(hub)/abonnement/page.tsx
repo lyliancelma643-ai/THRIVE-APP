@@ -190,7 +190,7 @@ function ActiveSubscription() {
     <>
       <section className="nc-card">
         <div className="flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-sage/15 text-sage flex items-center justify-center shrink-0">
+          <span className="w-10 h-10 rounded-xl bg-sage/15 text-sage-ink flex items-center justify-center shrink-0">
             <Icon name="check" className="w-5 h-5" />
           </span>
           <div>

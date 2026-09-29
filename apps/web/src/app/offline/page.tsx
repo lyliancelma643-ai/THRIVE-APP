@@ -4,7 +4,7 @@ export const metadata = { title: 'THRIVE — Hors ligne' };
 
 export default function OfflinePage() {
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-cream px-6 text-center">
+    <main className="min-h-dvh flex flex-col items-center justify-center bg-cream px-6 text-center">
       <p className="text-5xl mb-4" aria-hidden>
         📡
       </p>

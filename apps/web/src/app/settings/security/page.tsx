@@ -110,7 +110,7 @@ export default function SecuritySettingsPage() {
   const isPrivileged = user?.role === 'ADMIN' || user?.role === 'SUPER_ADMIN';
 
   return (
-    <main className="min-h-screen bg-cream flex justify-center p-4">
+    <main className="min-h-dvh bg-cream flex justify-center p-4">
       <div className="w-full max-w-lg pt-10">
         <button
           onClick={() => router.back()}

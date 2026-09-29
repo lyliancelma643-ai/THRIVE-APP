@@ -506,7 +506,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
                 fontSize: 10.5,
                 letterSpacing: '.06em',
                 textTransform: 'uppercase',
-                color: '#A7C4BC',
+                color: 'var(--sage-ink)',
                 marginBottom: 7,
               }}
             >

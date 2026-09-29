@@ -45,6 +45,8 @@
   --chip: rgba(255, 255, 255, 0.07);
   --bub-shadow: none;
   --field: rgba(255, 255, 255, 0.06);
+  --sage-ink: #a7c4bc;
+  --danger-ink: #fca5a5;
 }
 
 [data-theme='day'] {
@@ -56,7 +58,9 @@
   --text: #022539;
   --text2: #3c4a52;
   --text3: #5b6a73;
-  --text4: #8b979e;
+  /* #8B979E échouait au contraste AA (2,6:1 sur le fond) : un cran plus
+     soutenu, toujours plus discret que --text3. */
+  --text4: #626e77;
   --line: rgba(0, 49, 76, 0.1);
   --line2: rgba(0, 49, 76, 0.16);
   --hair: rgba(0, 49, 76, 0.04);
@@ -77,10 +81,23 @@
   --bub-in: #ffffff;
   --bub-out: #d9e8f2;
   --bub-out-text: #022539;
-  --meta: #8b979e;
+  --meta: #626e77;
   --chip: rgba(0, 49, 76, 0.07);
   --bub-shadow: 0 1px 2px rgba(0, 49, 76, 0.1);
   --field: #ffffff;
+  --sage-ink: #46695f;
+  --danger-ink: #b91c1c;
+}
+
+/* ─── Mouvement : durées et courbes uniques (voir DESIGN_TOKENS.md) ─────────
+   Micro-interaction 150 ms · panneau 220–300 ms · les sorties sont plus
+   rapides que les entrées. */
+:root {
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --dur-fast: 150ms;
+  --dur-base: 220ms;
+  --dur-slow: 300ms;
 }
 
 /* La bascule fond/texte s'anime, mais on n'impose pas de transition aux
@@ -161,7 +178,7 @@
     box-shadow: 0 0 0 4px rgba(2, 37, 57, 0.55);
   }
   /* iOS zoome automatiquement sur les champs < 16px : on force 16px sur mobile */
-  @media (max-width: 768px) {
+  @media (max-width: 768px), (pointer: coarse) {
     input,
     textarea,
     select {
@@ -194,7 +211,7 @@
   }
   /* Transition de page façon iOS : fondu + léger glissement à chaque onglet */
   .animate-page-in {
-    animation: page-in 0.45s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: page-in var(--dur-slow) var(--ease-out) both;
   }
   /* Entrée en cascade « Nuit calme » : --om-d porte le retard de l'élément. */
   .animate-om-up {
@@ -351,13 +368,13 @@
 
 @layer utilities {
   .animate-msg-in {
-    animation: msg-in 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: msg-in var(--dur-slow) var(--ease-out) both;
   }
   .animate-bub-in {
     animation: bub-in 0.3s ease both;
   }
   .animate-sc-swap {
-    animation: sc-swap 0.46s cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation: sc-swap 0.28s var(--ease-out) both;
   }
 }
 
@@ -415,13 +432,18 @@
     color: var(--text2);
     transition: background-color 0.15s ease, color 0.15s ease;
   }
-  .nc-iconbtn:hover {
+  @media (hover: hover) and (pointer: fine) {
+    .nc-iconbtn:hover {
+      background: var(--surface-sub);
+      color: var(--text);
+    }
+  }
+  .nc-iconbtn:active {
     background: var(--surface-sub);
-    color: var(--text);
   }
   /* Filtre en pastille — actif = accent plein, inactif = contour */
   .nc-pill {
-    height: 40px;
+    min-height: 44px;
     padding: 0 16px;
     display: inline-flex;
     align-items: center;
@@ -433,8 +455,10 @@
     color: var(--text2);
     transition: background-color 0.15s ease, color 0.15s ease;
   }
-  .nc-pill:hover {
-    background: var(--surface-sub);
+  @media (hover: hover) and (pointer: fine) {
+    .nc-pill:hover {
+      background: var(--surface-sub);
+    }
   }
   .nc-pill[aria-pressed='true'] {
     background: var(--accent);
