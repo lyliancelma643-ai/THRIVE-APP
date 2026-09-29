@@ -306,6 +306,21 @@ async function main() {
       rec.finalPath = new URL(page.url()).pathname;
       Object.assign(rec, await page.evaluate(pageChecks, { touch: vp.touch }));
       if (!flag('no-axe') && AXE_VIEWPORTS.includes(vp.id)) {
+        // Contraste mesuré sur l'état final : on laisse finir les entrées
+        // animées (fondu, glissé) — les animations infinies sont ignorées.
+        await page
+          .evaluate(() =>
+            Promise.race([
+              Promise.all(
+                document
+                  .getAnimations()
+                  .filter((an) => an.effect?.getComputedTiming().endTime !== Infinity)
+                  .map((an) => an.finished.catch(() => {}))
+              ),
+              new Promise((r) => setTimeout(r, 3000)),
+            ])
+          )
+          .catch(() => {});
         const axe = await new AxeBuilder({ page }).withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa']).analyze();
         rec.axe = axe.violations.map((v) => ({
           id: v.id,

@@ -11,6 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import http from 'node:http';
+import https from 'node:https';
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { PASSWORD, PERSONAS, buildDb, makeFunctions, makeRpc } from './fixtures.mjs';
 import { applyFilters, applyOrder, deleteRows, insertRows, parseSelect, project, updateRows } from './postgrest.mjs';
@@ -41,11 +42,13 @@ function verifyJwt(token) {
 // Clé « anon » publique du projet simulé (valable 10 ans).
 export const ANON_KEY = signJwt({ iss: 'supabase', ref: 'uxaudit', role: 'anon', iat: 1_780_000_000, exp: 2_100_000_000 });
 
-export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = false } = {}) {
+// `tls` ({ key, cert, publicHost }) : sert en HTTPS sous un nom *.supabase.co
+// (Lighthouse : la CSP de l'app n'autorise que https://*.supabase.co).
+export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = false, tls = null } = {}) {
   const db = buildDb();
   const rpc = makeRpc(db);
   const functions = makeFunctions(db);
-  const origin = `http://${host}:${port}`;
+  const origin = tls ? `https://${tls.publicHost}${port === 443 ? '' : `:${port}`}` : `http://${host}:${port}`;
   const unknown = new Set();
 
   // Les vignettes pointent vers l'origine réelle du mock.
@@ -307,7 +310,7 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
     return send(res, 200, fn(body, currentUser(req)));
   }
 
-  const server = http.createServer(async (req, res) => {
+  const handler = async (req, res) => {
     const url = new URL(req.url, origin);
     if (log) console.log(req.method, url.pathname + url.search);
     try {
@@ -321,7 +324,8 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
       console.error('[mock-supabase]', err);
       return send(res, 500, { message: String(err) });
     }
-  });
+  };
+  const server = tls ? https.createServer({ key: tls.key, cert: tls.cert }, handler) : http.createServer(handler);
 
   // ── Temps réel : Phoenix minimal (accepte les abonnements, n'émet rien) ────
   server.on('upgrade', (req, socket) => {
