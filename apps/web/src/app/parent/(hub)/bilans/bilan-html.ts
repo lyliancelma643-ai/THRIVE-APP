@@ -107,16 +107,29 @@ export const DESIGN_CSS = `
 /* Surbrillance d'arrivée depuis une notification (?focus=<carte>) */
 @keyframes b-flash{0%,55%{box-shadow:0 0 0 2px rgba(249,235,80,.85);}100%{box-shadow:0 0 0 2px rgba(249,235,80,0);}}
 .bilan-root .b-flash{animation:b-flash 2.4s ease-out 1;}
-/* Modales (fiches détaillées et fiches d'explication) — même aplat que les cartes. */
-.b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(3,12,17,.72);display:flex;align-items:center;justify-content:center;padding:18px;animation:b-fadeIn .22s ease both;}
-.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;}
+/* Modales (fiches détaillées, explications, passeport) — même aplat que les cartes.
+   Entrée 300 ms, sortie 180 ms (plus vive) ; feuille du bas sur téléphone. */
+@keyframes b-fadeOut{from{opacity:1;}to{opacity:0;}}
+@keyframes b-cardOut{from{opacity:1;transform:translateY(0) scale(1);}to{opacity:0;transform:translateY(10px) scale(.985);}}
+@keyframes b-sheetIn{from{transform:translateY(100%);}to{transform:translateY(0);}}
+@keyframes b-sheetOut{from{transform:translateY(var(--b-from,0px));}to{transform:translateY(100%);}}
+.b-modal-ov{position:fixed;inset:0;z-index:90;background:rgba(3,12,17,.72);display:flex;align-items:center;justify-content:center;padding:24px;animation:b-fadeIn .22s ease both;}
+.b-modal-ov.b-closing{animation:b-fadeOut .18s ease both;}
+.b-modal{box-sizing:border-box;font-family:var(--font-inter),'Inter',system-ui,sans-serif;color:var(--text2);position:relative;width:100%;max-width:560px;max-height:86vh;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;border-radius:26px;background:var(--surface);box-shadow:0 40px 90px rgba(0,0,0,.55);padding:26px;animation:b-cardIn .3s cubic-bezier(.22,.61,.36,1) both;outline:none;}
+.b-closing .b-modal{animation:b-cardOut .18s cubic-bezier(.4,0,1,1) both;}
 .b-modal .disp{font-family:var(--font-display),'Fraunces',Georgia,serif;}
+.b-modal .b-grip{display:none;}
+.b-modal .b-close{position:absolute;top:12px;right:12px;z-index:2;width:44px;height:44px;border-radius:14px;background:var(--chip);border:1px solid var(--line2);color:var(--text3);display:grid;place-items:center;cursor:pointer;transition:background-color .15s ease,color .15s ease;}
+.b-modal .b-close:active{transform:scale(.94);}
+@media(hover:hover) and (pointer:fine){.b-modal .b-close:hover{color:var(--text);background:var(--line2);}}
 @media(max-width:680px){
   .b-modal-ov{padding:0;align-items:flex-end;}
-  .b-modal{max-height:90vh;max-height:90dvh;border-radius:24px 24px 0 0;padding:30px 18px calc(24px + env(safe-area-inset-bottom,0px));}
-  /* Poignée de feuille (bottom sheet) façon iOS */
-  .b-modal::before{content:'';position:absolute;top:9px;left:50%;transform:translateX(-50%);width:40px;height:5px;border-radius:3px;background:var(--chip);}
+  .b-modal{max-height:92vh;max-height:92dvh;border-radius:24px 24px 0 0;padding:34px 18px calc(24px + env(safe-area-inset-bottom,0px));animation:b-sheetIn .32s cubic-bezier(.22,.61,.36,1) backwards;transition:transform .22s cubic-bezier(.22,.61,.36,1);}
+  .b-closing .b-modal{animation:b-sheetOut .2s cubic-bezier(.4,0,1,1) both;}
+  /* Poignée de feuille (bottom sheet) façon iOS : on peut la tirer vers le bas. */
+  .b-modal .b-grip{display:block;margin:-25px auto 14px;width:40px;height:5px;border-radius:3px;background:var(--line2);}
 }
+@media(prefers-reduced-motion:reduce){.b-modal,.b-modal-ov{animation-duration:.01ms!important;}}
 `;
 
 // Chevron d'affordance (les cartes ouvrent une fiche détaillée)

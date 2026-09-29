@@ -7,6 +7,7 @@
 // la destination (data.path, sinon routage par type — voir notifTarget).
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useMenuKeyboard } from '@/hooks/useMenuKeyboard';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
@@ -85,6 +86,10 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [open, setOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const closePanel = useCallback(() => setOpen(false), []);
+  useMenuKeyboard(listRef, triggerRef, open, closePanel);
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -153,8 +158,11 @@ export function NotificationsBell() {
   return (
     <div className="relative" ref={panelRef}>
       <button
+        ref={triggerRef}
         type="button"
         aria-label={unread ? `Notifications — ${unread} non lue(s)` : 'Notifications'}
+        aria-expanded={open}
+        aria-haspopup="true"
         onClick={() => setOpen((o) => !o)}
         className="relative nc-iconbtn select-none cursor-pointer"
       >
@@ -168,15 +176,18 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[360px] max-h-[70dvh] overflow-y-auto rounded-2xl bg-night-surface ring-1 ring-line shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-50"
+          ref={listRef}
+          role="region"
+          aria-label="Notifications"
+          className="fixed left-3 right-3 top-[calc(env(safe-area-inset-top)+72px)] md:absolute md:left-auto md:right-0 md:top-[calc(100%+10px)] md:w-[380px] max-h-[70dvh] overflow-y-auto overscroll-contain rounded-row bg-night-surface ring-1 ring-line shadow-[0_18px_50px_rgba(0,10,20,0.55)] z-popover animate-menu-in origin-top-right"
           style={{ background: 'var(--surface)' }}
         >
           <div className="flex items-center justify-between px-4 pt-3 pb-2">
-            <p className="text-xs font-bold uppercase tracking-wide text-soft">Notifications</p>
+            <p className="nc-eyebrow">Notifications</p>
             {unread > 0 && (
               <button
                 onClick={() => markRead(items.filter((n) => !n.is_read).map((n) => n.id))}
-                className="text-[11px] text-accent-ink font-semibold cursor-pointer"
+                className="min-h-[44px] -my-2 -mr-2 px-2 text-xs text-accent-ink font-semibold cursor-pointer"
               >
                 Tout marquer lu
               </button>
@@ -190,18 +201,20 @@ export function NotificationsBell() {
                 <li key={n.id}>
                   <button
                     onClick={() => openNotif(n)}
-                    className={`w-full text-left px-4 py-2.5 hover:bg-surface-sub transition-colors cursor-pointer ${
-                      n.is_read ? 'opacity-60' : ''
-                    }`}
+                    className="w-full text-left px-4 py-3 min-h-[56px] hover:bg-surface-sub transition-colors cursor-pointer"
                   >
-                    <span className="flex items-start gap-2">
-                      {!n.is_read && <span className="mt-1.5 w-2 h-2 rounded-full bg-accent shrink-0" />}
+                    <span className="flex items-start gap-2.5">
+                      {/* Pastille « non lu » : place réservée pour garder l'alignement. */}
+                      <span
+                        aria-label={n.is_read ? undefined : 'Non lue'}
+                        className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${n.is_read ? '' : 'bg-accent'}`}
+                      />
                       <span className="min-w-0">
-                        <span className="block text-sm font-semibold text-ink truncate">{n.title}</span>
+                        <span className={`block text-sm truncate ${n.is_read ? 'font-medium text-body' : 'font-semibold text-ink'}`}>{n.title}</span>
                         {n.body && (
                           <span className="block text-xs text-soft line-clamp-2">{n.body}</span>
                         )}
-                        <span className="block text-[10px] text-faint mt-0.5">
+                        <span className="block text-[11px] text-faint mt-0.5 tabular-nums">
                           {timeAgo(n.created_at)}
                         </span>
                       </span>

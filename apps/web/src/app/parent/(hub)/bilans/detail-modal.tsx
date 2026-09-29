@@ -6,7 +6,8 @@
 // d'explication existante (CARD_INFO → InfoModal) par-dessus.
 // Rendue via createPortal(document.body) — cf. transform du layout parent.
 
-import { useEffect } from 'react';
+import { Icon } from '@/components/ui';
+import { BilanSheet } from './sheet';
 
 export const DETAIL_KEYS = [
   'boite',
@@ -413,40 +414,16 @@ export function DetailModal({
   onExplain: () => void;
   onOpenDoc: (docId: string) => void;
 }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   const meta = TITLES[k];
   const docId =
     k === 'lettre' ? d.docIds.letter : k === 'certificat' && d.certificateReady ? d.docIds.certificate : undefined;
 
   return (
-    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label={meta.title} onClick={onClose}>
-      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Fermer"
-          style={{
-            position: 'absolute', top: 12, right: 12, width: 44, height: 44, borderRadius: 14,
-            background: 'var(--chip)', border: '1px solid var(--line2)',
-            color: 'var(--text3)', fontSize: 16, cursor: 'pointer', display: 'grid', placeItems: 'center',
-          }}
-        >
-          ✕
-        </button>
+    <BilanSheet label={meta.title} onClose={onClose}>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4, paddingRight: 56 }}>
           <span
+            aria-hidden
             style={{
               width: 42, height: 42, borderRadius: 13, background: `${d.accent}17`,
               border: `1px solid ${d.accent}3d`, display: 'grid', placeItems: 'center',
@@ -475,7 +452,10 @@ export function DetailModal({
               background: `${d.accent}1f`, color: d.accent, fontWeight: 700, fontSize: 14, cursor: 'pointer',
             }}
           >
-            ⤓ Télécharger le PDF
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+              <Icon name="download" className="w-[18px] h-[18px]" />
+              Télécharger le PDF
+            </span>
           </button>
         )}
 
@@ -492,10 +472,9 @@ export function DetailModal({
               display: 'grid', placeItems: 'center',
             }}
           >
-            →
+            <Icon name="arrow-right" className="w-[22px] h-[22px]" />
           </button>
         </div>
-      </div>
-    </div>
+    </BilanSheet>
   );
 }

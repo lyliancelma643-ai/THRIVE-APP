@@ -228,7 +228,7 @@ function ListView({
           type="button"
           onClick={onLeave}
           aria-label="Fermer la messagerie"
-          className="shrink-0 w-10 h-10 rounded-full grid place-items-center text-body hover:bg-surface-sub cursor-pointer"
+          className="shrink-0 w-11 h-11 rounded-full grid place-items-center text-body hover:bg-surface-sub active:bg-surface-sub cursor-pointer"
         >
           {CHEVRON}
         </button>
@@ -404,7 +404,7 @@ function ThreadView({
           type="button"
           onClick={onBack}
           aria-label="Retour à la liste des conversations"
-          className="relative shrink-0 w-10 h-10 rounded-full grid place-items-center text-body hover:bg-surface-sub cursor-pointer"
+          className="relative shrink-0 w-11 h-11 rounded-full grid place-items-center text-body hover:bg-surface-sub active:bg-surface-sub cursor-pointer"
         >
           {CHEVRON}
           {unreadElsewhere && (

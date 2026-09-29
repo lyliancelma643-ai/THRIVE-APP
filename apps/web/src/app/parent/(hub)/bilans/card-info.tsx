@@ -2,7 +2,7 @@
 
 // Fiches d'explication des cartes + modale + squelette de chargement —
 // extraits de page.tsx (chantier découpage 2026-07-11), contenu identique.
-import { useEffect } from 'react';
+import { BilanSheet } from './sheet';
 
 /* ────────────────────────────────────────────────────────────────────────────
    Fiches d'explication des cartes — contenu vulgarisé pour le parent et
@@ -415,45 +415,11 @@ export const CARD_INFO: Record<string, CardInfo> = {
 };
 
 export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => void }) {
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
-    };
-  }, [onClose]);
-
   return (
-    <div className="b-modal-ov" role="dialog" aria-modal="true" aria-label={info.title} onClick={onClose}>
-      <div className="b-modal" onClick={(e) => e.stopPropagation()}>
-        <button
-          onClick={onClose}
-          aria-label="Fermer"
-          style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            width: 44,
-            height: 44,
-            borderRadius: 14,
-            background: 'var(--chip)',
-            border: '1px solid var(--line2)',
-            color: 'var(--text3)',
-            fontSize: 16,
-            cursor: 'pointer',
-            display: 'grid',
-            placeItems: 'center',
-          }}
-        >
-          ✕
-        </button>
+    <BilanSheet label={info.title} onClose={onClose}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 11, marginBottom: 14, paddingRight: 56 }}>
           <span
+            aria-hidden
             style={{
               width: 40,
               height: 40,
@@ -558,8 +524,7 @@ export function InfoModal({ info, onClose }: { info: CardInfo; onClose: () => vo
             </div>
           </div>
         )}
-      </div>
-    </div>
+    </BilanSheet>
   );
 }
 
