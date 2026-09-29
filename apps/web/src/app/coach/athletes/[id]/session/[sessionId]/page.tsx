@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
@@ -250,9 +251,10 @@ export default function CoachLiveSessionPage() {
       {/* En-tête */}
       <Link
         href={`/coach/athletes/${child.id}`}
-        className="text-sm text-navy-600/80 hover:text-navy-900"
+        className="inline-flex items-center gap-1.5 min-h-[44px] text-sm font-semibold text-navy-600 hover:text-navy-900"
       >
-        ← {child.first_name}
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        {child.first_name}
       </Link>
       <div className="mt-3 mb-6">
         <p className="text-xs font-bold uppercase tracking-[0.2em] text-navy-600/80 mb-1">
@@ -439,15 +441,17 @@ export default function CoachLiveSessionPage() {
                     return (
                       <div key={k} className="flex items-center justify-between gap-3">
                         <span className="text-sm text-navy-900 flex-1">{ind}</span>
-                        <span className="flex gap-1">
+                        <span role="group" aria-label={ind} className="flex gap-1 shrink-0">
                           {[1, 2, 3, 4, 5].map((n) => (
                             <button
                               key={n}
                               type="button"
+                              aria-label={`${ind} : ${n} sur 5`}
+                              aria-pressed={(ratings[k] ?? 0) === n}
                               onClick={() =>
                                 setRatings((r) => ({ ...r, [k]: r[k] === n ? 0 : n }))
                               }
-                              className={`w-9 h-9 md:w-7 md:h-7 rounded-full text-sm md:text-xs font-bold transition-colors ${
+                              className={`w-11 h-11 [@media(pointer:fine)]:w-8 [@media(pointer:fine)]:h-8 rounded-full text-sm font-bold tabular-nums transition-colors ${
                                 (ratings[k] ?? 0) >= n
                                   ? 'bg-navy-600 text-white'
                                   : 'bg-navy-50 text-navy-500 hover:bg-navy-100'
@@ -466,7 +470,7 @@ export default function CoachLiveSessionPage() {
               return (
                 <label key={bi} className="block">
                   <span className="block text-xs font-bold uppercase tracking-wide text-navy-600/80 mb-1">
-                    ✏️ {b.label}
+                    {b.label}
                   </span>
                   <textarea
                     rows={2}
@@ -489,12 +493,13 @@ export default function CoachLiveSessionPage() {
 
       {/* Message aux parents */}
       <div className="mt-10 p-5 rounded-2xl bg-navy-900 text-white">
-        <h2 className="font-display text-lg mb-1">📩 Message bilan pour les parents</h2>
-        <p className="text-xs text-navy-100/70 mb-3">
+        <h2 id="parent-msg-title" className="font-display text-lg mb-1">Message bilan pour les parents</h2>
+        <p className="text-xs text-navy-100/85 mb-3">
           Pré-rempli depuis la méthode avec le prénom de {child.first_name} — personnalisez
           les passages « … » puis envoyez.
         </p>
         <textarea
+          aria-labelledby="parent-msg-title"
           rows={12}
           value={parentMsg}
           onChange={(e) => setParentMsg(e.target.value)}

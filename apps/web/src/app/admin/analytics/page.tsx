@@ -80,7 +80,7 @@ export default function AdminAnalyticsPage() {
     <div>
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-3xl font-bold">📊 Analytics</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Analytics</h1>
           <p className="text-gray-500 mt-1">Vue d'ensemble de la plateforme THRIVE</p>
         </div>
         <button
@@ -92,16 +92,18 @@ export default function AdminAnalyticsPage() {
         </button>
       </div>
 
-      <div className="flex gap-2 mb-6">
+      <div role="tablist" aria-label="Vues analytiques" className="flex gap-2 mb-6 max-w-full overflow-x-auto scrollbar-hide overscroll-x-contain">
         {(['overview', 'coaches', 'children', 'badges'] as const).map((tab) => (
           <button
             key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
             onClick={() => setActiveTab(tab)}
-            className={`px-5 py-2.5 rounded-xl font-medium text-sm transition-colors ${
+            className={`shrink-0 whitespace-nowrap min-h-[44px] px-5 rounded-xl font-medium text-sm transition-colors ${
               activeTab === tab ? 'bg-navy-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
             }`}
           >
-            {{ overview: '🏠 Vue globale', coaches: '🎯 Coaches', children: '🧒 Enfants', badges: '🏅 Badges' }[tab]}
+            {{ overview: 'Vue globale', coaches: 'Coaches', children: 'Enfants', badges: 'Badges' }[tab]}
           </button>
         ))}
       </div>

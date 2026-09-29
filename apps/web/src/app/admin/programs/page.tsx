@@ -85,7 +85,7 @@ export default function AdminProgramsPage() {
     <div>
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-navy-900">Programmes 🏆</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Programmes</h1>
           <p className="text-gray-500 mt-1">{programs.length} programme{programs.length > 1 ? 's' : ''}</p>
         </div>
         <div className="flex gap-2 flex-wrap">

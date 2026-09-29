@@ -311,6 +311,7 @@ export default function LoginPage() {
           <span className="text-[11px] uppercase tracking-[0.25em] text-navy-600/80 font-bold">
             Sport Positive
           </span>
+          <h1 className="sr-only">Espace membres THRIVE Sport Positive</h1>
         </div>
 
         <div className="glass-strong rounded-3xl p-6 md:p-8">
@@ -455,11 +456,11 @@ export default function LoginPage() {
             <form onSubmit={handleSignup} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <Field label="Prénom">
-                  <input className="input-auth" value={signup.firstName}
+                  <input className="input-auth" value={signup.firstName} autoComplete="given-name" autoCapitalize="words" enterKeyHint="next"
                     onChange={(e) => setSignup({ ...signup, firstName: e.target.value })} />
                 </Field>
                 <Field label="Nom">
-                  <input className="input-auth" value={signup.lastName}
+                  <input className="input-auth" value={signup.lastName} autoComplete="family-name" autoCapitalize="words" enterKeyHint="next"
                     onChange={(e) => setSignup({ ...signup, lastName: e.target.value })} />
                 </Field>
               </div>
@@ -499,6 +500,9 @@ export default function LoginPage() {
                         )}
                       </div>
                       <input
+                        aria-label={`Prénom de l'enfant ${i + 1}`}
+                        autoComplete="off"
+                        autoCapitalize="words"
                         placeholder="Prénom de l'enfant"
                         className="input-auth"
                         value={c.firstName}
@@ -510,6 +514,7 @@ export default function LoginPage() {
                       />
                       <div className="flex gap-2">
                         <input
+                          aria-label={`Âge de l'enfant ${i + 1}`}
                           type="number" min={8} max={17} placeholder="Âge (8-17)"
                           inputMode="numeric"
                           className="input-auth w-24"
@@ -521,6 +526,7 @@ export default function LoginPage() {
                           }}
                         />
                         <select
+                          aria-label={`Sport de l'enfant ${i + 1}`}
                           className="input-auth flex-1"
                           value={c.sport}
                           onChange={(e) => {

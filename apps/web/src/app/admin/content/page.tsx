@@ -85,7 +85,7 @@ export default function AdminContentPage() {
     <div>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-navy-900">Contenu pédagogique 📚</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Contenu pédagogique</h1>
           <p className="text-gray-500 mt-1">{items.length} ressource{items.length > 1 ? 's' : ''}</p>
         </div>
         <button

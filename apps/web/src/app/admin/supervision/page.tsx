@@ -104,7 +104,7 @@ export default function SupervisionPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      <h1 className="text-3xl font-bold text-slate-900 mb-1">Structure de supervision 🧭</h1>
+      <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-1">Structure de supervision</h1>
       <p className="text-slate-500 mb-8">
         Assignez chaque coach à un administrateur superviseur. L&apos;admin ne voit et ne gère que
         les dossiers des coachs qui lui sont confiés.
@@ -156,6 +156,7 @@ export default function SupervisionPage() {
                     </td>
                     <td className="px-5 py-3">
                       <select
+                        aria-label={`Superviseur de ${c.first_name} ${c.last_name}`}
                         value={supervisorOf(c.id)}
                         disabled={savingId === c.id}
                         onChange={(e) => reassign(c.id, e.target.value)}

@@ -110,7 +110,7 @@ export default function AdminAssignmentsPage() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">Assignations coach ↔ enfants 🤝</h1>
+      <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Assignations coach ↔ enfants</h1>
       <p className="text-gray-500 mb-8">
         Chaque coach n&apos;a accès qu&apos;aux enfants que vous lui confiez ici.
       </p>
@@ -152,6 +152,7 @@ export default function AdminAssignmentsPage() {
                   </td>
                   <td className="px-5 py-3">
                     <select
+                      aria-label={`Coach de ${c.first_name}`}
                       value={c.coach_id ?? ''}
                       disabled={savingId === c.id}
                       onChange={(e) => assign(c, e.target.value)}

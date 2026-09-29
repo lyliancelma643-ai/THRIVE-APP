@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { fetchAssignedChildren, childAge, AssignedChild } from '@/lib/coach';
 import { PendingFamiliesPanel } from '@/components/coach/PendingFamiliesPanel';
@@ -57,7 +58,10 @@ export default function CoachAthletesPage() {
                   {childAge(c.date_of_birth) ?? '–'} ans · {c.sport ?? 'Hockey'}
                 </span>
               </span>
-              <span className="text-xs text-navy-500">Programme & bilans →</span>
+              <span className="inline-flex items-center gap-1 text-xs font-semibold text-navy-600">
+                Programme & bilans
+                <Icon name="chevron-right" className="w-3.5 h-3.5" />
+              </span>
             </Link>
           ))}
         </div>

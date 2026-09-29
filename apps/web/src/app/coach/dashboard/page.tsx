@@ -72,7 +72,7 @@ export default function CoachDashboardPage() {
   return (
     <div className="max-w-5xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-1">
-        Bonjour {user?.firstName} 👋
+        Bonjour {user?.firstName}
       </h1>
       <p className="text-navy-600/80 mb-8">Votre journée THRIVE en un coup d&apos;œil.</p>
 
@@ -127,7 +127,7 @@ export default function CoachDashboardPage() {
                       })}
                   </span>
                 </span>
-                <span className="text-xs text-navy-500">Ouvrir →</span>
+                <span className="text-xs text-navy-500">Ouvrir <span aria-hidden>→</span></span>
               </Link>
             ))}
           </div>
@@ -139,7 +139,7 @@ export default function CoachDashboardPage() {
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-xl font-semibold text-navy-900">Mes athlètes</h2>
           <Link href="/coach/athletes" className="text-sm text-navy-600 hover:text-navy-900">
-            Tout voir →
+            Tout voir <span aria-hidden>→</span>
           </Link>
         </div>
         {children.length === 0 && !loading ? (

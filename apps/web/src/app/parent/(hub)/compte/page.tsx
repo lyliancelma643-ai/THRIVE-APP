@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { WebPushToggle } from '@/components/WebPushToggle';
@@ -66,9 +67,10 @@ export default function ComptePage() {
     <div className="max-w-xl mx-auto">
       <Link
         href="/parent/bilans"
-        className="inline-flex items-center gap-2 text-sm text-soft hover:text-ink active:text-ink mb-4 py-3 pr-4 -my-1 transition-colors select-none"
+        className="inline-flex items-center gap-1.5 min-h-[44px] mb-3 text-[15px] font-semibold text-soft hover:text-ink transition-colors select-none"
       >
-        ← Retour
+        <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+        Bilan
       </Link>
 
       <div className="flex items-center gap-4 mb-8">

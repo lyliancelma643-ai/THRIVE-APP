@@ -27,7 +27,7 @@ export default function AdminDossiersPage() {
     <div className="max-w-6xl mx-auto">
       <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-1">Suivi des dossiers</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-1">Suivi des dossiers</h1>
           <p className="text-slate-500">
             {isSuper
               ? 'Vue globale — tous les coachs et tous les athlètes.'

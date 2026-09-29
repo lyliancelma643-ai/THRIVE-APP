@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { Icon } from '@/components/ui';
 import { useChildStore } from '@/stores/child.store';
 import { usePlan } from '@/lib/entitlements';
 import {
@@ -62,8 +63,8 @@ function fmtCount(n: number | null): string {
 function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
   if (v === true) {
     return (
-      <span className="text-sage-ink" aria-label="Inclus">
-        ✓
+      <span className="inline-flex text-sage-ink" role="img" aria-label="Inclus">
+        <Icon name="check" className="w-4 h-4" strokeWidth={2.4} />
       </span>
     );
   }

@@ -1,15 +1,17 @@
 // Page de repli hors-ligne servie par le service worker quand une navigation
 // échoue sans réseau (fallback Serwist). Statique : précachée à l'install.
+import { Icon } from '@/components/ui';
+
 export const metadata = { title: 'THRIVE — Hors ligne' };
 
 export default function OfflinePage() {
   return (
     <main className="min-h-dvh flex flex-col items-center justify-center bg-cream px-6 text-center">
-      <p className="text-5xl mb-4" aria-hidden>
-        📡
-      </p>
-      <h1 className="text-2xl font-bold text-navy-800 mb-2">Pas de connexion</h1>
-      <p className="text-navy-600 mb-6 max-w-sm">
+<span aria-hidden className="w-16 h-16 mb-5 rounded-2xl bg-navy-600 text-sun grid place-items-center shadow-card">
+        <Icon name="refresh" className="w-8 h-8" />
+      </span>
+      <h1 className="font-display text-[28px] font-semibold text-navy-900 mb-2 text-balance">Pas de connexion</h1>
+      <p className="text-navy-700 mb-6 max-w-sm text-pretty">
         Impossible de joindre THRIVE pour le moment. Vérifie ta connexion —
         cette page se rechargera automatiquement dès le retour du réseau.
       </p>
@@ -24,7 +26,7 @@ export default function OfflinePage() {
       {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
       <a
         href="/"
-        className="rounded-xl bg-navy-600 px-6 py-3 text-white font-semibold shadow-card hover:bg-navy-700 transition-colors"
+        className="inline-flex items-center min-h-[48px] rounded-full bg-navy-600 px-6 text-white font-bold shadow-card hover:bg-navy-700 transition-colors"
       >
         Réessayer
       </a>

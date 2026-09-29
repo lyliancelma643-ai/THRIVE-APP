@@ -373,7 +373,7 @@ export default function AdminUsersPage() {
   return (
     <div>
       <div className="flex flex-wrap items-center justify-between gap-4 mb-2">
-        <h1 className="text-3xl font-bold">Comptes 👤</h1>
+        <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Comptes</h1>
         <div className="flex gap-2">
           <button
             onClick={openChildModal}
@@ -406,12 +406,13 @@ export default function AdminUsersPage() {
 
       {/* Filtres + recherche */}
       <div className="flex flex-wrap items-center gap-3 mb-6">
-        <div className="flex gap-1 p-1 rounded-xl bg-white shadow-sm">
+        <div role="group" aria-label="Filtrer par rôle" className="flex max-w-full gap-1 p-1 rounded-xl bg-white shadow-sm overflow-x-auto scrollbar-hide overscroll-x-contain">
           {FILTERS.map((f) => (
             <button
               key={f.value}
               onClick={() => setFilter(f.value)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
+              aria-pressed={filter === f.value}
+              className={`shrink-0 whitespace-nowrap min-h-[40px] px-3 rounded-lg text-sm font-medium ${
                 filter === f.value ? 'bg-navy-600 text-white' : 'text-gray-600 hover:bg-gray-100'
               }`}
             >

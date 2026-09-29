@@ -218,7 +218,7 @@ export default function AdminCoachesPage() {
       {/* En-tête */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Coaches 🎯</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Coaches</h1>
           <p className="text-gray-500 mt-1">
             {coaches.length} coach{coaches.length > 1 ? 'es' : ''} enregistré{coaches.length > 1 ? 's' : ''}
           </p>

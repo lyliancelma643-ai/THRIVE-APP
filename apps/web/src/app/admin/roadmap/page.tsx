@@ -280,16 +280,16 @@ export default function AdminRoadmapPage() {
         {/* ── En-tête : vues, chat, mode sombre ── */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-navy-900 dark:text-white">Roadmap interne</h1>
+            <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight dark:text-white">Roadmap interne</h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
               {isSuperAdmin
                 ? 'Contrôle total : attribution, édition, suppression, résolution des problèmes — et tâches privées 🔒 que toi seul vois.'
                 : 'Prends une tâche libre, avance-la, signale un problème si tu bloques.'}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 max-w-full">
             {/* Sélecteur de vue */}
-            <div className="flex rounded-xl bg-slate-100 dark:bg-white/10 p-1">
+            <div className="flex max-w-full overflow-x-auto scrollbar-hide rounded-xl bg-slate-100 dark:bg-white/10 p-1">
               {([
                 { key: 'BOARD', label: 'Organisation' },
                 { key: 'CALENDAR', label: 'Calendrier' },

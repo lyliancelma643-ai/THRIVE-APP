@@ -102,7 +102,7 @@ export default function AdminBadgesPage() {
     <div className="max-w-7xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-4 mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-2">Badges 🏅</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Badges</h1>
           <p className="text-slate-500 font-medium">{badges.length} badge{badges.length > 1 ? 's' : ''} configuré{badges.length > 1 ? 's' : ''}</p>
         </div>
         <button

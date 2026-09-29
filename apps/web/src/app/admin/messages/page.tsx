@@ -131,7 +131,7 @@ function AdminMessagesInner() {
   return (
     <div className="max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-1">
+        <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-1">
           Messagerie
           {totalUnread > 0 && (
             <span className="ml-3 align-middle inline-flex items-center gap-1.5 h-7 px-3 rounded-full bg-navy-600 text-white text-xs font-bold">

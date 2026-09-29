@@ -160,7 +160,7 @@ export default function AdminWaitlistPage() {
     <div>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-navy-900">Liste d&apos;attente</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Liste d&apos;attente</h1>
           <p className="mt-1 text-gray-500">
             Les inscrits du site vitrine, du plus récent au plus ancien. Ouvre une ligne pour voir
             la fiche complète et qualifier l&apos;appel.

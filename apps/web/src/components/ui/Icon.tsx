@@ -42,7 +42,8 @@ export type IconName =
   | 'menu'
   | 'close'
   | 'expand'
-  | 'arrow-left';
+  | 'arrow-left'
+  | 'refresh';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -191,6 +192,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
   close: <path d="M6 6l12 12M18 6 6 18" />,
   expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   'arrow-left': <path d="M20 12H5m6-6-6 6 6 6" />,
+  refresh: <path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5M20 20v-4h-4" />,
 };
 
 export function Icon({

@@ -366,6 +366,79 @@
   }
 }
 
+/* ─── Tableaux admin / coach sur téléphone : une carte par ligne ────────────
+   Les libellés de colonne sont posés par useResponsiveTables (data-label). */
+@media (max-width: 767px) {
+  .rt-scope table.rt-table {
+    min-width: 0 !important;
+    width: 100%;
+  }
+  .rt-scope table.rt-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .rt-scope table.rt-table,
+  .rt-scope table.rt-table tbody,
+  .rt-scope table.rt-table tr,
+  .rt-scope table.rt-table td {
+    display: block;
+  }
+  .rt-scope table.rt-table tr {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(0, 78, 122, 0.08);
+  }
+  .rt-scope table.rt-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 5px 0 !important;
+    text-align: right;
+    border: 0 !important;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .rt-scope table.rt-table td::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    max-width: 45%;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #44576a;
+  }
+  .rt-scope table.rt-table td[data-label='']::before {
+    display: none;
+  }
+  .rt-scope table.rt-table td[data-label=''] {
+    justify-content: flex-end;
+  }
+}
+
+/* Espaces coach / admin : sur écran tactile, aucune commande sous 44 px
+   (les boutons compacts restent compacts à la souris). */
+@media (pointer: coarse) {
+  .rt-scope button,
+  .rt-scope select,
+  .rt-scope [role='button'],
+  .rt-scope input:not([type='checkbox']):not([type='radio']):not([type='hidden']) {
+    min-height: 44px;
+  }
+  .rt-scope button[aria-label],
+  .rt-scope button[title] {
+    min-width: 44px;
+  }
+  /* Liens-boutons (flex / inline-flex) : la hauteur suffit, sans toucher à
+     leur disposition ; les liens dans une phrase restent inline. */
+  .rt-scope a[href]:not(p a, li a) {
+    min-height: 44px;
+  }
+}
+
 @keyframes menu-in {
   from {
     opacity: 0;

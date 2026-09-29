@@ -278,7 +278,7 @@ export default function SelectProfilePage() {
             👨‍👩‍👧‍👦
           </div>
           <h1 className="text-2xl font-bold text-navy-900">Ajouter un membre</h1>
-          <p className="text-slate-500 mt-1 text-sm">Choisissez le type de profil à créer</p>
+          <p className="text-navy-600 mt-1 text-sm">Choisissez le type de profil à créer</p>
         </div>
 
         {/* ─── STEP 1 : Choix ─── */}
@@ -300,8 +300,8 @@ export default function SelectProfilePage() {
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-md mb-4 group-hover:scale-110 transition-transform`}>
                   {icon}
                 </div>
-                <p className="font-bold text-slate-900 text-lg">{label}</p>
-                <p className="text-slate-500 text-sm mt-1">{desc}</p>
+                <p className="font-bold text-navy-900 text-lg">{label}</p>
+                <p className="text-navy-600 text-sm mt-1">{desc}</p>
               </button>
             ))}
           </div>
@@ -309,20 +309,20 @@ export default function SelectProfilePage() {
 
         {/* ─── Quota du forfait atteint : proposer l'upgrade plutôt que le formulaire ─── */}
         {step === 'quota' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-8">
             <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={() => { setStep('choose'); setMemberType(null); }}
                 aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-navy-600 hover:text-navy-800 hover:bg-navy-50 text-xl transition-colors"
               >
                 ←
               </button>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-navy-900">
                   {memberType === 'CHILD' ? '🧒 Ajouter un enfant' : '👨‍👩‍👧 Ajouter un parent'}
                 </h2>
-                <p className="text-xs text-slate-500">Forfait {PACK_LABELS[pack]}</p>
+                <p className="text-xs text-navy-600">Forfait {PACK_LABELS[pack]}</p>
               </div>
             </div>
             <div className="flex items-start gap-3 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3.5 mb-6">
@@ -356,20 +356,20 @@ export default function SelectProfilePage() {
 
         {/* ─── STEP 2 : Formulaire ─── */}
         {step === 'form' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-8">
             <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={() => { setStep('choose'); setError(null); }}
                 aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-slate-500 hover:text-slate-700 hover:bg-slate-100 text-xl transition-colors"
+                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-navy-600 hover:text-navy-800 hover:bg-navy-50 text-xl transition-colors"
               >
                 ←
               </button>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">
+                <h2 className="text-xl font-bold text-navy-900">
                   {memberType === 'PARENT' ? '👨‍👩‍👧 Nouveau parent' : '🧒 Nouvel enfant'}
                 </h2>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-navy-600">
                   {memberType === 'CHILD' && !familyId ? 'La famille sera créée automatiquement' : 'Les champs * sont obligatoires'}
                 </p>
               </div>
@@ -380,23 +380,23 @@ export default function SelectProfilePage() {
               {/* Prénom + Nom — commun aux deux */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Prénom *</label>
+                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Prénom *</label>
                   <input required type="text" placeholder={memberType === 'PARENT' ? 'Jean' : 'Emma'}
                     value={memberType === 'PARENT' ? parentForm.first_name : childForm.first_name}
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, first_name: e.target.value })
                       : setChildForm({ ...childForm, first_name: e.target.value })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                    className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Nom *</label>
+                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Nom *</label>
                   <input required type="text" placeholder="Tremblay"
                     value={memberType === 'PARENT' ? parentForm.last_name : childForm.last_name}
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, last_name: e.target.value })
                       : setChildForm({ ...childForm, last_name: e.target.value })}
-                    className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                    className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                   />
                 </div>
               </div>
@@ -405,19 +405,19 @@ export default function SelectProfilePage() {
               {memberType === 'PARENT' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Email *</label>
+                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Email *</label>
                     <input required type="email" placeholder="jean@exemple.com"
                       value={parentForm.email}
                       onChange={(e) => setParentForm({ ...parentForm, email: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Téléphone</label>
+                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Téléphone</label>
                     <input type="tel" placeholder="514-555-0123"
                       value={parentForm.phone}
                       onChange={(e) => setParentForm({ ...parentForm, phone: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                     />
                   </div>
                 </>
@@ -428,36 +428,36 @@ export default function SelectProfilePage() {
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Âge *</label>
+                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Âge *</label>
                       <input required type="number" min={1} max={25} placeholder="8"
                         value={childForm.age}
                         onChange={(e) => setChildForm({ ...childForm, age: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                        className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Genre</label>
+                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Genre</label>
                       <select value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
+                        className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                         <option value="">—</option>
                         {GENDER_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
                       </select>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Sport principal</label>
+                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Sport principal</label>
                     <select value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
+                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                       <option value="">Choisir un sport...</option>
                       {SPORT_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1 uppercase tracking-wide">Notes</label>
+                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Notes</label>
                     <textarea rows={3} placeholder="Allergies, besoins spéciaux..."
                       value={childForm.notes}
                       onChange={(e) => setChildForm({ ...childForm, notes: e.target.value })}
-                      className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 resize-none"
+                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 resize-none"
                     />
                   </div>
                 </>
@@ -494,19 +494,19 @@ export default function SelectProfilePage() {
 
         {/* ─── STEP 3 : Succès ─── */}
         {step === 'success' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-10 text-center">
+          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-10 text-center">
             <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✅</div>
             <h2 className="text-2xl font-bold text-navy-900 mb-2">
               {memberType === 'PARENT' ? 'Compte créé !' : 'Enfant ajouté !'}
             </h2>
-            <p className="text-slate-500 mb-1">
-              <span className="font-semibold text-slate-800">{successName}</span>
+            <p className="text-navy-600 mb-1">
+              <span className="font-semibold text-navy-800">{successName}</span>
               {memberType === 'PARENT'
                 ? ' a bien été enregistré(e) comme parent. Un email lui a été envoyé pour choisir son mot de passe.'
                 : ' a bien été ajouté(e) à votre famille.'}
             </p>
             {memberType === 'CHILD' && (
-              <p className="text-sm text-slate-500 max-w-sm mx-auto mb-2">
+              <p className="text-sm text-navy-600 max-w-sm mx-auto mb-2">
                 La fiche de votre enfant a bien été enregistrée. Elle est en cours de
                 validation par notre équipe avant l'ouverture complète de votre espace.
               </p>
@@ -514,7 +514,7 @@ export default function SelectProfilePage() {
             <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>
             <div className="flex flex-col gap-3">
               <button onClick={resetForms}
-                className="w-full py-3 rounded-xl border-2 border-slate-200 font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
+                className="w-full py-3 rounded-xl border-2 border-navy-100 font-semibold text-navy-800 hover:bg-navy-50 transition-colors">
                 + Ajouter un autre membre
               </button>
               <button onClick={() => router.push('/dashboard')}

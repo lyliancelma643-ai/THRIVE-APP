@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { getMfaStatus } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useModalDismiss } from '@/lib/useModalDismiss';
+import { useResponsiveTables } from '@/components/ResponsiveTables';
 
 type NavItem = {
   href: string;
@@ -79,6 +80,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
   const unreadMessages = useUnreadMessages(isAuthenticated);
   const [menuOpen, setMenuOpen] = useState(false);
+  const mainRef = useRef<HTMLElement>(null);
+  useResponsiveTables(mainRef, !isLoading && !!user);
 
   // Toute navigation referme le menu du téléphone.
   useEffect(() => setMenuOpen(false), [pathname]);
@@ -247,7 +250,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="min-w-0 px-4 pb-10 pt-[calc(76px+env(safe-area-inset-top))] md:pt-8 md:ml-[88px] md:px-8 lg:ml-64 lg:px-10">
+      <main ref={mainRef} className="rt-scope min-w-0 px-4 pb-10 pt-[calc(76px+env(safe-area-inset-top))] md:pt-8 md:ml-[88px] md:px-8 lg:ml-64 lg:px-10">
         <div className="mx-auto w-full max-w-[1320px]">{children}</div>
       </main>
     </div>

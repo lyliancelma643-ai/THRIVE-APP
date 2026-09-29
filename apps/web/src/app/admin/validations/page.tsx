@@ -109,7 +109,7 @@ export default function AdminValidationsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-navy-900">Validations</h1>
+        <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight">Validations</h1>
         <p className="text-slate-500 text-sm mt-1">
           Cycle d&apos;activation : fiche enfant confirmée par l&apos;équipe, puis accès complet
           ouvert par le coach (ou ici, par un admin).

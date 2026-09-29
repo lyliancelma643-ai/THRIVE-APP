@@ -53,7 +53,7 @@ export default function AdminQuestionnairesPage() {
       <div className={`transition-all duration-500 ease-in-out ${selected ? 'hidden lg:block lg:w-2/3' : 'w-full'}`}>
         <div className="flex justify-between items-end mb-10">
           <div>
-            <h1 className="text-3xl font-bold text-navy-900 tracking-tight mb-2">Questionnaires 📝</h1>
+            <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Questionnaires</h1>
             <p className="text-slate-500 font-medium">{questionnaires.length} questionnaire{questionnaires.length > 1 ? 's' : ''}</p>
           </div>
         </div>

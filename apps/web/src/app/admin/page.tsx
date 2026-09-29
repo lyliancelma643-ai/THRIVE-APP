@@ -154,7 +154,7 @@ export default function AdminDashboardPage() {
       {/* En-tête */}
       <div className="mb-10 flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-display text-3xl md:text-4xl font-semibold text-navy-900 tracking-tight mb-2">Dashboard</h1>
+          <h1 className="font-display text-[28px] md:text-3xl leading-tight font-semibold text-navy-900 tracking-tight mb-2">Dashboard</h1>
           <p className="text-navy-600/80 font-medium">Vue globale de la plateforme THRIVE — mise à jour en temps réel</p>
         </div>
         {/* Indicateur Realtime */}

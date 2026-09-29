@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
+import { useResponsiveTables } from '@/components/ResponsiveTables';
 
 // `short` : libellé de la barre d'onglets du téléphone et du rail iPad (une ligne).
 const NAV_ITEMS: { href: string; label: string; short: string; icon: IconName }[] = [
@@ -23,6 +24,8 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
   const pathname = usePathname();
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
   const unreadMessages = useUnreadMessages(isAuthenticated);
+  const mainRef = useRef<HTMLElement>(null);
+  useResponsiveTables(mainRef, !isLoading && !!user);
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -151,7 +154,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
         </div>
       </aside>
 
-      <main className="px-4 pt-5 pb-28 md:pb-10 md:ml-[88px] md:px-8 lg:ml-64 lg:px-10 lg:py-8">
+      <main ref={mainRef} className="rt-scope px-4 pt-5 pb-28 md:pb-10 md:ml-[88px] md:px-8 lg:ml-64 lg:px-10 lg:py-8">
         <div className="mx-auto w-full max-w-6xl">{children}</div>
       </main>
     </div>

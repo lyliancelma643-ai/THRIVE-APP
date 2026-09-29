@@ -489,9 +489,9 @@ function BilanPanel({
         <button
           onClick={onClose}
           aria-label="Fermer le bilan"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-faint hover:text-night-ink hover:bg-chip transition-colors shrink-0 cursor-pointer"
+          className="w-11 h-11 -mr-2 -mt-1.5 rounded-full grid place-items-center text-soft hover:text-night-ink hover:bg-chip transition-colors shrink-0 cursor-pointer"
         >
-          ✕
+          <Icon name="close" className="w-[18px] h-[18px]" />
         </button>
       </div>
       <div className="px-5 pb-5">
