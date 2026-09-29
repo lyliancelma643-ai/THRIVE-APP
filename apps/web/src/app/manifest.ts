@@ -7,10 +7,12 @@ export default function manifest(): MetadataRoute.Manifest {
     description:
       "Protocole premium de développement global de l'enfant par le sport — 13 séances, coachs et familles connectés.",
     // Les utilisateurs déjà connectés retombent dans leur espace ; sinon /login.
+    id: '/',
     start_url: '/dashboard',
     scope: '/',
     display: 'standalone',
-    orientation: 'portrait',
+    // Portrait ET paysage : sur tablette, l'app installée suit l'appareil.
+    orientation: 'any',
     lang: 'fr',
     categories: ['sports', 'education', 'health'],
     background_color: '#F7F5F2',
