@@ -28,7 +28,7 @@ const VISUAL_HINTS: Record<VisualId, string> = {
   carte: 'Le modèle à dessiner : lui au milieu, ses personnes autour.',
   sens: 'Une question à la fois, dans cet ordre.',
   endroits: 'Pour chaque outil, un usage à chaque endroit.',
-  outils: 'S’il ne se souvient plus, pointez un outil : « Celui-là, tu pourrais l’utiliser où ? »',
+  outils: 'S’il ne se souvient plus, pointe un outil : « Celui-là, tu pourrais l’utiliser où ? »',
 };
 
 export const EMOTIONS = [
@@ -263,10 +263,10 @@ function Outils({ notes }: { notes: Record<string, string> }) {
                 <span className="block text-[14px] text-body">{t.what}</span>
               </span>
             </span>
-            {his && <span className="block mt-2 text-[14px] text-soft">Dans ses mots : « {his} »</span>}
+            {his && <span className="block mt-2 text-[14px] text-soft">Dans ses mots : « {his} »</span>}
             {open && (
               <span className="block mt-3 rounded-[14px] bg-surface-sub p-3 text-[16px] text-ink">
-                Demande : « {t.ask}, tu pourrais t’en servir où ? »
+                Demande : « {t.ask}, tu pourrais t’en servir où ? »
               </span>
             )}
           </button>

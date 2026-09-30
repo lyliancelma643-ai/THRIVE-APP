@@ -168,3 +168,35 @@ typecheck, lint, 361 tests unitaires et **17 tests e2e** (build de production) a
 - WebKit (Safari réel) non installable ici : émulation iPhone / iPad sous Chromium (§3 n° 11).
 - Les captures « avant » du fil de messagerie ont été prises avant la correction d'un défaut du backend simulé (RPC scalaire) : le fil ne s'y ouvrait pas.
 - Le mode Jour et le tutoiement des fiches Maison restent à valider éditorialement (§3 n° 1).
+
+## 6. Focus Maison (espace parent, abonnement « Le moment qui compte »)
+
+Revue ciblée des 12 écrans Maison (accueil, fiche, mode activité de bout en bout, catalogue, programme, carnet, objets, guides, paywall) sur 6 formats et dans les deux ambiances. Le parcours complet du mode activité est désormais capturable (`apps/web/scripts/ux-audit/flow-maison.mjs`).
+
+L'audit automatique était déjà vierge (0 débordement, 0 cible < 44 px, 0 violation axe sur 96 captures). Les défauts relevés viennent de la lecture experte et du parcours complet.
+
+| ID | Écran | Format | Défaut | Grav. | Correction | Statut |
+|---|---|---|---|---|---|---|
+| MA-01 | Mode activité (étapes) | iPhone 15, Android | Barre du bas trop large : « Étape suivante » coupé au bord de l'écran | P0 | « Noter » en icône seule sous 430 px, libellé « Suivant » sous 380 px | ✅ |
+| MA-02 | Accueil, mode activité, synthèse | Tous | Vouvoiement dans l'interface à côté du tutoiement (« Votre semaine », « Rien ne vous y oblige », « Dites : », « Lisez la question… ») | P1 | Tutoiement de la microcopie Maison (rangées, recommandations, débrief, synthèse, bilan 4 semaines) | ✅ |
+| MA-03 | Fiches, mode activité, carnet | Tous | Guillemets et « ? » orphelins en début de ligne ; « ». » en double ponctuation | P1 | Espaces insécables à l'affichage (`frTypo`), point final retiré quand la phrase en a déjà un | ✅ |
+| MA-04 | Fin d'activité, minuteur | Tous | « 1 minutes avec Léo », « 1 minutes de plus » | P2 | Accord au singulier | ✅ |
+| MA-05 | Accueil ↔ catalogue | Tous | L'accueil promet « 53 activités », le catalogue en affiche 42 | P1 | Même décompte des deux côtés (activités ouvertes) | ✅ |
+| MA-06 | Accueil (rangées) | Téléphones | « Tout voir » comprimait les titres sur 2 lignes | P2 | Titre et lien sur une ligne, sous-titre pleine largeur | ✅ |
+| MA-07 | Cartes d'activité | Téléphones | Méta « Semaine 2 · plus loin · 10–30 min » sur 2 lignes : titres désalignés dans une rangée | P2 | « Plus loin » en pastille sur l'image, méta sur une ligne | ✅ |
+| MA-08 | Hero de l'accueil | Téléphones | Grand pictogramme du pilier coupé à côté de la vignette, lu comme un bug | P2 | Masqué sous 768 px quand une vignette existe | ✅ |
+| MA-09 | Fiche activité | iPad paysage, ordinateur | Une colonne de 670 px collée à gauche, deux tiers de l'écran vides | P1 | Deux colonnes dès 1 024 px : titre et vignette fixes à gauche, contenu à droite ; ordre inchangé sur téléphone | ✅ |
+| MA-10 | Mode activité (amorce) | Tous | « Séance 3 · Les preuves · Les preuves » | P3 | Pilier non répété | ✅ |
+| MA-11 | Accueil | Téléphone | « Ta semaine 2 » puis « · Ce qu'il veut » renvoyé seul à la ligne | P3 | Espace insécable avant « · » | ✅ |
+| MA-12 | Accueil | Tous | 15 rangées, ~9 écrans de défilement sur iPhone | P1 | Rangées personnelles en premier (semaine, plus loin, « parce que », créneau, préférées, favoris), puis deux sélecteurs « Selon ton moment » (7 situations) et « Tout le parcours » (3 étapes) qui montrent une rangée à la fois : 7 670 → 4 748 px sur iPhone (−38 %), aucune activité retirée | ✅ |
+| MA-13 | Fiche activité | Téléphones | Étoile, drapeau et flèches sans libellé visible | P1 | Icône + libellé court (« Favori », « De côté », « Autre ») à la hauteur de « Lancer » : la barre ne grandit pas | ✅ |
+| MA-14 | Fiche, programme | Tous | Codes internes « S3 — … · A3 — … » affichés aux parents | P2 | Reformulés à l'affichage (« Avec le coach : Séance 3 · Confiance / courage », « Axe : Confiance par la progression maîtrisée ») ; données inchangées, testé sur les 13 semaines | ✅ |
+| MA-15 | Fiche activité (et tout écran avec un élément fixe) | Téléphones | La barre « Lancer » n'était jamais collée en bas de l'écran : l'animation d'entrée d'écran gardait une transformation nulle (`fill: both`), qui rendait l'écran repère des éléments fixes | P0 | Animations d'entrée en `fill: backwards` (sc-swap, om-up, page-in, msg-in, bub-in) : même rendu, plus d'effet après la fin ; barre flottante détachée par une ombre | ✅ |
+
+### Propositions nécessitant validation (Maison)
+
+1. **Fiches au vouvoiement** : les consignes et objectifs des 53 activités (« Votre enfant découvre… », « N'écrivez pas… ») et les guides « Quand il dit non » / « Quand consulter » restent au vouvoiement. C'est du contenu éditorial et clinique généré depuis les sources Markdown : à convertir à la source, puis relire (voir §3 n° 1). Les « vous » qui désignent le parent *et* l'enfant (« Cherchez ensemble », « quand vous êtes prêts, tous les deux ») sont corrects et resteraient.
+
+Les points « accueil très long », « icônes sans libellé » et « codes internes » ont été validés puis traités (MA-12 à MA-14).
+
+Vérifications : typecheck, lint, 365 tests unitaires, 17 tests e2e, audit Maison sur 6 formats (0 défaut automatique), audit rapide de toute l'app sur 4 formats (aucune régression), parcours complet du mode activité sur 393 et 360 px, barre de la fiche vérifiée en capture écran sur 393 et 360 px.

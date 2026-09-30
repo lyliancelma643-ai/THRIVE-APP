@@ -34,6 +34,23 @@ export function publishedActivities(all: P3Activity[] = P3_ACTIVITIES, includeRe
 export function getActivity(id: string): P3Activity | null {
   return P3_ACTIVITIES.find((a) => a.id === id.toUpperCase()) ?? null;
 }
+// ── Libellés de séance pour les parents ─────────────────────────────────────
+// Les données gardent les références de la méthode (« S3 — … », « A3 — … ») ;
+// à l'écran, un parent lit « Séance 3 · … » et l'axe travaillé, sans code.
+
+/** « S3 — Confiance / courage » → « Séance 3 · Confiance / courage ». */
+export function plainSession(source: string): string {
+  const m = /^S(\d+)\s*[—–-]\s*(.+)$/.exec(source.trim());
+  return m ? `Séance ${m[1]} · ${m[2]}` : source;
+}
+
+/** « A3 — Confiance par la progression maîtrisée » → « Confiance par la progression maîtrisée » ; « — » → null. */
+export function plainAction(action: string | null | undefined): string | null {
+  const a = (action ?? '').trim();
+  if (!a || a === '—') return null;
+  return a.replace(/^A\d+\s*[—–-]\s*/, '');
+}
+
 export function getWeek(n: number | null): P3Week | null {
   if (n === null) return null;
   return P3_WEEKS.find((w) => w.week === n) ?? null;
@@ -331,7 +348,7 @@ export function pickTonight(input: TonightInput): TonightPick {
         ? `Pour la route : la suite de la semaine ${next.week}.`
         : next.rank === 1
           ? `Semaine ${next.week} : ${getWeek(next.week)?.title ?? ''}.`
-          : `La suite de votre semaine ${next.week}.`;
+          : `La suite de ta semaine ${next.week}.`;
     return { activity: next, reason };
   }
 
@@ -361,14 +378,14 @@ export function pickTonight(input: TonightInput): TonightPick {
   const best = scored[0];
   if (!best) return null;
 
-  let reason = 'Une de celles que vous avez déjà ouvertes.';
+  let reason = 'Une de celles que tu as déjà ouvertes.';
   if (best.a.programme === 'bonus') reason = 'Un bonus pour le week-end, en famille.';
-  else if (best.fresh) reason = `Pour aller plus loin : votre semaine ${best.a.week} est faite.`;
+  else if (best.fresh) reason = `Pour aller plus loin : ta semaine ${best.a.week} est faite.`;
   else if (best.last?.rating === 5) reason = 'On refait celle-ci : elle avait bien marché.';
   else if (input.childMood === 'fatigue' && best.a.child_moods.includes('fatigue'))
     reason = `Parce que ${input.firstName} est fatigué·e ce soir.`;
   else if (input.parentEnergy === 'basse' && best.a.parent_energy === 'basse')
-    reason = 'Une qui ne demande presque rien de votre côté.';
+    reason = 'Une qui ne demande presque rien de ton côté.';
   return { activity: best.a, reason };
 }
 
@@ -377,7 +394,7 @@ export const NUDGES: string[] = [
   '{prenom} a dix minutes de libre ce soir ?',
   'Un moment avec {prenom} ce soir ? Tout est prêt.',
   'Dix minutes, une phrase à dire, rien à préparer.',
-  'Ce soir, la suite de votre semaine {semaine} vous attend.',
+  'Ce soir, la suite de ta semaine {semaine} t’attend.',
 ];
 
 /** Mots interdits dans toute notification ou tout écran de relance. Verrouillé par test. */
@@ -407,7 +424,9 @@ export function renderNudge(template: string, vars: { prenom: string; semaine?: 
 // ── Rappel (temps 2 des 5 temps, 20 s) ───────────────────────────────────────
 export function recallLine(firstName: string, lastKeptPhrase: string | null): string | null {
   if (!lastKeptPhrase) return null;
-  return `La dernière fois, ${firstName} avait dit « ${lastKeptPhrase} ».`;
+  // Pas de point après « » quand la phrase se termine déjà par une ponctuation.
+  const end = /[.!?…]$/.test(lastKeptPhrase.trim()) ? '' : '.';
+  return `La dernière fois, ${firstName} avait dit « ${lastKeptPhrase.trim()} »${end}`;
 }
 
 /** Remplace {date_ouverture} dans les libellés « À garder » (lettre scellée). */

@@ -85,7 +85,7 @@ export function TimerRing({
           {boostLabel}
         </span>
       )}
-      {!compact && extra >= 1 && <p className="text-[14px] text-soft">{fill(OVERTIME_LINE, { extra })}</p>}
+      {!compact && extra >= 1 && <p className="text-[14px] text-soft">{fill(OVERTIME_LINE, { extra }).replace(/^1 minutes/, '1 minute')}</p>}
       <span className="sr-only" aria-live="polite">
         {remaining > 0 && remaining % 60 === 0 ? `Encore ${minutesLeft} minute${minutesLeft > 1 ? 's' : ''}` : ''}
       </span>

@@ -57,7 +57,7 @@ import {
   type P3Outcome,
 } from '@/lib/p3-moments/app';
 import type { P3Ctx } from './P3Frame';
-import { InlineMd } from './InlineMd';
+import { InlineMd, frTypo } from './InlineMd';
 import { TimerRing } from './TimerRing';
 import { pushWeekDone } from './session';
 import { StepTimer } from './StepTimer';
@@ -91,10 +91,18 @@ function WorkedOn({ activity, compact = false }: { activity: P3Activity; compact
       </p>
       <p className="mt-2 text-[15px] leading-[1.5] text-body">{activity.objective}</p>
       <p className="mt-2 text-[13px] text-soft">
-        {activity.subtitle} · {PILLAR_PLAIN[activity.pillar_main]}
+        {activity.subtitle.includes(PILLAR_PLAIN[activity.pillar_main])
+          ? activity.subtitle
+          : `${activity.subtitle} · ${PILLAR_PLAIN[activity.pillar_main]}`}
       </p>
     </div>
   );
+}
+
+/** « 12 minutes avec Léa. » — accordé au singulier pour une seule minute. */
+function closingLine(minutes: number, prenom: string): string {
+  const line = fill(CLOSING_SCREEN, { minutes, prenom });
+  return minutes === 1 ? line.replace('1 minutes', '1 minute') : line;
 }
 
 /** Garde l'écran allumé pendant le moment (Wake Lock API), silencieusement ignoré sinon. */
@@ -402,9 +410,11 @@ export function ActivityMode({
     <button
       type="button"
       onClick={() => setCaptureOpen(true)}
-      className="nc-pill min-h-[44px] inline-flex gap-1.5"
+      aria-label={isLetter ? 'La lettre' : 'Noter'}
+      className="nc-pill min-h-[44px] min-w-[44px] inline-flex justify-center gap-1.5 max-[430px]:px-0"
     >
-      <Icon name="plus" className="w-4 h-4" /> {isLetter ? 'La lettre' : 'Noter'}
+      <Icon name="plus" className="w-4 h-4" />
+      <span className="max-[430px]:sr-only">{isLetter ? 'La lettre' : 'Noter'}</span>
     </button>
   );
 
@@ -464,7 +474,7 @@ export function ActivityMode({
           {recall && (
             <>
               <p className={`nc-eyebrow ${opening ? 'mt-10' : ''}`}>La fois d’avant</p>
-              <BigText className="mt-4">{recall}</BigText>
+              <BigText className="mt-4">{frTypo(recall)}</BigText>
             </>
           )}
           <div className="mt-10">
@@ -479,11 +489,11 @@ export function ActivityMode({
         <>
           <p className="nc-eyebrow">En voiture</p>
           <p className="mt-3 text-[20px] leading-[1.45] text-ink">
-            Lisez les étapes maintenant. Pendant la route, posez le téléphone : tout se fait à voix haute.
+            Lis les étapes maintenant. Pendant la route, pose le téléphone : tout se fait à voix haute.
           </p>
           <div className="nc-card mt-6">
-            <p className="text-[15px] text-soft mb-2">Dites :</p>
-            <p className="font-display text-[22px] leading-[1.3] text-ink">{r.opener}</p>
+            <p className="text-[15px] text-soft mb-2">Dis :</p>
+            <p className="font-display text-[22px] leading-[1.3] text-ink">{frTypo(r.opener)}</p>
           </div>
           <ol className="mt-5 space-y-3">
             {r.screen_steps.map((s, i) => (
@@ -523,8 +533,8 @@ export function ActivityMode({
               </p>
             </details>
           )}
-          <p className="mt-8 text-[18px] text-soft">Pour commencer, dites :</p>
-          <BigText className="mt-3 !text-[34px] md:!text-[46px]">{r.opener}</BigText>
+          <p className="mt-8 text-[18px] text-soft">Pour commencer, dis :</p>
+          <BigText className="mt-3 !text-[34px] md:!text-[46px]">{frTypo(r.opener)}</BigText>
           <p className="mt-6 text-[15px] leading-[1.5] text-soft">
             Le minuteur démarre sur {r.duration} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
           </p>
@@ -572,8 +582,8 @@ export function ActivityMode({
                       <div key={k} ref={isLast ? setLast : undefined} className="motion-safe:animate-om-up">
                         {beat.kind === 'dire' ? (
                           <div className={`rounded-[20px] p-4 ${isLast && current ? 'bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] ring-2 ring-accent' : 'bg-surface-sub'}`}>
-                            <p className="text-[13px] font-bold uppercase tracking-wide text-accent-ink">Dites</p>
-                            <p className="mt-1 font-display text-[22px] md:text-[26px] leading-[1.3] text-ink">{beat.text}</p>
+                            <p className="text-[13px] font-bold uppercase tracking-wide text-accent-ink">Dis</p>
+                            <p className="mt-1 font-display text-[22px] md:text-[26px] leading-[1.3] text-ink">{frTypo(beat.text)}</p>
                           </div>
                         ) : (
                           <div className="flex gap-3 px-1">
@@ -644,7 +654,7 @@ export function ActivityMode({
 
           {/* Barre d'action collée en bas : toujours au pouce */}
           <div className="fixed inset-x-0 bottom-0 z-[75] bg-[color-mix(in_srgb,var(--bg)_94%,transparent)] backdrop-blur border-t border-line safe-bottom">
-            <div className="max-w-2xl mx-auto px-5 md:px-8 py-3 flex items-center gap-2">
+            <div className="max-w-2xl mx-auto px-5 max-[380px]:px-4 md:px-8 py-3 flex items-center gap-2">
               {revealed > 1 && (
                 <button type="button" onClick={prevBeat} className="nc-iconbtn shrink-0" aria-label="Revenir d’un cran">
                   <Icon name="chevron-right" className="w-5 h-5 rotate-180" />
@@ -656,15 +666,22 @@ export function ActivityMode({
                 <PrimaryButton onClick={finishActivity}>Terminer l’activité</PrimaryButton>
               ) : (
                 <>
-                  <button type="button" onClick={finishActivity} className="min-h-[48px] px-2 text-[14px] font-semibold text-soft hover:text-ink shrink-0">
+                  <button type="button" onClick={finishActivity} className="min-h-[48px] px-2 max-[380px]:px-1 text-[14px] font-semibold text-soft hover:text-ink shrink-0">
                     Terminer
                   </button>
                   <button
                     type="button"
                     onClick={nextBeat}
-                    className="shrink-0 h-[52px] px-5 rounded-full bg-accent text-accent-on font-bold text-[16px] inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform motion-reduce:transition-none"
+                    className="shrink-0 h-[52px] px-5 max-[380px]:px-4 rounded-full bg-accent text-accent-on font-bold text-[16px] inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform motion-reduce:transition-none"
                   >
-                    {nextIsNewStep ? 'Étape suivante' : 'Suivant'}
+                    {nextIsNewStep ? (
+                      <>
+                        <span className="max-[380px]:hidden">Étape suivante</span>
+                        <span className="min-[381px]:hidden">Suivant</span>
+                      </>
+                    ) : (
+                      'Suivant'
+                    )}
                     <Icon name="chevron-right" className="w-5 h-5" />
                   </button>
                 </>
@@ -693,7 +710,7 @@ export function ActivityMode({
                     Question {i + 1} sur {r.debrief.length} · {DEBRIEF.labels[q.kind]}
                   </p>
                   <p className={`mt-3 font-display leading-[1.25] text-ink text-balance ${current ? 'text-[28px] md:text-[36px]' : 'text-[20px]'}`}>
-                    {q.question}
+                    {frTypo(q.question)}
                   </p>
                   {answerOpen[i] || answers[i] ? (
                     <textarea
@@ -741,8 +758,8 @@ export function ActivityMode({
     case 'cloture':
       body = (
         <>
-          <p className="text-[18px] text-soft">Pour finir, dites :</p>
-          <BigText className="mt-3 !text-[34px] md:!text-[46px]">{r.closing}</BigText>
+          <p className="text-[18px] text-soft">Pour finir, dis :</p>
+          <BigText className="mt-3 !text-[34px] md:!text-[46px]">{frTypo(r.closing)}</BigText>
           <div className="mt-10">
             <PrimaryButton onClick={() => setScreen({ t: 'minutes' })}>C’est dit</PrimaryButton>
           </div>
@@ -754,7 +771,7 @@ export function ActivityMode({
       body = (
         <div className="min-h-[60dvh] grid place-items-center text-center">
           <BigText>
-            {fill(CLOSING_SCREEN, { minutes: Math.max(1, Math.round(elapsed / 60)), prenom: firstName })}
+            {closingLine(Math.max(1, Math.round(elapsed / 60)), firstName)}
           </BigText>
         </div>
       );

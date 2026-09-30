@@ -222,11 +222,11 @@
   }
   /* Transition de page façon iOS : fondu + léger glissement à chaque onglet */
   .animate-page-in {
-    animation: page-in var(--dur-slow) var(--ease-out) both;
+    animation: page-in var(--dur-slow) var(--ease-out) backwards;
   }
   /* Entrée en cascade « Nuit calme » : --om-d porte le retard de l'élément. */
   .animate-om-up {
-    animation: om-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) both var(--om-d, 0s);
+    animation: om-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) backwards var(--om-d, 0s);
   }
   .animate-om-fade {
     animation: om-fade 0.5s ease both var(--om-d, 0s);
@@ -365,7 +365,11 @@
 }
 
 /* Entrée d'onglet : 30 px dans le SENS DU GESTE (--sc-from), fondu, courbe iOS.
-   L'écran sortant est démonté — un seul écran vit à la fois. */
+   L'écran sortant est démonté — un seul écran vit à la fois.
+   Entrées en `backwards`, jamais `both` : garder la dernière image laisserait
+   une transformation (même nulle) sur l'écran, qui deviendrait alors le repère
+   des éléments `position: fixed` qu'il contient (barre d'actions de la fiche
+   Maison, collée en bas de page au lieu du bas de l'écran). */
 @keyframes sc-swap {
   from {
     opacity: 0;
@@ -467,13 +471,13 @@
     animation: menu-in var(--dur-fast) var(--ease-out) both;
   }
   .animate-msg-in {
-    animation: msg-in var(--dur-slow) var(--ease-out) both;
+    animation: msg-in var(--dur-slow) var(--ease-out) backwards;
   }
   .animate-bub-in {
-    animation: bub-in 0.3s ease both;
+    animation: bub-in 0.3s ease backwards;
   }
   .animate-sc-swap {
-    animation: sc-swap 0.28s var(--ease-out) both;
+    animation: sc-swap 0.28s var(--ease-out) backwards;
   }
 }
 

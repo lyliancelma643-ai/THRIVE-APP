@@ -7,6 +7,7 @@ import { P3ContentSchema } from '../../../../../packages/shared/src/validation/p
 import {
   NUDGES,
   P3_ACTIVITIES,
+  P3_WEEKS,
   REWARDS,
   activitiesOfWeek,
   bandForAge,
@@ -23,6 +24,9 @@ import {
   momentsPhrase,
   newlyEarned,
   pickTonight,
+  plainAction,
+  plainSession,
+  recallLine,
   renderNudge,
   renderOpener,
   resolveActivity,
@@ -382,7 +386,7 @@ describe('programme et carte du soir', () => {
     const moments = cores.map((a, i) => m(a.id, `2026-10-1${i % 5}T19:00:00`));
     const pick = pickTonight({ ...base, moments, pool })!;
     expect(pick.activity.id).toBe('ACT-0204');
-    expect(pick.reason).toBe('Pour aller plus loin : votre semaine 2 est faite.');
+    expect(pick.reason).toBe('Pour aller plus loin : ta semaine 2 est faite.');
   });
 
   it('le bonus n’est proposé de lui-même que le week-end', () => {
@@ -400,7 +404,7 @@ describe('programme et carte du soir', () => {
     expect(pickTonight({ ...base, moments: [] })!.activity.id).toBe('ACT-0101');
     const pick = pickTonight({ ...base, moments: [m('ACT-0101', '2026-10-14T19:00:00')] })!;
     expect(pick.activity.id).toBe('ACT-0102');
-    expect(pick.reason).toBe('La suite de votre semaine 1.');
+    expect(pick.reason).toBe('La suite de ta semaine 1.');
   });
 
   it('en voiture : uniquement des fiches verbales', () => {
@@ -432,5 +436,28 @@ describe('textes d’accompagnement', () => {
   it('P3_ACTIVITIES exposé à l’app : 39 cœur + 13 compléments + 1 bonus', () => {
     expect(P3_ACTIVITIES).toHaveLength(53);
     expect(P3_ACTIVITIES.filter((a) => a.programme === 'coeur')).toHaveLength(39);
+  });
+});
+
+describe('libellés pour les parents', () => {
+  it('reformule la séance source sans code', () => {
+    expect(plainSession('S3 — Confiance / courage')).toBe('Séance 3 · Confiance / courage');
+    expect(plainSession('Hors format')).toBe('Hors format');
+  });
+  it("retire le code de l'axe, et rien pour « — »", () => {
+    expect(plainAction('A3 — Confiance par la progression maîtrisée')).toBe('Confiance par la progression maîtrisée');
+    expect(plainAction('Évaluation')).toBe('Évaluation');
+    expect(plainAction('—')).toBeNull();
+    expect(plainAction(undefined)).toBeNull();
+  });
+  it('aucune donnée du programme ne garde de code à l’écran', () => {
+    for (const w of P3_WEEKS) {
+      expect(plainSession(w.session_source)).not.toMatch(/^S\d/);
+      expect(plainAction(w.action) ?? '').not.toMatch(/^A\d/);
+    }
+  });
+  it('ne double pas la ponctuation après une citation', () => {
+    expect(recallLine('Léo', 'Un bon objectif dépend de moi.')).toBe('La dernière fois, Léo avait dit « Un bon objectif dépend de moi. »');
+    expect(recallLine('Léo', 'La patience')).toBe('La dernière fois, Léo avait dit « La patience ».');
   });
 });

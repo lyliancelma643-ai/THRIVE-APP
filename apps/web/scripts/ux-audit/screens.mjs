@@ -63,6 +63,7 @@ export const SCREENS = [
   { role: P, id: 'maison-objet', path: '/parent/fitness/objets/fiche_identite' },
   { role: P, id: 'maison-quand-il-dit-non', path: '/parent/fitness/quand-il-dit-non' },
   { role: P, id: 'maison-sources', path: '/parent/fitness/sources' },
+  { role: P, id: 'maison-quand-consulter', path: '/parent/fitness/quand-consulter' },
   { role: P, id: 'seances-video', path: '/parent/fitness/seances', main: true, ...both },
   { role: P, id: 'lecteur-seance', path: `/parent/session/${V1}`, ...both },
   { role: P, id: 'messagerie', path: '/parent/messages', ...both },

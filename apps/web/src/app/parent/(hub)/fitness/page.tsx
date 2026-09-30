@@ -39,6 +39,7 @@ import {
   REWARDS,
   getActivity,
   getWeek,
+  isVisible,
   pickTonight,
   type Duration,
   type P3Activity,
@@ -54,7 +55,7 @@ import {
   formatLongDate,
   p3Pool,
 } from '@/lib/p3-moments/app';
-import { buildShelves } from '@/lib/p3-moments/shelves';
+import { buildShelves, type Shelf } from '@/lib/p3-moments/shelves';
 
 type PlaceChoice = (typeof PLACE_CHOICES)[number]['id'];
 
@@ -75,7 +76,7 @@ function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => vo
     </>,
     <>
       <p className="font-display text-[28px] md:text-[36px] leading-[1.25] text-ink">
-        « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
+        « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
       </p>
       <p className="mt-4 text-[17px] leading-[1.55] text-body">Voilà la phrase qui ouvre tout. Tu la diras souvent.</p>
     </>,
@@ -192,6 +193,80 @@ function Bilan4Semaines({ ctx }: { ctx: P3Ctx }) {
 // L'affiche du soir (pickTonight) se lance en 1 tap ; chaque rangée porte son
 // message de recommandation ; « Toutes les activités » ouvre le catalogue trié
 // par âge. Trois taps au plus pour lancer n'importe quelle fiche.
+// Rangées « par situation » regroupées derrière un sélecteur, avec leur libellé court.
+const SITUATION_SHELVES: Record<string, string> = {
+  rien: 'Rien à préparer',
+  a_plat: 'Soir à plat',
+  non: 'Il dit non',
+  voiture: 'En voiture',
+  bouger: 'Bouger',
+  trente: '30 minutes',
+  bonus: 'Week-end',
+};
+
+/**
+ * Plusieurs rangées sous un seul titre : une pastille par rangée, une seule
+ * rangée affichée à la fois (état purement visuel, rien n'est retiré).
+ */
+function ShelfPicker({
+  title,
+  shelves,
+  labelOf,
+  hrefOf,
+  isDone,
+  more,
+}: {
+  title: string;
+  shelves: Shelf[];
+  labelOf: (s: Shelf) => string;
+  hrefOf: (a: P3Activity) => string;
+  isDone: (a: P3Activity) => boolean;
+  more: { href: string; label: string };
+}) {
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  if (shelves.length === 0) return null;
+  const current = shelves.find((s) => s.id === selectedId) ?? shelves[0];
+  return (
+    <section className="mt-10 animate-om-up" aria-label={title}>
+      <div className="flex items-start justify-between gap-3">
+        <h2 className="min-w-0 font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2]">{title}</h2>
+        <Link href={more.href} className="shrink-0 -my-[10px] inline-flex items-center gap-1 min-h-[44px] text-[14px] font-semibold text-accent-ink">
+          {more.label}
+          <Icon name="chevron-right" className="w-4 h-4" />
+        </Link>
+      </div>
+      <div
+        role="group"
+        aria-label={`${title} : choisir une rangée`}
+        className="mt-3 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0 md:flex-wrap"
+      >
+        {shelves.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            aria-pressed={s.id === current.id}
+            onClick={() => setSelectedId(s.id)}
+            className="nc-pill shrink-0 select-none"
+          >
+            {labelOf(s)}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-[14px] text-soft text-pretty max-w-prose">{current.subtitle}</p>
+      <PosterRow
+        key={current.id}
+        id={current.id}
+        title={current.title}
+        subtitle={current.subtitle}
+        items={current.items}
+        hrefOf={hrefOf}
+        isDone={isDone}
+        headerless
+      />
+    </section>
+  );
+}
+
 const HERO_VEIL = 'linear-gradient(to top, rgba(6,22,30,.97) 0%, rgba(6,22,30,.78) 42%, rgba(6,22,30,.1) 100%)';
 
 function Home({ ctx }: { ctx: P3Ctx }) {
@@ -223,6 +298,8 @@ function Home({ ctx }: { ctx: P3Ctx }) {
   };
 
   const all = useMemo(() => p3Pool(), []);
+  // Même décompte que le catalogue (« Toutes les activités ») : les activités déjà ouvertes.
+  const catalogueCount = useMemo(() => all.filter((x) => isVisible(x, data.openWeek)).length, [all, data.openWeek]);
   const pool = useMemo(
     () => all.filter((a) => !evening.excluded.includes(a.id) && !data.saved.deCote.has(a.id)),
     [all, evening.excluded, data.saved.deCote]
@@ -336,7 +413,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
             else router.push(ficheHref(a));
           }}
         >
-          <PosterArt activity={a} big />
+          <PosterArt activity={a} big hideMotifOnPhone={!!vignetteSrc(a.id)} />
           <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
           {/* La vignette mascotte, entière, hors du voile : au-dessus du texte sur mobile, à droite sur grand écran */}
           {vignetteSrc(a.id) && (
@@ -428,7 +505,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       )}
 
       {firstMoment && (
-        <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
+        <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
       )}
 
       {/* Ce soir : temps et lieu — règlent l'affiche et les liens de toutes les rangées */}
@@ -451,7 +528,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       <nav {...shortcuts.props} aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
         <Link href={`${P3_BASE}/toutes`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center gap-1.5 !bg-accent !border-accent !text-accent-on font-semibold">
           <Icon name="grid" className="w-4 h-4" />
-          Toutes les activités · {all.length}
+          Toutes les activités · {catalogueCount}
         </Link>
         <Link href={`${P3_BASE}/programme`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
           Le programme
@@ -481,26 +558,47 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         )}
       </section>
 
-      {/* Les rangées */}
-      {shelves.map((s) => (
-        <PosterRow
-          key={s.id}
-          id={s.id}
-          title={s.title}
-          subtitle={s.subtitle}
-          items={s.items}
-          hrefOf={ficheHref}
-          isDone={isDone}
-          more={s.id === 'semaine' ? { href: `${P3_BASE}/programme`, label: 'Le programme' } : s.id.startsWith('phase-') ? undefined : { href: `${P3_BASE}/toutes`, label: 'Tout voir' }}
-        />
-      ))}
+      {/* Les rangées : d'abord celles qui parlent de cette semaine et de l'enfant,
+          puis deux sélecteurs compacts (par situation, par étape) qui montrent
+          une rangée à la fois au lieu de dix — l'accueil passe de ~9 à ~5
+          écrans sur iPhone, sans retirer aucune activité. */}
+      {shelves
+        .filter((s) => !SITUATION_SHELVES[s.id] && !s.id.startsWith('phase-'))
+        .map((s) => (
+          <PosterRow
+            key={s.id}
+            id={s.id}
+            title={s.title}
+            subtitle={s.subtitle}
+            items={s.items}
+            hrefOf={ficheHref}
+            isDone={isDone}
+            more={s.id === 'semaine' ? { href: `${P3_BASE}/programme`, label: 'Le programme' } : { href: `${P3_BASE}/toutes`, label: 'Tout voir' }}
+          />
+        ))}
+      <ShelfPicker
+        title="Selon ton moment"
+        shelves={shelves.filter((s) => SITUATION_SHELVES[s.id])}
+        labelOf={(s) => SITUATION_SHELVES[s.id]}
+        hrefOf={ficheHref}
+        isDone={isDone}
+        more={{ href: `${P3_BASE}/toutes`, label: 'Tout voir' }}
+      />
+      <ShelfPicker
+        title="Tout le parcours"
+        shelves={shelves.filter((s) => s.id.startsWith('phase-'))}
+        labelOf={(s) => s.title.split(' · ')[0]}
+        hrefOf={ficheHref}
+        isDone={isDone}
+        more={{ href: `${P3_BASE}/programme`, label: 'Le programme' }}
+      />
 
       <Link
         href={`${P3_BASE}/toutes`}
         className="mt-10 flex items-center justify-center gap-2 h-[56px] rounded-full border border-line2 text-[16px] font-semibold text-ink max-w-md"
       >
         <Icon name="grid" className="w-5 h-5" />
-        Voir les {all.length} activités, triées par âge
+        Voir les {catalogueCount} activités, triées par âge
       </Link>
 
       <div className="max-w-2xl">
