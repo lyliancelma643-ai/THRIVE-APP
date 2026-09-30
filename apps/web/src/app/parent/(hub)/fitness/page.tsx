@@ -523,8 +523,12 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           { href: `${P3_BASE}/programme`, icon: 'compass' as const, label: 'Le programme' },
           { href: `${P3_BASE}/carnet`, icon: 'book' as const, label: 'Le carnet' },
           { href: `${P3_BASE}/quand-il-dit-non`, icon: 'message' as const, label: PAGE_NON.title },
-        ].map((d) => (
-          <Link key={d.href} href={d.href} className="nc-row flex items-center gap-3 min-h-[76px] px-4 py-3.5 rounded-[22px]">
+        ].map((d, i) => (
+          <Link
+            key={d.href}
+            href={d.href}
+            className={`nc-row ${i === 0 ? 'mat-felt-strong' : 'mat-felt'} flex items-center gap-3 min-h-[76px] px-4 py-3.5 rounded-[22px]`}
+          >
             <span aria-hidden className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-sage/15 text-sage-ink">
               <Icon name={d.icon} className="w-5 h-5" />
             </span>
@@ -534,7 +538,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       </nav>
 
       {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » ; la semaine = trois étoiles */}
-      <section aria-label="Ta semaine" className="nc-card mt-8 max-w-md text-center flex flex-col items-center gap-3.5 !px-5 !py-6">
+      <section aria-label="Ta semaine" className="nc-card mat-velvet mt-8 max-w-md text-center flex flex-col items-center gap-3.5 !px-5 !py-6">
         {data.countPhrase && <p className="font-display text-[30px] font-medium text-ink leading-[1.12]">{data.countPhrase}</p>}
         <div className="flex gap-4 mt-1" role="img" aria-label={`${Math.min(data.week.done, 3)} sur 3 cette semaine`}>
           {[0, 1, 2].map((i) =>
@@ -609,7 +613,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           <h2 className="font-display text-[20px] md:text-[22px] font-semibold text-ink mb-3">Le carnet</h2>
           <ul className="grid gap-3 sm:grid-cols-3">
             {data.carnet.slice(0, 3).map((m) => (
-              <li key={`${m.activity_id}-${m.created_at}`} className="maison-paper rounded-[20px] p-4">
+              <li key={`${m.activity_id}-${m.created_at}`} className="maison-paper mat-laid rounded-[20px] p-4">
                 <p className="font-display italic text-[13px] text-[color:var(--paper-ink)] first-letter:uppercase">{formatLongDate(m.created_at)}</p>
                 <p className="mt-1 text-[15px] font-bold text-ink">{getActivity(m.activity_id)?.title}</p>
                 <p className="mt-1.5 font-display text-[16px] leading-[1.35] text-ink line-clamp-3">
