@@ -54,6 +54,8 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const active = activeTabIndex(pathname);
+  // Direction « Soir de famille » : l'onglet Maison (hors séances vidéo) a sa propre matière.
+  const maison = pathname.startsWith('/parent/fitness') && !pathname.startsWith('/parent/fitness/seances');
   const { access, isLoading: accessLoading, refresh } = useAccessStore();
   const unreadMessages = useUnreadMessages();
 
@@ -100,7 +102,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   return (
     // « Nuit calme » ou « Jour clair » : un aplat unique, ni dégradé ni halo. La
     // profondeur vient du seul contraste entre le fond et les cartes.
-    <div className="min-h-dvh bg-night-bg text-night-body">
+    <div className="min-h-dvh bg-night-bg text-night-body" data-surface={maison ? 'maison' : undefined}>
       {/* Barre haute posée à même le fond : logo + enfant à gauche, actions à
           droite. Plus de carte de verre — juste un filet en bas au défilement. */}
       <header className="sticky top-0 z-header bg-night-bg safe-top">
@@ -208,7 +210,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
           glissante — un filet de 2 px se déplace sous l'onglet actif. */}
       <nav
         aria-label="Navigation principale"
-        className="lg:hidden fixed bottom-0 inset-x-0 z-nav border-t border-line"
+        className="tabbar lg:hidden fixed bottom-0 inset-x-0 z-nav border-t border-line"
         style={{
           background: 'var(--tab)',
           boxShadow: 'var(--tab-shadow)',

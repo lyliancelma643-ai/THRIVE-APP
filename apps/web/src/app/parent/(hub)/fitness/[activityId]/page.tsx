@@ -30,8 +30,7 @@ import {
 import { PILLAR_PLAIN, ROLE_LABELS } from '@/lib/p3-moments/guide';
 import { timerSummary } from '@/components/parent/p3/StepTimer';
 import { VISUAL_LABELS } from '@/components/parent/p3/Visuals';
-import { Vignette } from '@/components/parent/p3/Poster';
-import { vignetteSrc } from '@/components/parent/p3/vignettes';
+import { Arch } from '@/components/parent/p3/Arch';
 import { BAND_LABELS } from '@/lib/p3-moments/shelves';
 import { P3_BASE, p3Pool, parseBand, parseDuration, parsePlace } from '@/lib/p3-moments/app';
 
@@ -66,7 +65,6 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
   const after = activity.after ? getActivity(activity.after) : null;
   const fav = ctx.data.saved.favoris.has(activity.id);
   const aside = ctx.data.saved.deCote.has(activity.id);
-  const vignette = vignetteSrc(activity.id);
   const launchHref = `${P3_BASE}/${activity.id}/moment?duree=${r.duration}&lieu=${place}${bandOverride ? `&bande=${ctx.band}` : ''}`;
 
   const copy = async () => {
@@ -97,7 +95,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
             ? 'Bonus · hors programme'
             : `Semaine ${activity.week} · ${activity.programme === 'complement' ? 'Pour aller plus loin · ' : ''}${ROLE_LABELS[activity.role]}`}
         </p>
-        <h1 className="font-display text-[32px] md:text-[40px] leading-[1.12] font-semibold text-ink mt-2">
+        <h1 className="font-display text-[35px] md:text-[44px] leading-[1.05] font-medium text-ink mt-2 text-balance">
           {activity.title}
         </h1>
         <p className="text-[15px] text-soft mt-1.5">{activity.subtitle}</p>
@@ -111,10 +109,8 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </p>
         )}
 
-        {/* La vignette mascotte : l'enfant comprend l'activité sans lire son but */}
-        {vignette && (
-          <Vignette src={vignette} className="mt-5 w-full max-w-[360px] lg:max-w-none aspect-square rounded-[24px] ring-1 ring-line2" />
-        )}
+        {/* L'arche : la scène animée de l'activité + la mascotte. L'enfant comprend l'activité sans lire son but. */}
+        <Arch activityId={activity.id} className="mt-6 w-[min(330px,86vw)] lg:w-full lg:max-w-[400px] mx-auto lg:mx-0" />
       </div>
 
       <div className="min-w-0 lg:max-w-2xl lg:pt-[52px]">
@@ -209,8 +205,16 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
                   <InlineMd text={s} />
                   {(activity.guide[i]?.timer || activity.guide[i]?.visual) && (
                     <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold text-accent-ink">
-                      {activity.guide[i].timer && <span>⏱ Minuteur {timerSummary(activity.guide[i].timer!)}</span>}
-                      {activity.guide[i].visual && <span>👁 À montrer : {VISUAL_LABELS[activity.guide[i].visual!]}</span>}
+                      {activity.guide[i].timer && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon name="timer" className="w-4 h-4" /> Minuteur {timerSummary(activity.guide[i].timer!)}
+                        </span>
+                      )}
+                      {activity.guide[i].visual && (
+                        <span className="inline-flex items-center gap-1.5">
+                          <Icon name="eye" className="w-4 h-4" /> À montrer : {VISUAL_LABELS[activity.guide[i].visual!]}
+                        </span>
+                      )}
                     </span>
                   )}
                 </span>

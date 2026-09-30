@@ -43,7 +43,10 @@ export type IconName =
   | 'close'
   | 'expand'
   | 'arrow-left'
-  | 'refresh';
+  | 'refresh'
+  | 'timer'
+  | 'eye'
+  | 'book';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -128,6 +131,24 @@ const PATHS: Record<IconName, React.ReactNode> = {
   flag: <path d="M5 21V4m0 1h12l-2.5 4L17 13H5" />,
   // ◈ Bilan/Résumé → étincelle (registre « premium » Apple Forme)
   sparkle: <path d="M12 3c.5 3.8 1.7 5 5.5 5.5-3.8.5-5 1.7-5.5 5.5-.5-3.8-1.7-5-5.5-5.5C10.3 8 11.5 6.8 12 3Z" />,
+  timer: (
+    <>
+      <circle cx="12" cy="13.5" r="7" />
+      <path d="M12 9.5v4l2.5 1.5M9.5 3.5h5" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z" />
+      <circle cx="12" cy="12" r="2.8" />
+    </>
+  ),
+  book: (
+    <>
+      <path d="M5 4.5h10a3 3 0 0 1 3 3V20H8a3 3 0 0 1-3-3z" />
+      <path d="M8 17h10" />
+    </>
+  ),
   // ★ Mes séances / Mes athlètes → étoile
   star: <path d="M12 3.5l2.6 5.35 5.9.86-4.27 4.16 1.01 5.88L12 17.02l-5.25 2.79 1.01-5.88L3.5 9.71l5.9-.86z" />,
   // ▦ Fitness → grille de quatre tuiles
@@ -199,17 +220,19 @@ export function Icon({
   name,
   className = 'w-5 h-5',
   strokeWidth = 1.9,
+  fill = 'none',
   title,
 }: {
   name: IconName;
   className?: string;
   strokeWidth?: number;
+  fill?: string;
   title?: string;
 }) {
   return (
     <svg
       viewBox="0 0 24 24"
-      fill="none"
+      fill={fill}
       stroke="currentColor"
       strokeWidth={strokeWidth}
       strokeLinecap="round"
