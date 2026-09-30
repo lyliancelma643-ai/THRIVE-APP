@@ -20,6 +20,7 @@ import { ChildSwitcher } from '@/components/parent/ChildSwitcher';
 import { NotificationsBell } from '@/components/parent/NotificationsBell';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { AmbianceToggle } from '@/components/parent/AmbianceToggle';
+import { LiquidTabBar } from '@/components/parent/LiquidTabBar';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
@@ -70,14 +71,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const tabOpen = (i: number) => !locked || i === 0 || i === MAISON_TAB;
 
   // Sens de la dernière navigation : l'écran entrant glisse depuis ce côté.
-  const [enterFrom, setEnterFrom] = useState(30);
+  const [enterFrom, setEnterFrom] = useState(44);
   const lastTab = useRef(active);
 
   const goToTab = useCallback(
     (next: number, direction: 1 | -1) => {
       const target = TABS[next];
       if (!target || !tabOpen(next)) return;
-      setEnterFrom(direction === 1 ? 30 : -30);
+      setEnterFrom(direction === 1 ? 44 : -44);
       router.push(target.href);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -139,7 +140,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <Link
                   key={tab.href}
                   href={tab.href}
-                  onClick={() => setEnterFrom(i > active ? 30 : -30)}
+                  onClick={() => setEnterFrom(i > active ? 44 : -44)}
                   aria-current={active === i ? 'page' : undefined}
                   className={`relative inline-flex items-center justify-center gap-2 h-11 w-[150px] rounded-full text-sm font-semibold transition-colors duration-base ${
                     active === i ? 'text-ink' : 'text-soft hover:text-ink'
@@ -213,64 +214,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* Barre d'onglets : la même capsule de verre sur Bilan, Mes séances et Maison ;
-          un repère glisse sous l'onglet actif. */}
-      <nav
-        aria-label="Navigation principale"
-        className="tabbar lg:hidden fixed bottom-0 inset-x-0 z-nav border-t border-line"
-        style={{
-          background: 'var(--tab)',
-          boxShadow: 'var(--tab-shadow)',
-          paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
-        }}
-      >
-        <div className="relative max-w-md mx-auto select-none">
-          {/* Le repère glisse sous l'onglet actif (320 ms, courbe « ressort »). */}
-          <span
-            aria-hidden
-            className="nav-pill tab-pill absolute left-0 top-1.5 h-[52px] rounded-full"
-            style={{
-              width: `${100 / TABS.length}%`,
-              transform: `translateX(${(active < 0 ? 0 : active) * 100}%)`,
-              opacity: active < 0 ? 0 : 1,
-            }}
-          />
-          <div className="grid grid-cols-3">
-            {TABS.map((tab, i) =>
-              // Compte en préparation : hors onglets (active < 0), Bilan reste
-              // cliquable pour ne jamais enfermer l'utilisateur.
-              !tabOpen(i) && active !== i ? (
-                // Compte en préparation : les autres sections restent visibles
-                // mais non cliquables (aperçu de ce qui attend l'utilisateur)
-                <span
-                  key={tab.href}
-                  aria-disabled
-                  title="Disponible après l'activation par ton coach"
-                  className="relative flex flex-col items-center justify-center gap-1 h-[52px] text-faint cursor-not-allowed"
-                >
-                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
-                  <span className="text-xs font-semibold">{tab.label}</span>
-                </span>
-              ) : (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  onClick={() => setEnterFrom(i > active ? 30 : -30)}
-                  aria-current={active === i ? 'page' : undefined}
-                  className="relative flex flex-col items-center justify-center gap-1 h-[52px] active:scale-95"
-                  style={{
-                    color: active === i ? 'var(--nav-active)' : 'var(--text3)',
-                    transition: 'color var(--dur-base) ease',
-                  }}
-                >
-                  <Icon name={tab.icon} fill={active === i ? 'currentColor' : 'none'} className="w-[22px] h-[22px]" />
-                  <span className="text-xs font-semibold">{tab.label}</span>
-                </Link>
-              )
-            )}
-          </div>
-        </div>
-      </nav>
+      {/* Barre d'onglets « verre liquide » : toucher, maintenir, glisser — la page suit. */}
+      <LiquidTabBar
+        tabs={TABS}
+        active={active}
+        tabOpen={tabOpen}
+        onNavigate={goToTab}
+        onTap={(i) => setEnterFrom(i > active ? 44 : -44)}
+      />
     </div>
   );
 }
