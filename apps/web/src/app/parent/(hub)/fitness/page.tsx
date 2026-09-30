@@ -17,7 +17,8 @@ import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
-import { DurationPills, PillGroup } from '@/components/parent/p3/pieces';
+import { PillGroup } from '@/components/parent/p3/pieces';
+import { TonightSettings } from '@/components/parent/p3/TonightSettings';
 import { PosterRow } from '@/components/parent/p3/Poster';
 import { Arch } from '@/components/parent/p3/Arch';
 import { usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
@@ -493,10 +494,16 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
       )}
 
-      {/* Ce soir : temps et lieu — règlent l'affiche et les liens de toutes les rangées */}
-      <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2.5">
-        <DurationPills value={duration} available={DURATIONS} onChange={chooseDuration} />
-        <PillGroup label="Lieu" value={place} options={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))} onChange={setPlace} />
+      {/* Ce soir : temps et lieu — une seule puce, règle l'affiche et les liens de toutes les rangées */}
+      <div className="mt-6 flex justify-center md:justify-start md:px-10 lg:px-16">
+        <TonightSettings
+          duration={duration}
+          durations={DURATIONS}
+          onDuration={chooseDuration}
+          place={place}
+          places={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))}
+          onPlace={(p) => setPlace(p as PlaceChoice)}
+        />
       </div>
       {place === 'voiture' && (
         <p className="mt-2 text-[14px] text-soft">À lire avant de partir. Pendant la route, tout se fait à voix haute.</p>
