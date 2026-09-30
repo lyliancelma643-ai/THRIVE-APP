@@ -5,7 +5,7 @@ import { AccountSync } from '@/components/AccountSync';
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
-const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display' });
+const fraunces = Fraunces({ subsets: ['latin'], variable: '--font-display', axes: ['opsz', 'SOFT'] });
 
 export const viewport: Viewport = {
   width: 'device-width',

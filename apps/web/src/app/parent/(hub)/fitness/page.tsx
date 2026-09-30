@@ -17,9 +17,10 @@ import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
-import { DurationPills, PillGroup } from '@/components/parent/p3/pieces';
-import { PosterArt, PosterRow, Vignette } from '@/components/parent/p3/Poster';
-import { vignetteSrc } from '@/components/parent/p3/vignettes';
+import { PillGroup } from '@/components/parent/p3/pieces';
+import { TonightSettings } from '@/components/parent/p3/TonightSettings';
+import { PosterRow } from '@/components/parent/p3/Poster';
+import { Arch } from '@/components/parent/p3/Arch';
 import { usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
 import { useHScroll } from '@/components/parent/p3/useHScroll';
 import {
@@ -267,8 +268,6 @@ function ShelfPicker({
   );
 }
 
-const HERO_VEIL = 'linear-gradient(to top, rgba(6,22,30,.97) 0%, rgba(6,22,30,.78) 42%, rgba(6,22,30,.1) 100%)';
-
 function Home({ ctx }: { ctx: P3Ctx }) {
   const router = useRouter();
   const { data, firstName, child } = ctx;
@@ -406,26 +405,13 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       {a && pick ? (
         <section
           ref={heroRef}
-          className="relative rounded-[26px] overflow-hidden flex flex-col justify-end min-h-[460px] md:min-h-[480px] md:h-[56dvh] cursor-pointer animate-om-up select-none [-webkit-touch-callout:none]"
+          className="relative flex flex-col items-center text-center md:flex-row-reverse md:items-center md:justify-between md:gap-12 md:text-left md:px-10 lg:px-16 pt-2 cursor-pointer animate-om-up select-none [-webkit-touch-callout:none]"
           onClick={() => {
             // Menu ouvert : toucher l'affiche referme le menu, sans ouvrir la fiche.
             if (menu) setMenu(false);
             else router.push(ficheHref(a));
           }}
         >
-          <PosterArt activity={a} big hideMotifOnPhone={!!vignetteSrc(a.id)} />
-          <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
-          {/* La vignette mascotte, entière, hors du voile : au-dessus du texte sur mobile, à droite sur grand écran */}
-          {vignetteSrc(a.id) && (
-            <div className="relative px-6 pt-6 md:p-0 md:absolute md:right-10 md:top-1/2 md:-translate-y-1/2">
-              <Vignette
-                priority
-                src={vignetteSrc(a.id)!}
-                className="w-[58%] max-w-[240px] md:w-[min(34vw,340px)] md:max-w-none aspect-square rounded-[22px] ring-1 ring-white/10 shadow-2xl"
-              />
-            </div>
-          )}
-
           <button
             type="button"
             aria-label="Plus d'options"
@@ -434,12 +420,12 @@ function Home({ ctx }: { ctx: P3Ctx }) {
               e.stopPropagation();
               setMenu((m) => !m);
             }}
-            className="absolute top-3 right-3 z-10 w-11 h-11 rounded-full bg-white/10 text-white text-[20px] leading-none grid place-items-center"
+            className="absolute top-0 right-0 z-10 w-11 h-11 rounded-full border border-line2 bg-chip text-ink text-[20px] leading-none grid place-items-center"
           >
             <span aria-hidden>…</span>
           </button>
           {menu && (
-            <div className="absolute right-3 top-16 z-20 nc-row p-1.5 min-w-[220px] ring-1 ring-line2" onClick={(e) => e.stopPropagation()} role="menu">
+            <div className="absolute right-0 top-14 z-20 nc-row p-1.5 min-w-[220px] ring-1 ring-line2" onClick={(e) => e.stopPropagation()} role="menu">
               {[
                 { id: 'PAS_LE_TEMPS' as const, label: 'Pas ce soir' },
                 { id: 'DE_COTE' as const, label: 'Mettre de côté' },
@@ -452,26 +438,26 @@ function Home({ ctx }: { ctx: P3Ctx }) {
             </div>
           )}
 
-          <div className="relative p-6 md:p-10 max-w-2xl">
-            <p className="text-sage text-[12px] font-bold uppercase tracking-[0.16em]">
+          {/* L'arche : la scène animée de cette activité + la mascotte */}
+          <Arch activityId={a.id} className="w-[min(312px,82vw)] md:w-[380px] lg:w-[420px] shrink-0 mt-9 md:mt-0" />
+
+          <div className="mt-7 md:mt-0 max-w-xl flex flex-col items-center md:items-start">
+            <p className="text-sage-ink text-[12px] font-bold uppercase tracking-[0.16em]">
               Recommandé pour {firstName} · {ROLE_LABELS[a.role]}
             </p>
-            <h1 className="font-display text-[34px] md:text-[48px] leading-[1.08] font-semibold text-white mt-2">{a.title}</h1>
-            <p className="mt-2 text-[16px] md:text-[18px] leading-[1.5] text-white/80">{a.objective}</p>
-            <p className="mt-3 inline-flex items-start gap-2 text-[15px] leading-[1.45] text-white">
-              <Icon name="sparkle" className="w-4 h-4 mt-[3px] shrink-0 text-accent" />
+            <h1 className="font-display text-[35px] md:text-[56px] lg:text-[68px] leading-[1.03] font-medium text-ink mt-3 text-balance">{a.title}</h1>
+            <p className="mt-3 inline-flex items-start gap-2 text-[15px] md:text-[18px] leading-[1.45] font-medium text-body max-w-[310px] md:max-w-none">
+              <Icon name="sparkle" className="w-4 h-4 mt-[3px] shrink-0 text-sage-ink" />
               {pick.reason}
             </p>
-            <ul className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[13px] text-white/70">
-              <li>{Math.min(duration, Math.max(...a.durations))} min</li>
-              <li>{a.materials.length ? a.materials.join(', ') : 'Rien à préparer'}</li>
-              <li>Énergie : {a.parent_energy}</li>
-            </ul>
-            <div className="mt-5 flex flex-wrap items-center gap-2.5">
+            <p className="mt-2.5 text-[13px] text-soft">
+              {Math.min(duration, Math.max(...a.durations))} min · {a.materials.length ? a.materials.join(', ') : 'Rien à préparer'} · Énergie : {a.parent_energy}
+            </p>
+            <div className="mt-5 flex w-full max-w-[440px] items-center gap-2.5">
               <Link
                 href={launchHref}
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-7 rounded-full bg-accent text-accent-on font-bold text-[16px]"
+                className="maison-launch flex-[1.5] inline-flex items-center justify-center gap-2.5 h-14 rounded-full text-accent-on font-bold text-[17px]"
               >
                 <Icon name="play" className="w-[18px] h-[18px]" />
                 Lancer
@@ -479,7 +465,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
               <Link
                 href={ficheHref(a)}
                 onClick={(e) => e.stopPropagation()}
-                className="inline-flex items-center justify-center gap-2 h-[52px] px-6 rounded-full bg-white/15 text-white font-semibold text-[16px]"
+                className="flex-1 inline-flex items-center justify-center h-14 rounded-full border border-line2 bg-chip text-ink font-semibold text-[16px]"
               >
                 Voir la fiche
               </Link>
@@ -508,10 +494,16 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
       )}
 
-      {/* Ce soir : temps et lieu — règlent l'affiche et les liens de toutes les rangées */}
-      <div className="mt-5 flex flex-col sm:flex-row sm:flex-wrap gap-2.5">
-        <DurationPills value={duration} available={DURATIONS} onChange={chooseDuration} />
-        <PillGroup label="Lieu" value={place} options={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))} onChange={setPlace} />
+      {/* Ce soir : temps et lieu — une seule puce, règle l'affiche et les liens de toutes les rangées */}
+      <div className="mt-6 flex justify-center md:justify-start md:px-10 lg:px-16">
+        <TonightSettings
+          duration={duration}
+          durations={DURATIONS}
+          onDuration={chooseDuration}
+          place={place}
+          places={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))}
+          onPlace={(p) => setPlace(p as PlaceChoice)}
+        />
       </div>
       {place === 'voiture' && (
         <p className="mt-2 text-[14px] text-soft">À lire avant de partir. Pendant la route, tout se fait à voix haute.</p>
@@ -524,38 +516,44 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         </Link>
       )}
 
-      {/* Raccourcis — la liberté totale à un tap */}
-      <nav {...shortcuts.props} aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
-        <Link href={`${P3_BASE}/toutes`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center gap-1.5 !bg-accent !border-accent !text-accent-on font-semibold">
-          <Icon name="grid" className="w-4 h-4" />
-          Toutes les activités · {catalogueCount}
-        </Link>
-        <Link href={`${P3_BASE}/programme`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
-          Le programme
-        </Link>
-        <Link href={`${P3_BASE}/carnet`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
-          Le carnet
-        </Link>
-        <Link href={`${P3_BASE}/quand-il-dit-non`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
-          {PAGE_NON.title}
-        </Link>
+      {/* Les quatre portes — la liberté totale à un tap */}
+      <nav aria-label="Parcourir" className="mt-8 grid grid-cols-2 gap-2.5 max-w-2xl">
+        {[
+          { href: `${P3_BASE}/toutes`, icon: 'grid' as const, label: `Toutes les activités` },
+          { href: `${P3_BASE}/programme`, icon: 'compass' as const, label: 'Le programme' },
+          { href: `${P3_BASE}/carnet`, icon: 'book' as const, label: 'Le carnet' },
+          { href: `${P3_BASE}/quand-il-dit-non`, icon: 'message' as const, label: PAGE_NON.title },
+        ].map((d) => (
+          <Link key={d.href} href={d.href} className="nc-row flex items-center gap-3 min-h-[76px] px-4 py-3.5 rounded-[22px]">
+            <span aria-hidden className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-sage/15 text-sage-ink">
+              <Icon name={d.icon} className="w-5 h-5" />
+            </span>
+            <span className="text-[15px] font-semibold leading-[1.25] text-ink text-balance">{d.label}</span>
+          </Link>
+        ))}
       </nav>
 
-      {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » */}
-      <section className="mt-7 max-w-md">
-        {data.countPhrase && <p className="font-display text-[26px] font-semibold text-ink leading-[1.15]">{data.countPhrase}</p>}
-        <div className="mt-2 flex items-center gap-3">
-          <div className="nc-track flex-1">
-            <div className="nc-fill bg-accent" style={{ width: `${(data.week.done / 3) * 100}%` }} />
-          </div>
-          {/* R3 : jamais de « 0 » — tant que rien n'est fait, l'objectif est dit comme une invitation. */}
-          <span className="text-[13px] text-soft shrink-0">
-            {data.week.done > 0 ? `${data.week.done} sur 3 cette semaine` : 'Trois moments cette semaine'}
-          </span>
+      {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » ; la semaine = trois étoiles */}
+      <section aria-label="Ta semaine" className="nc-card mt-8 max-w-md text-center flex flex-col items-center gap-3.5 !px-5 !py-6">
+        {data.countPhrase && <p className="font-display text-[30px] font-medium text-ink leading-[1.12]">{data.countPhrase}</p>}
+        <div className="flex gap-4 mt-1" role="img" aria-label={`${Math.min(data.week.done, 3)} sur 3 cette semaine`}>
+          {[0, 1, 2].map((i) =>
+            i < Math.min(data.week.done, 3) ? (
+              <span key={i} className="maison-star w-16 h-16 motion-safe:animate-om-up" style={{ ['--om-d' as string]: `${0.15 * i}s` }}>
+                <Icon name="star" className="w-[30px] h-[30px]" strokeWidth={1.7} fill="currentColor" />
+              </span>
+            ) : (
+              <span key={i} className="maison-star-off w-16 h-16">
+                <Icon name="star" className="w-7 h-7" strokeWidth={1.6} />
+              </span>
+            )
+          )}
         </div>
-        {data.weeklyStreak !== null && (
-          <p className="mt-2 text-[14px] text-soft">{data.weeklyStreak} semaines complètes d&apos;affilée</p>
-        )}
+        {/* R3 : jamais de « 0 » — tant que rien n'est fait, l'objectif est dit comme une invitation. */}
+        <p className="text-[14px] font-semibold text-body">
+          {data.week.done > 0 ? `${data.week.done} sur 3 cette semaine` : 'Trois moments cette semaine'}
+        </p>
+        {data.weeklyStreak !== null && <p className="text-[13.5px] text-soft">{data.weeklyStreak} semaines complètes d&apos;affilée</p>}
       </section>
 
       {/* Les rangées : d'abord celles qui parlent de cette semaine et de l'enfant,

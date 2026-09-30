@@ -19,16 +19,16 @@ import { PILLAR_ICON } from './pieces';
 import { Rail } from '../Rail';
 import { vignetteSrc } from './vignettes';
 
-/** Une teinte par pilier : c'est elle qui fait reconnaître une famille d'un coup d'œil. */
+/** Une teinte de la charte par pilier (marine, sauge, jaune, crème) : plus de néon. */
 const PILLAR_HUE: Record<PillarCode, string> = {
-  P1: '#2dd4bf',
-  P2: '#f5b83d',
-  P3: '#b69cff',
-  P4: '#5fa8ff',
-  P5: '#ff7eb6',
-  P6: '#4ade9c',
-  P7: '#ff9557',
-  P8: '#8f9bff',
+  P1: '#3380AC',
+  P2: '#A7C4BC',
+  P3: '#F9EB50',
+  P4: '#67A4C9',
+  P5: '#C9DCD6',
+  P6: '#7FA197',
+  P7: '#9CC4DD',
+  P8: '#F7F5F2',
 };
 
 /**
@@ -135,9 +135,9 @@ export function PosterCard({
     <Link
       href={href}
       draggable={false}
-      className={`${wide ? 'w-full' : 'w-[152px] md:w-[176px] lg:w-[200px] shrink-0 snap-start'} group select-none [-webkit-touch-callout:none] rounded-tile`}
+      className={`${wide ? 'w-full' : 'w-[152px] md:w-[176px] lg:w-[200px] shrink-0 snap-start'} maison-print group select-none [-webkit-touch-callout:none] rounded-[18px] p-[7px] pb-3 transition-transform duration-150 motion-safe:even:rotate-[0.6deg] motion-safe:odd:-rotate-[0.5deg]`}
     >
-      <div className="relative aspect-square rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5 transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
+      <div className="relative aspect-square rounded-[12px] overflow-hidden bg-[#efe9df] transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
         <PosterArt activity={activity} done={done} />
         {activity.programme === 'complement' && (
           <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-[rgba(6,22,30,0.82)] text-[11px] font-semibold text-white">
@@ -150,12 +150,12 @@ export function PosterCard({
           </span>
         </span>
       </div>
-      <p className="mt-2.5 text-[12px] font-semibold text-sage-ink truncate">
+      <p className="mt-2.5 px-1 text-[11px] font-bold tracking-[0.02em] text-[color:var(--paper-ink)] truncate">
         {activity.week === null ? 'Bonus' : `Semaine ${activity.week}`} · {durationsLabel(activity)}
       </p>
-      <p className="text-[15px] font-semibold leading-[1.3] text-ink line-clamp-2">{activity.title}</p>
-      <p className="mt-0.5 text-[12px] text-faint line-clamp-1">{PILLAR_PLAIN[activity.pillar_main]}</p>
-      {line && <p className="mt-1.5 text-[13px] leading-[1.4] text-soft line-clamp-3">{line}</p>}
+      <p className="px-1 font-display text-[16px] font-medium leading-[1.2] text-[#022539] line-clamp-2">{activity.title}</p>
+      <p className="mt-0.5 px-1 text-[12px] text-[#56626b] line-clamp-1">{PILLAR_PLAIN[activity.pillar_main]}</p>
+      {line && <p className="mt-1.5 px-1 text-[13px] leading-[1.4] text-[#33454f] line-clamp-3">{line}</p>}
     </Link>
   );
 }

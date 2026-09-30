@@ -25,6 +25,7 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
+import { Glyph } from './Glyph';
 import {
   REWARDS,
   activitiesOfWeek,
@@ -446,7 +447,7 @@ export function ActivityMode({
                       onClick={() => setCheckin((c) => ({ ...c, [axis.id]: o.id }))}
                       className="nc-pill min-h-[52px] gap-2 text-[15px]"
                     >
-                      <span aria-hidden className="text-[22px]">{o.emoji}</span>
+                      <Glyph e={o.emoji} className="w-7 h-7" />
                       {o.label}
                     </button>
                   ))}

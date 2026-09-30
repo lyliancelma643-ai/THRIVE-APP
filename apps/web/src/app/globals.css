@@ -615,3 +615,343 @@
     outline-offset: 0;
   }
 }
+
+/* ─── Direction « Soir de famille » — onglet Maison ────────────────────────────
+   Une lampe, du papier, des arches, un seul soleil. Toute la couleur vient de la
+   charte (marine, crème, jaune soleil, sauge). Le thème ne s'applique que sous
+   [data-surface='maison'] (posé par le layout du hub) : Bilan et Mes séances
+   gardent la Nuit calme. Cette direction lève pour Maison la règle « aucun halo,
+   aucune ombre » de la Nuit calme (décision validée). */
+[data-theme='night'] [data-surface='maison'] {
+  --bg: #022539;
+  --surface: #00314c;
+  --surface-sub: rgba(247, 245, 242, 0.05);
+  --tab: rgba(0, 49, 76, 0.74);
+  --text: #f7f5f2;
+  --text2: rgba(247, 245, 242, 0.84);
+  --text3: rgba(247, 245, 242, 0.68);
+  --text4: rgba(247, 245, 242, 0.54);
+  --meta: rgba(247, 245, 242, 0.64);
+  --line: rgba(247, 245, 242, 0.1);
+  --line2: rgba(247, 245, 242, 0.18);
+  --track: rgba(247, 245, 242, 0.1);
+  --chip: rgba(247, 245, 242, 0.07);
+  --field: rgba(247, 245, 242, 0.06);
+  --shadow: 0 18px 34px -20px rgba(0, 0, 0, 0.55);
+  --lamp: radial-gradient(120% 55% at 50% -6%, rgba(249, 235, 80, 0.17), rgba(249, 235, 80, 0) 62%);
+  --arch: #f7f5f2;
+  --disc: #c9dcd6;
+  --paper: #f7f5f2;
+  --paper-ink: #46695f;
+  --star-glow: rgba(249, 235, 80, 0.5);
+  --grain-rgb: 1 1 1;
+}
+[data-theme='day'] [data-surface='maison'] {
+  --bg: #f7f5f2;
+  --surface: #fffefb;
+  --shadow: 0 16px 30px -18px rgba(0, 49, 76, 0.35);
+  --lamp: radial-gradient(120% 52% at 50% -8%, rgba(249, 235, 80, 0.34), rgba(249, 235, 80, 0) 62%);
+  --arch: #c9dcd6;
+  --disc: #f7f5f2;
+  --paper: #fffefb;
+  --paper-ink: #46695f;
+  --star-glow: rgba(249, 235, 80, 0.75);
+  --grain-rgb: 0.01 0.14 0.22;
+}
+
+/* La lampe (lueur en haut de l'écran) et le grain : deux calques fixes, sans mélange
+   de couches, qui ne captent aucun geste. */
+[data-surface='maison']::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: var(--lamp);
+}
+[data-surface='maison']::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0.4;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+[data-theme='day'] [data-surface='maison']::after {
+  opacity: 0.22;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .01 0 0 0 0 .14 0 0 0 0 .22 0 0 0 .5 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+}
+
+/* Fraunces : axe SOFT (empattements arrondis) ; l'axe optique est automatique. */
+[data-surface='maison'] .font-display {
+  font-variation-settings: 'SOFT' 100;
+  font-optical-sizing: auto;
+}
+
+/* Cartes et rangées : filet de lumière en haut, ombre longue. */
+[data-surface='maison'] .nc-card {
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+[data-surface='maison'] .nc-row {
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+/* Pastille active : crème (ou marine le jour). Le jaune se garde pour Lancer et les étoiles. */
+[data-surface='maison'] .nc-pill {
+  border-radius: 999px;
+}
+[data-surface='maison'] .nc-pill[aria-pressed='true'] {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+}
+
+/* Barre d'onglets en capsule givrée (Maison seulement). */
+[data-surface='maison'] .tabbar {
+  left: 14px;
+  right: 14px;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  border: 1px solid var(--line2);
+  border-radius: 33px;
+  padding-bottom: 6px !important;
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 20px 40px -16px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+}
+[data-surface='maison'] .tabbar > div {
+  padding-top: 6px;
+}
+[data-surface='maison'] .tabbar > div > span[aria-hidden] {
+  display: none;
+}
+
+/* L'affiche du soir : arche + disque + mascotte en multiplication. */
+.maison-arch {
+  position: relative;
+  overflow: hidden;
+  /* 50 % de la largeur en haut (demi-cercle), 32 px en bas — écrit en deux rayons
+     pour que le navigateur ne réduise pas le rayon du bas. */
+  border-radius: 50% 50% 32px 32px / 44.8% 44.8% 32px 32px;
+  background: var(--arch);
+  box-shadow: 0 34px 60px -28px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+}
+.maison-mascot-dark {
+  -webkit-mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 72%, transparent 100%);
+}
+.maison-mascot {
+  mix-blend-mode: multiply;
+  -webkit-mask-image: radial-gradient(closest-side, #000 68%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 68%, transparent 100%);
+}
+
+/* Bouton Lancer : jaune soleil, filet de lumière, halo qui respire (opacité + échelle). */
+.maison-launch {
+  position: relative;
+  background: linear-gradient(180deg, #fbf16c, #f9eb50);
+  box-shadow: 0 12px 30px -8px rgba(249, 235, 80, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+.maison-launch::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 8px rgba(249, 235, 80, 0.3);
+  opacity: 0;
+  animation: maison-halo 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes maison-halo {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.04);
+  }
+}
+
+/* Étoile de la semaine : allumée (soleil, en relief) ou en attente (pointillés). */
+.maison-star {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  color: #022539;
+  background: radial-gradient(circle at 34% 26%, #fdf7a6, #f9eb50 55%, #e4d53a);
+  box-shadow: 0 12px 26px -8px var(--star-glow, rgba(249, 235, 80, 0.5)), inset 0 -5px 8px rgba(0, 0, 0, 0.12),
+    inset 0 2px 3px rgba(255, 255, 255, 0.75);
+}
+.maison-star-off {
+  display: grid;
+  place-items: center;
+  border-radius: 9999px;
+  border: 1.5px dashed var(--line2);
+  color: var(--text4);
+}
+
+/* Tirage : carte de papier, passe-partout crème, légère inclinaison. */
+.maison-print {
+  background: var(--paper, #f7f5f2);
+  box-shadow: var(--shadow), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+/* ─── Scènes animées des activités (ActivityScene) ────────────────────────────
+   Transform et opacité seulement. Chaque scène règle --t (durée) et --d (retard). */
+.sc {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation-duration: var(--t, 4s);
+  animation-delay: var(--d, 0s);
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: both;
+}
+.sc-float { animation-name: sc-float; }
+.sc-drift { animation-name: sc-drift; }
+.sc-drift2 { animation-name: sc-drift2; }
+.sc-pulse { animation-name: sc-pulse; }
+.sc-twinkle { animation-name: sc-twinkle; }
+.sc-appear { animation-name: sc-appear; }
+.sc-rise { animation-name: sc-rise; }
+.sc-rise2 { animation-name: sc-rise2; }
+.sc-sway { animation-name: sc-sway; }
+.sc-bob { animation-name: sc-bob; }
+.sc-hop { animation-name: sc-hop; }
+.sc-slide { animation-name: sc-slide; }
+.sc-slide2 { animation-name: sc-slide2; }
+.sc-toss { animation-name: sc-toss; }
+.sc-fall { animation-name: sc-fall; transform-origin: 50% 100%; }
+.sc-step { animation-name: sc-step; }
+.sc-shrink { animation-name: sc-shrink; }
+.sc-ladder { animation-name: sc-ladder; }
+.sc-climb { animation-name: sc-climb; }
+.sc-spin { animation-name: sc-spin; animation-timing-function: linear; }
+.sc-wobble { animation-name: sc-wobble; }
+.sc-pinpop { animation-name: sc-pinpop; }
+.sc-breathe { animation-name: sc-breathe; }
+.sc-mercury { animation-name: sc-mercury; }
+.sc-shake { animation-name: sc-shake; animation-timing-function: linear; }
+.sc-wiggle { animation-name: sc-wiggle; }
+.sc-curtainL { animation-name: sc-curtainL; }
+.sc-curtainR { animation-name: sc-curtainR; }
+.sc-armsup { animation-name: sc-armsup; }
+.sc-growy { animation-name: sc-growy; }
+.sc-blink { animation-name: sc-blink; }
+.sc-write { animation-name: sc-write; }
+.sc-hand { animation-name: sc-hand; }
+.sc-cardup { animation-name: sc-cardup; }
+.sc-beam { animation-name: sc-beam; }
+.sc-glow { animation-name: sc-glow; }
+.sc-balance { animation-name: sc-balance; }
+.sc-sunrise { animation-name: sc-sunrise; }
+.sc-drop { animation-name: sc-drop; }
+.sc-lit { animation-name: sc-lit; }
+.sc-flip { animation-name: sc-flip; }
+.sc-leaf { animation-name: sc-leaf; }
+.sc-confetti { animation-name: sc-confetti; animation-timing-function: linear; }
+.sc-draw { animation-name: sc-draw; stroke-dasharray: 1; }
+
+@keyframes sc-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes sc-drift { 0%, 100% { transform: translateX(-8px); } 50% { transform: translateX(10px); } }
+@keyframes sc-drift2 { 0% { opacity: 0; transform: translateY(-12px); } 25%, 85% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; } }
+@keyframes sc-pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+@keyframes sc-twinkle { 0%, 100% { opacity: 0.35; transform: scale(0.85); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes sc-appear { 0%, 6% { opacity: 0; transform: scale(0.6); } 18% { opacity: 1; transform: scale(1.08); } 26% { transform: scale(1); } 86% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(1); } }
+@keyframes sc-rise { 0% { opacity: 0; transform: translateY(14px) scale(0.6); } 35% { opacity: 1; } 80% { opacity: 1; transform: translateY(-16px) scale(1); } 100% { opacity: 0; transform: translateY(-26px) scale(1); } }
+@keyframes sc-rise2 { 0%, 100% { transform: translateY(10px); } 50% { transform: translateY(-6px); } }
+@keyframes sc-sway { 0%, 100% { transform: rotate(-7deg); } 50% { transform: rotate(7deg); } }
+@keyframes sc-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes sc-hop {
+  0%, 6% { opacity: 1; transform: translate(0, 0); }
+  14% { transform: translate(30px, -50px); }
+  26%, 40% { transform: translate(60px, -28px); }
+  52% { transform: translate(84px, -78px); }
+  64%, 88% { transform: translate(106px, -54px); opacity: 1; }
+  100% { transform: translate(106px, -54px); opacity: 0; }
+}
+@keyframes sc-slide { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(var(--dx, 0px)); } }
+@keyframes sc-slide2 { 0%, 5% { opacity: 0; transform: translateX(-70px); } 35% { opacity: 1; transform: translateX(0); } 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sc-toss {
+  0% { opacity: 0; transform: translate(0, 0); }
+  4% { opacity: 1; }
+  50% { transform: translate(calc(var(--dx, 0px) * 0.5), calc(var(--dy, 0px) * 0.5 + var(--lift, -40px))); }
+  72% { opacity: 1; transform: translate(var(--dx, 0px), var(--dy, 0px)); }
+  92% { opacity: 1; transform: translate(var(--dx, 0px), var(--dy, 0px)); }
+  100% { opacity: 0; transform: translate(var(--dx, 0px), var(--dy, 0px)); }
+}
+@keyframes sc-fall { 0%, 55%, 100% { transform: rotate(0); } 66%, 80% { transform: rotate(82deg) translateY(6px); } 92% { transform: rotate(0); } }
+@keyframes sc-step { 0% { opacity: 0; transform: translateX(0); } 6% { opacity: 1; } 40%, 88% { opacity: 1; transform: translateX(var(--dx, 60px)); } 100% { opacity: 0; transform: translateX(var(--dx, 60px)); } }
+@keyframes sc-shrink { 0%, 25% { opacity: 1; transform: scale(1); } 70%, 100% { opacity: 0.35; transform: scale(0.5) translateX(-10px); } }
+@keyframes sc-ladder { 0% { transform: translateY(0); } 20% { transform: translateY(-26px); } 40% { transform: translateY(-52px); } 60% { transform: translateY(-78px); } 80%, 100% { transform: translateY(-104px); } }
+@keyframes sc-climb { 0%, 15% { transform: translate(0, 0); } 35% { transform: translate(18px, -12px); } 55% { transform: translate(36px, -24px); } 75%, 100% { transform: translate(54px, -36px); } }
+@keyframes sc-spin { to { transform: rotate(360deg); } }
+@keyframes sc-wobble {
+  0% { opacity: 0; transform: rotate(0); }
+  8%, 30% { opacity: 1; transform: rotate(0); }
+  40% { transform: rotate(-3deg); }
+  50% { transform: rotate(4deg); }
+  60% { transform: rotate(-6deg); }
+  72% { transform: rotate(14deg); }
+  84% { opacity: 1; transform: rotate(64deg) translate(24px, 6px); }
+  96%, 100% { opacity: 0; transform: rotate(72deg) translate(30px, 10px); }
+}
+@keyframes sc-pinpop { 0% { opacity: 0; transform: translateY(-26px); } 12% { opacity: 1; transform: translateY(0); } 16% { transform: translateY(-6px); } 20% { transform: translateY(0); } 85% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes sc-breathe { 0%, 100% { transform: scale(0.62); } 28%, 40% { transform: scale(1); } }
+@keyframes sc-mercury { 0%, 100% { transform: scaleY(0.2); } 45%, 55% { transform: scaleY(1); } }
+@keyframes sc-shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-1.5px); } 75% { transform: translateX(1.5px); } }
+@keyframes sc-wiggle { 0%, 100% { transform: skewX(-8deg); } 50% { transform: skewX(8deg); } }
+@keyframes sc-curtainL { 0%, 10%, 100% { transform: translateX(0); } 40%, 80% { transform: translateX(-26px); } }
+@keyframes sc-curtainR { 0%, 10%, 100% { transform: translateX(0); } 40%, 80% { transform: translateX(26px); } }
+@keyframes sc-armsup { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14) translateY(-3px); } }
+@keyframes sc-growy { 0%, 5% { opacity: 1; transform: scaleY(0); } 20% { transform: scaleY(1.05); } 28%, 88% { opacity: 1; transform: scaleY(1); } 100% { opacity: 0; transform: scaleY(1); } }
+@keyframes sc-blink { 0%, 88%, 100% { transform: scaleY(1); } 94% { transform: scaleY(0.1); } }
+@keyframes sc-write { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-14px, 4px); } 50% { transform: translate(-28px, -2px); } 75% { transform: translate(-14px, 6px); } }
+@keyframes sc-hand { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+@keyframes sc-cardup { 0%, 10% { opacity: 0; transform: translateY(18px); } 35%, 70% { opacity: 1; transform: translateY(-26px); } 100% { opacity: 0; transform: translateY(18px); } }
+@keyframes sc-beam { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(41deg); } }
+@keyframes sc-glow { 0%, 30%, 100% { opacity: 0.4; } 50% { opacity: 1; } 70% { opacity: 0.4; } }
+@keyframes sc-balance { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(8deg); } }
+@keyframes sc-sunrise { 0%, 10% { opacity: 0; transform: translateY(30px); } 50%, 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(0); } }
+@keyframes sc-drop { 0%, 4% { opacity: 0; transform: translateY(-10px); } 12% { opacity: 1; transform: translateY(0); } 34% { opacity: 1; transform: translateY(78px); } 40%, 100% { opacity: 0; transform: translateY(84px); } }
+@keyframes sc-lit { 0%, 8% { opacity: 0; } 20%, 60% { opacity: 1; } 80%, 100% { opacity: 0; } }
+@keyframes sc-flip { 0%, 6% { transform: scaleX(0); } 30%, 75% { transform: scaleX(1); } 92%, 100% { transform: scaleX(0); } }
+@keyframes sc-leaf { 0% { opacity: 0; transform: translateY(10px) rotate(-10deg); } 30% { opacity: 1; transform: translateY(-20px) rotate(8deg); } 100% { opacity: 0; transform: translateY(-70px) rotate(-14deg); } }
+@keyframes sc-confetti { 0% { opacity: 0; transform: translateY(-10px) rotate(0); } 10% { opacity: 1; } 100% { opacity: 0.6; transform: translateY(150px) rotate(360deg); } }
+@keyframes sc-draw { 0%, 5% { stroke-dashoffset: 1; } 40%, 85% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: 1; } }
+
+/* Mouvement réduit : la scène reste posée, tous les éléments visibles. */
+@media (prefers-reduced-motion: reduce) {
+  .sc {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .sc-draw {
+    stroke-dashoffset: 0 !important;
+  }
+  .maison-launch::after {
+    animation: none !important;
+  }
+}
+
+/* Le ballon du minuteur : grandit sur l'inspire, se fige sur « garde », se vide sur l'expire. */
+.maison-orb {
+  background: radial-gradient(circle at 36% 28%, rgba(247, 245, 242, 0.75), rgba(247, 245, 242, 0.28) 55%, rgba(2, 37, 57, 0.12));
+  box-shadow: inset 0 -14px 30px rgba(0, 49, 76, 0.18);
+  animation-name: maison-orb;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: forwards;
+}
+@keyframes maison-orb {
+  from {
+    transform: scale(var(--from, 1));
+  }
+  to {
+    transform: scale(var(--to, 1));
+  }
+}

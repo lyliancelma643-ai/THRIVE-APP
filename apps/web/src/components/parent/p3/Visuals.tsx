@@ -7,6 +7,7 @@
 
 import { useEffect, useState } from 'react';
 import { Icon } from '@/components/ui';
+import { Glyph } from './Glyph';
 import type { VisualId } from '@/lib/p3-moments';
 
 export const VISUAL_LABELS: Record<VisualId, string> = {
@@ -32,12 +33,12 @@ const VISUAL_HINTS: Record<VisualId, string> = {
 };
 
 export const EMOTIONS = [
-  { id: 'joie', label: 'La joie', emoji: '😄', color: '#F5B301' },
-  { id: 'peur', label: 'La peur', emoji: '😨', color: '#7C3AED' },
-  { id: 'colere', label: 'La colère', emoji: '😠', color: '#DC2626' },
-  { id: 'frustration', label: 'La frustration', emoji: '😤', color: '#EA580C' },
-  { id: 'fierte', label: 'La fierté', emoji: '😎', color: '#16A34A' },
-  { id: 'nervosite', label: 'La nervosité', emoji: '😬', color: '#0891B2' },
+  { id: 'joie', label: 'La joie', emoji: '😄', color: '#F9EB50' },
+  { id: 'peur', label: 'La peur', emoji: '😨', color: '#3380AC' },
+  { id: 'colere', label: 'La colère', emoji: '😠', color: '#004E7A' },
+  { id: 'frustration', label: 'La frustration', emoji: '😤', color: '#67A4C9' },
+  { id: 'fierte', label: 'La fierté', emoji: '😎', color: '#A7C4BC' },
+  { id: 'nervosite', label: 'La nervosité', emoji: '😬', color: '#C9DCD6' },
 ] as const;
 
 /** Les outils des 13 semaines, avec la fiche où l'enfant les a notés dans ses mots. */
@@ -88,18 +89,14 @@ function Emotions() {
     <>
       {picked && (
         <div className="mb-4 rounded-[26px] p-5 text-center" style={{ background: `color-mix(in srgb, ${picked.color} 22%, transparent)` }}>
-          <p className="text-[96px] leading-none" aria-hidden>
-            {picked.emoji}
-          </p>
+          <Glyph e={picked.emoji} className="w-24 h-24 mx-auto" />
           <p className="mt-2 font-display text-[34px] font-semibold text-ink">{picked.label}</p>
         </div>
       )}
       <div className="grid grid-cols-2 gap-3">
         {EMOTIONS.map((e) => (
           <Tile key={e.id} active={sel === e.id} color={e.color} onClick={() => setSel(sel === e.id ? null : e.id)}>
-            <span className="text-[54px] leading-none" aria-hidden>
-              {e.emoji}
-            </span>
+            <Glyph e={e.emoji} className="w-14 h-14" />
             <span className="mt-2 text-[18px] font-semibold text-ink">{e.label}</span>
           </Tile>
         ))}
@@ -226,9 +223,7 @@ function ListVisual({ items }: { items: { emoji: string; title: string; sub?: st
           aria-pressed={sel === i}
           className={`w-full flex items-center gap-4 rounded-[20px] border-2 p-4 text-left transition-transform motion-reduce:transition-none ${sel === i ? 'border-accent scale-[1.02]' : 'border-line2'}`}
         >
-          <span className="text-[44px] leading-none" aria-hidden>
-            {it.emoji}
-          </span>
+          <Glyph e={it.emoji} className="w-11 h-11 shrink-0" />
           <span>
             <span className="block font-display text-[24px] font-semibold text-ink">{it.title}</span>
             {it.sub && <span className="block text-[15px] text-body mt-0.5">{it.sub}</span>}
@@ -255,9 +250,7 @@ function Outils({ notes }: { notes: Record<string, string> }) {
             className={`w-full rounded-[18px] border-2 p-3.5 text-left transition-colors ${open ? 'border-accent' : 'border-line2'}`}
           >
             <span className="flex items-center gap-3">
-              <span className="text-[32px] leading-none" aria-hidden>
-                {t.emoji}
-              </span>
+              <Glyph e={t.emoji} className="w-9 h-9 shrink-0" />
               <span className="min-w-0">
                 <span className="block text-[17px] font-semibold text-ink">{t.name}</span>
                 <span className="block text-[14px] text-body">{t.what}</span>

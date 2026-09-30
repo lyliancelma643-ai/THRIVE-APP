@@ -14,14 +14,31 @@ import { createPortal } from "react-dom";
 import { Icon } from "@/components/ui";
 import type { StepTimer as TStepTimer, TimerTone } from "@/lib/p3-moments";
 
+// Les sept tons, en couleurs de la charte (marine, sauge, crème, jaune soleil).
+// La couleur n'est plus le seul signal : le ballon grandit, se fige, se vide.
 export const TONE_BG: Record<TimerTone, string> = {
-  action: "#C2410C",
-  tension: "#B91C1C",
-  detente: "#1D4ED8",
-  inspire: "#0E7490",
-  garde: "#6D28D9",
-  expire: "#15803D",
-  silence: "#1E293B",
+  action: "#F9EB50",
+  tension: "#004063",
+  detente: "#C9DCD6",
+  inspire: "#A7C4BC",
+  garde: "#F7F5F2",
+  expire: "#3380AC",
+  silence: "#022539",
+};
+/** Couleur du texte posée sur chaque ton (contraste ≥ 4,5:1). */
+const TONE_FG: Record<TimerTone, string> = {
+  action: "#022539",
+  tension: "#F7F5F2",
+  detente: "#022539",
+  inspire: "#022539",
+  garde: "#022539",
+  expire: "#FFFFFF",
+  silence: "#F7F5F2",
+};
+const ORB: Partial<Record<TimerTone, [number, number]>> = {
+  inspire: [0.55, 1],
+  garde: [1, 1],
+  expire: [1, 0.55],
 };
 
 const SOUND_KEY = "p3-timer-sound";
@@ -185,10 +202,12 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
   const bg = !run
     ? undefined
     : lead
-      ? "#0F172A"
+      ? "#022539"
       : finished
-        ? "#14532D"
+        ? "#004E7A"
         : TONE_BG[phase.tone];
+  const fg = !run || lead || finished ? "#F7F5F2" : TONE_FG[phase.tone];
+  const orb = run && !lead && !finished ? ORB[phase.tone] : undefined;
 
   return (
     <>
@@ -218,7 +237,7 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
               className="inline-flex items-center gap-1.5 text-[13px] text-body"
             >
               <span
-                className="w-3 h-3 rounded-full shrink-0 ring-1 ring-white/40"
+                className="w-3 h-3 rounded-full shrink-0 ring-1 ring-line2"
                 style={{ background: TONE_BG[p.tone] }}
                 aria-hidden
               />
@@ -238,16 +257,30 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
       {run &&
         createPortal(
           <div
-            className="fixed inset-0 z-[90] flex flex-col text-white transition-colors duration-300 motion-reduce:transition-none"
-            style={{ background: bg }}
+            className="fixed inset-0 z-[90] flex flex-col overflow-hidden transition-colors duration-300 motion-reduce:transition-none"
+            style={{ background: bg, color: fg }}
             role="timer"
             aria-live="assertive"
           >
-            <div className="flex items-center justify-between px-5 safe-top h-16">
+            {orb && (
+              <span
+                key={`orb-${globalPhase}`}
+                aria-hidden
+                className="maison-orb pointer-events-none absolute left-1/2 top-1/2 -ml-[38vmin] -mt-[38vmin] h-[76vmin] w-[76vmin] rounded-full"
+                style={
+                  {
+                    "--from": orb[0],
+                    "--to": orb[1],
+                    animationDuration: `${phase.seconds}s`,
+                  } as React.CSSProperties
+                }
+              />
+            )}
+            <div className="relative flex items-center justify-between px-5 safe-top h-16">
               <button
                 type="button"
                 onClick={toggleSound}
-                className="min-h-[44px] px-4 rounded-full bg-white/15 text-[14px] font-semibold"
+                className="min-h-[44px] px-4 rounded-full bg-[color-mix(in_srgb,currentColor_14%,transparent)] text-[14px] font-semibold"
                 aria-pressed={sound}
               >
                 {sound ? "Son : oui" : "Son : non"}
@@ -259,7 +292,7 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
               )}
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center text-center px-6">
+            <div className="relative flex-1 flex flex-col items-center justify-center text-center px-6">
               {lead ? (
                 <>
                   <p className="text-[28px] font-semibold opacity-90">Prêt ?</p>
@@ -289,20 +322,20 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
               )}
             </div>
 
-            <div className="px-5 pb-8 safe-bottom flex gap-3 justify-center">
+            <div className="relative px-5 pb-8 safe-bottom flex gap-3 justify-center">
               {finished ? (
                 <>
                   <button
                     type="button"
                     onClick={start}
-                    className="h-[56px] px-8 rounded-full bg-white text-[#0F172A] font-bold text-[17px]"
+                    className="h-[56px] px-8 rounded-full bg-[#F7F5F2] text-[#022539] font-bold text-[17px]"
                   >
                     Relancer
                   </button>
                   <button
                     type="button"
                     onClick={() => setRun(null)}
-                    className="h-[56px] px-8 rounded-full bg-white/15 font-bold text-[17px]"
+                    className="h-[56px] px-8 rounded-full bg-[color-mix(in_srgb,currentColor_14%,transparent)] font-bold text-[17px]"
                   >
                     Fermer
                   </button>
@@ -311,7 +344,7 @@ export function StepTimer({ timer }: { timer: TStepTimer }) {
                 <button
                   type="button"
                   onClick={() => setRun(null)}
-                  className="h-[56px] px-10 rounded-full bg-white/15 font-bold text-[17px]"
+                  className="h-[56px] px-10 rounded-full bg-[color-mix(in_srgb,currentColor_14%,transparent)] font-bold text-[17px]"
                 >
                   Arrêter
                 </button>
