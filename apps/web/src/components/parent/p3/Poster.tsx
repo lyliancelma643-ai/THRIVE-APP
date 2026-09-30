@@ -58,7 +58,18 @@ export function Vignette({ src, className = '', priority = false }: { src: strin
   );
 }
 
-export function PosterArt({ activity, big = false, done = false }: { activity: P3Activity; big?: boolean; done?: boolean }) {
+export function PosterArt({
+  activity,
+  big = false,
+  done = false,
+  hideMotifOnPhone = false,
+}: {
+  activity: P3Activity;
+  big?: boolean;
+  done?: boolean;
+  /** Masque le grand pictogramme du pilier sous 768 px (hero avec vignette). */
+  hideMotifOnPhone?: boolean;
+}) {
   const hue = PILLAR_HUE[activity.pillar_main];
   const src = big ? null : vignetteSrc(activity.id);
   if (src)
@@ -81,7 +92,7 @@ export function PosterArt({ activity, big = false, done = false }: { activity: P
       }}
     >
       <span
-        className={`absolute ${big ? 'w-[46%] aspect-square -right-[4%] top-[4%]' : 'w-[62%] aspect-square -right-[12%] -bottom-[6%]'}`}
+        className={`absolute ${big ? 'w-[46%] aspect-square -right-[4%] top-[4%]' : 'w-[62%] aspect-square -right-[12%] -bottom-[6%]'} ${hideMotifOnPhone ? 'max-md:hidden' : ''}`}
         style={{ color: hue, opacity: big ? 0.35 : 0.5 }}
       >
         <Icon name={PILLAR_ICON[activity.pillar_main]} className="w-full h-full" strokeWidth={1.2} />
@@ -128,15 +139,19 @@ export function PosterCard({
     >
       <div className="relative aspect-square rounded-[16px] overflow-hidden bg-night-surface ring-1 ring-white/5 transition-transform duration-150 group-active:scale-[0.97] motion-reduce:transition-none">
         <PosterArt activity={activity} done={done} />
+        {activity.programme === 'complement' && (
+          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-full bg-[rgba(6,22,30,0.82)] text-[11px] font-semibold text-white">
+            Plus loin
+          </span>
+        )}
         <span className="absolute inset-0 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hidden md:flex">
           <span className="w-11 h-11 rounded-full bg-accent text-navy-900 flex items-center justify-center">
             <Icon name="play" className="w-4 h-4" />
           </span>
         </span>
       </div>
-      <p className="mt-2.5 text-[12px] font-semibold text-sage-ink">
-        {activity.week === null ? 'Bonus' : `Semaine ${activity.week}${activity.programme === 'complement' ? ' · plus loin' : ''}`} ·{' '}
-        {durationsLabel(activity)}
+      <p className="mt-2.5 text-[12px] font-semibold text-sage-ink truncate">
+        {activity.week === null ? 'Bonus' : `Semaine ${activity.week}`} · {durationsLabel(activity)}
       </p>
       <p className="text-[15px] font-semibold leading-[1.3] text-ink line-clamp-2">{activity.title}</p>
       <p className="mt-0.5 text-[12px] text-faint line-clamp-1">{PILLAR_PLAIN[activity.pillar_main]}</p>

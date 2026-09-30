@@ -39,6 +39,7 @@ import {
   REWARDS,
   getActivity,
   getWeek,
+  isVisible,
   pickTonight,
   type Duration,
   type P3Activity,
@@ -75,7 +76,7 @@ function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => vo
     </>,
     <>
       <p className="font-display text-[28px] md:text-[36px] leading-[1.25] text-ink">
-        « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
+        « {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[10] })} »
       </p>
       <p className="mt-4 text-[17px] leading-[1.55] text-body">Voilà la phrase qui ouvre tout. Tu la diras souvent.</p>
     </>,
@@ -223,6 +224,8 @@ function Home({ ctx }: { ctx: P3Ctx }) {
   };
 
   const all = useMemo(() => p3Pool(), []);
+  // Même décompte que le catalogue (« Toutes les activités ») : les activités déjà ouvertes.
+  const catalogueCount = useMemo(() => all.filter((x) => isVisible(x, data.openWeek)).length, [all, data.openWeek]);
   const pool = useMemo(
     () => all.filter((a) => !evening.excluded.includes(a.id) && !data.saved.deCote.has(a.id)),
     [all, evening.excluded, data.saved.deCote]
@@ -336,7 +339,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
             else router.push(ficheHref(a));
           }}
         >
-          <PosterArt activity={a} big />
+          <PosterArt activity={a} big hideMotifOnPhone={!!vignetteSrc(a.id)} />
           <div aria-hidden className="absolute inset-0" style={{ background: HERO_VEIL }} />
           {/* La vignette mascotte, entière, hors du voile : au-dessus du texte sur mobile, à droite sur grand écran */}
           {vignetteSrc(a.id) && (
@@ -428,7 +431,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       )}
 
       {firstMoment && (
-        <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
+        <p className="mt-4 text-[16px] text-body max-w-2xl">« {fill(DEFAULT_OPENER, { duree: DURATION_WORDS[duration] })} »</p>
       )}
 
       {/* Ce soir : temps et lieu — règlent l'affiche et les liens de toutes les rangées */}
@@ -451,7 +454,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
       <nav {...shortcuts.props} aria-label="Parcourir" className="mt-6 flex gap-2 overflow-x-auto scrollbar-hide overscroll-x-contain -mx-5 px-5 md:mx-0 md:px-0">
         <Link href={`${P3_BASE}/toutes`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center gap-1.5 !bg-accent !border-accent !text-accent-on font-semibold">
           <Icon name="grid" className="w-4 h-4" />
-          Toutes les activités · {all.length}
+          Toutes les activités · {catalogueCount}
         </Link>
         <Link href={`${P3_BASE}/programme`} className="nc-pill min-h-[44px] shrink-0 inline-flex items-center">
           Le programme
@@ -500,7 +503,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
         className="mt-10 flex items-center justify-center gap-2 h-[56px] rounded-full border border-line2 text-[16px] font-semibold text-ink max-w-md"
       >
         <Icon name="grid" className="w-5 h-5" />
-        Voir les {all.length} activités, triées par âge
+        Voir les {catalogueCount} activités, triées par âge
       </Link>
 
       <div className="max-w-2xl">

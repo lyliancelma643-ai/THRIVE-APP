@@ -382,7 +382,7 @@ describe('programme et carte du soir', () => {
     const moments = cores.map((a, i) => m(a.id, `2026-10-1${i % 5}T19:00:00`));
     const pick = pickTonight({ ...base, moments, pool })!;
     expect(pick.activity.id).toBe('ACT-0204');
-    expect(pick.reason).toBe('Pour aller plus loin : votre semaine 2 est faite.');
+    expect(pick.reason).toBe('Pour aller plus loin : ta semaine 2 est faite.');
   });
 
   it('le bonus n’est proposé de lui-même que le week-end', () => {
@@ -400,7 +400,7 @@ describe('programme et carte du soir', () => {
     expect(pickTonight({ ...base, moments: [] })!.activity.id).toBe('ACT-0101');
     const pick = pickTonight({ ...base, moments: [m('ACT-0101', '2026-10-14T19:00:00')] })!;
     expect(pick.activity.id).toBe('ACT-0102');
-    expect(pick.reason).toBe('La suite de votre semaine 1.');
+    expect(pick.reason).toBe('La suite de ta semaine 1.');
   });
 
   it('en voiture : uniquement des fiches verbales', () => {

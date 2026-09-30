@@ -331,7 +331,7 @@ export function pickTonight(input: TonightInput): TonightPick {
         ? `Pour la route : la suite de la semaine ${next.week}.`
         : next.rank === 1
           ? `Semaine ${next.week} : ${getWeek(next.week)?.title ?? ''}.`
-          : `La suite de votre semaine ${next.week}.`;
+          : `La suite de ta semaine ${next.week}.`;
     return { activity: next, reason };
   }
 
@@ -361,14 +361,14 @@ export function pickTonight(input: TonightInput): TonightPick {
   const best = scored[0];
   if (!best) return null;
 
-  let reason = 'Une de celles que vous avez déjà ouvertes.';
+  let reason = 'Une de celles que tu as déjà ouvertes.';
   if (best.a.programme === 'bonus') reason = 'Un bonus pour le week-end, en famille.';
-  else if (best.fresh) reason = `Pour aller plus loin : votre semaine ${best.a.week} est faite.`;
+  else if (best.fresh) reason = `Pour aller plus loin : ta semaine ${best.a.week} est faite.`;
   else if (best.last?.rating === 5) reason = 'On refait celle-ci : elle avait bien marché.';
   else if (input.childMood === 'fatigue' && best.a.child_moods.includes('fatigue'))
     reason = `Parce que ${input.firstName} est fatigué·e ce soir.`;
   else if (input.parentEnergy === 'basse' && best.a.parent_energy === 'basse')
-    reason = 'Une qui ne demande presque rien de votre côté.';
+    reason = 'Une qui ne demande presque rien de ton côté.';
   return { activity: best.a, reason };
 }
 
@@ -377,7 +377,7 @@ export const NUDGES: string[] = [
   '{prenom} a dix minutes de libre ce soir ?',
   'Un moment avec {prenom} ce soir ? Tout est prêt.',
   'Dix minutes, une phrase à dire, rien à préparer.',
-  'Ce soir, la suite de votre semaine {semaine} vous attend.',
+  'Ce soir, la suite de ta semaine {semaine} t’attend.',
 ];
 
 /** Mots interdits dans toute notification ou tout écran de relance. Verrouillé par test. */
@@ -407,7 +407,9 @@ export function renderNudge(template: string, vars: { prenom: string; semaine?: 
 // ── Rappel (temps 2 des 5 temps, 20 s) ───────────────────────────────────────
 export function recallLine(firstName: string, lastKeptPhrase: string | null): string | null {
   if (!lastKeptPhrase) return null;
-  return `La dernière fois, ${firstName} avait dit « ${lastKeptPhrase} ».`;
+  // Pas de point après « » quand la phrase se termine déjà par une ponctuation.
+  const end = /[.!?…]$/.test(lastKeptPhrase.trim()) ? '' : '.';
+  return `La dernière fois, ${firstName} avait dit « ${lastKeptPhrase.trim()} »${end}`;
 }
 
 /** Remplace {date_ouverture} dans les libellés « À garder » (lettre scellée). */

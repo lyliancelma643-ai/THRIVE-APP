@@ -39,17 +39,19 @@ export function Rail({
 
   return (
     <section className="mt-9 animate-om-up group/row" aria-label={title}>
-      <div className="mb-3 flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2] text-balance">{title}</h2>
-          {subtitle && <p className="text-[14px] text-soft mt-0.5 text-pretty">{subtitle}</p>}
+      {/* Titre et lien sur la même ligne ; le sous-titre prend toute la largeur
+          (sur téléphone, le lien ne comprime plus le titre sur deux lignes). */}
+      <div className="mb-3">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="min-w-0 font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2] text-balance">{title}</h2>
+          {more && (
+            <Link href={more.href} className="shrink-0 -my-[10px] inline-flex items-center gap-1 min-h-[44px] text-[14px] font-semibold text-accent-ink">
+              {more.label}
+              <Icon name="chevron-right" className="w-4 h-4" />
+            </Link>
+          )}
         </div>
-        {more && (
-          <Link href={more.href} className="shrink-0 inline-flex items-center gap-1 min-h-[44px] text-[14px] font-semibold text-accent-ink">
-            {more.label}
-            <Icon name="chevron-right" className="w-4 h-4" />
-          </Link>
-        )}
+        {subtitle && <p className="text-[14px] text-soft mt-1 text-pretty max-w-prose">{subtitle}</p>}
       </div>
       <div className="relative">
         {/* `scroll-pl-5` : sans lui, l'accroche cale la première vignette sur le bord et mange la gouttière. */}

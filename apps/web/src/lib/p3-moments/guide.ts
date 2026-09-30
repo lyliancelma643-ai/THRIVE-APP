@@ -90,7 +90,7 @@ export function moodFromCheckin(selected: CheckinOption[]): ChildMood | null {
 
 // ── Temps 4 : débrief — les 3 questions de la Méthode (Pierce et al., 2017) ──
 export const DEBRIEF = {
-  intro: 'Lisez la question à voix haute. Notez sa réponse d’un tap, ou passez.',
+  intro: 'Lis la question à voix haute. Note sa réponse d’un tap, ou passe.',
   labels: {
     vecu: 'Ce qu’il a vécu',
     fait: 'Ce qu’il a fait',
@@ -104,7 +104,7 @@ export const CLOSING_SCREEN = '{minutes} minutes avec {prenom}.';
 export const OVERTIME_LINE = '{extra} minutes de plus — tant mieux.';
 
 export const SYNTHESIS = {
-  rating: 'Une note, pour vous',
+  rating: 'Une note, pour toi',
   outcome: {
     question: 'Ça a donné quoi ?',
     options: [
@@ -120,23 +120,23 @@ export const SYNTHESIS = {
 };
 
 export const PRIDE_LINES = {
-  done: 'Vous venez de faire quelque chose que la plupart des parents ne font jamais.',
+  done: 'Tu viens de faire quelque chose que la plupart des parents ne font jamais.',
   notReally: 'Normal. Celle-là marche souvent mieux au deuxième essai.',
 };
 
 // ── Bilan court à 4 semaines (promesse commerciale — ressenti, jamais un score) ──
 export const BILAN_4_SEMAINES = {
   title: 'Quatre semaines avec {prenom}',
-  intro: 'Trois questions pour vous. Il n’y a pas de bonne réponse, et rien n’est noté.',
+  intro: 'Trois questions pour toi. Il n’y a pas de bonne réponse, et rien n’est noté.',
   questions: [
-    'Qu’est-ce que vous avez remarqué de différent chez {prenom} ?',
-    'Quel moment vous a le plus surpris ?',
-    'Et vous, vous vous sentez comment, par rapport au début ?',
+    'Qu’est-ce que tu as remarqué de différent chez {prenom} ?',
+    'Quel moment t’a le plus surpris ?',
+    'Et toi, tu te sens comment, par rapport au début ?',
   ],
   guiltScale: {
-    label: 'Aujourd’hui, vous vous en voulez de manquer de temps avec {prenom} :',
+    label: 'Aujourd’hui, tu t’en veux de manquer de temps avec {prenom} :',
     options: ['Pas du tout', 'Un peu', 'Souvent', 'Tout le temps'],
-    note: 'C’est un ressenti, pour vous. Ce n’est pas un score et il n’est comparé à rien.',
+    note: 'C’est un ressenti, pour toi. Ce n’est pas un score et il n’est comparé à rien.',
   },
 };
 

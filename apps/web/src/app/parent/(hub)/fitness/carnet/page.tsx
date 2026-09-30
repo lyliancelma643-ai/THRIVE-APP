@@ -49,7 +49,7 @@ function Carnet({ ctx }: { ctx: P3Ctx }) {
                 <p className="text-[13px] text-faint first-letter:uppercase">{formatLongDate(e.at)}</p>
                 <p className="mt-1 text-[16px] font-semibold text-ink">{getActivity(e.moment.activity_id)?.title}</p>
                 {e.moment.kept_phrase && (
-                  <blockquote className="mt-3 font-display text-[20px] leading-[1.35] text-ink">« {e.moment.kept_phrase} »</blockquote>
+                  <blockquote className="mt-3 font-display text-[20px] leading-[1.35] text-ink">« {e.moment.kept_phrase} »</blockquote>
                 )}
                 {captureItems(e.moment.capture).length > 0 && (
                   <ul className="mt-3 space-y-1 text-[15px] text-body">

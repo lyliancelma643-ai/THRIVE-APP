@@ -150,8 +150,8 @@ export function buildShelves(input: ShelfInput): Shelf[] {
   const week = getWeek(input.openWeek);
   shelves.push({
     id: 'semaine',
-    title: `Votre semaine ${input.openWeek}${week ? ` · ${week.title}` : ''}`,
-    subtitle: 'L’ordre que le programme conseille. Rien ne vous y oblige.',
+    title: `Ta semaine ${input.openWeek}${week ? `\u00a0· ${week.title}` : ''}`,
+    subtitle: 'L’ordre que le programme conseille. Rien ne t’y oblige.',
     items: visible.filter((a) => a.programme === 'coeur' && a.week === input.openWeek).sort(byProgramme),
   });
 
@@ -194,11 +194,11 @@ export function buildShelves(input: ShelfInput): Shelf[] {
   });
 
   shelves.push(
-    { id: 'rien', title: 'Rien à préparer', subtitle: 'Vous pouvez commencer dans la minute.', items: freshFirst(f('rien'), doneIds) },
+    { id: 'rien', title: 'Rien à préparer', subtitle: 'Tu peux commencer dans la minute.', items: freshFirst(f('rien'), doneIds) },
     {
       id: 'a_plat',
-      title: 'Les soirs où vous êtes à plat',
-      subtitle: 'Elles ne demandent presque rien de votre côté.',
+      title: 'Les soirs où tu es à plat',
+      subtitle: 'Elles ne demandent presque rien de ton côté.',
       items: freshFirst(f('a_plat'), doneIds),
     },
     {
@@ -211,7 +211,7 @@ export function buildShelves(input: ShelfInput): Shelf[] {
     { id: 'bouger', title: 'Pour bouger un peu', subtitle: 'Debout, en mouvement.', items: freshFirst(f('bouger'), doneIds) },
     {
       id: 'trente',
-      title: 'Vous avez trente minutes ?',
+      title: 'Tu as trente minutes ?',
       subtitle: 'Celles qui s’étirent jusqu’à trente minutes.',
       items: freshFirst(f('trente'), doneIds),
     }
@@ -223,7 +223,7 @@ export function buildShelves(input: ShelfInput): Shelf[] {
     subtitle: 'À refaire : elles avaient bien marché.',
     items: visible.filter((a) => (lastRating.get(a.id) ?? 0) >= 4),
   });
-  shelves.push({ id: 'favoris', title: 'Vos favoris', subtitle: 'Celles que vous avez gardées.', items: visible.filter((a) => favoris.has(a.id)) });
+  shelves.push({ id: 'favoris', title: 'Tes favoris', subtitle: 'Celles que tu as gardées.', items: visible.filter((a) => favoris.has(a.id)) });
 
   shelves.push({
     id: 'bonus',

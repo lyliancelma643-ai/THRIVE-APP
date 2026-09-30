@@ -183,7 +183,7 @@ export function RewardView({
               </div>
             ))}
           </div>
-          {keep.length > 0 && <p className="mt-6 font-display text-[20px] text-ink">« {keep[0]} »</p>}
+          {keep.length > 0 && <p className="mt-6 font-display text-[20px] text-ink">« {keep[0]} »</p>}
           <p className="mt-6 text-[14px] text-soft">{formatFullDate(earnedAt)}</p>
           {/* TODO(facturation) : l'application réelle du « 1 mois offert » dépend de la facturation P3, hors périmètre. */}
           <p className="mt-4 inline-block rounded-full bg-accent text-accent-on px-4 py-1.5 text-[14px] font-bold">
