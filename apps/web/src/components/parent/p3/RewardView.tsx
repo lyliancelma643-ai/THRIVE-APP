@@ -7,6 +7,7 @@
 // La lettre scellée n'expose que ses dates, jamais son contenu (R12).
 // ─────────────────────────────────────────────────────────────────────────────
 
+import { Icon } from '@/components/ui';
 import { REWARDS, type RewardId } from '@/lib/p3-moments';
 import { BILAN_4_SEMAINES } from '@/lib/p3-moments/guide';
 import { fill, formatFullDate, inOneYear } from '@/lib/p3-moments/app';
@@ -143,7 +144,7 @@ export function RewardView({
   if (id === 'lettre_un_an') {
     const sealed = typeof payload?.sealed_at === 'string' ? payload.sealed_at : null;
     return (
-      <div className="nc-card">
+      <div className="maison-paper rounded-[24px] p-6">
         <p className="nc-eyebrow">La lettre</p>
         <p className="mt-2 text-[17px] leading-[1.5] text-ink">
           {sealed
@@ -167,9 +168,10 @@ export function RewardView({
     return (
       <div>
         <style>{PRINT_CSS}</style>
-        <div className="nc-card ring-1 ring-accent-line text-center md:p-10">
+        <div className="maison-paper rounded-[24px] p-2.5">
+        <div className="maison-frame rounded-[16px] text-center p-7 md:p-10">
           <p className="nc-eyebrow">{title}</p>
-          <p className="font-display text-[40px] md:text-[52px] font-semibold text-ink mt-3">{firstName}</p>
+          <p className="font-display text-[42px] md:text-[56px] font-medium text-ink mt-3">{firstName}</p>
           <p className="mt-2 text-[17px] text-body">a terminé les 13 semaines du programme THRIVE Maison</p>
           <div className="mt-8 grid gap-4 md:grid-cols-2 text-left">
             {blocks.slice(0, 2).map((b) => (
@@ -189,6 +191,10 @@ export function RewardView({
           <p className="mt-4 inline-block rounded-full bg-accent text-accent-on px-4 py-1.5 text-[14px] font-bold">
             {REWARDS.find((r) => r.id === 'certificat')?.bonus}
           </p>
+          <span aria-hidden className="maison-star w-[62px] h-[62px] mx-auto mt-6">
+            <Icon name="star" className="w-[30px] h-[30px]" strokeWidth={1.7} fill="currentColor" />
+          </span>
+        </div>
         </div>
         {!compact && <Actions title={title} blocks={blocks} footer={footer} />}
       </div>
@@ -202,7 +208,7 @@ export function RewardView({
     const tools = blocks[0].lines;
     const recto = tools.slice(0, 3);
     const verso = tools.slice(3, 8);
-    const card = 'nc-card ring-1 ring-accent-line aspect-[85/55] w-full max-w-[340px] print:w-[85mm] print:h-[55mm] print:max-w-none flex flex-col';
+    const card = 'maison-paper rounded-[18px] p-5 aspect-[85/55] w-full max-w-[340px] print:w-[85mm] print:h-[55mm] print:max-w-none flex flex-col';
     return (
       <div>
         <style>{PRINT_CSS}</style>
@@ -235,8 +241,9 @@ export function RewardView({
   return (
     <div>
       <style>{PRINT_CSS}</style>
-      <div className="nc-card ring-1 ring-accent-line md:p-8">
-        <p className="font-display text-[26px] md:text-[32px] font-semibold text-ink">{title}</p>
+      <div className="maison-paper rounded-[24px] p-2.5">
+      <div className="maison-frame rounded-[16px] p-6 md:p-9">
+        <p className="font-display text-[28px] md:text-[34px] font-medium text-ink text-balance">{title}</p>
         <div className="mt-5 space-y-5">
           {blocks.map((b) => (
             <div key={b.label}>
@@ -264,6 +271,10 @@ export function RewardView({
           )}
         </div>
         <p className="mt-6 text-[15px] italic text-soft">{footer}</p>
+        <span aria-hidden className="maison-star w-[62px] h-[62px] mt-6">
+            <Icon name="star" className="w-[30px] h-[30px]" strokeWidth={1.7} fill="currentColor" />
+          </span>
+      </div>
       </div>
       {!compact && <Actions title={title} blocks={blocks} footer={footer} />}
     </div>

@@ -811,3 +811,45 @@
     transform: scale(var(--to, 1));
   }
 }
+
+/* Durée de la fiche : pastilles regroupées dans un sélecteur segmenté. */
+.maison-seg [role='group'] {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 26px;
+  background: var(--chip);
+  border: 1px solid var(--line);
+}
+.maison-seg .nc-pill {
+  flex: 1;
+  justify-content: center;
+  border-color: transparent;
+}
+
+/* Papier (carnet, objets) : les encres passent en marine, quelle que soit l'ambiance. */
+.maison-paper {
+  --text: #022539;
+  --text2: #33454f;
+  --text3: #56626b;
+  --text4: #56626b;
+  --line: rgba(0, 49, 76, 0.12);
+  --line2: rgba(0, 49, 76, 0.2);
+  --surface: rgba(255, 255, 255, 0.6);
+  --shadow: none;
+  --accent-ink: #004e7a;
+  --accent-line: rgba(70, 105, 95, 0.4);
+  color: #022539;
+  background: var(--paper, #f7f5f2);
+  box-shadow: 0 18px 34px -20px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+.maison-paper .nc-eyebrow {
+  color: var(--paper-ink, #46695f);
+}
+/* Cadre de certificat : double filet sauge. */
+.maison-frame {
+  border: 1px solid rgba(70, 105, 95, 0.45);
+  outline: 1px solid rgba(70, 105, 95, 0.25);
+  outline-offset: -7px;
+}
