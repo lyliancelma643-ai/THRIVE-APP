@@ -20,6 +20,8 @@ import {
   getActivity,
   getWeek,
   isVisible,
+  plainAction,
+  plainSession,
   resolveActivity,
   type Duration,
   type P3Activity,
@@ -131,12 +133,15 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </p>
           <dl className="mt-4 grid gap-2 text-[14px] leading-[1.45]">
             <div className="flex gap-2">
-              <dt className="text-soft shrink-0">Séance</dt>
-              <dd className="text-body">
-                {week?.session_source ?? 'Hors séance'}
-                {week?.action && week.action !== '—' ? ` · ${week.action}` : ''}
-              </dd>
+              <dt className="text-soft shrink-0">Avec le coach</dt>
+              <dd className="text-body">{week ? plainSession(week.session_source) : 'Hors séance'}</dd>
             </div>
+            {plainAction(week?.action) && (
+              <div className="flex gap-2">
+                <dt className="text-soft shrink-0">Axe</dt>
+                <dd className="text-body">{plainAction(week?.action)}</dd>
+              </div>
+            )}
             <div className="flex gap-2">
               <dt className="text-soft shrink-0">Pilier</dt>
               <dd className="text-body">{PILLAR_PLAIN[activity.pillar_main]}</dd>
@@ -315,7 +320,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 
         {/* Actions — collantes sur mobile, au-dessus de la barre d'onglets */}
         <div className="fixed md:static inset-x-0 bottom-[calc(66px+max(20px,env(safe-area-inset-bottom)))] z-sticky px-4 sm:px-5 md:px-0 md:mt-8">
-          <div className="max-w-2xl mx-auto flex items-center gap-2 rounded-full md:rounded-none p-2 md:p-0 bg-night-bg md:bg-transparent">
+          <div className="max-w-2xl mx-auto flex items-center gap-2 rounded-full md:rounded-none p-2 md:p-0 bg-night-bg md:bg-transparent ring-1 ring-line2 shadow-[0_10px_30px_rgba(0,10,20,0.45)] md:ring-0 md:shadow-none">
             <Link
               href={launchHref}
               className="flex-1 inline-flex items-center justify-center gap-2 h-[52px] rounded-full bg-accent text-accent-on font-bold text-base"
@@ -323,36 +328,31 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
               <Icon name="play" className="w-[18px] h-[18px]" />
               Lancer
             </Link>
+            {/* Actions secondaires : icône + libellé court, à la hauteur de « Lancer »
+                (la barre ne grandit pas, chaque bouton dit ce qu'il fait). */}
             <button
               type="button"
               onClick={() => ctx.data.toggleSaved(activity.id, 'FAVORI')}
               aria-pressed={fav}
               aria-label={fav ? 'Retirer des favoris' : 'Ajouter aux favoris'}
-              className="nc-iconbtn shrink-0"
+              className={FICHE_ACTION}
             >
               <Icon name="star" className={`w-5 h-5 ${fav ? 'text-accent-ink' : ''}`} strokeWidth={fav ? 2.6 : 1.9} />
+              <span aria-hidden>Favori</span>
             </button>
             <button
               type="button"
               onClick={() => ctx.data.toggleSaved(activity.id, 'DE_COTE')}
               aria-pressed={aside}
               aria-label={aside ? 'Ne plus mettre de côté' : 'Mettre de côté'}
-              className="nc-iconbtn shrink-0"
+              className={FICHE_ACTION}
             >
               <Icon name="flag" className={`w-5 h-5 ${aside ? 'text-accent-ink' : ''}`} />
+              <span aria-hidden>De côté</span>
             </button>
-            {/* Très petit écran : icône seule (même action), pour que « Lancer » garde sa place. */}
-            <button type="button" onClick={otherActivity} className="nc-pill min-h-[44px] shrink-0 max-[400px]:hidden">
-              Autre activité
-            </button>
-            <button
-              type="button"
-              onClick={otherActivity}
-              aria-label="Autre activité"
-              title="Autre activité"
-              className="nc-iconbtn shrink-0 min-[401px]:hidden"
-            >
+            <button type="button" onClick={otherActivity} aria-label="Autre activité" className={FICHE_ACTION}>
               <Icon name="refresh" className="w-5 h-5" />
+              <span aria-hidden>Autre</span>
             </button>
           </div>
         </div>
@@ -360,6 +360,9 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
     </article>
   );
 }
+
+const FICHE_ACTION =
+  'shrink-0 w-[60px] h-[52px] rounded-[16px] inline-flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold leading-none text-soft hover:text-ink hover:bg-surface-sub transition-colors';
 
 function FichePage() {
   const params = useParams<{ activityId: string }>();

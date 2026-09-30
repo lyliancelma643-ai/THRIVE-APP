@@ -168,6 +168,7 @@ export function PosterRow({
   hrefOf,
   isDone,
   more,
+  headerless,
 }: {
   /** Clé stable de la rangée : sert à retrouver sa position au retour. */
   id: string;
@@ -177,10 +178,11 @@ export function PosterRow({
   hrefOf: (a: P3Activity) => string;
   isDone: (a: P3Activity) => boolean;
   more?: { href: string; label: string };
+  headerless?: boolean;
 }) {
   if (items.length === 0) return null;
   return (
-    <Rail id={id} title={title} subtitle={subtitle} more={more} arrowTopClass="top-[76px] md:top-[88px] lg:top-[100px]">
+    <Rail id={id} title={title} subtitle={subtitle} more={more} headerless={headerless} arrowTopClass="top-[76px] md:top-[88px] lg:top-[100px]">
       {items.map((a) => (
         <PosterCard key={a.id} activity={a} href={hrefOf(a)} done={isDone(a)} />
       ))}

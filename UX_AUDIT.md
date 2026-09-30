@@ -188,12 +188,15 @@ L'audit automatique était déjà vierge (0 débordement, 0 cible < 44 px, 0 vio
 | MA-09 | Fiche activité | iPad paysage, ordinateur | Une colonne de 670 px collée à gauche, deux tiers de l'écran vides | P1 | Deux colonnes dès 1 024 px : titre et vignette fixes à gauche, contenu à droite ; ordre inchangé sur téléphone | ✅ |
 | MA-10 | Mode activité (amorce) | Tous | « Séance 3 · Les preuves · Les preuves » | P3 | Pilier non répété | ✅ |
 | MA-11 | Accueil | Téléphone | « Ta semaine 2 » puis « · Ce qu'il veut » renvoyé seul à la ligne | P3 | Espace insécable avant « · » | ✅ |
+| MA-12 | Accueil | Tous | 15 rangées, ~9 écrans de défilement sur iPhone | P1 | Rangées personnelles en premier (semaine, plus loin, « parce que », créneau, préférées, favoris), puis deux sélecteurs « Selon ton moment » (7 situations) et « Tout le parcours » (3 étapes) qui montrent une rangée à la fois : 7 670 → 4 748 px sur iPhone (−38 %), aucune activité retirée | ✅ |
+| MA-13 | Fiche activité | Téléphones | Étoile, drapeau et flèches sans libellé visible | P1 | Icône + libellé court (« Favori », « De côté », « Autre ») à la hauteur de « Lancer » : la barre ne grandit pas | ✅ |
+| MA-14 | Fiche, programme | Tous | Codes internes « S3 — … · A3 — … » affichés aux parents | P2 | Reformulés à l'affichage (« Avec le coach : Séance 3 · Confiance / courage », « Axe : Confiance par la progression maîtrisée ») ; données inchangées, testé sur les 13 semaines | ✅ |
+| MA-15 | Fiche activité (et tout écran avec un élément fixe) | Téléphones | La barre « Lancer » n'était jamais collée en bas de l'écran : l'animation d'entrée d'écran gardait une transformation nulle (`fill: both`), qui rendait l'écran repère des éléments fixes | P0 | Animations d'entrée en `fill: backwards` (sc-swap, om-up, page-in, msg-in, bub-in) : même rendu, plus d'effet après la fin ; barre flottante détachée par une ombre | ✅ |
 
 ### Propositions nécessitant validation (Maison)
 
 1. **Fiches au vouvoiement** : les consignes et objectifs des 53 activités (« Votre enfant découvre… », « N'écrivez pas… ») et les guides « Quand il dit non » / « Quand consulter » restent au vouvoiement. C'est du contenu éditorial et clinique généré depuis les sources Markdown : à convertir à la source, puis relire (voir §3 n° 1). Les « vous » qui désignent le parent *et* l'enfant (« Cherchez ensemble », « quand vous êtes prêts, tous les deux ») sont corrects et resteraient.
-2. **Accueil très long** : 15 rangées, environ 9 écrans de défilement sur iPhone. Regrouper ou replier certaines rangées (« Pour la route », « Tu as trente minutes ? »…) changerait l'architecture de l'écran.
-3. **Actions de la fiche en icônes seules** : étoile (favori), drapeau (mettre de côté) et flèches (autre activité) n'ont pas de libellé visible sur téléphone. Afficher un libellé sous chaque icône demanderait une barre plus haute.
-4. **Codes internes visibles** : « S3 — Confiance / courage · A3 — Confiance par la progression maîtrisée » dans « Ce qu'on travaille ». Ce sont des références de la méthode, peu parlantes pour un parent : à reformuler ou masquer côté contenu.
 
-Vérifications : typecheck, lint, 361 tests unitaires, 17 tests e2e, audit Maison sur 6 formats (0 défaut automatique), parcours complet du mode activité sur 393 et 360 px.
+Les points « accueil très long », « icônes sans libellé » et « codes internes » ont été validés puis traités (MA-12 à MA-14).
+
+Vérifications : typecheck, lint, 365 tests unitaires, 17 tests e2e, audit Maison sur 6 formats (0 défaut automatique), audit rapide de toute l'app sur 4 formats (aucune régression), parcours complet du mode activité sur 393 et 360 px, barre de la fiche vérifiée en capture écran sur 393 et 360 px.

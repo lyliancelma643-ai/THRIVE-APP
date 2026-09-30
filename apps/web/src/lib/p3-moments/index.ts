@@ -34,6 +34,23 @@ export function publishedActivities(all: P3Activity[] = P3_ACTIVITIES, includeRe
 export function getActivity(id: string): P3Activity | null {
   return P3_ACTIVITIES.find((a) => a.id === id.toUpperCase()) ?? null;
 }
+// ── Libellés de séance pour les parents ─────────────────────────────────────
+// Les données gardent les références de la méthode (« S3 — … », « A3 — … ») ;
+// à l'écran, un parent lit « Séance 3 · … » et l'axe travaillé, sans code.
+
+/** « S3 — Confiance / courage » → « Séance 3 · Confiance / courage ». */
+export function plainSession(source: string): string {
+  const m = /^S(\d+)\s*[—–-]\s*(.+)$/.exec(source.trim());
+  return m ? `Séance ${m[1]} · ${m[2]}` : source;
+}
+
+/** « A3 — Confiance par la progression maîtrisée » → « Confiance par la progression maîtrisée » ; « — » → null. */
+export function plainAction(action: string | null | undefined): string | null {
+  const a = (action ?? '').trim();
+  if (!a || a === '—') return null;
+  return a.replace(/^A\d+\s*[—–-]\s*/, '');
+}
+
 export function getWeek(n: number | null): P3Week | null {
   if (n === null) return null;
   return P3_WEEKS.find((w) => w.week === n) ?? null;

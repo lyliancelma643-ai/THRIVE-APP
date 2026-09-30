@@ -23,6 +23,7 @@ export function Rail({
   subtitle,
   more,
   arrowTopClass,
+  headerless = false,
   children,
 }: {
   /** Clé stable (mémoire de position au retour). */
@@ -32,27 +33,31 @@ export function Rail({
   more?: { href: string; label: string };
   /** Hauteur des flèches : milieu de la vignette (ex. `top-[76px] md:top-[88px]`). */
   arrowTopClass: string;
+  /** Sans en-tête visible : le titre est déjà porté par un sélecteur au-dessus. */
+  headerless?: boolean;
   children: ReactNode;
 }) {
   const { edges, props, page, progress, ratio } = useHScroll(id ? `row:${id}` : undefined);
   const scrollable = !(edges.start && edges.end);
 
   return (
-    <section className="mt-9 animate-om-up group/row" aria-label={title}>
+    <section className={`${headerless ? 'mt-4' : 'mt-9'} animate-om-up group/row`} aria-label={title}>
       {/* Titre et lien sur la même ligne ; le sous-titre prend toute la largeur
           (sur téléphone, le lien ne comprime plus le titre sur deux lignes). */}
-      <div className="mb-3">
-        <div className="flex items-start justify-between gap-3">
-          <h2 className="min-w-0 font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2] text-balance">{title}</h2>
-          {more && (
-            <Link href={more.href} className="shrink-0 -my-[10px] inline-flex items-center gap-1 min-h-[44px] text-[14px] font-semibold text-accent-ink">
-              {more.label}
-              <Icon name="chevron-right" className="w-4 h-4" />
-            </Link>
-          )}
+      {!headerless && (
+        <div className="mb-3">
+          <div className="flex items-start justify-between gap-3">
+            <h2 className="min-w-0 font-display text-[20px] md:text-[22px] font-semibold text-ink leading-[1.2] text-balance">{title}</h2>
+            {more && (
+              <Link href={more.href} className="shrink-0 -my-[10px] inline-flex items-center gap-1 min-h-[44px] text-[14px] font-semibold text-accent-ink">
+                {more.label}
+                <Icon name="chevron-right" className="w-4 h-4" />
+              </Link>
+            )}
+          </div>
+          {subtitle && <p className="text-[14px] text-soft mt-1 text-pretty max-w-prose">{subtitle}</p>}
         </div>
-        {subtitle && <p className="text-[14px] text-soft mt-1 text-pretty max-w-prose">{subtitle}</p>}
-      </div>
+      )}
       <div className="relative">
         {/* `scroll-pl-5` : sans lui, l'accroche cale la première vignette sur le bord et mange la gouttière. */}
         <div

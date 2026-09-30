@@ -13,7 +13,7 @@ import { Icon } from '@/components/ui';
 import { P3Frame, type P3Ctx } from '@/components/parent/p3/P3Frame';
 import { BackLink, PillGroup, PillarTag } from '@/components/parent/p3/pieces';
 import { cameBack, recall, remember, usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
-import { P3_WEEKS, activitiesOfWeek, bonusActivities, complementsOfWeek, isVisible, type P3Activity } from '@/lib/p3-moments';
+import { P3_WEEKS, activitiesOfWeek, bonusActivities, complementsOfWeek, isVisible, plainAction, plainSession, type P3Activity } from '@/lib/p3-moments';
 import { ROLE_LABELS } from '@/lib/p3-moments/guide';
 import { P3_BASE, p3Pool } from '@/lib/p3-moments/app';
 
@@ -125,10 +125,8 @@ function Programme({ ctx }: { ctx: P3Ctx }) {
           </button>
           {whyOpen && (
             <div className="text-[14px] leading-[1.55] text-soft space-y-1">
-              <p>{detail.session_source}</p>
-              <p>
-                {detail.action} · {detail.skill}
-              </p>
+              <p>{plainSession(detail.session_source)}</p>
+              <p>{[plainAction(detail.action), detail.skill].filter(Boolean).join(' · ')}</p>
               <p>{detail.foundation}</p>
             </div>
           )}
