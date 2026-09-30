@@ -643,7 +643,6 @@
   --paper: #f7f5f2;
   --paper-ink: #46695f;
   --star-glow: rgba(249, 235, 80, 0.5);
-  --grain-rgb: 1 1 1;
 }
 [data-theme='day'] [data-surface='maison'] {
   --bg: #f7f5f2;
@@ -654,11 +653,10 @@
   --paper: #fffefb;
   --paper-ink: #46695f;
   --star-glow: rgba(249, 235, 80, 0.75);
-  --grain-rgb: 0.01 0.14 0.22;
 }
 
-/* La lampe (lueur en haut de l'écran) et le grain : deux calques fixes, sans mélange
-   de couches, qui ne captent aucun geste. */
+/* La lampe : une lueur en haut de l'écran, sur un fond lisse (aucune texture de
+   fond ; les matières vivent dans les éléments). Calque fixe qui ne capte aucun geste. */
 [data-surface='maison']::before {
   content: '';
   position: fixed;
@@ -667,20 +665,6 @@
   pointer-events: none;
   background: var(--lamp);
 }
-[data-surface='maison']::after {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0.4;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-[data-theme='day'] [data-surface='maison']::after {
-  opacity: 0.22;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .01 0 0 0 0 .14 0 0 0 0 .22 0 0 0 .5 -.1'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
-}
-
 /* Fraunces : axe SOFT (empattements arrondis) ; l'axe optique est automatique. */
 [data-surface='maison'] .font-display {
   font-variation-settings: 'SOFT' 100;
