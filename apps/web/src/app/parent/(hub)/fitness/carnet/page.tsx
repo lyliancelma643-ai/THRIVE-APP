@@ -53,7 +53,7 @@ function Carnet({ ctx }: { ctx: P3Ctx }) {
           {entries.map((e, n) =>
             e.moment ? (
               <li key={`m-${e.moment.activity_id}-${e.at}`}>
-                <article className={`maison-paper flex gap-4 p-3.5 rounded-[22px] ${n % 2 ? 'motion-safe:rotate-[0.5deg]' : 'motion-safe:-rotate-[0.4deg]'}`}>
+                <article className={`maison-paper mat-laid flex gap-4 p-3.5 rounded-[22px] ${n % 2 ? 'motion-safe:rotate-[0.5deg]' : 'motion-safe:-rotate-[0.4deg]'}`}>
                   {vignetteSrc(e.moment.activity_id) && (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img

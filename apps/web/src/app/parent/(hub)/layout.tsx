@@ -117,14 +117,20 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
 
           {/* ≥ 1024 px (iPad paysage, ordinateur) : les onglets montent dans
               l'en-tête, au centre — plus de barre de téléphone en bas d'un grand écran. */}
-          <nav aria-label="Navigation principale" className="hidden lg:flex items-center gap-1 p-1 rounded-full bg-surface-sub">
+          <nav aria-label="Navigation principale" className="relative hidden lg:flex items-center p-1 rounded-full bg-surface-sub">
+            {/* Le repère glisse d'un onglet à l'autre (320 ms) au lieu de sauter. */}
+            <span
+              aria-hidden
+              className="nav-pill absolute top-1 left-1 h-11 w-[150px] rounded-full"
+              style={{ transform: `translateX(${(active < 0 ? 0 : active) * 150}px)`, opacity: active < 0 ? 0 : 1 }}
+            />
             {TABS.map((tab, i) =>
               !tabOpen(i) && active !== i ? (
                 <span
                   key={tab.href}
                   aria-disabled
                   title="Disponible après l'activation par ton coach"
-                  className="inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold text-faint cursor-not-allowed"
+                  className="relative inline-flex items-center justify-center gap-2 h-11 w-[150px] rounded-full text-sm font-semibold text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[18px] h-[18px]" />
                   {tab.label}
@@ -135,13 +141,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   href={tab.href}
                   onClick={() => setEnterFrom(i > active ? 30 : -30)}
                   aria-current={active === i ? 'page' : undefined}
-                  className={`inline-flex items-center gap-2 h-11 px-4 rounded-full text-sm font-semibold transition-colors duration-fast ${
-                    active === i ? 'bg-night-surface text-ink shadow-[var(--shadow)]' : 'text-soft hover:text-ink'
+                  className={`relative inline-flex items-center justify-center gap-2 h-11 w-[150px] rounded-full text-sm font-semibold transition-colors duration-base ${
+                    active === i ? 'text-ink' : 'text-soft hover:text-ink'
                   }`}
                 >
                   <Icon
                     name={tab.icon}
-                    className={`w-[18px] h-[18px] ${active === i ? 'text-[color:var(--nav-active)]' : ''}`}
+                    fill={active === i ? 'currentColor' : 'none'}
+                    className={`w-[18px] h-[18px] transition-colors duration-base ${active === i ? 'text-[color:var(--nav-active)]' : ''}`}
                   />
                   {tab.label}
                 </Link>
@@ -206,8 +213,8 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         </div>
       </main>
 
-      {/* Tab bar pleine largeur, posée sur un aplat : pas de verre, pas de bulle
-          glissante — un filet de 2 px se déplace sous l'onglet actif. */}
+      {/* Barre d'onglets : la même capsule de verre sur Bilan, Mes séances et Maison ;
+          un repère glisse sous l'onglet actif. */}
       <nav
         aria-label="Navigation principale"
         className="tabbar lg:hidden fixed bottom-0 inset-x-0 z-nav border-t border-line"
@@ -217,15 +224,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
           paddingBottom: 'max(20px, env(safe-area-inset-bottom))',
         }}
       >
-        <div className="relative max-w-md mx-auto pt-2.5 select-none">
+        <div className="relative max-w-md mx-auto select-none">
+          {/* Le repère glisse sous l'onglet actif (320 ms, courbe « ressort »). */}
           <span
             aria-hidden
-            className="absolute top-0 left-0 h-0.5"
+            className="nav-pill tab-pill absolute left-0 top-1.5 h-[52px] rounded-full"
             style={{
               width: `${100 / TABS.length}%`,
-              background: 'var(--nav-active)',
               transform: `translateX(${(active < 0 ? 0 : active) * 100}%)`,
-              transition: 'transform var(--dur-slow) var(--ease-out)',
               opacity: active < 0 ? 0 : 1,
             }}
           />
@@ -240,7 +246,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   key={tab.href}
                   aria-disabled
                   title="Disponible après l'activation par ton coach"
-                  className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] text-faint cursor-not-allowed"
+                  className="relative flex flex-col items-center justify-center gap-1 h-[52px] text-faint cursor-not-allowed"
                 >
                   <Icon name={tab.icon} className="w-[22px] h-[22px]" />
                   <span className="text-xs font-semibold">{tab.label}</span>
@@ -251,13 +257,13 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                   href={tab.href}
                   onClick={() => setEnterFrom(i > active ? 30 : -30)}
                   aria-current={active === i ? 'page' : undefined}
-                  className="flex flex-col items-center gap-1.5 py-1.5 min-h-[48px] active:scale-95"
+                  className="relative flex flex-col items-center justify-center gap-1 h-[52px] active:scale-95"
                   style={{
                     color: active === i ? 'var(--nav-active)' : 'var(--text3)',
                     transition: 'color var(--dur-base) ease',
                   }}
                 >
-                  <Icon name={tab.icon} className="w-[22px] h-[22px]" />
+                  <Icon name={tab.icon} fill={active === i ? 'currentColor' : 'none'} className="w-[22px] h-[22px]" />
                   <span className="text-xs font-semibold">{tab.label}</span>
                 </Link>
               )

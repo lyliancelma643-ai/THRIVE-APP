@@ -40,7 +40,7 @@ export function TonightSettings({
         aria-expanded={open}
         aria-label={`Régler la durée et le lieu : ${duration} minutes, ${placeLabel}`}
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 h-11 px-[18px] rounded-full border border-line2 bg-chip text-ink text-[14px] font-semibold whitespace-nowrap"
+        className="mat-felt inline-flex items-center gap-2 h-11 px-[18px] rounded-full border border-line2 bg-night-surface text-ink text-[14px] font-semibold whitespace-nowrap"
       >
         <Icon name="settings" className="w-[18px] h-[18px]" />
         {duration} min · {placeLabel}
