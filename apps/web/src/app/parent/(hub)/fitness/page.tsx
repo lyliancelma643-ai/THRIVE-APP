@@ -609,16 +609,16 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           <h2 className="font-display text-[20px] md:text-[22px] font-semibold text-ink mb-3">Le carnet</h2>
           <ul className="grid gap-3 sm:grid-cols-3">
             {data.carnet.slice(0, 3).map((m) => (
-              <li key={`${m.activity_id}-${m.created_at}`} className="nc-row p-4">
-                <p className="text-[12px] text-faint">{formatLongDate(m.created_at)}</p>
-                <p className="mt-1 text-[15px] font-semibold text-ink">{getActivity(m.activity_id)?.title}</p>
-                <p className="mt-1.5 text-[14px] leading-[1.45] text-body line-clamp-3">
+              <li key={`${m.activity_id}-${m.created_at}`} className="maison-paper rounded-[20px] p-4">
+                <p className="font-display italic text-[13px] text-[color:var(--paper-ink)] first-letter:uppercase">{formatLongDate(m.created_at)}</p>
+                <p className="mt-1 text-[15px] font-bold text-ink">{getActivity(m.activity_id)?.title}</p>
+                <p className="mt-1.5 font-display text-[16px] leading-[1.35] text-ink line-clamp-3">
                   {m.kept_phrase ? `« ${m.kept_phrase} »` : captureText(m.capture)}
                 </p>
               </li>
             ))}
           </ul>
-          <Link href={`${P3_BASE}/carnet`} className="inline-flex items-center gap-1.5 mt-3 min-h-[44px] font-semibold text-accent-ink">
+          <Link href={`${P3_BASE}/carnet`} className="inline-flex items-center gap-1.5 mt-3 min-h-[44px] font-semibold text-sage-ink">
             Tout le carnet <Icon name="arrow-right" className="w-4 h-4" />
           </Link>
         </section>

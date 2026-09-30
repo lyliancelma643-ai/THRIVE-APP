@@ -109,7 +109,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </p>
         )}
 
-        {/* L'arche : la scène animée de l'activité + la mascotte. L'enfant comprend l'activité sans lire son but. */}
+        {/* L'arche : la vignette de l'activité. L'enfant comprend l'activité sans lire son but. */}
         <Arch activityId={activity.id} className="mt-6 w-[min(330px,86vw)] lg:w-full lg:max-w-[400px] mx-auto lg:mx-0" />
       </div>
 
@@ -117,17 +117,17 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         {/* L'objectif de développement, relié à la séance : ce qu'on travaille vraiment */}
         <section
           aria-label="Ce qu’on travaille"
-          className="mt-5 lg:mt-0 rounded-[24px] p-5 md:p-6 bg-[color-mix(in_srgb,var(--accent)_12%,transparent)] ring-2 ring-accent-line"
+          className="maison-print mt-8 lg:mt-0 rounded-[26px] px-6 pt-6 pb-5 md:p-7 motion-safe:-rotate-[0.3deg] text-[#022539]"
         >
-          <p className="nc-eyebrow !text-soft">Ce qu’on travaille</p>
-          <p className="mt-2 font-display text-[26px] md:text-[30px] leading-[1.15] font-semibold text-ink">
+          <p className="nc-eyebrow !text-[color:var(--paper-ink)]">Ce qu’on travaille</p>
+          <p className="mt-2 font-display text-[28px] md:text-[32px] leading-[1.12] font-medium text-balance">
             {week?.skill ?? activity.subtitle}
           </p>
-          <p className="mt-3 text-[17px] leading-[1.5] text-ink">
-            <span className="font-semibold">Objectif : </span>
+          <p className="mt-3.5 text-[16px] md:text-[17px] leading-[1.5]">
+            <span className="font-bold">Objectif : </span>
             {activity.objective}
           </p>
-          <dl className="mt-4 grid gap-2 text-[14px] leading-[1.45]">
+          <dl className="mt-4 grid gap-2 text-[14px] leading-[1.45] text-[#33454f] [&_dt]:!text-[#56626b] [&_dd]:!text-[#33454f]">
             <div className="flex gap-2">
               <dt className="text-soft shrink-0">Avec le coach</dt>
               <dd className="text-body">{week ? plainSession(week.session_source) : 'Hors séance'}</dd>
@@ -151,38 +151,45 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
           </dl>
         </section>
 
-        {/* Barre de contexte */}
-        <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-2 text-[14px] text-soft">
-          <li className="inline-flex items-center gap-1.5">
-            <Icon name="play" className="w-3.5 h-3.5 text-accent-ink" /> {r.duration} min
-          </li>
-          <li>{forChild(ctx)}</li>
-          <li>{activity.places.map((p) => PLACE_LABELS[p]).join(' · ')}</li>
-          <li>{activity.materials.length ? activity.materials.join(', ') : 'Rien à préparer'}</li>
-          <li>Énergie : {activity.parent_energy}</li>
-          {activity.participants && <li>{activity.participants}</li>}
+        {/* Barre de contexte : une puce par information */}
+        <ul className="mt-5 flex flex-wrap gap-2">
+          {[
+            { icon: 'timer' as const, text: `${r.duration} min` },
+            { icon: 'child' as const, text: forChild(ctx) },
+            { icon: 'home' as const, text: activity.places.map((p) => PLACE_LABELS[p]).join(' · ') },
+            { icon: 'clipboard' as const, text: activity.materials.length ? activity.materials.join(', ') : 'Rien à préparer' },
+            { icon: 'sparkle' as const, text: `Énergie : ${activity.parent_energy}` },
+            ...(activity.participants ? [{ icon: 'users' as const, text: activity.participants }] : []),
+          ].map((c) => (
+            <li key={c.text} className="inline-flex items-center gap-1.5 min-h-[34px] px-3 rounded-full bg-chip border border-line text-[13.5px] text-body">
+              <Icon name={c.icon} className="w-4 h-4 text-sage-ink shrink-0" />
+              {c.text}
+            </li>
+          ))}
         </ul>
         <div className="mt-3">
           <PillarTag pillar={activity.pillar_main} />
         </div>
 
         {available.length > 1 && (
-          <div className="mt-6">
+          <div className="maison-seg mt-5">
             <DurationPills value={duration} available={available} onChange={setDuration} />
           </div>
         )}
 
         {/* Le seul endroit où le texte est aussi grand que le titre */}
         <Section title="Ce que tu dis pour commencer">
-          <div className="nc-card ring-1 ring-accent-line">
-            <p className="font-display text-[26px] md:text-[32px] leading-[1.25] text-ink" aria-live="polite">
+          <div className="relative rounded-[26px_26px_26px_8px] bg-[color-mix(in_srgb,var(--surface)_70%,var(--text)_6%)] border border-line2 px-6 pt-7 pb-4 shadow-[var(--shadow)]">
+            <span aria-hidden className="absolute left-5 -top-1 font-display text-[84px] leading-none text-sage opacity-60 select-none">“</span>
+            <p className="relative mt-3 font-display italic text-[25px] md:text-[30px] leading-[1.3] text-ink text-pretty" aria-live="polite">
               {frTypo(r.opener)}
             </p>
             <button
               type="button"
               onClick={copy}
-              className="mt-4 min-h-[44px] text-[14px] font-semibold text-accent-ink underline underline-offset-4"
+              className="mt-3 inline-flex items-center gap-2 min-h-[44px] text-[14px] font-semibold text-sage-ink"
             >
+              <Icon name={copied ? 'check' : 'clipboard'} className="w-[18px] h-[18px]" />
               {copied ? 'Phrase copiée' : 'Copier la phrase'}
             </button>
           </div>
@@ -197,21 +204,29 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
         )}
 
         <Section title="Le déroulé">
-          <ol className="space-y-3">
+          <ol className="flex flex-col gap-6">
             {r.steps.map((s, i) => (
-              <li key={i} className="flex gap-3 text-[16px] leading-[1.55] text-body">
-                <span className="font-display text-[18px] font-semibold text-accent-ink w-6 shrink-0">{i + 1}</span>
-                <span>
+              <li key={i} className="relative flex gap-4 text-[16px] leading-[1.55] text-body">
+                {i < r.steps.length - 1 && (
+                  <span aria-hidden className="absolute left-[17px] top-10 -bottom-6 border-l-2 border-dotted border-sage/60" />
+                )}
+                <span
+                  aria-hidden
+                  className="relative grid place-items-center w-9 h-9 shrink-0 rounded-full bg-night-surface border-[1.5px] border-sage font-display text-[18px] font-semibold text-ink"
+                >
+                  {i + 1}
+                </span>
+                <span className="min-w-0 pt-1">
                   <InlineMd text={s} />
                   {(activity.guide[i]?.timer || activity.guide[i]?.visual) && (
-                    <span className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[13px] font-semibold text-accent-ink">
+                    <span className="mt-2.5 flex flex-wrap gap-2 text-[13.5px] font-semibold text-sage-ink">
                       {activity.guide[i].timer && (
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full bg-sage/15 border border-sage/30">
                           <Icon name="timer" className="w-4 h-4" /> Minuteur {timerSummary(activity.guide[i].timer!)}
                         </span>
                       )}
                       {activity.guide[i].visual && (
-                        <span className="inline-flex items-center gap-1.5">
+                        <span className="inline-flex items-center gap-2 min-h-[40px] px-4 rounded-full bg-sage/15 border border-sage/30">
                           <Icon name="eye" className="w-4 h-4" /> À montrer : {VISUAL_LABELS[activity.guide[i].visual!]}
                         </span>
                       )}
@@ -242,10 +257,12 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 
         {/* La valeur du produit : mise en avant forte */}
         <Section title={`À éviter pendant ces ${DURATION_WORDS[r.duration]}`}>
-          <ul className="nc-card space-y-3">
+          <ul className="nc-card space-y-4">
             {r.donts.map((d, i) => (
-              <li key={i} className="flex gap-2 text-[16px] leading-[1.55] text-ink">
-                <span aria-hidden className="text-accent-ink font-bold">—</span>
+              <li key={i} className="flex gap-3 items-start text-[16px] leading-[1.5] text-ink">
+                <span aria-hidden className="grid place-items-center w-[26px] h-[26px] mt-px shrink-0 rounded-full bg-sage/15 text-sage-ink">
+                  <Icon name="close" className="w-3.5 h-3.5" strokeWidth={2.4} />
+                </span>
                 <InlineMd text={d} />
               </li>
             ))}
@@ -292,7 +309,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
             <p className="text-[15px] leading-[1.55] text-body">{activity.why_one_line}</p>
           </div>
           {whyLevel === 0 && (
-            <button type="button" onClick={() => setWhyLevel(1)} className="mt-2 min-h-[44px] text-[14px] font-semibold text-accent-ink">
+            <button type="button" onClick={() => setWhyLevel(1)} className="mt-2 min-h-[44px] text-[14px] font-semibold text-sage-ink">
               Le détail
             </button>
           )}
@@ -301,7 +318,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
               <p className="text-[15px] leading-[1.6] text-body">{activity.why_detail}</p>
               <p className="text-[13px] text-soft">{activity.method_ref}</p>
               {whyLevel === 1 && (
-                <button type="button" onClick={() => setWhyLevel(2)} className="min-h-[44px] text-[14px] font-semibold text-accent-ink">
+                <button type="button" onClick={() => setWhyLevel(2)} className="min-h-[44px] text-[14px] font-semibold text-sage-ink">
                   La source
                 </button>
               )}
@@ -323,11 +340,11 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 
 
         {/* Actions — collantes sur mobile, au-dessus de la barre d'onglets */}
-        <div className="fixed md:static inset-x-0 bottom-[calc(66px+max(20px,env(safe-area-inset-bottom)))] z-sticky px-4 sm:px-5 md:px-0 md:mt-8">
-          <div className="max-w-2xl mx-auto flex items-center gap-2 rounded-full md:rounded-none p-2 md:p-0 bg-night-bg md:bg-transparent ring-1 ring-line2 shadow-[0_10px_30px_rgba(0,10,20,0.45)] md:ring-0 md:shadow-none">
+        <div className="fixed md:static inset-x-0 bottom-[calc(max(14px,env(safe-area-inset-bottom))+74px)] z-sticky px-[14px] md:px-0 md:mt-8">
+          <div className="max-w-2xl mx-auto flex items-center gap-1 rounded-[34px] md:rounded-none p-1.5 md:p-0 bg-[var(--tab)] backdrop-blur-[18px] backdrop-saturate-[1.4] md:backdrop-blur-none md:bg-transparent border border-line2 shadow-[0_20px_40px_-16px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.1)] md:border-0 md:shadow-none">
             <Link
               href={launchHref}
-              className="flex-1 inline-flex items-center justify-center gap-2 h-[52px] rounded-full bg-accent text-accent-on font-bold text-base"
+              className="maison-launch flex-1 inline-flex items-center justify-center gap-2.5 h-[52px] rounded-full text-accent-on font-bold text-[17px]"
             >
               <Icon name="play" className="w-[18px] h-[18px]" />
               Lancer
@@ -366,7 +383,7 @@ function FicheInner({ ctx, activity, bandOverride }: { ctx: P3Ctx; activity: P3A
 }
 
 const FICHE_ACTION =
-  'shrink-0 w-[60px] h-[52px] rounded-[16px] inline-flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold leading-none text-soft hover:text-ink hover:bg-surface-sub transition-colors';
+  'shrink-0 w-[58px] h-[52px] rounded-[26px] inline-flex flex-col items-center justify-center gap-0.5 text-[11px] font-semibold leading-none text-soft hover:text-ink hover:bg-surface-sub transition-colors';
 
 function FichePage() {
   const params = useParams<{ activityId: string }>();

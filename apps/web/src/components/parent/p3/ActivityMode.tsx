@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
 import { Glyph } from './Glyph';
+import { Arch } from './Arch';
 import {
   REWARDS,
   activitiesOfWeek,
@@ -85,13 +86,13 @@ const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: '
 function WorkedOn({ activity, compact = false }: { activity: P3Activity; compact?: boolean }) {
   const week = getWeek(activity.week);
   return (
-    <div className={`rounded-[22px] border-2 border-accent-line ${compact ? 'p-4' : 'p-5'}`}>
-      <p className="nc-eyebrow">Ce qu’on travaille</p>
-      <p className={`mt-1.5 font-display font-semibold text-ink ${compact ? 'text-[20px]' : 'text-[24px]'} leading-[1.2]`}>
+    <div className={`maison-print rounded-[24px] text-[#022539] motion-safe:-rotate-[0.3deg] ${compact ? 'p-5' : 'p-6'}`}>
+      <p className="nc-eyebrow !text-[color:var(--paper-ink)]">Ce qu’on travaille</p>
+      <p className={`mt-1.5 font-display font-medium ${compact ? 'text-[22px]' : 'text-[26px]'} leading-[1.15] text-balance`}>
         {week?.skill ?? activity.subtitle}
       </p>
-      <p className="mt-2 text-[15px] leading-[1.5] text-body">{activity.objective}</p>
-      <p className="mt-2 text-[13px] text-soft">
+      <p className="mt-2 text-[15px] leading-[1.5]">{activity.objective}</p>
+      <p className="mt-2 text-[13px] text-[#56626b]">
         {activity.subtitle.includes(PILLAR_PLAIN[activity.pillar_main])
           ? activity.subtitle
           : `${activity.subtitle} · ${PILLAR_PLAIN[activity.pillar_main]}`}
@@ -144,7 +145,7 @@ function PrimaryButton({ onClick, children }: { onClick: () => void; children: R
     <button
       type="button"
       onClick={onClick}
-      className="w-full md:w-auto md:min-w-[260px] h-[56px] px-8 rounded-full bg-accent text-accent-on font-bold text-[17px] active:scale-[0.98] transition-transform motion-reduce:transition-none"
+      className="w-full md:w-auto md:min-w-[260px] h-[56px] px-8 maison-launch rounded-full text-accent-on font-bold text-[17px] active:scale-[0.98] transition-transform motion-reduce:transition-none"
     >
       {children}
     </button>
@@ -523,6 +524,7 @@ export function ActivityMode({
     case 'amorce':
       body = (
         <>
+          <Arch activityId={activity.id} className="w-[min(260px,68vw)] mx-auto mb-7" />
           <WorkedOn activity={activity} compact />
           {activity.safety && (
             <details className="mt-4 nc-row p-4">
@@ -534,8 +536,11 @@ export function ActivityMode({
               </p>
             </details>
           )}
-          <p className="mt-8 text-[18px] text-soft">Pour commencer, dis :</p>
-          <BigText className="mt-3 !text-[34px] md:!text-[46px]">{frTypo(r.opener)}</BigText>
+          <div className="relative mt-9 rounded-[26px_26px_26px_8px] bg-[color-mix(in_srgb,var(--surface)_70%,var(--text)_6%)] border border-line2 px-6 pt-7 pb-6 shadow-[var(--shadow)]">
+            <span aria-hidden className="absolute left-5 -top-1 font-display text-[84px] leading-none text-sage opacity-60 select-none">“</span>
+            <p className="relative text-[15px] text-soft">Pour commencer, dis :</p>
+            <BigText className="relative mt-2 italic !text-[30px] md:!text-[42px]">{frTypo(r.opener)}</BigText>
+          </div>
           <p className="mt-6 text-[15px] leading-[1.5] text-soft">
             Le minuteur démarre sur {r.duration} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
           </p>
@@ -582,13 +587,15 @@ export function ActivityMode({
                     return (
                       <div key={k} ref={isLast ? setLast : undefined} className="motion-safe:animate-om-up">
                         {beat.kind === 'dire' ? (
-                          <div className={`rounded-[20px] p-4 ${isLast && current ? 'bg-[color-mix(in_srgb,var(--accent)_16%,transparent)] ring-2 ring-accent' : 'bg-surface-sub'}`}>
-                            <p className="text-[13px] font-bold uppercase tracking-wide text-accent-ink">Dis</p>
-                            <p className="mt-1 font-display text-[22px] md:text-[26px] leading-[1.3] text-ink">{frTypo(beat.text)}</p>
+                          <div
+                            className={`rounded-[22px_22px_22px_8px] px-5 py-4 border ${isLast && current ? 'bg-[color-mix(in_srgb,var(--surface)_70%,var(--text)_6%)] border-sage shadow-[var(--shadow)]' : 'bg-surface-sub border-line'}`}
+                          >
+                            <p className="text-[13px] font-bold uppercase tracking-wide text-sage-ink">Dis</p>
+                            <p className="mt-1 font-display italic text-[22px] md:text-[26px] leading-[1.3] text-ink">{frTypo(beat.text)}</p>
                           </div>
                         ) : (
                           <div className="flex gap-3 px-1">
-                            <span aria-hidden className="mt-0.5 text-[18px]">👉</span>
+                            <Icon name="arrow-right" className="mt-1 w-[18px] h-[18px] shrink-0 text-sage-ink" />
                             <p className={`text-[17px] leading-[1.55] ${isLast && current ? 'text-ink font-semibold' : 'text-body'}`}>
                               <InlineMd text={beat.text} />
                             </p>
@@ -673,7 +680,7 @@ export function ActivityMode({
                   <button
                     type="button"
                     onClick={nextBeat}
-                    className="shrink-0 h-[52px] px-5 max-[380px]:px-4 rounded-full bg-accent text-accent-on font-bold text-[16px] inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform motion-reduce:transition-none"
+                    className="shrink-0 h-[52px] px-5 max-[380px]:px-4 maison-launch rounded-full text-accent-on font-bold text-[16px] inline-flex items-center gap-1.5 active:scale-[0.98] transition-transform motion-reduce:transition-none"
                   >
                     {nextIsNewStep ? (
                       <>
@@ -846,14 +853,19 @@ export function ActivityMode({
           >
             {shownCount !== null ? (shownCount === 1 ? `1 moment avec ${firstName}` : `${shownCount} moments avec ${firstName}`) : data.countPhrase}
           </p>
-          <div className="mt-4 flex items-center gap-2" aria-label={`${data.week.done} sur 3 cette semaine`}>
-            {[0, 1, 2].map((i) => (
-              <span
-                key={i}
-                className={`w-3.5 h-3.5 rounded-full transition-colors duration-700 motion-reduce:transition-none ${i < data.week.done ? 'bg-accent' : 'bg-track'}`}
-              />
-            ))}
-            <span className="ml-2 text-[14px] text-soft">{data.week.done} sur 3 cette semaine</span>
+          <div className="mt-5 flex items-center gap-3" role="img" aria-label={`${Math.min(data.week.done, 3)} sur 3 cette semaine`}>
+            {[0, 1, 2].map((i) =>
+              i < Math.min(data.week.done, 3) ? (
+                <span key={i} className="maison-star w-12 h-12 motion-safe:animate-om-up" style={{ ['--om-d' as string]: `${0.15 * i}s` }}>
+                  <Icon name="star" className="w-6 h-6" strokeWidth={1.7} fill="currentColor" />
+                </span>
+              ) : (
+                <span key={i} className="maison-star-off w-12 h-12">
+                  <Icon name="star" className="w-5 h-5" strokeWidth={1.6} />
+                </span>
+              )
+            )}
+            <span className="ml-1 text-[14px] font-semibold text-body">{data.week.done} sur 3 cette semaine</span>
           </div>
 
           {low ? (
@@ -880,8 +892,8 @@ export function ActivityMode({
                 return (
                   <div key={id} className="nc-card ring-1 ring-accent-line motion-safe:animate-om-up">
                     <div className="flex items-center gap-3">
-                      <span className="w-11 h-11 rounded-full bg-accent text-accent-on grid place-items-center shrink-0">
-                        <Icon name="award" className="w-5 h-5" />
+                      <span className="maison-star w-12 h-12 shrink-0">
+                        <Icon name="award" className="w-6 h-6" />
                       </span>
                       <div>
                         <p className="nc-eyebrow">Débloqué</p>
@@ -891,7 +903,7 @@ export function ActivityMode({
                     <div className="mt-4 flex gap-2">
                       <Link
                         href={`${P3_BASE}/objets/${id}`}
-                        className="inline-flex items-center h-11 px-5 rounded-full bg-accent text-accent-on font-bold text-[15px]"
+                        className="maison-launch inline-flex items-center h-11 px-5 rounded-full text-accent-on font-bold text-[15px]"
                       >
                         Voir
                       </Link>
@@ -1062,6 +1074,7 @@ export function ActivityMode({
   return createPortal(
     <div
       id="p3-mode"
+      data-surface="maison"
       className="fixed inset-0 z-[70] bg-night-bg text-night-body overflow-y-auto overscroll-contain"
       style={{ touchAction: 'pan-y' }}
       onPointerDown={(e) => e.stopPropagation()}
