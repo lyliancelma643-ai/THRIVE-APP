@@ -93,6 +93,9 @@ type Tr = {
   genericErr: string;
   footer: string;
   session: string;
+  network: string;
+  retry: string;
+  resumed: string;
 };
 
 const T: Record<Lang, Tr> = {
@@ -116,6 +119,9 @@ const T: Record<Lang, Tr> = {
     genericErr: 'Une erreur est survenue.',
     footer: 'Tes réponses sont partagées avec ton coach pour t’aider à progresser.',
     session: 'Séance',
+    network: 'La connexion est coupée. Tes réponses sont gardées sur cet appareil : réessaie dans un instant.',
+    retry: 'Réessayer',
+    resumed: 'On a gardé tes réponses : tu reprends là où tu t’étais arrêté.',
   },
   en: {
     loading: 'Loading…',
@@ -137,8 +143,52 @@ const T: Record<Lang, Tr> = {
     genericErr: 'Something went wrong.',
     footer: 'Your answers are shared with your coach to help you progress.',
     session: 'Session',
+    network: 'The connection dropped. Your answers are kept on this device: try again in a moment.',
+    retry: 'Try again',
+    resumed: 'Your answers were saved: pick up where you left off.',
   },
 };
+
+// Brouillon local : 43 questions LSSS — un rechargement, un appel ou l'écran
+// qui se verrouille ne doivent pas faire tout recommencer à l'enfant.
+const draftKey = (token: string) => `thrive-q-draft-${token}`;
+function readDraft(token: string): Record<string, number> {
+  try {
+    const raw = window.localStorage.getItem(draftKey(token));
+    const parsed = raw ? JSON.parse(raw) : null;
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, number>) : {};
+  } catch {
+    return {};
+  }
+}
+function writeDraft(token: string, answers: Record<string, number> | null) {
+  try {
+    if (answers) window.localStorage.setItem(draftKey(token), JSON.stringify(answers));
+    else window.localStorage.removeItem(draftKey(token));
+  } catch {
+    /* stockage indisponible (navigation privée) : on continue sans brouillon */
+  }
+}
+
+// Défini HORS du composant de page : recréé à chaque rendu, il démontait et
+// remontait toute la page à chaque réponse (focus perdu pour VoiceOver/TalkBack).
+function Shell({ isPerma, children }: { isPerma: boolean; children: React.ReactNode }) {
+  return (
+    <div
+      style={{
+        minHeight: '100dvh',
+        background: isPerma
+          ? 'radial-gradient(125% 85% at 50% -12%, #3a2a10 0%, #2e2410 24%, #241a08 52%, #140e04 100%)'
+          : 'radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%)',
+        color: '#eaf3f1',
+        fontFamily: "'Inter',system-ui,sans-serif",
+        padding: '24px 16px 60px',
+      }}
+    >
+      <div style={{ maxWidth: 560, margin: '0 auto' }}>{children}</div>
+    </div>
+  );
+}
 
 export default function QuestionnairePage() {
   const params = useParams<{ token: string }>();
@@ -150,15 +200,30 @@ export default function QuestionnairePage() {
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [resumed, setResumed] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   const load = useCallback(async () => {
     if (!token) return;
     const { data, error } = await supabase.rpc('questionnaire_get', { p_token: token });
+    // Erreur technique (réseau…) : distincte d'un lien invalide ou expiré,
+    // que le RPC signale dans `data.error`.
     if (error) {
-      setState({ error: error.message });
+      setState({ error: 'network' });
       return;
     }
-    setState(data as LoadState);
+    const loaded = data as LoadState;
+    setState(loaded);
+    if (!loaded?.error && !loaded?.completed) {
+      const ids = new Set((loaded.items ?? []).map((i) => i.id));
+      const draft = Object.fromEntries(
+        Object.entries(readDraft(token)).filter(([id, v]) => ids.has(id) && Number.isInteger(v))
+      );
+      if (Object.keys(draft).length) {
+        setAnswers(draft);
+        setResumed(true);
+      }
+    }
   }, [token]);
 
   useEffect(() => {
@@ -184,6 +249,13 @@ export default function QuestionnairePage() {
   const answered = Object.keys(answers).length;
   const allAnswered = total > 0 && answered >= total;
 
+  const answer = (itemId: string, v: number) =>
+    setAnswers((a) => {
+      const next = { ...a, [itemId]: v };
+      if (token) writeDraft(token, next);
+      return next;
+    });
+
   const submit = async () => {
     if (!token || !allAnswered) return;
     setSubmitting(true);
@@ -191,7 +263,8 @@ export default function QuestionnairePage() {
     const { data, error } = await supabase.rpc('questionnaire_submit', { p_token: token, p_answers: answers });
     setSubmitting(false);
     if (error) {
-      setSubmitError(error.message);
+      // Message technique jamais affiché à l'enfant ; ses réponses restent là.
+      setSubmitError(tr.network);
       return;
     }
     if ((data as any)?.error) {
@@ -206,6 +279,7 @@ export default function QuestionnairePage() {
       return;
     }
     setDone(true);
+    writeDraft(token, null);
     // Le parent revient souvent au bilan juste après (flux notification →
     // /q/<token> → bilan) : on invalide le cache partagé pour que la courbe
     // EPOCH et la jauge LSSS intègrent la séance sans attendre l'expiration.
@@ -217,26 +291,44 @@ export default function QuestionnairePage() {
   const accent = '#F9EB50';
   const groupColor = isPerma ? '#F6B45A' : '#A7C4BC';
 
-  const Shell = ({ children }: { children: React.ReactNode }) => (
-    <div
-      style={{
-        minHeight: '100dvh',
-        background: isPerma
-          ? 'radial-gradient(125% 85% at 50% -12%, #3a2a10 0%, #2e2410 24%, #241a08 52%, #140e04 100%)'
-          : 'radial-gradient(125% 85% at 50% -12%, #0a3a44 0%, #06303a 24%, #042430 52%, #03161b 100%)',
-        color: '#eaf3f1',
-        fontFamily: "'Inter',system-ui,sans-serif",
-        padding: '24px 16px 60px',
-      }}
-    >
-      <div style={{ maxWidth: 560, margin: '0 auto' }}>{children}</div>
-    </div>
-  );
 
   if (!state) {
     return (
-      <Shell>
+      <Shell isPerma={isPerma}>
         <div style={{ height: 200, display: 'grid', placeItems: 'center', opacity: 0.6 }}>{T.fr.loading}</div>
+      </Shell>
+    );
+  }
+
+  if (state.error === 'network') {
+    return (
+      <Shell isPerma={isPerma}>
+        <div style={{ textAlign: 'center', paddingTop: 60 }} role="alert">
+          <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>{tr.oops}</h1>
+          <p style={{ opacity: 0.7, lineHeight: 1.5, marginBottom: 28 }}>{tr.network}</p>
+          <button
+            onClick={async () => {
+              setRetrying(true);
+              await load();
+              setRetrying(false);
+            }}
+            disabled={retrying}
+            style={{
+              minHeight: 52,
+              padding: '0 28px',
+              borderRadius: 16,
+              border: 'none',
+              background: accent,
+              color: '#06222a',
+              fontWeight: 700,
+              fontSize: 16,
+              cursor: 'pointer',
+              opacity: retrying ? 0.6 : 1,
+            }}
+          >
+            {retrying ? tr.loading : tr.retry}
+          </button>
+        </div>
       </Shell>
     );
   }
@@ -250,7 +342,7 @@ export default function QuestionnairePage() {
       ? tr.expired
       : tr.invalid;
     return (
-      <Shell>
+      <Shell isPerma={isPerma}>
         <div style={{ textAlign: 'center', paddingTop: 60 }}>
           <div style={{ fontSize: 48, marginBottom: 16 }}>{done || state.completed ? '✅' : '⚠️'}</div>
           <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 10 }}>
@@ -285,7 +377,7 @@ export default function QuestionnairePage() {
     : 'THRIVE · LSSS';
 
   return (
-    <Shell>
+    <Shell isPerma={isPerma}>
       <header style={{ marginBottom: 20 }}>
         <p style={{ fontSize: 12, letterSpacing: '.1em', textTransform: 'uppercase', color: groupColor }}>
           {kindLabel}
@@ -294,6 +386,11 @@ export default function QuestionnairePage() {
           {tr.hi} {state.child_first_name} 👋
         </h1>
         <p style={{ opacity: 0.75, fontSize: 14, lineHeight: 1.5 }}>{state.description ?? tr.defaultDesc}</p>
+        {resumed && (
+          <p role="status" style={{ marginTop: 12, fontSize: 13, color: accent }}>
+            {tr.resumed}
+          </p>
+        )}
       </header>
 
       {/* Barre de progression */}
@@ -341,14 +438,15 @@ export default function QuestionnairePage() {
                   padding: 14,
                 }}
               >
-                <p style={{ fontSize: 14, marginBottom: 12, lineHeight: 1.4 }}>{it.prompt}</p>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <p id={`q-${it.id}`} style={{ fontSize: 14, marginBottom: 12, lineHeight: 1.4 }}>{it.prompt}</p>
+                <div role="group" aria-labelledby={`q-${it.id}`} style={{ display: 'flex', gap: 6 }}>
                   {SCALE[isPerma ? 'PERMA' : 'LSSS'][lang].map((s) => {
                     const active = answers[it.id] === s.v;
                     return (
                       <button
                         key={s.v}
-                        onClick={() => setAnswers((a) => ({ ...a, [it.id]: s.v }))}
+                        onClick={() => answer(it.id, s.v)}
+                        aria-pressed={active}
                         style={{
                           flex: 1,
                           minHeight: 52,
@@ -365,10 +463,10 @@ export default function QuestionnairePage() {
                           justifyContent: 'center',
                           gap: 2,
                         }}
-                        aria-label={s.label}
+                        aria-label={`${s.v} — ${s.label}`}
                       >
                         {s.v}
-                        <span style={{ fontSize: 8, fontWeight: 500, opacity: 0.7, lineHeight: 1 }}>
+                        <span style={{ fontSize: 10, fontWeight: 500, opacity: 0.8, lineHeight: 1.15, textAlign: 'center', padding: '0 2px' }}>
                           {s.label}
                         </span>
                       </button>
@@ -382,7 +480,7 @@ export default function QuestionnairePage() {
       ))}
 
       {submitError && (
-        <p style={{ marginTop: 18, padding: 12, borderRadius: 12, background: 'rgba(220,80,80,.15)', color: '#ffb4b4', fontSize: 14 }}>
+        <p role="alert" style={{ marginTop: 18, padding: 12, borderRadius: 12, background: 'rgba(220,80,80,.15)', color: '#ffb4b4', fontSize: 14 }}>
           {submitError}
         </p>
       )}
