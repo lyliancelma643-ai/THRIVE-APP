@@ -1097,5 +1097,18 @@ export function makeFunctions(db) {
     // Aucune redirection réelle pendant l'audit.
     'create-checkout-session': () => ({ url: '/parent/abonnement?checkout=cancel' }),
     'create-portal-session': () => ({ url: '/parent/abonnement?portal=return' }),
+    // Droits du titulaire (page Compte)
+    'export-my-data': (_b, me) => ({
+      export_format: 'thrive.v1',
+      exported_at: new Date().toISOString(),
+      subject: { user_id: me?.id ?? null },
+      data: { families: db.families.filter((f) => f.parent_id === me?.id) },
+    }),
+    'request-account-deletion': (b, me) => {
+      db.deletion_requests ??= [];
+      const request = { id: `del-${db.deletion_requests.length + 1}`, status: 'PENDING', requested_at: new Date().toISOString() };
+      db.deletion_requests.push({ ...request, requested_by: me?.id, target_profile_id: me?.id, reason: b?.reason ?? null });
+      return { success: true, request };
+    },
   };
 }

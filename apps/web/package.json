@@ -11,7 +11,8 @@
     "test": "vitest run",
     "test:e2e": "playwright test",
     "ux:build": "node scripts/ux-audit/build-mock.mjs",
-    "ux:audit": "node scripts/ux-audit/run.mjs"
+    "ux:audit": "node scripts/ux-audit/run.mjs",
+    "test:e2e:client": "playwright test -c playwright.client.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.0.0",
