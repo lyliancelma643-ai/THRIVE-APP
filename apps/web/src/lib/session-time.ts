@@ -12,7 +12,8 @@ export function sessionTime(iso: string, timeZone = TZ): string | null {
   const m = parts.find((p) => p.type === 'minute')?.value ?? '00';
   // Une séance planifiée « à la date » seulement arrive à 00 h 00 : pas d'heure à montrer.
   if (h === 0 && m === '00') return null;
-  return m === '00' ? `${h} h` : `${h} h ${m}`;
+  // Espaces insécables : « 14 h 30 » ne se coupe jamais en fin de ligne.
+  return m === '00' ? `${h}\u00a0h` : `${h}\u00a0h\u00a0${m}`;
 }
 
 /** « mardi 6 octobre » (+ « · 17 h 30 » si l'heure est connue). */

@@ -4,8 +4,8 @@ import { sessionIcs, sessionTime, sessionWhen } from './session-time';
 describe('sessionTime', () => {
   it('donne l’heure locale de Montréal', () => {
     // 21 h 30 UTC = 17 h 30 à Montréal (heure d'été)
-    expect(sessionTime('2026-10-06T21:30:00Z')).toBe('17 h 30');
-    expect(sessionTime('2026-10-06T22:00:00Z')).toBe('18 h');
+    expect(sessionTime('2026-10-06T21:30:00Z')).toBe('17\u00a0h\u00a030');
+    expect(sessionTime('2026-10-06T22:00:00Z')).toBe('18\u00a0h');
   });
   it('ne montre pas d’heure pour une séance planifiée à minuit (date seule)', () => {
     expect(sessionTime('2026-10-06T04:00:00Z')).toBeNull();
@@ -18,7 +18,7 @@ describe('sessionTime', () => {
 
 describe('sessionWhen', () => {
   it('assemble le jour et l’heure', () => {
-    expect(sessionWhen('2026-10-06T21:30:00Z')).toBe('mardi 6 octobre · 17 h 30');
+    expect(sessionWhen('2026-10-06T21:30:00Z')).toBe('mardi 6 octobre · 17\u00a0h\u00a030');
   });
 });
 

@@ -41,6 +41,7 @@ export const SCREENS = [
   { role: 'public', id: 'reset-password', path: '/reset-password' },
   { role: 'public', id: '404', path: '/page-inexistante' },
   { role: 'public', id: 'offline', path: '/offline' },
+  { role: 'public', id: 'confidentialite', path: '/confidentialite' },
   { role: 'public', id: 'questionnaire-enfant', path: '/q/demo-perma', main: true },
   { role: 'public', id: 'questionnaire-invalide', path: '/q/jeton-inconnu' },
 

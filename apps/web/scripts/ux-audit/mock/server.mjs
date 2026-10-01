@@ -183,6 +183,21 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
       const body = (await readBody(req)) ?? {};
       const u = { id: randomUUID(), email: body.email, role: 'PARENT', firstName: body.data?.firstName ?? '', lastName: body.data?.lastName ?? '' };
       users.push(u);
+      // Comme le trigger on_auth_user_created en production : une ligne profiles.
+      db.profiles.push({
+        id: u.id,
+        email: u.email,
+        first_name: u.firstName,
+        last_name: u.lastName,
+        role: 'PARENT',
+        is_active: true,
+        registration_status: 'ACTIVE',
+        coach_validated: false,
+        phone_number: null,
+        speciality: null,
+        bio: null,
+        created_at: new Date().toISOString(),
+      });
       return send(res, 200, session(u));
     }
     if (p.startsWith('/factors')) return send(res, 200, []);

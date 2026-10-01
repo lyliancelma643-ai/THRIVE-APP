@@ -295,7 +295,7 @@ function ActiveSubscription() {
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <Link
           href="/parent/fitness"
-          className="flex-1 flex items-center justify-center gap-2 h-12 rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
+          className="sm:flex-1 flex items-center justify-center gap-2 min-h-[48px] rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
         >
           Ouvrir Maison <Icon name="arrow-right" className="w-4 h-4" />
         </Link>
