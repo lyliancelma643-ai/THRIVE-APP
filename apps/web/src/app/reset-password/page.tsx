@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { BrandLogo } from '@/components/BrandLogo';
+import { humanAuthError } from '@/lib/auth-errors';
 
 type Phase = 'loading' | 'ready' | 'invalid' | 'done';
 
@@ -62,12 +63,13 @@ export default function ResetPasswordPage() {
       // Le middleware lit le token dans ce cookie pour protéger les routes
       const { data } = await supabase.auth.getSession();
       if (data.session?.access_token) {
-        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=604800; SameSite=Lax`;
+        const secure = window.location.protocol === 'https:' ? '; Secure' : '';
+        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=604800; SameSite=Lax${secure}`;
       }
       setPhase('done');
       setTimeout(() => router.push('/dashboard'), 1800);
-    } catch (err: any) {
-      setError(err?.message ?? 'Impossible de mettre à jour le mot de passe');
+    } catch (err: unknown) {
+      setError(humanAuthError(err));
       setSubmitting(false);
     }
   };
@@ -155,6 +157,7 @@ export default function ResetPasswordPage() {
                 <input
                   type="password"
                   className="input-auth"
+                  minLength={8}
                   value={confirm}
                   onChange={(e) => setConfirm(e.target.value)}
                   autoComplete="new-password"

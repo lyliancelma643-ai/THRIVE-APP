@@ -6,21 +6,19 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import { humanAuthError } from '@/lib/auth-errors';
+import {
+  CHILD_MAX_AGE,
+  CHILD_MIN_AGE,
+  SPORT_OPTIONS,
+  ageToDob,
+  validateChildRows,
+  type ChildRow,
+} from '@/lib/child-form';
 
 type Mode = 'signin' | 'signup' | 'forgot';
-type ChildRow = { firstName: string; age: string; sport: string };
 
 const EMPTY_CHILD: ChildRow = { firstName: '', age: '', sport: '' };
-
-// Traduit les messages d'erreur techniques de Supabase en messages lisibles.
-function humanAuthError(msg: string): string {
-  if (/already|exist|registered/i.test(msg)) return 'Un compte existe déjà avec cet email.';
-  if (/invalid.*email|email.*invalid/i.test(msg)) return "L'adresse email n'est pas valide.";
-  if (/rate|too many/i.test(msg)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
-  if (/password/i.test(msg) && /weak|short|least|6|8/i.test(msg))
-    return 'Mot de passe trop faible (min. 8 caractères).';
-  return msg;
-}
 
 // URL du site vitrine (marketing). Configurable via NEXT_PUBLIC_SITE_URL ;
 // sinon site local (Vite, port 5173) en dev, site déployé en production.
@@ -54,12 +52,6 @@ function destinationFor(role?: string | null): string {
   }
   return homeForRole(role);
 }
-
-const SPORT_OPTIONS = [
-  'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
-  'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
-  'Patinage', 'Football', 'Athlétisme', 'Autre',
-];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -138,8 +130,8 @@ export default function LoginPage() {
       );
       if (rErr) throw rErr;
       setResetSent(true);
-    } catch (err: any) {
-      setError(err?.message ?? "Envoi de l'email impossible");
+    } catch (err: unknown) {
+      setError(humanAuthError(err));
     } finally {
       setSubmitting(false);
     }
@@ -160,15 +152,8 @@ export default function LoginPage() {
         (await needsMfaStepUp()) ? `/mfa-verify?next=${encodeURIComponent(dest)}` : dest
       );
       // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
-    } catch (err: any) {
-      const msg = err?.message ?? 'Connexion impossible';
-      setError(
-        /invalid login|credentials/i.test(msg)
-          ? 'Email ou mot de passe incorrect.'
-          : /fetch|network|abort|timed? ?out/i.test(msg)
-            ? 'Connexion lente ou interrompue. Vérifie ton réseau et réessaie.'
-            : humanAuthError(msg)
-      );
+    } catch (err: unknown) {
+      setError(humanAuthError(err));
       setSubmitting(false);
     }
   };
@@ -184,17 +169,11 @@ export default function LoginPage() {
       setError('Le mot de passe doit faire au moins 8 caractères');
       return;
     }
-    const children = childRows.filter((c) => c.firstName.trim() && c.age);
-    // L'app cible les 8-17 ans : on rejette tôt tout âge hors tranche (le
-    // libellé le promet, la validation doit l'appliquer).
-    const badAge = children.find((c) => {
-      const n = Number(c.age);
-      return !Number.isInteger(n) || n < 8 || n > 17;
-    });
-    if (badAge) {
-      setError(
-        `L'âge de ${badAge.firstName.trim() || "l'enfant"} doit être compris entre 8 et 17 ans.`
-      );
+    // Lignes vides ignorées ; une ligne à moitié remplie (prénom sans âge…) est
+    // signalée au lieu d'être écartée en silence. Âge strictement 8–17 ans.
+    const { children, error: childError } = validateChildRows(childRows);
+    if (childError) {
+      setError(childError);
       return;
     }
     setError('');
@@ -217,8 +196,8 @@ export default function LoginPage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Connexion impossible après inscription');
       userId = user.id;
-    } catch (err: any) {
-      setError(humanAuthError(err?.message ?? 'Inscription impossible'));
+    } catch (err: unknown) {
+      setError(humanAuthError(err));
       setSubmitting(false);
       return;
     }
@@ -236,25 +215,25 @@ export default function LoginPage() {
           .single();
         if (famErr) throw famErr;
 
-        const rows = children.map((c) => {
-          const dob = new Date();
-          dob.setFullYear(dob.getFullYear() - Number(c.age));
-          return {
-            family_id: family.id,
-            first_name: c.firstName.trim(),
-            date_of_birth: dob.toISOString().split('T')[0],
-            sport: c.sport.trim() || 'Hockey',
-            is_active: true,
-          };
-        });
+        // last_name est obligatoire en base (NOT NULL) : sans lui, l'insertion
+        // échouait à CHAQUE inscription et les enfants déclarés disparaissaient.
+        // L'enfant prend le nom du parent ; il reste modifiable ensuite.
+        const rows = children.map((c) => ({
+          family_id: family.id,
+          first_name: c.firstName,
+          last_name: lastName.trim(),
+          date_of_birth: ageToDob(Number(c.age)),
+          sport: c.sport.trim() || null,
+          is_active: true,
+        }));
         const { error: childErr } = await supabase.from('children').insert(rows);
         if (childErr) throw childErr;
       }
       router.push('/parent/bilans');
     } catch {
-      // Compte créé + session active : on entre dans l'app (les enfants pourront
-      // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
-      router.push('/parent?setup=children');
+      // Compte créé + session active : plutôt qu'un compte orphelin ou un
+      // « Aucun profil enfant » muet, on ouvre directement l'ajout d'enfant.
+      router.push('/parent/select-profile?retry=child');
     }
   };
 
@@ -438,7 +417,7 @@ export default function LoginPage() {
                   setMode('forgot');
                   setError('');
                 }}
-                className="block ml-auto -my-2 py-3 px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
+                className="block ml-auto -my-2 min-h-[44px] py-3 px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
               >
                 Mot de passe oublié ?
               </button>
@@ -466,7 +445,7 @@ export default function LoginPage() {
               </div>
               <Field label="Email">
                 <input type="email" className="input-auth" value={signup.email}
-                  autoComplete="email"
+                  autoComplete="email" inputMode="email" autoCapitalize="none"
                   onChange={(e) => setSignup({ ...signup, email: e.target.value })} />
               </Field>
               <Field label="Mot de passe (min. 8 caractères)">
@@ -478,7 +457,7 @@ export default function LoginPage() {
               {/* Enfants dès l'inscription */}
               <div className="pt-2">
                 <p className="text-xs font-bold uppercase tracking-wide text-navy-700 mb-2">
-                  Tes enfants (8–17 ans)
+                  Tes enfants ({CHILD_MIN_AGE}–{CHILD_MAX_AGE} ans)
                 </p>
                 <div className="space-y-3">
                   {childRows.map((c, i) => (
@@ -515,7 +494,7 @@ export default function LoginPage() {
                       <div className="flex gap-2">
                         <input
                           aria-label={`Âge de l'enfant ${i + 1}`}
-                          type="number" min={8} max={17} placeholder="Âge (8-17)"
+                          type="number" min={CHILD_MIN_AGE} max={CHILD_MAX_AGE} placeholder={`Âge (${CHILD_MIN_AGE}-${CHILD_MAX_AGE})`}
                           inputMode="numeric"
                           className="input-auth w-24"
                           value={c.age}

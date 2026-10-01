@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { PACK_LABELS, asPack, limit as planLimit, type Pack } from '@/lib/packs';
+import { CHILD_MAX_AGE, CHILD_MIN_AGE, SPORT_OPTIONS, ageToDob, childAgeError } from '@/lib/child-form';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type MemberType = 'PARENT' | 'CHILD';
@@ -16,17 +17,6 @@ const GENDER_OPTIONS = [
   { value: 'OTHER',  label: 'Autre'   },
 ];
 
-const SPORT_OPTIONS = [
-  'Soccer', 'Basketball', 'Hockey', 'Natation', 'Tennis',
-  'Volleyball', 'Gym', 'Arts martiaux', 'Baseball', 'Autre',
-];
-
-// Calcul date de naissance depuis âge
-const ageToDob = (age: number): string => {
-  const d = new Date();
-  d.setFullYear(d.getFullYear() - age);
-  return d.toISOString().split('T')[0];
-};
 
 // URL du site vitrine (marketing). Configurable via NEXT_PUBLIC_SITE_URL ;
 // sinon site local (Vite, port 5173) en dev, site déployé en production.
@@ -35,6 +25,15 @@ const SITE_URL =
   (process.env.NODE_ENV === 'production'
     ? 'https://thrivesportpositive.com'
     : 'http://localhost:5173');
+
+// Erreur PostgREST → message lisible. Les messages de quota du forfait
+// (trigger de la migration 039) sont déjà rédigés en français : on les garde.
+function friendlyDbError(msg: string): string {
+  if (/quota/i.test(msg)) return msg;
+  if (/fetch|network|abort|timed? ?out|load failed/i.test(msg))
+    return 'Connexion lente ou interrompue. Vérifie ton réseau et réessaie.';
+  return 'L’enregistrement n’a pas abouti. Réessaie dans un instant.';
+}
 
 // ── Page principale ───────────────────────────────────────────────────────────────
 export default function SelectProfilePage() {
@@ -48,6 +47,8 @@ export default function SelectProfilePage() {
   const [error, setError]               = useState<string | null>(null);
   const [successName, setSuccessName]   = useState('');
   const [initLoading, setInitLoading]   = useState(true);
+  // Arrivée depuis l'inscription quand l'enregistrement des enfants a échoué.
+  const [retryNotice, setRetryNotice]   = useState(false);
   // Quotas du forfait (maxChildren / maxParents) — l'UI prévient, la base garantit
   const [pack, setPack]                 = useState<Pack>('ESSENTIEL');
   const [childCount, setChildCount]     = useState(0);
@@ -70,6 +71,14 @@ export default function SelectProfilePage() {
         return;
       }
       setCurrentUser({ id: user.id, email: user.email ?? '' });
+      // L'enfant prend par défaut le nom du parent (modifiable).
+      const parentLast = String(user.user_metadata?.lastName ?? '').trim();
+      if (parentLast) setChildForm((f) => (f.last_name ? f : { ...f, last_name: parentLast }));
+      if (new URLSearchParams(window.location.search).get('retry') === 'child') {
+        setRetryNotice(true);
+        setMemberType('CHILD');
+        setStep('form');
+      }
 
       const { data: fam } = await supabase
         .from('families')
@@ -164,7 +173,12 @@ export default function SelectProfilePage() {
       }
     );
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.error ?? 'Impossible de créer le compte.');
+    if (!res.ok)
+      throw new Error(
+        /already|exist|registered/i.test(String(data?.error ?? ''))
+          ? 'Un compte existe déjà avec cet email.'
+          : 'Impossible de créer le compte pour le moment. Réessaie dans un instant.'
+      );
 
     // Rattacher le co-parent à la famille (socle du quota maxParents — le
     // trigger de la migration 039 revérifie côté base).
@@ -173,7 +187,7 @@ export default function SelectProfilePage() {
       const { error: memberErr } = await supabase
         .from('family_members')
         .insert({ family_id: familyId, profile_id: newProfileId, member_role: 'PARENT' });
-      if (memberErr) throw new Error(memberErr.message);
+      if (memberErr) throw new Error(friendlyDbError(memberErr.message));
       setMemberCount((n) => n + 1);
     }
 
@@ -192,9 +206,10 @@ export default function SelectProfilePage() {
     const { first_name, last_name, age, gender, sport, notes } = childForm;
     if (!first_name.trim() || !last_name.trim())
       throw new Error('Prénom et nom sont obligatoires.');
+    // Même règle qu'à l'inscription : le parcours est conçu pour les 8–17 ans.
+    const ageErr = childAgeError(age, first_name);
+    if (ageErr) throw new Error(ageErr);
     const ageNum = Number(age);
-    if (!age || isNaN(ageNum) || ageNum < 1 || ageNum > 25)
-      throw new Error('L’âge doit être entre 1 et 25 ans.');
     if (!currentUser)
       throw new Error('Session expirée : reconnecte-toi.');
 
@@ -216,7 +231,7 @@ export default function SelectProfilePage() {
         .select('id')
         .single();
 
-      if (famErr) throw new Error('Erreur création famille : ' + famErr.message);
+      if (famErr) throw new Error(friendlyDbError(famErr.message));
       fid = newFam.id;
       setFamilyId(fid);
     }
@@ -232,7 +247,7 @@ export default function SelectProfilePage() {
       notes:         notes  || null,
       is_active:     true,
     });
-    if (childErr) throw new Error(childErr.message);
+    if (childErr) throw new Error(friendlyDbError(childErr.message));
     setChildCount((n) => n + 1);
     setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
   };
@@ -279,6 +294,12 @@ export default function SelectProfilePage() {
           </div>
           <h1 className="text-2xl font-bold text-navy-900">Ajouter un membre</h1>
           <p className="text-navy-600 mt-1 text-sm">Choisis le type de profil à créer</p>
+          {retryNotice && (
+            <p role="status" className="mt-4 rounded-xl bg-white border border-sun-dark/40 px-4 py-3 text-sm text-navy-800 text-left">
+              Ton compte est créé. L&apos;ajout de ton enfant n&apos;a pas abouti : complète sa fiche
+              ci-dessous pour démarrer.
+            </p>
+          )}
         </div>
 
         {/* ─── STEP 1 : Choix ─── */}
@@ -380,8 +401,8 @@ export default function SelectProfilePage() {
               {/* Prénom + Nom — commun aux deux */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Prénom *</label>
-                  <input required type="text" placeholder={memberType === 'PARENT' ? 'Jean' : 'Emma'}
+                  <label htmlFor="sp-first" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Prénom *</label>
+                  <input id="sp-first" required type="text" placeholder={memberType === 'PARENT' ? 'Jean' : 'Emma'}
                     value={memberType === 'PARENT' ? parentForm.first_name : childForm.first_name}
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, first_name: e.target.value })
@@ -390,8 +411,8 @@ export default function SelectProfilePage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Nom *</label>
-                  <input required type="text" placeholder="Tremblay"
+                  <label htmlFor="sp-last" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Nom *</label>
+                  <input id="sp-last" required type="text" placeholder="Tremblay"
                     value={memberType === 'PARENT' ? parentForm.last_name : childForm.last_name}
                     onChange={(e) => memberType === 'PARENT'
                       ? setParentForm({ ...parentForm, last_name: e.target.value })
@@ -405,16 +426,16 @@ export default function SelectProfilePage() {
               {memberType === 'PARENT' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Email *</label>
-                    <input required type="email" placeholder="jean@exemple.com"
+                    <label htmlFor="sp-email" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Email *</label>
+                    <input id="sp-email" required type="email" placeholder="jean@exemple.com"
                       value={parentForm.email}
                       onChange={(e) => setParentForm({ ...parentForm, email: e.target.value })}
                       className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Téléphone</label>
-                    <input type="tel" placeholder="514-555-0123"
+                    <label htmlFor="sp-phone" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Téléphone</label>
+                    <input id="sp-phone" type="tel" placeholder="514-555-0123"
                       value={parentForm.phone}
                       onChange={(e) => setParentForm({ ...parentForm, phone: e.target.value })}
                       className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
@@ -428,16 +449,16 @@ export default function SelectProfilePage() {
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Âge *</label>
-                      <input required type="number" min={1} max={25} placeholder="8"
+                      <label htmlFor="sp-age" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Âge *</label>
+                      <input id="sp-age" required type="number" inputMode="numeric" min={CHILD_MIN_AGE} max={CHILD_MAX_AGE} placeholder="8"
                         value={childForm.age}
                         onChange={(e) => setChildForm({ ...childForm, age: e.target.value })}
                         className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Genre</label>
-                      <select value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
+                      <label htmlFor="sp-gender" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Genre</label>
+                      <select id="sp-gender" value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
                         className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                         <option value="">—</option>
                         {GENDER_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
@@ -445,16 +466,16 @@ export default function SelectProfilePage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Sport principal</label>
-                    <select value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
+                    <label htmlFor="sp-sport" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Sport principal</label>
+                    <select id="sp-sport" value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
                       className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
                       <option value="">Choisir un sport...</option>
                       {SPORT_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Notes</label>
-                    <textarea rows={3} placeholder="Allergies, besoins spéciaux..."
+                    <label htmlFor="sp-notes" className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Notes</label>
+                    <textarea id="sp-notes" rows={3} placeholder="Allergies, besoins spéciaux..."
                       value={childForm.notes}
                       onChange={(e) => setChildForm({ ...childForm, notes: e.target.value })}
                       className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 resize-none"
