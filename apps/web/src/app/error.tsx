@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import * as Sentry from '@sentry/nextjs';
 import { Icon } from '@/components/ui';
+import { isStaleBuildError, reloadOnceForNewBuild } from '@/lib/stale-build';
 
 // Page d'erreur globale (App Router) — attrape les exceptions de rendu
 // des Server/Client Components et offre une relance sans rechargement dur.
@@ -13,9 +14,13 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const staleBuild = isStaleBuildError(error);
+
   useEffect(() => {
+    // Nouvelle version en ligne : on la charge plutôt que d'afficher une erreur.
+    if (staleBuild && reloadOnceForNewBuild()) return;
     Sentry.captureException(error);
-  }, [error]);
+  }, [error, staleBuild]);
 
   return (
     <main className="min-h-dvh flex flex-col items-center justify-center bg-cream px-6 text-center">
@@ -33,7 +38,7 @@ export default function Error({
         <p className="text-xs text-navy-600 mb-4 tabular-nums">Code : {error.digest}</p>
       )}
       <button
-        onClick={reset}
+        onClick={() => (staleBuild ? window.location.reload() : reset())}
         className="inline-flex items-center min-h-[48px] rounded-full bg-navy-600 px-6 text-white font-bold shadow-card hover:bg-navy-700 transition-colors"
       >
         Réessayer
