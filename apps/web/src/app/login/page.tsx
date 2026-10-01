@@ -480,7 +480,7 @@ export default function LoginPage() {
                   setMode('forgot');
                   setError('');
                 }}
-                className="block ml-auto -my-2 py-3 px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
+                className="block ml-auto -my-2 min-h-[44px] px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors"
               >
                 Mot de passe oublié ?
               </button>
