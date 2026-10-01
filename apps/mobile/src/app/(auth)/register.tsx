@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
+import { LEGAL, LEGAL_VERSION } from '../../services/legal';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -12,15 +13,29 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
+  const [accepted, setAccepted] = useState(false);
 
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !password) {
       setError('Tous les champs sont requis');
       return;
     }
+    // Consentement explicite (Loi 25 art. 4.1 et 14, RGPD art. 7, Apple 5.1.1) :
+    // le compte est réservé à un adulte titulaire de l'autorité parentale.
+    if (!accepted) {
+      setError('Veuillez confirmer votre âge et accepter les conditions pour continuer.');
+      return;
+    }
     try {
       setError('');
-      await signUp(email, password, { firstName, lastName, role: 'PARENT' });
+      await signUp(email, password, {
+        firstName,
+        lastName,
+        role: 'PARENT',
+        legal_version: LEGAL_VERSION,
+        legal_accepted_at: new Date().toISOString(),
+        adult_guardian_confirmed: true,
+      });
       setSuccess(true);
     } catch (err: any) {
       setError(err.message ?? 'Inscription impossible');
@@ -50,6 +65,28 @@ export default function RegisterScreen() {
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Nom" value={lastName} onChangeText={setLastName} />
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
+
+        <Pressable
+          className="flex-row items-start mb-4"
+          onPress={() => setAccepted((v) => !v)}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: accepted }}
+        >
+          <View className={`w-6 h-6 rounded-md border-2 mr-3 mt-0.5 items-center justify-center ${accepted ? 'bg-black border-black' : 'border-gray-300'}`}>
+            {accepted && <Text className="text-white text-xs font-bold">✓</Text>}
+          </View>
+          <Text className="flex-1 text-sm text-gray-600">
+            J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
+            <Text className="underline text-black" onPress={() => Linking.openURL(LEGAL.terms)}>conditions d’utilisation</Text>
+            {LEGAL.privacy ? (
+              <>
+                {' '}et la{' '}
+                <Text className="underline text-black" onPress={() => Linking.openURL(LEGAL.privacy)}>politique de confidentialité</Text>
+              </>
+            ) : null}
+            .
+          </Text>
+        </Pressable>
 
         {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
 

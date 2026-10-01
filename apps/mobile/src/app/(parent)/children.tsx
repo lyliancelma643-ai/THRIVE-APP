@@ -117,6 +117,11 @@ export default function ChildrenScreen() {
               value={dob}
               onChangeText={setDob}
             />
+            <Text className="text-xs text-gray-500 mb-6 -mt-3">
+              En ajoutant votre enfant, vous confirmez être titulaire de l’autorité parentale et consentez,
+              en son nom, au traitement de ces renseignements pour le suivi de son programme THRIVE.
+              Ils ne sont accessibles qu’à son coach et à l’équipe THRIVE.
+            </Text>
             <Pressable
               className="bg-black rounded-2xl py-4 items-center mb-3"
               onPress={handleAdd}

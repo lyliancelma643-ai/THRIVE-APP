@@ -1,6 +1,7 @@
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
 import { useRouter } from 'expo-router';
+import { AccountPrivacySection } from '../../components/AccountPrivacySection';
 
 export default function CoachProfileScreen() {
   const { user, signOut } = useAuthStore();
@@ -27,6 +28,7 @@ export default function CoachProfileScreen() {
           <Text className="text-gray-500 text-sm">Email</Text>
           <Text className="font-semibold text-base">{user?.email ?? '—'}</Text>
         </View>
+        <AccountPrivacySection />
         <Pressable className="bg-black rounded-2xl py-4 items-center" onPress={handleSignOut}>
           <Text className="text-white font-semibold">Se déconnecter</Text>
         </Pressable>

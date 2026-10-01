@@ -14,11 +14,4 @@ export const C = {
 } as const;
 
 // Liens légaux exigés par Apple et Google sur tout écran d'abonnement.
-// Conditions : si aucune URL propre n'est fournie, le contrat de licence
-// standard d'Apple (EULA) s'applique sur iOS.
-export const LEGAL = {
-  terms:
-    process.env.EXPO_PUBLIC_TERMS_URL ||
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || '',
-} as const;
+export { LEGAL } from '../../services/legal';
