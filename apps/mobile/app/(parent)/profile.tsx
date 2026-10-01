@@ -15,6 +15,7 @@ import { router } from 'expo-router';
 import { useAuth } from '@thrive/shared';
 import { useProfile } from '@thrive/shared';
 import { SubscriptionSettings } from '../../src/components/subscription/SubscriptionSettings';
+import { DeleteAccountRow } from '../../src/components/account/DeleteAccountRow';
 
 export default function ParentProfile() {
   const { user, signOut } = useAuth();
@@ -200,6 +201,8 @@ export default function ParentProfile() {
             <Text style={[styles.actionText, styles.actionTextDanger]}>Se déconnecter</Text>
             <Text style={styles.actionChevron}>›</Text>
           </TouchableOpacity>
+          <View style={styles.fieldDivider} />
+          <DeleteAccountRow />
         </View>
 
         <View style={styles.footer}>

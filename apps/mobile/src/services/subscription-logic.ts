@@ -90,3 +90,56 @@ export function formatDateFr(iso: string | null | undefined): string {
   const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
   return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
 }
+
+// ── Liens légaux du paywall (App Store 3.1.2 / Google Play Abonnements) ─────
+
+/** Contrat de licence standard d'Apple : valable comme « Conditions » sur iOS uniquement. */
+export const APPLE_STANDARD_EULA = 'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/';
+
+export type LegalLinks = { terms: string; privacy: string; complete: boolean };
+
+/**
+ * Conditions d'utilisation + politique de confidentialité à afficher sur le
+ * paywall. Les deux sont obligatoires : `complete` est faux si l'une manque, et
+ * le paywall refuse alors de vendre (mieux vaut pas d'achat qu'un rejet ou un
+ * achat sans information légale). Sur Android, l'EULA d'Apple ne vaut rien.
+ */
+export function legalLinks(
+  env: { terms?: string | null; privacy?: string | null },
+  platformOS: 'ios' | 'android' | string,
+): LegalLinks {
+  const clean = (u: string | null | undefined) => (/^https:\/\/\S+$/i.test(u ?? '') ? (u as string) : '');
+  const terms = clean(env.terms) || (platformOS === 'ios' ? APPLE_STANDARD_EULA : '');
+  const privacy = clean(env.privacy);
+  return { terms, privacy, complete: Boolean(terms && privacy) };
+}
+
+// ── Suppression de compte (App Store 5.1.1(v)) ───────────────────────────────
+
+/**
+ * Avertissement à afficher AVANT de demander la suppression du compte : un
+ * abonnement App Store / Google Play n'est pas annulé par la suppression (seul
+ * son titulaire peut l'annuler dans son store). null = rien à signaler.
+ */
+export function deletionSubscriptionWarning(
+  store: string | null | undefined,
+  willRenew: boolean,
+  platformOS: 'ios' | 'android' | string,
+): string | null {
+  const s = (store ?? '').toUpperCase();
+  if (!willRenew) return null;
+  if (s === 'APP_STORE' || s === 'MAC_APP_STORE') {
+    return 'Votre abonnement App Store continuera d’être facturé par Apple tant que vous ne l’aurez pas annulé'
+      + (platformOS === 'ios' ? ' (bouton « Gérer mon abonnement » ci-dessous).' : ' depuis les réglages de votre iPhone.');
+  }
+  if (s === 'PLAY_STORE') {
+    return 'Votre abonnement Google Play continuera d’être facturé par Google tant que vous ne l’aurez pas annulé'
+      + (platformOS === 'android' ? ' (bouton « Gérer mon abonnement » ci-dessous).' : ' depuis Google Play sur votre téléphone Android.');
+  }
+  if (s === 'STRIPE' || s === 'RC_BILLING') {
+    // Pas de lien ni de mention d'un autre moyen de paiement (anti-steering) :
+    // l'abonnement est annulé côté serveur au moment de la suppression.
+    return 'Votre abonnement en cours sera arrêté au moment de la suppression du compte.';
+  }
+  return null;
+}

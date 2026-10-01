@@ -10,7 +10,10 @@ import { ScrollView, StyleSheet } from 'react-native';
 export default function AbonnementScreen() {
   const { isLoading, hasAccess } = useEntitlement();
   if (isLoading) return <SubscriptionLoader />;
-  if (!hasAccess) return <Paywall onSubscribed={() => router.back()} />;
+  if (!hasAccess) {
+    const close = () => (router.canGoBack() ? router.back() : router.replace('/profile'));
+    return <Paywall onSubscribed={close} onClose={close} />;
+  }
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <SubscriptionSettings />

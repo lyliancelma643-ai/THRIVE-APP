@@ -7,7 +7,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
 import { adminClient, authUser, corsHeaders, fail, json, stripe, StripeError } from "../_shared/billing.ts";
-import { PLAN_LOOKUP_KEYS, TRIAL_DAYS, type PlanCode } from "../_shared/billing_core.ts";
+import { PLAN_LOOKUP_KEYS, stripeHistoryVerdict, TRIAL_DAYS, type PlanCode } from "../_shared/billing_core.ts";
 
 type StripePrice = {
   id: string;
@@ -50,12 +50,24 @@ Deno.serve(withSentry("billing-plans", async (req: Request) => {
       .filter(Boolean);
 
     const { data: row } = await adminClient()
-      .from("billing_subscriptions").select("ever_subscribed").eq("user_id", user.id).maybeSingle();
+      .from("billing_subscriptions").select("ever_subscribed, stripe_customer_id").eq("user_id", user.id).maybeSingle();
+
+    // Même règle que create-checkout-session : on n'annonce JAMAIS un essai
+    // que le paiement ne donnerait pas (historique Stripe relu en direct).
+    let trialEligible = row?.ever_subscribed !== true;
+    if (trialEligible && row?.stripe_customer_id) {
+      const history = await stripe<{ data: { status: string }[] }>("GET", "/subscriptions", {
+        customer: row.stripe_customer_id,
+        status: "all",
+        limit: 100,
+      });
+      if (stripeHistoryVerdict(history.data).everSubscribed) trialEligible = false;
+    }
 
     return json({
       plans,
       trial_days: TRIAL_DAYS,
-      trial_eligible: row?.ever_subscribed !== true,
+      trial_eligible: trialEligible,
     });
   } catch (e) {
     if (e instanceof StripeError && e.code === "not_configured") {

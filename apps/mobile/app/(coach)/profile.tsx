@@ -14,6 +14,7 @@ import {
 import { router } from 'expo-router';
 import { useAuth } from '@thrive/shared';
 import { useProfile } from '@thrive/shared';
+import { DeleteAccountRow } from '../../src/components/account/DeleteAccountRow';
 
 export default function CoachProfile() {
   const { user, signOut } = useAuth();
@@ -236,14 +237,7 @@ export default function CoachProfile() {
             <Text style={styles.actionChevron}>›</Text>
           </TouchableOpacity>
           <View style={styles.fieldDivider} />
-          <TouchableOpacity
-            style={styles.actionRow}
-            onPress={() => Alert.alert('Suppression', 'Contactez le support pour supprimer votre compte.')}
-          >
-            <Text style={styles.actionIcon}>🗑️</Text>
-            <Text style={[styles.actionText, styles.actionTextDanger]}>Supprimer le compte</Text>
-            <Text style={styles.actionChevron}>›</Text>
-          </TouchableOpacity>
+          <DeleteAccountRow />
         </View>
 
         <View style={styles.footer}>
