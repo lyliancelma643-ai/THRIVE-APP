@@ -435,7 +435,7 @@ function Home({ ctx }: { ctx: P3Ctx }) {
               {[
                 { id: 'PAS_LE_TEMPS' as const, label: 'Pas ce soir' },
                 { id: 'DE_COTE' as const, label: 'Mettre de côté' },
-                { id: 'REFUS_ENFANT' as const, label: 'Il ne veut pas' },
+                { id: 'REFUS_ENFANT' as const, label: `${firstName.charAt(0).toUpperCase()}${firstName.slice(1)} ne veut pas` },
               ].map((o) => (
                 <button key={o.id} type="button" role="menuitem" onClick={() => skip(o.id)} className="w-full text-left px-4 min-h-[44px] rounded-[12px] text-[15px] text-ink hover:bg-surface-sub">
                   {o.label}
