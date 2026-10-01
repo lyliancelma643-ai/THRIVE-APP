@@ -38,8 +38,8 @@ export function LiquidTabBar({
   tabOpen: (i: number) => boolean;
   /** Changement d'onglet décidé par le geste (le sens sert à l'animation de la page). */
   onNavigate: (i: number, direction: 1 | -1) => void;
-  /** Toucher simple d'un onglet (le lien fait la navigation). */
-  onTap: (i: number) => void;
+  /** Toucher simple d'un onglet (peut remplacer la navigation du lien). */
+  onTap: (i: number, e: MouseEvent) => void;
 }) {
   const router = useRouter();
   const navRef = useRef<HTMLElement>(null);
@@ -239,7 +239,7 @@ export function LiquidTabBar({
                 key={tab.href}
                 href={tab.href}
                 draggable={false}
-                onClick={() => onTap(i)}
+                onClick={(e) => onTap(i, e)}
                 aria-current={active === i ? 'page' : undefined}
                 className={`relative flex flex-col items-center justify-center gap-1 h-[52px] transition-transform duration-200 ${
                   held && on ? 'scale-[1.08]' : ''
