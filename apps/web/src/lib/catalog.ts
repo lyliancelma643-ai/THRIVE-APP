@@ -59,6 +59,8 @@ export interface ChildProfile {
   nickname: string | null;
   jersey_number: number | null;
   accent_color: string | null;
+  /** Sport déclaré par le parent (inscription / ajout de profil). */
+  sport?: string | null;
 }
 
 export const PHASE_LABELS: Record<Phase, string> = {

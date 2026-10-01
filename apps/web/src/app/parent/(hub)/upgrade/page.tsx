@@ -23,7 +23,7 @@ import {
 // ─────────────────────────────────────────────────────────────────────────────
 
 type RowValue = boolean | string;
-type Row = { label: string; value: (pack: Pack) => RowValue; soon?: boolean };
+type Row = { label: string; value: (pack: Pack) => RowValue };
 
 const ROWS: Row[] = [
   { label: 'Coach humain 1:1 — 13 séances', value: () => true },
@@ -45,8 +45,6 @@ const ROWS: Row[] = [
   { label: 'Gabarits de rapport premium', value: (p) => can(p, 'premiumTemplates') },
   { label: 'Messagerie directe avec le coach', value: (p) => can(p, 'coachMessaging') },
   { label: 'Export CSV / PDF du parcours', value: (p) => can(p, 'csvExport') },
-  // ⚠️ Emplacement réservé — aucune intégration IA (flag aiSummary OFF partout)
-  { label: 'Synthèse IA de fin de parcours', value: () => 'À venir', soon: true },
   { label: 'Profils enfants', value: (p) => fmtCount(limit(p, 'maxChildren')) },
   { label: 'Comptes parents / superviseurs', value: (p) => fmtCount(limit(p, 'maxParents')) },
   {
@@ -60,7 +58,7 @@ function fmtCount(n: number | null): string {
   return n === null ? 'Illimité' : String(n);
 }
 
-function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
+function RowValueCell({ v }: { v: RowValue }) {
   if (v === true) {
     return (
       <span className="inline-flex text-sage-ink" role="img" aria-label="Inclus">
@@ -75,7 +73,7 @@ function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
       </span>
     );
   }
-  return <span className={soon ? 'text-faint italic' : 'text-body'}>{v}</span>;
+  return <span className="text-body">{v}</span>;
 }
 
 export default function UpgradePage() {
@@ -133,7 +131,7 @@ export default function UpgradePage() {
                         {row.label}
                       </span>
                       <span className="shrink-0 font-medium">
-                        <RowValueCell v={v} soon={row.soon} />
+                        <RowValueCell v={v} />
                       </span>
                     </li>
                   );

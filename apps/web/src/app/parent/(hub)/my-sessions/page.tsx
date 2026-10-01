@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
@@ -54,6 +55,7 @@ function MySessionsPageInner() {
   const [bilans, setBilans] = useState<Record<string, SessionBilan>>({});
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   // Droits du forfait de la famille — source unique côté client (matrice packs.ts)
   const { pack } = usePlan(selectedChildId);
@@ -80,6 +82,13 @@ function MySessionsPageInner() {
         .limit(1),
     ]);
 
+    // Réseau coupé : on le dit, au lieu d'afficher un programme vide.
+    if (sessionsRes.error) {
+      setLoadError(true);
+      setLoading(false);
+      return;
+    }
+    setLoadError(false);
     const loadedSessions = (sessionsRes.data ?? []) as OneToOneSession[];
     setSessions(loadedSessions);
 
@@ -149,7 +158,28 @@ function MySessionsPageInner() {
       <EmptyState
         title="Aucun profil enfant"
         body="Ajoute un enfant pour voir son programme de 13 séances avec son coach THRIVE."
+        action={{ href: '/parent/select-profile', label: '+ Ajouter mon enfant' }}
       />
+    );
+  }
+
+  if (loadError && sessions.length === 0) {
+    return (
+      <div className="max-w-xl mx-auto text-center py-20 animate-om-up" role="alert">
+        <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">
+          Les séances ne s&apos;affichent pas
+        </h2>
+        <p className="text-soft mb-6">La connexion semble interrompue. Réessaie dans un instant.</p>
+        <button
+          onClick={() => {
+            setLoading(true);
+            load();
+          }}
+          className="inline-flex items-center h-12 px-6 rounded-full bg-accent text-navy-900 text-sm font-bold active:scale-95 transition-transform"
+        >
+          Réessayer
+        </button>
+      </div>
     );
   }
 
@@ -345,7 +375,15 @@ function MySessionsPageInner() {
   );
 }
 
-function EmptyState({ title, body }: { title: string; body: string }) {
+function EmptyState({
+  title,
+  body,
+  action,
+}: {
+  title: string;
+  body: string;
+  action?: { href: string; label: string };
+}) {
   return (
     <div className="max-w-xl mx-auto text-center py-20 animate-om-up">
       <div className="w-14 h-14 mx-auto mb-6 rounded-full bg-sun/10 flex items-center justify-center text-accent-ink">
@@ -353,6 +391,14 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       </div>
       <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">{title}</h2>
       <p className="text-soft">{body}</p>
+      {action && (
+        <Link
+          href={action.href}
+          className="mt-6 inline-flex items-center h-12 px-6 rounded-full bg-accent text-navy-900 text-sm font-bold active:scale-95 transition-transform"
+        >
+          {action.label}
+        </Link>
+      )}
     </div>
   );
 }

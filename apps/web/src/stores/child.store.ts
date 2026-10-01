@@ -35,7 +35,7 @@ export const useChildStore = create<ChildStore>()(
         const { data: children } = await supabase
           .from('children')
           .select(
-            'id, family_id, first_name, last_name, date_of_birth, avatar_url, nickname, jersey_number, accent_color'
+            'id, family_id, first_name, last_name, date_of_birth, avatar_url, nickname, jersey_number, accent_color, sport'
           )
           .in('family_id', familyIds)
           .eq('is_active', true)

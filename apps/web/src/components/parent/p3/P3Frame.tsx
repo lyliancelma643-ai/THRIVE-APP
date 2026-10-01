@@ -36,7 +36,7 @@ export type P3Ctx = {
 };
 
 export const UNDER_8_MESSAGE =
-  'Le programme Maison est conçu pour les 8–17 ans. Une version pour les plus jeunes est en préparation.';
+  'Le programme Maison est conçu pour les 8–17 ans : ses activités sont adaptées à chaque tranche d’âge.';
 
 function Notice({ children }: { children: ReactNode }) {
   return (

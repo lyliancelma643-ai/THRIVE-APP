@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
@@ -42,7 +43,7 @@ function AthleteIdentityPageInner() {
   const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const htmlRef = useRef<HTMLDivElement>(null);
-  const { data, isPending } = useBilanData(selectedChildId);
+  const { data, isPending, isError, refetch, isFetching } = useBilanData(selectedChildId);
 
   // Photo de profil : children.avatar_url stocke un chemin storage (bucket
   // privé child-avatars) → URL signée résolue ici. Les vieilles URL http
@@ -101,11 +102,7 @@ function AthleteIdentityPageInner() {
     const docId = target.closest('[data-doc]')?.getAttribute('data-doc');
     if (docId) {
       e.stopPropagation();
-      const doc = data?.docs.find((d) => d.id === docId);
-      if (doc) {
-        const url = await signedDocUrl(doc.storage_path, 120);
-        if (url) window.open(url, '_blank', 'noopener');
-      }
+      openDoc(docId);
       return;
     }
     const nav = target.closest('[data-href]');
@@ -122,11 +119,25 @@ function AthleteIdentityPageInner() {
     else if (CARD_INFO[key]) setInfoKey(key);
   };
 
+  // Safari (iOS surtout) bloque window.open appelé après un await : l'onglet
+  // est ouvert tout de suite, dans le geste de l'utilisateur, puis dirigé vers
+  // l'URL signée. Échec → l'onglet vide est refermé et le parent est prévenu.
+  const [docError, setDocError] = useState(false);
   const openDoc = async (docId: string) => {
     const doc = data?.docs.find((dd) => dd.id === docId);
     if (!doc) return;
+    setDocError(false);
+    const win = window.open('', '_blank');
     const url = await signedDocUrl(doc.storage_path, 120);
-    if (url) window.open(url, '_blank', 'noopener');
+    if (url && win) {
+      win.opener = null;
+      win.location.href = url;
+    } else if (url) {
+      window.location.assign(url);
+    } else {
+      win?.close();
+      setDocError(true);
+    }
   };
 
   // Accès clavier du gabarit : les zones d'action simples deviennent des
@@ -161,6 +172,28 @@ function AthleteIdentityPageInner() {
 
   // Liste des enfants ou données du bilan encore en chargement : squelette
   // plutôt qu'un flash d'état vide ou de carte à 0 %.
+  // Échec de chargement (réseau coupé…) : jamais de squelette infini.
+  if (selectedChild && isError && !data) {
+    return (
+      <div className="max-w-xl mx-auto text-center py-20 animate-om-up" role="alert">
+        <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">
+          Le bilan ne s&apos;affiche pas
+        </h2>
+        <p className="text-soft mb-6">
+          La connexion semble interrompue. Les données de {selectedChild.first_name} sont en
+          sécurité : réessaie dans un instant.
+        </p>
+        <button
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="inline-flex items-center h-12 px-6 rounded-full bg-accent text-navy-900 text-sm font-bold active:scale-95 transition-transform disabled:opacity-60"
+        >
+          {isFetching ? 'Nouvel essai…' : 'Réessayer'}
+        </button>
+      </div>
+    );
+  }
+
   if ((childrenLoading && !selectedChild) || (selectedChild && (isPending || !data))) {
     return <BilanSkeleton />;
   }
@@ -175,6 +208,12 @@ function AthleteIdentityPageInner() {
         <p className="text-soft">
           Ajoute un enfant pour découvrir sa carte d&apos;identité d&apos;athlète THRIVE.
         </p>
+        <Link
+          href="/parent/select-profile"
+          className="mt-6 inline-flex items-center h-12 px-6 rounded-full bg-accent text-navy-900 text-sm font-bold active:scale-95 transition-transform"
+        >
+          + Ajouter mon enfant
+        </Link>
       </div>
     );
   }
@@ -210,7 +249,7 @@ function AthleteIdentityPageInner() {
     jerseyNumber: selectedChild.jersey_number ?? null,
     accentColor: accentHex(selectedChild.accent_color),
     age,
-    sport: identity?.sport || 'Hockey sur glace',
+    sport: identity?.sport || selectedChild.sport || '—',
     poste: identity?.position || '—',
     club: identity?.club ?? null,
     coachLast: coach?.last_name || '—',
@@ -255,6 +294,11 @@ function AthleteIdentityPageInner() {
   return (
     <div>
       <style dangerouslySetInnerHTML={{ __html: DESIGN_CSS }} />
+      {docError && (
+        <p role="alert" className="mb-3 px-4 py-3 rounded-[14px] bg-night-surface ring-1 ring-red-500/30 text-[14px] text-body">
+          Le document ne s&apos;ouvre pas pour le moment. Vérifie ta connexion et réessaie.
+        </p>
+      )}
       {/* Rappels de questionnaire — même grammaire que les cartes : aplat,
           un seul accent, pas de bordure colorée superflue. */}
       {pendingLsss && (
@@ -331,7 +375,7 @@ function AthleteIdentityPageInner() {
               sportStory: identity?.sport_story ?? null,
               strengths: identity?.strengths ?? [],
               seasonDream: identity?.season_dream ?? null,
-              sport: identity?.sport || 'Hockey sur glace',
+              sport: identity?.sport || selectedChild.sport || '—',
               poste: identity?.position || '—',
               club: identity?.club ?? null,
               smartGoal: identity?.smart_goal ?? null,

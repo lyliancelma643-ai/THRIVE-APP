@@ -72,6 +72,11 @@ async function loadBilanData(childId: string): Promise<BilanData> {
         .limit(1),
     ]);
 
+  // Une erreur sur les lectures de base (réseau coupé…) ne doit pas passer pour
+  // un dossier vide : on la remonte à React Query (nouvel essai, puis écran d'erreur).
+  const coreError = sessionsRes.error ?? assignmentRes.error ?? identityRes.error;
+  if (coreError) throw coreError;
+
   const sessions = (sessionsRes.data ?? []) as { status: string; session_number: number | null }[];
   const statusByNum: Record<number, string> = {};
   for (const s of sessions) if (s.session_number != null) statusByNum[s.session_number] = s.status;
