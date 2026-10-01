@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
@@ -353,6 +354,12 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       </div>
       <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">{title}</h2>
       <p className="text-soft">{body}</p>
+      <Link
+        href="/parent/select-profile?type=CHILD"
+        className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+      >
+        Ajouter mon enfant
+      </Link>
     </div>
   );
 }

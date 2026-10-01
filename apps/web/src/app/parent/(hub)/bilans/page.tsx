@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
@@ -175,6 +176,12 @@ function AthleteIdentityPageInner() {
         <p className="text-soft">
           Ajoute un enfant pour découvrir sa carte d&apos;identité d&apos;athlète THRIVE.
         </p>
+        <Link
+          href="/parent/select-profile?type=CHILD"
+          className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+        >
+          Ajouter mon enfant
+        </Link>
       </div>
     );
   }
@@ -210,7 +217,7 @@ function AthleteIdentityPageInner() {
     jerseyNumber: selectedChild.jersey_number ?? null,
     accentColor: accentHex(selectedChild.accent_color),
     age,
-    sport: identity?.sport || 'Hockey sur glace',
+    sport: identity?.sport || '—',
     poste: identity?.position || '—',
     club: identity?.club ?? null,
     coachLast: coach?.last_name || '—',
@@ -331,7 +338,7 @@ function AthleteIdentityPageInner() {
               sportStory: identity?.sport_story ?? null,
               strengths: identity?.strengths ?? [],
               seasonDream: identity?.season_dream ?? null,
-              sport: identity?.sport || 'Hockey sur glace',
+              sport: identity?.sport || '—',
               poste: identity?.position || '—',
               club: identity?.club ?? null,
               smartGoal: identity?.smart_goal ?? null,
