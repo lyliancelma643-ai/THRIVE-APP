@@ -14,7 +14,7 @@ import http from 'node:http';
 import https from 'node:https';
 import { createHash, createHmac, randomUUID } from 'node:crypto';
 import { PASSWORD, PERSONAS, buildDb, makeFunctions, makeRpc } from './fixtures.mjs';
-import { applyFilters, applyOrder, deleteRows, insertRows, parseSelect, project, updateRows } from './postgrest.mjs';
+import { applyFilters, applyOrder, deleteRows, insertRows, missingRequired, parseSelect, project, updateRows } from './postgrest.mjs';
 
 const SECRET = 'thrive-ux-audit-local-secret';
 const b64 = (obj) => Buffer.from(typeof obj === 'string' ? obj : JSON.stringify(obj)).toString('base64url');
@@ -267,6 +267,9 @@ export function startMockSupabase({ port = 54321, host = '127.0.0.1', log = fals
     }
     if (req.method === 'POST') {
       const body = await readBody(req);
+      const miss = missingRequired(table, body ?? {});
+      if (miss)
+        return pgError(res, 400, '23502', `null value in column "${miss}" of relation "${table}" violates not-null constraint`);
       const written = insertRows(db, table, body ?? {}, {
         onConflict: params.get('on_conflict'),
         merge: prefer.includes('resolution=merge-duplicates'),

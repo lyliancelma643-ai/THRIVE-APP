@@ -268,6 +268,24 @@ function projectRow(db, table, row, nodes) {
 }
 
 // ── Écritures ────────────────────────────────────────────────────────────────
+// Colonnes NOT NULL sans défaut, relevées sur la base de production : une
+// insertion qui les omet échoue comme en vrai (code 23502). C'est ce manque de
+// fidélité qui avait masqué la perte des enfants déclarés à l'inscription.
+export const NOT_NULL = {
+  children: ['family_id', 'first_name', 'last_name', 'date_of_birth'],
+};
+
+/** Première colonne obligatoire manquante d'une insertion, sinon null. */
+export function missingRequired(table, body) {
+  const cols = NOT_NULL[table];
+  if (!cols) return null;
+  for (const input of Array.isArray(body) ? body : [body]) {
+    const miss = cols.find((c) => input?.[c] === undefined || input?.[c] === null);
+    if (miss) return miss;
+  }
+  return null;
+}
+
 export function insertRows(db, table, body, { onConflict, merge } = {}) {
   db[table] ??= [];
   const list = Array.isArray(body) ? body : [body];

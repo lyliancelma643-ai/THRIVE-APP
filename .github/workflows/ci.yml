@@ -79,6 +79,35 @@ jobs:
           path: apps/web/playwright-report/
           retention-days: 7
 
+  e2e-client:
+    name: Playwright (parcours client connectés, backend simulé)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      - name: Build @thrive/shared
+        run: pnpm --filter @thrive/shared build
+      - name: Install Playwright browsers
+        run: pnpm --filter web exec playwright install --with-deps chromium
+      # Inscription (enfants enregistrés), compte (export, suppression),
+      # questionnaire enfant (brouillon, hors ligne), bilan hors ligne.
+      # Aucun compte réel : scripts/ux-audit/mock simule Supabase.
+      - name: Run E2E client (build mock + start gérés par Playwright)
+        run: pnpm --filter web test:e2e:client
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-client
+          path: apps/web/playwright-report/
+          retention-days: 7
+
   edge-tests:
     name: Deno (webhook Stripe)
     runs-on: ubuntu-latest

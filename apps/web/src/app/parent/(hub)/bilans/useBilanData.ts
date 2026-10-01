@@ -133,6 +133,9 @@ export function useBilanData(childId: string | null) {
     queryKey: ['bilan', childId],
     queryFn: () => loadBilanData(childId as string),
     enabled: Boolean(childId),
+    // supabase-js réessaie déjà chaque lecture 3 fois (1 s, 2 s, 4 s) : un
+    // second étage de nouvel essai doublait l'attente hors ligne (~16 s).
+    retry: false,
   });
 
   // Mise à jour en direct quand le coach/admin modifie le dossier : on
