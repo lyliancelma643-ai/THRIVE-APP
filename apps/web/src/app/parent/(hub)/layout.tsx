@@ -6,11 +6,11 @@
 //
 //   • Ambiance Nuit calme ↔ Jour clair par le rond soleil/lune du header. Un
 //     seul jeu de tokens (globals.css) : le contenu ne bouge pas d'un pixel.
-//   • La barre d'onglets garde un filet de 2 px qui glisse sous l'onglet actif.
-//   • On change d'onglet en glissant le pouce ; l'écran entrant arrive de 30 px
-//     DANS LE SENS DU GESTE, avec un fondu (460 ms, courbe iOS).
-//   • Retour en haut automatique à chaque changement d'onglet : jamais
-//     d'arrivée au milieu d'un écran.
+//   • Barre d'onglets « verre liquide » (LiquidTabBar) : toucher, maintenir, glisser.
+//   • Les trois écrans d'onglet restent montés (TabPager) : passer de l'un à
+//     l'autre ne recharge rien ; l'écran glisse dans le sens de l'onglet choisi et
+//     chacun retrouve sa hauteur de défilement.
+//   • On change aussi d'onglet en glissant le pouce sur le contenu.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -21,6 +21,10 @@ import { NotificationsBell } from '@/components/parent/NotificationsBell';
 import { UserMenu } from '@/components/parent/UserMenu';
 import { AmbianceToggle } from '@/components/parent/AmbianceToggle';
 import { LiquidTabBar } from '@/components/parent/LiquidTabBar';
+import { TabPager } from '@/components/parent/TabPager';
+import BilansPage from './bilans/page';
+import MySessionsPage from './my-sessions/page';
+import MaisonPage from './fitness/page';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
@@ -35,6 +39,8 @@ const TABS: { href: string; label: string; icon: IconName }[] = [
   { href: '/parent/fitness', label: 'Maison', icon: 'home' },
 ];
 const MAISON_TAB = 2;
+// Les trois écrans d'onglet, gardés montés par TabPager (aucun rechargement d'un onglet à l'autre).
+const TAB_PAGES = [BilansPage, MySessionsPage, MaisonPage];
 
 // Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;
 // la messagerie et la page forfaits vivent hors onglets (accès par le header).
@@ -55,6 +61,8 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const router = useRouter();
   const active = activeTabIndex(pathname);
+  // Racine d'un onglet (et non une fiche, le carnet…) : affichée par TabPager.
+  const rootTab = TABS.findIndex((t) => pathname === t.href || pathname === `${t.href}/`);
   // Direction « Soir de famille » : l'onglet Maison (hors séances vidéo) a sa propre matière.
   const maison = pathname.startsWith('/parent/fitness') && !pathname.startsWith('/parent/fitness/seances');
   const { access, isLoading: accessLoading, refresh } = useAccessStore();
@@ -79,10 +87,16 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
       const target = TABS[next];
       if (!target || !tabOpen(next)) return;
       setEnterFrom(direction === 1 ? 44 : -44);
-      router.push(target.href);
+      if (rootTab >= 0) {
+        // D'un onglet à l'autre : l'URL change sans navigation (rien à recharger),
+        // TabPager fait glisser l'écran déjà monté.
+        if (window.location.pathname !== target.href) window.history.pushState(null, '', target.href);
+      } else {
+        router.push(target.href);
+      }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [locked, router]
+    [locked, router, rootTab]
   );
 
   // Geste : actif seulement quand on est sur un des trois onglets.
@@ -93,12 +107,21 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     enabled: active >= 0 && !locked,
   });
 
-  // Retour en haut à chaque changement d'onglet — jamais au milieu d'un écran.
+  // Hors racines d'onglet (fiche, carnet…) : retour en haut au changement d'onglet.
+  // Entre racines, TabPager rend à chaque onglet sa propre hauteur de défilement.
   useEffect(() => {
     if (lastTab.current === active) return;
     lastTab.current = active;
-    window.scrollTo({ top: 0, behavior: 'instant' });
-  }, [active]);
+    if (rootTab < 0) window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [active, rootTab]);
+
+  /** Clic sur un onglet depuis une racine : glissement sans rechargement. */
+  const tapTab = (i: number, e: React.MouseEvent) => {
+    setEnterFrom(i > active ? 44 : -44);
+    if (rootTab < 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    if (i !== active) goToTab(i, i > active ? 1 : -1);
+  };
 
   return (
     // « Nuit calme » ou « Jour clair » : un aplat unique, ni dégradé ni halo. La
@@ -140,7 +163,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
                 <Link
                   key={tab.href}
                   href={tab.href}
-                  onClick={() => setEnterFrom(i > active ? 44 : -44)}
+                  onClick={(e) => tapTab(i, e)}
                   aria-current={active === i ? 'page' : undefined}
                   className={`relative inline-flex items-center justify-center gap-2 h-11 w-[150px] rounded-full text-sm font-semibold transition-colors duration-base ${
                     active === i ? 'text-ink' : 'text-soft hover:text-ink'
@@ -204,13 +227,16 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             transition: dragging ? 'none' : 'transform var(--dur-slow) var(--ease-out)',
           }}
         >
-          <div
-            key={pathname}
-            className="animate-sc-swap"
-            style={{ ['--sc-from' as string]: `${enterFrom}px` }}
-          >
-            {children}
-          </div>
+          {rootTab < 0 && (
+            <div
+              key={pathname}
+              className="animate-sc-swap"
+              style={{ ['--sc-from' as string]: `${enterFrom}px` }}
+            >
+              {children}
+            </div>
+          )}
+          <TabPager index={rootTab} pages={TAB_PAGES} />
         </div>
       </main>
 
@@ -220,7 +246,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         active={active}
         tabOpen={tabOpen}
         onNavigate={goToTab}
-        onTap={(i) => setEnterFrom(i > active ? 44 : -44)}
+        onTap={tapTab}
       />
     </div>
   );

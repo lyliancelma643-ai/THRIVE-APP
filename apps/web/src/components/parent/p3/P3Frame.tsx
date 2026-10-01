@@ -121,7 +121,7 @@ function useNoHorizontalOverscrollNav() {
 }
 
 export function P3Frame({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
-  const { access, isLoading, refresh } = useAccessStore();
+  const { access, refresh } = useAccessStore();
   const p3Enabled = useP3Enabled();
   useNoHorizontalOverscrollNav();
 
@@ -129,7 +129,9 @@ export function P3Frame({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
     refresh();
   }, [refresh]);
 
-  if (isLoading || !access || p3Enabled === null) return <P3Skeleton />;
+  // Un rafraîchissement (autre écran qui revérifie l'accès) ne remet pas le squelette :
+  // seul le tout premier chargement l'affiche.
+  if (!access || p3Enabled === null) return <P3Skeleton />;
   if (!p3Enabled) return <FitnessConstructionNotice />;
   if (!access.p3Access) return <P3Paywall />;
   return <P3Inner>{children}</P3Inner>;

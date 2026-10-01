@@ -520,13 +520,15 @@ function BilanReaderEmpty() {
 
 // ── Garde d'accès : message d'attente tant que le coach n'a pas validé ───────
 export default function MySessionsPage() {
-  const { access, isLoading, refresh } = useAccessStore();
+  const { access, refresh } = useAccessStore();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  if (isLoading || !access) {
+  // Squelette au premier chargement seulement : un rafraîchissement de l'accès
+  // (autre écran) ne démonte pas l'écran, qui garde ses données.
+  if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!access.unlocked) return <SessionsLockedNotice />;

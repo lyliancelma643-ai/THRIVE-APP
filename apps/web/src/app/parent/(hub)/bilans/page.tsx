@@ -386,13 +386,15 @@ function AthleteIdentityPageInner() {
 // ── Garde d'accès : aperçu grisé tant que le compte n'est pas activé ─────────
 // (titres visibles, contenu non cliquable — enforcement réel via RLS)
 export default function BilansPage() {
-  const { access, isLoading, refresh } = useAccessStore();
+  const { access, refresh } = useAccessStore();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
-  if (isLoading || !access) {
+  // Squelette au premier chargement seulement : un rafraîchissement de l'accès
+  // (autre écran) ne démonte pas l'écran, qui garde ses données.
+  if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!access.unlocked) return <BilanLockedPreview />;
