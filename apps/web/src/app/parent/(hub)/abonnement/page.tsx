@@ -18,6 +18,7 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui';
+import { LegalNotice } from '@/components/LegalNotice';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAccessStore } from '@/lib/access';
 import {
@@ -375,6 +376,7 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
                   : `${formatMoney(chosen.amount, chosen.currency)} par ${periodLabel(chosen)}, sans engagement.`}{' '}
                 Renouvellement automatique jusqu’à annulation, en deux clics. Paiement sécurisé par Stripe.
               </p>
+              <LegalNotice action="En t’abonnant" className="text-faint mt-2" />
             </>
           )}
         </>

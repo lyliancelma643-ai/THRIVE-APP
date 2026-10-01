@@ -6,6 +6,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import { LegalNotice } from '@/components/LegalNotice';
 import { humanAuthError } from '@/lib/auth-errors';
 import {
   CHILD_MAX_AGE,
@@ -541,6 +542,7 @@ export default function LoginPage() {
               >
                 {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
+              <LegalNotice action="En créant ton compte" className="text-navy-700" />
               <p className="text-[11px] text-navy-700 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
               </p>
