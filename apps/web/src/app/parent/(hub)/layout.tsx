@@ -107,12 +107,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     [locked, router, rootTab]
   );
 
-  // Geste : actif seulement quand on est sur un des trois onglets.
+  // Geste : actif seulement sur les trois écrans d'onglet eux-mêmes. Sur une
+  // fiche, le lecteur vidéo ou le carnet, un glissement horizontal ne doit pas
+  // changer d'onglet (on s'attend à « retour », et le lecteur a sa propre barre).
   const { dragX, dragging, handlers } = useThumbNav({
-    index: active < 0 ? 0 : active,
+    index: rootTab < 0 ? 0 : rootTab,
     count: TABS.length,
     onChange: goToTab,
-    enabled: active >= 0 && !locked,
+    enabled: rootTab >= 0 && !locked,
   });
 
   // Hors racines d'onglet (fiche, carnet…) : retour en haut au changement d'onglet.

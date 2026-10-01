@@ -11,7 +11,7 @@ import { useAccessStore } from '@/lib/access';
 import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
 import { Icon } from '@/components/ui';
-import { DocMeta, programPct, signedDocUrl } from '@/lib/bilan';
+import { DocMeta, openSignedDoc, programPct } from '@/lib/bilan';
 import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
 import { DESIGN_CSS, ageFromDob, buildHtml } from './bilan-html';
 import { CARD_INFO, InfoModal, BilanSkeleton } from './card-info';
@@ -42,6 +42,7 @@ function AthleteIdentityPageInner() {
   const [infoKey, setInfoKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [docError, setDocError] = useState(false);
   const htmlRef = useRef<HTMLDivElement>(null);
   const { data, isPending } = useBilanData(selectedChildId);
 
@@ -92,7 +93,7 @@ function AthleteIdentityPageInner() {
   // Clics délégués : [data-action] ouvre l'édition du passeport, [data-doc]
   // télécharge (URL signée), [data-href] navigue, [data-info] ouvre la fiche
   // d'explication.
-  const onClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest('[data-action="edit-passport"]')) {
       e.stopPropagation();
@@ -102,11 +103,7 @@ function AthleteIdentityPageInner() {
     const docId = target.closest('[data-doc]')?.getAttribute('data-doc');
     if (docId) {
       e.stopPropagation();
-      const doc = data?.docs.find((d) => d.id === docId);
-      if (doc) {
-        const url = await signedDocUrl(doc.storage_path, 120);
-        if (url) window.open(url, '_blank', 'noopener');
-      }
+      openDoc(docId);
       return;
     }
     const nav = target.closest('[data-href]');
@@ -123,11 +120,17 @@ function AthleteIdentityPageInner() {
     else if (CARD_INFO[key]) setInfoKey(key);
   };
 
-  const openDoc = async (docId: string) => {
+  // Synchrone jusqu'à l'ouverture de la fenêtre (voir openSignedDoc).
+  const openDoc = (docId: string) => {
     const doc = data?.docs.find((dd) => dd.id === docId);
-    if (!doc) return;
-    const url = await signedDocUrl(doc.storage_path, 120);
-    if (url) window.open(url, '_blank', 'noopener');
+    if (!doc) {
+      setDocError(true);
+      return;
+    }
+    setDocError(false);
+    openSignedDoc(doc.storage_path).then((ok) => {
+      if (!ok) setDocError(true);
+    });
   };
 
   // Accès clavier du gabarit : les zones d'action simples deviennent des
@@ -307,6 +310,16 @@ function AthleteIdentityPageInner() {
               Ouvrir
             </a>
           )}
+        </div>
+      )}
+      {docError && (
+        <div role="alert" className="fixed z-toast inset-x-4 bottom-[calc(96px+env(safe-area-inset-bottom))] lg:bottom-6 mx-auto max-w-md p-4 rounded-[18px] bg-night-surface ring-1 ring-red-400/30 shadow-card flex items-center gap-3 animate-om-up">
+          <p className="flex-1 text-[14px] text-body">
+            Le document n&apos;a pas pu s&apos;ouvrir. Vérifie ta connexion et réessaie ; s&apos;il manque, écris à ton coach.
+          </p>
+          <button type="button" onClick={() => setDocError(false)} aria-label="Fermer" className="nc-iconbtn shrink-0">
+            <Icon name="close" className="w-4 h-4" />
+          </button>
         </div>
       )}
       <div

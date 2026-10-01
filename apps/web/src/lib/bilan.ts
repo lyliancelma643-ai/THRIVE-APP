@@ -262,6 +262,42 @@ export async function signedDocUrl(path: string, expiresIn = 300): Promise<strin
   return data?.signedUrl ?? null;
 }
 
+/**
+ * Ouvre un document privé (contrat, lettre, certificat) dans un nouvel onglet.
+ * La fenêtre est ouverte DANS le geste de l'utilisateur puis remplie quand le
+ * lien signé arrive : ouverte après un `await`, Safari iOS (et l'app installée)
+ * la bloquait comme une fenêtre surgissante et rien ne se passait.
+ * À appeler de façon synchrone dans le gestionnaire de clic. Résout `false` si
+ * le lien n'a pas pu être créé.
+ */
+export function openSignedDoc(path: string, expiresIn = 120): Promise<boolean> {
+  const win = typeof window !== 'undefined' ? window.open('', '_blank') : null;
+  return signedDocUrl(path, expiresIn).then(
+    (url) => {
+      if (!url) {
+        win?.close();
+        return false;
+      }
+      if (win) {
+        try {
+          win.opener = null;
+        } catch {
+          /* fenêtre d'une autre origine : sans effet */
+        }
+        win.location.href = url;
+      } else {
+        // Fenêtres bloquées malgré tout : on ouvre le document à la place de la page.
+        window.location.assign(url);
+      }
+      return true;
+    },
+    () => {
+      win?.close();
+      return false;
+    }
+  );
+}
+
 export async function deleteDocument(doc: DocMeta): Promise<{ error?: string }> {
   const del = await supabase.from('athlete_documents').delete().eq('id', doc.id);
   if (del.error) return { error: del.error.message };

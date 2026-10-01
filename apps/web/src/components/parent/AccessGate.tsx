@@ -204,13 +204,24 @@ export function SessionsLockedNotice() {
   );
 }
 
-export function FitnessConstructionNotice() {
+export function FitnessConstructionNotice({ videosHref }: { videosHref?: string }) {
   return (
-    <NoticeScreen
-      icon="grid"
-      tone="sage"
-      title="En construction"
-      body={ACCESS_MESSAGES.fitnessConstruction}
-    />
+    <div className="text-center">
+      <NoticeScreen
+        icon="grid"
+        tone="sage"
+        title="En construction"
+        body={ACCESS_MESSAGES.fitnessConstruction}
+      />
+      {videosHref && (
+        <Link
+          href={videosHref}
+          className="-mt-8 md:-mt-16 inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+        >
+          <Icon name="video" className="w-4 h-4" />
+          Voir les séances vidéo
+        </Link>
+      )}
+    </div>
   );
 }

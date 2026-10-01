@@ -529,11 +529,16 @@ function Home({ ctx }: { ctx: P3Ctx }) {
           { href: `${P3_BASE}/programme`, icon: 'compass' as const, label: 'Le programme' },
           { href: `${P3_BASE}/carnet`, icon: 'book' as const, label: 'Le carnet' },
           { href: `${P3_BASE}/quand-il-dit-non`, icon: 'message' as const, label: PAGE_NON.title },
+          // Les séances vidéo de 20 minutes (incluses dans tous les forfaits) : une
+          // porte visible, et non plus un lien en bas de page.
+          ...(fitnessEnabled
+            ? [{ href: '/parent/fitness/seances', icon: 'video' as const, label: 'Les séances vidéo de 20 min', wide: true }]
+            : []),
         ].map((d, i) => (
           <Link
             key={d.href}
             href={d.href}
-            className={`nc-row ${i === 0 ? 'mat-felt-strong' : 'mat-felt'} flex items-center gap-3 min-h-[76px] px-4 py-3.5 rounded-[22px]`}
+            className={`nc-row ${i === 0 ? 'mat-felt-strong' : 'mat-felt'} ${'wide' in d && d.wide ? 'col-span-2' : ''} flex items-center gap-3 min-h-[76px] px-4 py-3.5 rounded-[22px]`}
           >
             <span aria-hidden className="grid place-items-center w-10 h-10 shrink-0 rounded-full bg-sage/15 text-sage-ink">
               <Icon name={d.icon} className="w-5 h-5" />
