@@ -6,6 +6,15 @@ import { Icon } from '@/components/ui';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { WebPushToggle } from '@/components/WebPushToggle';
+import { humanAuthError } from '@/lib/auth-errors';
+import {
+  downloadMyData,
+  fetchPendingDeletion,
+  requestAccountDeletion,
+  sendPasswordChangeLink,
+  type DeletionRequest,
+} from '@/lib/account';
+import { formatDateFr } from '@/lib/billing';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -47,7 +56,7 @@ export default function ComptePage() {
       data: { firstName: firstName.trim(), lastName: lastName.trim() },
     });
     if (upErr) {
-      setError(upErr.message ?? 'Enregistrement impossible');
+      setError(humanAuthError(upErr));
       setSaving(false);
       return;
     }
@@ -146,14 +155,20 @@ export default function ComptePage() {
             </dd>
           </div>
         </dl>
+        <PasswordChange email={user?.email ?? ''} />
         <p className="text-xs text-faint mt-4 leading-relaxed">
-          Pour changer d&apos;adresse e-mail ou de mot de passe, écris à ton coach
-          THRIVE ou à l&apos;administrateur.
+          Pour changer d&apos;adresse e-mail, écris au support THRIVE depuis la{' '}
+          <Link href="/parent/messages" className="font-semibold text-soft underline underline-offset-2">
+            messagerie
+          </Link>
+          .
         </p>
       </section>
 
       {/* Notifications push (PWA — invisible si non supporté/configuré) */}
       {user?.id && <WebPushToggle userId={user.id} />}
+
+      {user?.id && <MyData userId={user.id} email={user.email ?? ''} />}
 
       {/* Déconnexion */}
       <section className="rounded-card border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
@@ -170,5 +185,169 @@ export default function ComptePage() {
         </button>
       </section>
     </div>
+  );
+}
+
+// ── Mot de passe : lien envoyé à sa propre adresse ──────────────────────────
+function PasswordChange({ email }: { email: string }) {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent'>('idle');
+  const [error, setError] = useState('');
+
+  const send = async () => {
+    if (!email) return;
+    setError('');
+    setState('sending');
+    try {
+      await sendPasswordChangeLink(email);
+      setState('sent');
+    } catch (e) {
+      setError(humanAuthError(e));
+      setState('idle');
+    }
+  };
+
+  return (
+    <div className="mt-4 pt-4 border-t border-line">
+      {state === 'sent' ? (
+        <p role="status" className="text-sm text-sage-ink font-medium leading-relaxed">
+          ✓ Lien envoyé à {email}. Ouvre-le pour choisir ton nouveau mot de passe.
+        </p>
+      ) : (
+        <button
+          onClick={send}
+          disabled={state === 'sending' || !email}
+          className="h-12 px-6 rounded-full border border-line2 text-sm font-semibold text-ink hover:bg-chip active:scale-95 transition-all disabled:opacity-60"
+        >
+          {state === 'sending' ? 'Envoi du lien…' : 'Changer mon mot de passe'}
+        </button>
+      )}
+      {error && <p role="alert" className="text-sm text-danger-ink mt-2">{error}</p>}
+    </div>
+  );
+}
+
+// ── Mes données : export + suppression du compte ───────────────────────────
+function MyData({ userId, email }: { userId: string; email: string }) {
+  const [exporting, setExporting] = useState(false);
+  const [exportError, setExportError] = useState('');
+  const [pending, setPending] = useState<DeletionRequest | null>(null);
+  const [confirming, setConfirming] = useState(false);
+  const [reason, setReason] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
+  useEffect(() => {
+    let alive = true;
+    fetchPendingDeletion(userId)
+      .then((r) => alive && setPending(r))
+      .catch(() => {});
+    return () => {
+      alive = false;
+    };
+  }, [userId]);
+
+  const doExport = async () => {
+    setExportError('');
+    setExporting(true);
+    try {
+      await downloadMyData();
+    } catch {
+      setExportError('L’export n’a pas pu être préparé. Vérifie ta connexion et réessaie.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const doDelete = async () => {
+    setDeleteError('');
+    setDeleting(true);
+    try {
+      setPending(await requestAccountDeletion(reason));
+      setConfirming(false);
+    } catch {
+      setDeleteError('La demande n’a pas pu être envoyée. Vérifie ta connexion et réessaie.');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  return (
+    <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+      <h2 className="nc-eyebrow mb-4">Mes données</h2>
+
+      <p className="text-sm text-soft leading-relaxed">
+        Télécharge une copie de tes données et de celles de ta famille (profil, enfants, séances,
+        bilans, messages) au format JSON.
+      </p>
+      <button
+        onClick={doExport}
+        disabled={exporting}
+        className="mt-3 h-12 px-6 rounded-full border border-line2 text-sm font-semibold text-ink hover:bg-chip active:scale-95 transition-all disabled:opacity-60"
+      >
+        {exporting ? 'Préparation…' : 'Télécharger mes données'}
+      </button>
+      {exportError && <p role="alert" className="text-sm text-danger-ink mt-2">{exportError}</p>}
+
+      <div className="mt-6 pt-5 border-t border-line">
+        <h3 className="text-sm font-semibold text-ink mb-1">Supprimer mon compte</h3>
+        {pending ? (
+          <p role="status" className="text-sm text-body leading-relaxed">
+            Ta demande de suppression du {formatDateFr(pending.requested_at)} est enregistrée.
+            L&apos;équipe THRIVE supprime ton compte et les données de ta famille, puis te le
+            confirme à {email}.
+          </p>
+        ) : !confirming ? (
+          <>
+            <p className="text-xs text-soft leading-relaxed mb-3">
+              Ton compte, les profils de tes enfants, leurs bilans et vos messages seront
+              définitivement effacés.
+            </p>
+            <button
+              onClick={() => setConfirming(true)}
+              className="h-12 px-6 rounded-full border border-red-500/40 text-danger-ink text-sm font-bold hover:bg-red-500/10 active:scale-95 transition-all"
+            >
+              Supprimer mon compte…
+            </button>
+          </>
+        ) : (
+          <div className="rounded-xl border border-red-500/30 bg-red-500/[0.06] p-4">
+            <p className="text-sm text-body leading-relaxed">
+              Cette action est <strong>définitive</strong>. Un abonnement Maison pris sur le web
+              est arrêté avec le compte ; un abonnement pris sur iPhone ou Android s&apos;annule
+              depuis les réglages du téléphone.
+            </p>
+            <label className="block mt-3">
+              <span className="block text-xs font-medium text-soft mb-1.5">
+                Pourquoi pars-tu ? (facultatif)
+              </span>
+              <textarea
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                rows={2}
+                maxLength={500}
+                className="w-full px-4 py-3 rounded-xl bg-chip border border-line2 text-ink text-base placeholder-faint focus:border-sun/60 focus:outline-none transition-colors"
+              />
+            </label>
+            <div className="mt-3 flex flex-col sm:flex-row gap-2">
+              <button
+                onClick={doDelete}
+                disabled={deleting}
+                className="h-12 px-6 rounded-full bg-red-500/15 border border-red-500/40 text-danger-ink text-sm font-bold hover:bg-red-500/25 active:scale-95 transition-all disabled:opacity-60"
+              >
+                {deleting ? 'Envoi…' : 'Confirmer la suppression'}
+              </button>
+              <button
+                onClick={() => setConfirming(false)}
+                disabled={deleting}
+                className="h-12 px-6 rounded-full border border-line2 text-sm font-semibold text-soft hover:bg-chip transition-all"
+              >
+                Annuler
+              </button>
+            </div>
+            {deleteError && <p role="alert" className="text-sm text-danger-ink mt-2">{deleteError}</p>}
+          </div>
+        )}
+      </div>
+    </section>
   );
 }

@@ -260,7 +260,7 @@ function ActiveSubscription() {
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <Link
           href="/parent/fitness"
-          className="flex-1 flex items-center justify-center gap-2 h-12 rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
+          className="sm:flex-1 flex items-center justify-center gap-2 h-12 rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
         >
           Ouvrir Maison <Icon name="arrow-right" className="w-4 h-4" />
         </Link>
@@ -452,23 +452,33 @@ function PlanOption({
 
 function RefreshAccessButton({ onDone }: { onDone: () => Promise<void> }) {
   const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(false);
   return (
-    <button
-      onClick={async () => {
-        setBusy(true);
-        try {
-          await onDone();
-        } catch {
-          /* le message d'état reste inchangé */
-        } finally {
-          setBusy(false);
-        }
-      }}
-      disabled={busy}
-      className="flex items-center justify-center h-12 px-6 rounded-full border border-line text-[15px] font-semibold text-body active:scale-95 disabled:opacity-60 transition-transform"
-    >
-      {busy ? 'Vérification…' : 'Actualiser mon accès'}
-    </button>
+    <div className="flex flex-col items-center gap-2">
+      <button
+        onClick={async () => {
+          setBusy(true);
+          setFailed(false);
+          try {
+            await onDone();
+          } catch {
+            // Sans retour, le parent croirait que rien ne s'est passé.
+            setFailed(true);
+          } finally {
+            setBusy(false);
+          }
+        }}
+        disabled={busy}
+        className="w-full flex items-center justify-center h-12 px-6 rounded-full border border-line text-[15px] font-semibold text-body active:scale-95 disabled:opacity-60 transition-transform"
+      >
+        {busy ? 'Vérification…' : 'Actualiser mon accès'}
+      </button>
+      {failed && (
+        <p role="alert" className="text-[13px] text-danger-ink text-center">
+          La vérification n’a pas abouti. Vérifie ta connexion et réessaie.
+        </p>
+      )}
+    </div>
   );
 }
 
