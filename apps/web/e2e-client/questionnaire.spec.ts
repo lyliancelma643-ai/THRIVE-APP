@@ -37,6 +37,18 @@ test.describe('Questionnaire enfant', () => {
     await expect(page.getByRole('heading', { level: 1 })).toContainText('Léo');
   });
 
+  test('lien tronqué (jeton non-UUID, erreur 400) : lien invalide, pas « connexion coupée »', async ({ page }) => {
+    await page.route('**/rest/v1/rpc/questionnaire_get', (r) =>
+      r.fulfill({
+        status: 400,
+        contentType: 'application/json',
+        body: JSON.stringify({ code: '22P02', message: 'invalid input syntax for type uuid: "abc"' }),
+      })
+    );
+    await page.goto('/q/abc');
+    await expect(page.getByText('Lien invalide ou introuvable.')).toBeVisible();
+  });
+
   test('lien inconnu', async ({ page }) => {
     await page.goto('/q/jeton-inconnu');
     await expect(page.getByText('Lien invalide ou introuvable.')).toBeVisible();

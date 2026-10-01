@@ -205,11 +205,13 @@ export default function QuestionnairePage() {
 
   const load = useCallback(async () => {
     if (!token) return;
-    const { data, error } = await supabase.rpc('questionnaire_get', { p_token: token });
-    // Erreur technique (réseau…) : distincte d'un lien invalide ou expiré,
-    // que le RPC signale dans `data.error`.
+    const { data, error, status } = await supabase.rpc('questionnaire_get', { p_token: token });
+    // Réseau coupé (status 0) ou serveur indisponible (5xx) : « réessaie ».
+    // Toute autre erreur est un lien invalide — p_token est un uuid : un lien
+    // tronqué renvoie 400 (22P02), ce n'est pas un problème de connexion.
+    // Lien inconnu ou expiré : le RPC le signale dans `data.error`.
     if (error) {
-      setState({ error: 'network' });
+      setState({ error: status === 0 || status >= 500 ? 'network' : 'not_found' });
       return;
     }
     const loaded = data as LoadState;
@@ -260,11 +262,11 @@ export default function QuestionnairePage() {
     if (!token || !allAnswered) return;
     setSubmitting(true);
     setSubmitError('');
-    const { data, error } = await supabase.rpc('questionnaire_submit', { p_token: token, p_answers: answers });
+    const { data, error, status } = await supabase.rpc('questionnaire_submit', { p_token: token, p_answers: answers });
     setSubmitting(false);
     if (error) {
       // Message technique jamais affiché à l'enfant ; ses réponses restent là.
-      setSubmitError(tr.network);
+      setSubmitError(status === 0 || status >= 500 ? tr.network : tr.genericErr);
       return;
     }
     if ((data as any)?.error) {

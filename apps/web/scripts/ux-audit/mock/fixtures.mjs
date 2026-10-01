@@ -796,6 +796,8 @@ export function buildDb() {
     p3_letters,
     app_settings,
     billing_subscriptions,
+    // Demandes de suppression de compte (page Compte → request-account-deletion)
+    deletion_requests: [],
     waitlist,
     admin_tasks,
     admin_task_history,
