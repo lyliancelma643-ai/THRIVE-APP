@@ -1,0 +1,46 @@
+# Sonde de disponibilité — filet minimal côté client (parent).
+# Ne remplace pas un vrai outil d'uptime (Better Stack / UptimeRobot) : GitHub
+# peut retarder les tâches planifiées de plusieurs minutes et les suspend après
+# 60 jours sans activité sur le dépôt. Un échec envoie le courriel standard
+# « workflow run failed » de GitHub.
+# Ne s'active qu'une fois ce fichier présent sur la branche par défaut (main).
+name: Uptime
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: Sonde app.thrivesportpositive.com
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      BASE_URL: https://app.thrivesportpositive.com
+    steps:
+      - name: Pages publiques du parcours parent
+        run: |
+          set -u
+          fail=0
+          for path in /login /reset-password /offline /manifest.webmanifest; do
+            # 2 tentatives espacées : on ne réveille personne pour un raté réseau isolé.
+            code=000
+            for attempt in 1 2; do
+              code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE_URL$path" || echo 000)
+              [ "$code" = "200" ] && break
+              sleep 10
+            done
+            echo "$path -> $code"
+            [ "$code" = "200" ] || fail=1
+          done
+          exit $fail
+
+      - name: Garde d'authentification (une page protégée renvoie vers /login)
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE_URL/parent/bilans")
+          echo "/parent/bilans (sans session) -> $code"
+          case "$code" in 307|308|302) exit 0 ;; *) exit 1 ;; esac
