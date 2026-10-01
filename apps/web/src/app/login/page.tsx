@@ -6,6 +6,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import { CONSENT_PURPOSE, PRIVACY_VERSION, SIGNUP_MISSED_KEY, type SignupMissed } from '@/lib/signup';
 
 type Mode = 'signin' | 'signup' | 'forgot';
 type ChildRow = { firstName: string; age: string; sport: string };
@@ -81,6 +82,7 @@ export default function LoginPage() {
     firstName: '', lastName: '', email: '', password: '',
   });
   const [childRows, setChildRows] = useState<ChildRow[]>([{ ...EMPTY_CHILD }]);
+  const [consent, setConsent] = useState(false);
 
   // Réinitialisation du mot de passe
   const [forgotEmail, setForgotEmail] = useState('');
@@ -175,16 +177,27 @@ export default function LoginPage() {
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting) return;
     const { firstName, lastName, email: mail, password: pwd } = signup;
     if (!firstName.trim() || !lastName.trim() || !mail.trim() || !pwd) {
-      setError('Tous les champs sont requis');
+      setError('Remplis ton prénom, ton nom, ton email et un mot de passe.');
       return;
     }
     if (pwd.length < 8) {
       setError('Le mot de passe doit faire au moins 8 caractères');
       return;
     }
-    const children = childRows.filter((c) => c.firstName.trim() && c.age);
+    // Une ligne d'enfant à moitié remplie n'est jamais ignorée en silence.
+    const partial = childRows.find((c) => Boolean(c.firstName.trim()) !== Boolean(c.age.trim()));
+    if (partial) {
+      setError(
+        partial.firstName.trim()
+          ? `Indique l'âge de ${partial.firstName.trim()} (ou retire la ligne).`
+          : "Indique le prénom de chaque enfant (ou retire la ligne)."
+      );
+      return;
+    }
+    const children = childRows.filter((c) => c.firstName.trim() && c.age.trim());
     // L'app cible les 8-17 ans : on rejette tôt tout âge hors tranche (le
     // libellé le promet, la validation doit l'appliquer).
     const badAge = children.find((c) => {
@@ -195,6 +208,10 @@ export default function LoginPage() {
       setError(
         `L'âge de ${badAge.firstName.trim() || "l'enfant"} doit être compris entre 8 et 17 ans.`
       );
+      return;
+    }
+    if (!consent) {
+      setError('Coche la case de consentement pour créer ton compte.');
       return;
     }
     setError('');
@@ -223,39 +240,66 @@ export default function LoginPage() {
       return;
     }
 
+    // Consentement (Loi 25) : trace horodatée, best-effort — le compte existe déjà.
+    await supabase
+      .from('consents')
+      .insert({ profile_id: userId, purpose: CONSENT_PURPOSE, policy_version: PRIVACY_VERSION })
+      .then(() => undefined, () => undefined);
+
     // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
     // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
     // le parent dans l'app plutôt que de le coincer dans un cul-de-sac « compte
-    // existe déjà » au retry. Il ajoutera ses enfants via « + Ajouter un enfant ».
-    try {
-      if (children.length > 0) {
+    // existe déjà » au retry. Les enfants non enregistrés sont repris sur l'écran
+    // d'ajout, avec un message qui dit pourquoi.
+    const missed: string[] = [];
+    let quotaHit = false;
+    if (children.length > 0) {
+      let familyId: string | null = null;
+      try {
         const { data: family, error: famErr } = await supabase
           .from('families')
           .insert({ name: `Famille ${lastName.trim()}`, parent_id: userId })
           .select('id')
           .single();
         if (famErr) throw famErr;
-
-        const rows = children.map((c) => {
+        familyId = family.id;
+      } catch {
+        missed.push(...children.map((c) => c.firstName.trim()));
+      }
+      // Un enfant à la fois : le quota du forfait (1 enfant en Essentiel) ou une
+      // erreur sur une ligne ne doit pas faire échouer les autres.
+      if (familyId) {
+        for (const c of children) {
           const dob = new Date();
           dob.setFullYear(dob.getFullYear() - Number(c.age));
-          return {
-            family_id: family.id,
+          const { error: childErr } = await supabase.from('children').insert({
+            family_id: familyId,
             first_name: c.firstName.trim(),
+            last_name: lastName.trim(),
             date_of_birth: dob.toISOString().split('T')[0],
-            sport: c.sport.trim() || 'Hockey',
+            sport: c.sport.trim() || null,
             is_active: true,
-          };
-        });
-        const { error: childErr } = await supabase.from('children').insert(rows);
-        if (childErr) throw childErr;
+          });
+          if (childErr) {
+            missed.push(c.firstName.trim());
+            if (/quota/i.test(childErr.message ?? '')) quotaHit = true;
+          }
+        }
       }
-      router.push('/parent/bilans');
-    } catch {
-      // Compte créé + session active : on entre dans l'app (les enfants pourront
-      // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
-      router.push('/parent?setup=children');
     }
+    if (missed.length > 0) {
+      try {
+        window.sessionStorage.setItem(
+          SIGNUP_MISSED_KEY,
+          JSON.stringify({ names: missed, quota: quotaHit } satisfies SignupMissed)
+        );
+      } catch {
+        /* sessionStorage indisponible : l'écran d'ajout s'ouvre sans message */
+      }
+      router.push('/parent/select-profile?type=CHILD&from=signup');
+      return;
+    }
+    router.push(children.length > 0 ? '/parent/bilans' : '/parent/select-profile?type=CHILD&from=signup');
   };
 
   // Session confirmée : état de redirection plutôt qu'un flash du formulaire.
@@ -274,7 +318,7 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
+    <main className="min-h-dvh bg-cream relative flex items-center justify-center px-4 pb-6 pt-20 sm:p-4">
       {/* Retour vers le site vitrine */}
       <a
         href={SITE_URL}
@@ -421,12 +465,10 @@ export default function LoginPage() {
                 />
               </Field>
               <Field label="Mot de passe">
-                <input
-                  type="password"
+                <PasswordInput
                   required
-                  className="input-auth"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={setPassword}
                   placeholder="••••••••"
                   autoComplete="current-password"
                 />
@@ -470,9 +512,12 @@ export default function LoginPage() {
                   onChange={(e) => setSignup({ ...signup, email: e.target.value })} />
               </Field>
               <Field label="Mot de passe (min. 8 caractères)">
-                <input type="password" className="input-auth" value={signup.password}
-                  autoComplete="new-password" minLength={8}
-                  onChange={(e) => setSignup({ ...signup, password: e.target.value })} />
+                <PasswordInput
+                  value={signup.password}
+                  autoComplete="new-password"
+                  minLength={8}
+                  onChange={(v) => setSignup({ ...signup, password: v })}
+                />
               </Field>
 
               {/* Enfants dès l'inscription */}
@@ -515,7 +560,7 @@ export default function LoginPage() {
                       <div className="flex gap-2">
                         <input
                           aria-label={`Âge de l'enfant ${i + 1}`}
-                          type="number" min={8} max={17} placeholder="Âge (8-17)"
+                          type="number" min={8} max={17} placeholder="Âge"
                           inputMode="numeric"
                           className="input-auth w-24"
                           value={c.age}
@@ -535,7 +580,7 @@ export default function LoginPage() {
                             setChildRows(next);
                           }}
                         >
-                          <option value="">Sport…</option>
+                          <option value="">Sport (facultatif)</option>
                           {SPORT_OPTIONS.map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
@@ -552,6 +597,28 @@ export default function LoginPage() {
                   + Ajouter un autre enfant
                 </button>
               </div>
+
+              <label className="flex items-start gap-3 rounded-2xl bg-white/60 p-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 shrink-0 accent-navy-600"
+                />
+                <span className="text-[13px] leading-snug text-navy-800">
+                  J&apos;ai lu la{' '}
+                  <a
+                    href="/confidentialite"
+                    target="_blank"
+                    rel="noopener"
+                    className="font-semibold text-navy-600 underline"
+                  >
+                    politique de confidentialité
+                  </a>{' '}
+                  et, comme parent ou tuteur, j&apos;accepte que THRIVE traite les
+                  renseignements de mon enfant pour son accompagnement.
+                </span>
+              </label>
 
               {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
               <button
@@ -583,6 +650,37 @@ function ButtonSpinner({ light = true }: { light?: boolean }) {
         light ? 'border-white/40 border-t-white' : 'border-navy-900/30 border-t-navy-900'
       }`}
     />
+  );
+}
+
+// Champ mot de passe avec « Afficher / Masquer » : moins de fautes de frappe au pouce.
+function PasswordInput({
+  value,
+  onChange,
+  ...rest
+}: Omit<React.InputHTMLAttributes<HTMLInputElement>, 'value' | 'onChange' | 'type'> & {
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [shown, setShown] = useState(false);
+  return (
+    <span className="relative block">
+      <input
+        {...rest}
+        type={shown ? 'text' : 'password'}
+        className="input-auth pr-24"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <button
+        type="button"
+        onClick={() => setShown((v) => !v)}
+        aria-pressed={shown}
+        className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[44px] px-3 rounded-full text-xs font-bold text-navy-600 hover:text-navy-900"
+      >
+        {shown ? 'Masquer' : 'Afficher'}
+      </button>
+    </span>
   );
 }
 
