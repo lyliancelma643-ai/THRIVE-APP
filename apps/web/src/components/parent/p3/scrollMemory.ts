@@ -10,6 +10,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useRef, type RefObject } from 'react';
+import { useIsActivePane } from '../TabPager';
 
 const memory = new Map<string, unknown>();
 let lastPop = 0;
@@ -26,7 +27,10 @@ export function cameBack(): boolean {
 
 /** Hauteur de page : restaurée au retour, remise en haut sinon. */
 export function usePageScrollMemory(key: string) {
+  // Écran préchargé en arrière-plan : il ne touche pas au défilement de l'onglet affiché.
+  const activePane = useIsActivePane();
   useEffect(() => {
+    if (!activePane) return;
     const saved = memory.get(key);
     if (cameBack() && typeof saved === 'number') {
       // Deux images : le temps que les rangées aient pris leur hauteur.
@@ -37,6 +41,8 @@ export function usePageScrollMemory(key: string) {
     const onScroll = () => memory.set(key, window.scrollY);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
+    // Seulement à l'arrivée sur l'écran (pas à chaque changement d'onglet : TabPager rend la hauteur).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);
 }
 

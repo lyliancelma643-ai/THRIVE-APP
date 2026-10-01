@@ -72,6 +72,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     refresh();
   }, [refresh]);
 
+  // Les écrans les plus ouverts depuis les onglets sont préchargés dès le lancement :
+  // ils s'ouvrent sans attente (le code et le rendu serveur sont déjà là).
+  useEffect(() => {
+    ['/parent/fitness/toutes', '/parent/fitness/programme', '/parent/fitness/carnet', '/parent/messages'].forEach((h) =>
+      router.prefetch(h)
+    );
+  }, [router]);
+
   // Compte en préparation : onglets visibles mais non cliquables (aperçu).
   const locked = !accessLoading && access ? !access.unlocked : false;
   // Bilan et Maison restent toujours ouverts : Maison s'ouvre aux abonnés P3
