@@ -190,7 +190,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
 
           <div className="flex items-center justify-end gap-1 sm:gap-1.5 md:gap-2 shrink-0 lg:flex-1 lg:basis-0">
             <Link
-              href="/parent/select-profile"
+              href="/parent/select-profile?type=CHILD"
               className="hidden md:inline-flex lg:hidden xl:inline-flex items-center gap-1.5 h-11 px-5 whitespace-nowrap rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant

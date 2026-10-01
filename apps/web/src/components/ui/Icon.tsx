@@ -46,7 +46,9 @@ export type IconName =
   | 'refresh'
   | 'timer'
   | 'eye'
-  | 'book';
+  | 'book'
+  | 'calendar'
+  | 'video';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -213,6 +215,20 @@ const PATHS: Record<IconName, React.ReactNode> = {
   close: <path d="M6 6l12 12M18 6 6 18" />,
   expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   'arrow-left': <path d="M20 12H5m6-6-6 6 6 6" />,
+  // Agenda — prochaine séance, ajout au calendrier
+  calendar: (
+    <>
+      <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" />
+      <path d="M4 10h16M8.5 3.5v4M15.5 3.5v4" />
+    </>
+  ),
+  // Caméra — séances vidéo
+  video: (
+    <>
+      <rect x="3.5" y="6.5" width="12" height="11" rx="2.5" />
+      <path d="m15.5 10.5 5-3v9l-5-3" />
+    </>
+  ),
   refresh: <path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5M20 20v-4h-4" />,
 };
 
