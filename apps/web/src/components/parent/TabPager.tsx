@@ -1,7 +1,8 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Les trois onglets (Bilan · Mes séances · Maison) restent montés une fois visités :
+// Les trois onglets (Bilan · Mes séances · Maison) sont montés dès le lancement, puis
+// ne sont jamais démontés :
 // changer d'onglet ne recharge plus rien, chaque écran garde ses données, son état
 // et sa hauteur de défilement. Le passage de l'un à l'autre est un glissement
 // horizontal dans le sens de l'onglet choisi (vers la droite si l'onglet est à
@@ -13,7 +14,14 @@
 // gardés en vie (sans `display: none`, pour ne pas rejouer leurs animations d'entrée).
 // ─────────────────────────────────────────────────────────────────────────────
 
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react';
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState, type ComponentType } from 'react';
+
+/**
+ * Vrai si l'écran est l'onglet affiché. Un écran monté en arrière-plan (préchargé)
+ * ne doit pas toucher au défilement de la page : il lit ce contexte.
+ */
+const TabPaneContext = createContext(true);
+export const useIsActivePane = () => useContext(TabPaneContext);
 
 const GAP = 40;
 const DURATION = 520;
@@ -27,6 +35,28 @@ type Slide = { from: number; to: number; phase: 'start' | 'run'; lift: number };
 
 export function TabPager({ index, pages }: { index: number; pages: ComponentType[] }) {
   const [mounted, setMounted] = useState<Set<number>>(() => new Set(index >= 0 ? [index] : []));
+
+  // Dès le lancement, les autres onglets se montent en arrière-plan, un par un, quand
+  // le navigateur est au repos : leurs données sont prêtes avant même qu'on les ouvre.
+  // Une fois montés, ils ne sont plus jamais démontés.
+  useEffect(() => {
+    if (mounted.size >= pages.length) return;
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number; cancelIdleCallback?: (id: number) => void };
+    const next = () =>
+      setMounted((m) => {
+        const missing = pages.findIndex((_, i) => !m.has(i));
+        if (missing < 0) return m;
+        const n = new Set(m);
+        n.add(missing);
+        return n;
+      });
+    if (w.requestIdleCallback) {
+      const id = w.requestIdleCallback(next, { timeout: 1500 });
+      return () => w.cancelIdleCallback?.(id);
+    }
+    const t = window.setTimeout(next, 400);
+    return () => window.clearTimeout(t);
+  }, [mounted, pages]);
   const [current, setCurrent] = useState(index);
   const [slide, setSlide] = useState<Slide | null>(null);
   const scrolls = useRef<number[]>(pages.map(() => 0));
@@ -113,7 +143,9 @@ export function TabPager({ index, pages }: { index: number; pages: ComponentType
                   : HIDDEN
               }
             >
-              <Page />
+              <TabPaneContext.Provider value={i === index}>
+                <Page />
+              </TabPaneContext.Provider>
             </section>
           ) : null
         )}

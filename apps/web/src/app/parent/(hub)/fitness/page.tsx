@@ -21,6 +21,7 @@ import { PillGroup } from '@/components/parent/p3/pieces';
 import { TonightSettings } from '@/components/parent/p3/TonightSettings';
 import { PosterRow } from '@/components/parent/p3/Poster';
 import { Arch } from '@/components/parent/p3/Arch';
+import { useIsActivePane } from '@/components/parent/TabPager';
 import { usePageScrollMemory } from '@/components/parent/p3/scrollMemory';
 import { useHScroll } from '@/components/parent/p3/useHScroll';
 import {
@@ -65,7 +66,12 @@ const IS_DEV = process.env.NODE_ENV !== 'production';
 // ── E10 — Onboarding ─────────────────────────────────────────────────────────
 function Onboarding({ firstName, onDone }: { firstName: string; onDone: () => void }) {
   const [i, setI] = useState(0);
-  useEffect(() => window.scrollTo({ top: 0, behavior: 'instant' }), [i]);
+  const activePane = useIsActivePane();
+  useEffect(() => {
+    if (activePane) window.scrollTo({ top: 0, behavior: 'instant' });
+    // Seulement au changement d'écran d'accueil.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i]);
   const screens = [
     <>
       <h1 className="font-display text-[32px] md:text-[42px] leading-[1.15] font-semibold text-ink">
