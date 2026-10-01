@@ -36,7 +36,7 @@ export default function ComptePage() {
   const initials =
     `${firstName?.[0] ?? ''}${lastName?.[0] ?? ''}`.toUpperCase() ||
     user?.email?.[0]?.toUpperCase() ||
-    '👤';
+    '?';
 
   const save = async () => {
     if (!dirty) return;
@@ -50,6 +50,13 @@ export default function ComptePage() {
       setError(upErr.message ?? 'Enregistrement impossible');
       setSaving(false);
       return;
+    }
+    // Le nom affiché au coach et à l'équipe vient de la table profiles.
+    if (user?.id) {
+      await supabase
+        .from('profiles')
+        .update({ first_name: firstName.trim(), last_name: lastName.trim() })
+        .eq('id', user.id);
     }
     // Rafraîchit le store pour propager le nouveau nom (avatar, en-têtes…)
     await hydrate();
@@ -123,7 +130,7 @@ export default function ComptePage() {
             {saving ? 'Enregistrement…' : 'Enregistrer'}
           </button>
           {savedAt && (
-            <span className="text-sm text-sage-ink font-medium">✓ Enregistré</span>
+            <span role="status" className="text-sm text-sage-ink font-medium">Enregistré</span>
           )}
           {error && <span role="alert" className="text-sm text-danger-ink">{error}</span>}
         </div>
@@ -147,13 +154,16 @@ export default function ComptePage() {
           </div>
         </dl>
         <p className="text-xs text-faint mt-4 leading-relaxed">
-          Pour changer d&apos;adresse e-mail ou de mot de passe, écris à ton coach
-          THRIVE ou à l&apos;administrateur.
+          Pour changer d&apos;adresse e-mail, écris au support THRIVE depuis la messagerie.
         </p>
       </section>
 
+      <PasswordSection />
+
       {/* Notifications push (PWA — invisible si non supporté/configuré) */}
       {user?.id && <WebPushToggle userId={user.id} />}
+
+      <DataSection />
 
       {/* Déconnexion */}
       <section className="rounded-card border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">
@@ -170,5 +180,215 @@ export default function ComptePage() {
         </button>
       </section>
     </div>
+  );
+}
+
+const INPUT =
+  'w-full h-12 px-4 rounded-xl bg-chip border border-line2 text-ink placeholder-faint focus:border-sun/60 focus:outline-none transition-colors';
+
+// ── Mot de passe ─────────────────────────────────────────────────────────────
+function PasswordSection() {
+  const [pwd, setPwd] = useState('');
+  const [confirm, setConfirm] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMsg(null);
+    if (pwd.length < 8) return setMsg({ ok: false, text: 'Au moins 8 caractères.' });
+    if (pwd !== confirm) return setMsg({ ok: false, text: 'Les deux mots de passe ne sont pas identiques.' });
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: pwd });
+    setBusy(false);
+    if (error) {
+      const m = error.message ?? '';
+      setMsg({
+        ok: false,
+        text: /same|different/i.test(m)
+          ? 'Choisis un mot de passe différent de l’actuel.'
+          : /reauth|recent/i.test(m)
+            ? 'Par sécurité, déconnecte-toi puis utilise « Mot de passe oublié ? » sur l’écran de connexion.'
+            : /weak|short|least/i.test(m)
+              ? 'Mot de passe trop faible : allonge-le ou mélange lettres et chiffres.'
+              : 'Changement impossible pour le moment. Réessaie dans un instant.',
+      });
+      return;
+    }
+    setPwd('');
+    setConfirm('');
+    setMsg({ ok: true, text: 'Mot de passe changé.' });
+  };
+
+  return (
+    <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+      <h2 className="nc-eyebrow mb-4">Mot de passe</h2>
+      <form onSubmit={submit} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <label className="block">
+            <span className="block text-xs font-medium text-soft mb-1.5">Nouveau mot de passe</span>
+            <input type="password" autoComplete="new-password" minLength={8} value={pwd} onChange={(e) => setPwd(e.target.value)} className={INPUT} />
+          </label>
+          <label className="block">
+            <span className="block text-xs font-medium text-soft mb-1.5">Confirmer</span>
+            <input type="password" autoComplete="new-password" minLength={8} value={confirm} onChange={(e) => setConfirm(e.target.value)} className={INPUT} />
+          </label>
+        </div>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <button
+            type="submit"
+            disabled={busy || !pwd}
+            className="h-12 px-6 rounded-full bg-chip border border-line2 text-ink text-sm font-bold hover:bg-surface-sub active:scale-95 transition-all disabled:opacity-40 disabled:active:scale-100"
+          >
+            {busy ? 'Changement…' : 'Changer le mot de passe'}
+          </button>
+          {msg && (
+            <span role={msg.ok ? 'status' : 'alert'} className={`text-sm font-medium ${msg.ok ? 'text-sage-ink' : 'text-danger-ink'}`}>
+              {msg.text}
+            </span>
+          )}
+        </div>
+      </form>
+    </section>
+  );
+}
+
+// ── Mes données (Loi 25) : copie, suppression, politique ─────────────────────
+function DataSection() {
+  const { user } = useAuthStore();
+  const [exporting, setExporting] = useState(false);
+  const [exportMsg, setExportMsg] = useState('');
+  const [askDelete, setAskDelete] = useState(false);
+  const [reason, setReason] = useState('');
+  const [deleting, setDeleting] = useState(false);
+  const [pendingSince, setPendingSince] = useState<string | null>(null);
+  const [deleteMsg, setDeleteMsg] = useState('');
+
+  // Demande de suppression déjà en cours ?
+  useEffect(() => {
+    if (!user?.id) return;
+    supabase
+      .from('deletion_requests')
+      .select('requested_at')
+      .eq('target_profile_id', user.id)
+      .eq('status', 'PENDING')
+      .maybeSingle()
+      .then(({ data }) => setPendingSince((data?.requested_at as string | undefined) ?? null));
+  }, [user?.id]);
+
+  const exportData = async () => {
+    setExporting(true);
+    setExportMsg('');
+    const { data, error } = await supabase.functions.invoke('export-my-data', { method: 'POST' });
+    setExporting(false);
+    if (error || !data) {
+      setExportMsg('Téléchargement impossible pour le moment. Réessaie dans un instant.');
+      return;
+    }
+    const blob = new Blob([typeof data === 'string' ? data : JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thrive-mes-donnees-${new Date().toISOString().slice(0, 10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    setExportMsg('Ton fichier est téléchargé.');
+  };
+
+  const requestDeletion = async () => {
+    setDeleting(true);
+    setDeleteMsg('');
+    const { data, error } = await supabase.functions.invoke('request-account-deletion', {
+      body: { reason: reason.trim() || null },
+    });
+    setDeleting(false);
+    if (error || data?.error) {
+      setDeleteMsg('La demande n’a pas pu être envoyée. Réessaie, ou écris au support THRIVE.');
+      return;
+    }
+    setPendingSince((data?.request?.requested_at as string | undefined) ?? new Date().toISOString());
+    setAskDelete(false);
+  };
+
+  return (
+    <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+      <h2 className="nc-eyebrow mb-2">Mes données</h2>
+      <p className="text-sm text-soft leading-relaxed mb-4">
+        Tes renseignements et ceux de ton enfant t&apos;appartiennent.{' '}
+        <Link href="/confidentialite" className="font-semibold text-accent-ink underline">
+          Notre politique de confidentialité
+        </Link>
+      </p>
+
+      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+        <button
+          type="button"
+          onClick={exportData}
+          disabled={exporting}
+          className="inline-flex items-center justify-center gap-2 h-12 px-6 rounded-full bg-chip border border-line2 text-ink text-sm font-bold hover:bg-surface-sub transition-colors disabled:opacity-50"
+        >
+          <Icon name="download" className="w-4 h-4" />
+          {exporting ? 'Préparation…' : 'Télécharger mes données'}
+        </button>
+        {exportMsg && <span role="status" className="text-sm text-soft">{exportMsg}</span>}
+      </div>
+
+      <div className="mt-6 pt-5 border-t border-line">
+        {pendingSince ? (
+          <p role="status" className="text-sm text-body leading-relaxed">
+            <span className="font-semibold text-ink">Demande de suppression enregistrée</span> le{' '}
+            {new Date(pendingSince).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}. L&apos;équipe
+            THRIVE te confirme la suppression par email, au plus tard sous 30 jours.
+          </p>
+        ) : askDelete ? (
+          <div>
+            <p className="text-sm text-body leading-relaxed">
+              Ton compte, celui de ta famille et les données de ton enfant seront supprimés par l&apos;équipe THRIVE. Le
+              parcours en cours s&apos;arrête. Cette action est définitive.
+            </p>
+            <label className="block mt-4">
+              <span className="block text-xs font-medium text-soft mb-1.5">Une raison ? (facultatif)</span>
+              <textarea
+                rows={2}
+                maxLength={500}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                className={`${INPUT} h-auto py-3 resize-none`}
+              />
+            </label>
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <button
+                type="button"
+                onClick={requestDeletion}
+                disabled={deleting}
+                className="h-12 px-6 rounded-full bg-red-500/15 border border-red-500/40 text-danger-ink text-sm font-bold hover:bg-red-500/25 transition-colors disabled:opacity-60"
+              >
+                {deleting ? 'Envoi…' : 'Confirmer la suppression'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setAskDelete(false)}
+                className="h-12 px-6 rounded-full text-sm font-semibold text-soft hover:text-ink"
+              >
+                Annuler
+              </button>
+            </div>
+            {deleteMsg && <p role="alert" className="mt-3 text-sm text-danger-ink">{deleteMsg}</p>}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAskDelete(true)}
+            className="min-h-[44px] text-sm font-semibold text-danger-ink hover:underline"
+          >
+            Supprimer mon compte et mes données
+          </button>
+        )}
+      </div>
+    </section>
   );
 }
