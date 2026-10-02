@@ -6,6 +6,8 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { finalizePendingSignup, resendConfirmation } from '@/lib/pending-signup';
 import { BrandLogo } from '@/components/BrandLogo';
+import { DICT, LANG_KEY, type Lang } from '@/components/login/i18n';
+import { Alert, Field, Lead, MASCOT, MascotArch, Stars, SunButton, Title } from '@/components/login/pieces';
 
 // Atterrissage du lien « Confirmer mon adresse » envoyé à l'inscription.
 // Supporte les trois formats Supabase : code PKCE (?code=), token_hash
@@ -18,6 +20,17 @@ export default function ConfirmEmailPage() {
   const [resent, setResent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  // Même langue que l'écran de connexion (choix mémorisé).
+  const [lang, setLang] = useState<Lang>('fr');
+  const t = DICT[lang];
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem(LANG_KEY);
+      if (saved === 'en' || saved === 'fr') setLang(saved);
+    } catch {
+      /* français par défaut */
+    }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -73,8 +86,8 @@ export default function ConfirmEmailPage() {
     } catch (err: any) {
       setError(
         /rate|too many|seconds/i.test(err?.message ?? '')
-          ? 'Un e-mail vient déjà d’être envoyé. Réessaie dans une minute.'
-          : 'Envoi impossible. Vérifie l’adresse et réessaie.'
+          ? t.errResendRate
+          : t.errResend
       );
     } finally {
       setBusy(false);
@@ -82,56 +95,52 @@ export default function ConfirmEmailPage() {
   };
 
   return (
-    <main className="min-h-dvh bg-cream flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="flex justify-center mb-6"><BrandLogo /></div>
-        <div className="glass-strong rounded-3xl p-6 md:p-8 text-center">
-          {state === 'working' ? (
-            <>
-              <div
-                className="w-10 h-10 mx-auto mb-4 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"
-                role="status"
-                aria-label="Confirmation en cours"
-              />
-              <p className="text-navy-700">Confirmation de ton adresse…</p>
-            </>
-          ) : resent ? (
-            <>
-              <h1 className="font-display text-xl font-semibold text-navy-900 mb-2">Nouveau lien envoyé</h1>
-              <p className="text-sm text-navy-700">
-                Ouvre l’e-mail reçu sur <span className="font-medium">{email}</span> et clique sur le lien
-                (pense à vérifier tes spams).
-              </p>
-            </>
-          ) : (
-            <form onSubmit={resend} className="space-y-4 text-left">
-              <h1 className="font-display text-xl font-semibold text-navy-900 text-center">
-                Lien expiré ou déjà utilisé
-              </h1>
-              <p className="text-sm text-navy-700 text-center">
-                Si ton adresse est déjà confirmée, <a className="underline" href="/login">connecte-toi</a>.
-                Sinon, reçois un nouveau lien :
-              </p>
-              <input
-                type="email"
-                required
-                className="input-auth"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ton@email.com"
-                autoComplete="email"
-              />
-              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-              <button
-                type="submit"
-                disabled={busy}
-                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50"
-              >
-                {busy ? 'Envoi…' : 'Renvoyer le lien de confirmation'}
-              </button>
-            </form>
-          )}
-        </div>
+    <main lang={lang} className="login-root relative flex min-h-dvh items-center justify-center overflow-hidden px-6 py-10">
+      <Stars />
+      <div className="relative flex w-full max-w-[420px] flex-col items-center">
+        <BrandLogo className="h-11 w-11 shadow-[0_0_0_1px_rgba(255,255,255,.14),0_6px_16px_rgba(0,0,0,.35)]" />
+        <MascotArch src={MASCOT.letter} alt={t.confirmAlt} mat={9} className="mt-8 w-[168px]" />
+        {state === 'working' ? (
+          <div className="mt-8 flex flex-col items-center gap-4">
+            <div
+              className="h-10 w-10 animate-spin rounded-full border-4 border-sun border-t-transparent"
+              role="status"
+              aria-label={t.confirmingAria}
+            />
+            <Lead>{t.confirming}</Lead>
+          </div>
+        ) : resent ? (
+          <div role="status" className="login-rise mt-8 flex flex-col items-center gap-2.5 text-center">
+            <Title className="text-[30px]">{t.newLinkTitle}</Title>
+            <Lead>{t.newLinkSub(email)}</Lead>
+          </div>
+        ) : (
+          <form onSubmit={resend} noValidate className="login-rise mt-8 flex w-full flex-col gap-4">
+            <div className="flex flex-col items-center gap-2.5 text-center">
+              <Title className="text-[30px]">{t.linkExpiredTitle}</Title>
+              <Lead>{t.linkExpiredSub}</Lead>
+              <a href="/login" className="min-h-[44px] px-2 py-2.5 text-[15px] font-bold text-sun hover:text-[#fff6a3]">
+                {t.signin}
+              </a>
+            </div>
+            <Field
+              id="confirm-email"
+              label={t.email}
+              icon="mail"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              required
+              placeholder={t.emailPh}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {error && <Alert>{error}</Alert>}
+            <SunButton type="submit" icon="send" disabled={busy} loading={busy}>
+              {busy ? t.sending : t.resendConfirm}
+            </SunButton>
+          </form>
+        )}
       </div>
     </main>
   );

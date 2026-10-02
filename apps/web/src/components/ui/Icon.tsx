@@ -46,7 +46,13 @@ export type IconName =
   | 'refresh'
   | 'timer'
   | 'eye'
-  | 'book';
+  | 'book'
+  // Écran d'accueil / connexion
+  | 'eye-off'
+  | 'minus'
+  | 'shield'
+  | 'send'
+  | 'chevron-left';
 
 const PATHS: Record<IconName, React.ReactNode> = {
   dashboard: (
@@ -214,6 +220,28 @@ const PATHS: Record<IconName, React.ReactNode> = {
   expand: <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />,
   'arrow-left': <path d="M20 12H5m6-6-6 6 6 6" />,
   refresh: <path d="M20 11a8 8 0 0 0-14.6-4.5M4 4v4h4M4 13a8 8 0 0 0 14.6 4.5M20 20v-4h-4" />,
+  'eye-off': (
+    <>
+      <path d="M3 3l18 18" />
+      <path d="M10.6 5.1A9.8 9.8 0 0 1 12 5c6 0 9.5 7 9.5 7a17 17 0 0 1-3.2 4" />
+      <path d="M6.6 6.6C3.9 8.4 2.5 12 2.5 12S6 19 12 19a9.4 9.4 0 0 0 5.4-1.6" />
+      <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    </>
+  ),
+  minus: <path d="M6 12h12" />,
+  shield: (
+    <>
+      <path d="M12 3 5 6v5c0 4.5 3 8.3 7 10 4-1.7 7-5.5 7-10V6l-7-3Z" />
+      <path d="m9 12 2 2 4-4" />
+    </>
+  ),
+  send: (
+    <>
+      <path d="m22 2-7 20-4-9-9-4 20-7Z" />
+      <path d="M22 2 11 13" />
+    </>
+  ),
+  'chevron-left': <path d="m15 18-6-6 6-6" />,
 };
 
 export function Icon({

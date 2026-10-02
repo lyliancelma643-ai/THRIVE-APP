@@ -17,6 +17,10 @@ test.describe('Middleware — garde des routes protégées', () => {
 test.describe('Pages publiques', () => {
   test('/login rend le formulaire de connexion', async ({ page }) => {
     await page.goto('/login');
+    // Téléphone : l'accueil (mascotte + slogan) précède le formulaire.
+    // Sur ordinateur, le formulaire est déjà à droite de l'accueil.
+    const haveAccount = page.getByRole('button', { name: /déjà un compte/i });
+    if (await haveAccount.isVisible()) await haveAccount.click();
     await expect(page.getByPlaceholder('ton@email.com')).toBeVisible();
     // Deux « Se connecter » existent (onglet + submit) : on cible le submit du form.
     await expect(page.locator('form button[type="submit"]')).toBeVisible();
