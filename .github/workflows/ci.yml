@@ -122,3 +122,39 @@ jobs:
         run: deno test --no-config supabase/functions/stripe-webhook/verify.test.ts
       - name: Test nettoyage facturation (suppression de compte)
         run: deno test --no-config supabase/functions/admin-delete-user/billing_cleanup.test.ts
+      - name: Test « 1 mois offert » du certificat (reward_core)
+        run: deno test --no-config supabase/functions/_shared/reward_core.test.ts
+      - name: Vérification des types des fonctions modifiées
+        run: >-
+          deno check --no-config
+          supabase/functions/claim-certificate-reward/index.ts
+          supabase/functions/create-checkout-session/index.ts
+          supabase/functions/stripe-webhook/index.ts
+          supabase/functions/admin-delete-user/index.ts
+          supabase/functions/request-account-deletion/index.ts
+
+  rls:
+    name: RLS (miroir Postgres)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+    steps:
+      - uses: actions/checkout@v4
+      # Migrations 066 (co-parent), 067 (suppressions), 068 (mois offert) sur le
+      # miroir de prod : chaque test doit passer avec sa migration, échouer sans.
+      - name: Tests RLS avec migrations
+        run: supabase/tests/rls/run-local.sh
+      - name: Les tests détectent le défaut (sans migrations)
+        run: supabase/tests/rls/run-local.sh --before
