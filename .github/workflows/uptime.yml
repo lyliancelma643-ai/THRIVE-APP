@@ -39,6 +39,13 @@ jobs:
           done
           exit $fail
 
+      - name: Santé Auth + base (/api/health)
+        run: |
+          body=$(curl -s --max-time 20 -w '\n%{http_code}' "$BASE_URL/api/health")
+          code=$(printf '%s' "$body" | tail -n1)
+          printf '%s\n' "$body" | head -n -1
+          [ "$code" = "200" ]
+
       - name: Garde d'authentification (une page protégée renvoie vers /login)
         run: |
           code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 "$BASE_URL/parent/bilans")

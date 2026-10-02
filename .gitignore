@@ -78,3 +78,7 @@ ux-audit/**/*.png
 ux-audit/**/report.json
 ux-audit/smoke/
 ux-audit/lighthouse/**/*.json
+
+# Supabase CLI — état local (lien de projet, versions) : jamais commité
+supabase/.temp/
+supabase/.branches/
