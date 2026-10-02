@@ -6,12 +6,24 @@ const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 
 serve(withSentry("send-push-notification", async (req) => {
   try {
-    const { user_id, title, body, data } = await req.json()
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
+
+    // Autorisation : service_role (jobs, webhooks DB) ou compte ADMIN/SUPER_ADMIN.
+    // verify_jwt seul ne suffit pas : n'importe quel parent connecté pouvait
+    // envoyer une notification au texte libre à n'importe quel utilisateur.
+    const token = req.headers.get('authorization')?.replace('Bearer ', '') ?? ''
+    if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+      const { data: caller, error } = await supabase.auth.getUser(token)
+      const role = caller?.user?.app_metadata?.role
+      if (error || !['ADMIN', 'SUPER_ADMIN'].includes(role)) {
+        return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403 })
+      }
+    }
+
+    const { user_id, title, body, data } = await req.json()
 
     // Récupérer le token Expo
     const { data: profile } = await supabase

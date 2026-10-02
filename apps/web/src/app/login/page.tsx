@@ -6,6 +6,11 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import {
+  confirmRedirectUrl,
+  finalizePendingSignup,
+  resendConfirmation,
+} from '@/lib/pending-signup';
 import { Icon } from '@/components/ui/Icon';
 import { DICT, LANG_KEY, SPORTS, humanAuthError, type Lang } from '@/components/login/i18n';
 import {
@@ -31,7 +36,7 @@ import {
 
 // Écrans du parcours. Sur ordinateur, l'accueil est le panneau de gauche :
 // la colonne de droite montre alors directement la connexion.
-type Screen = 'welcome' | 'signin' | 'signup' | 'athlete' | 'forgot' | 'ready';
+type Screen = 'welcome' | 'signin' | 'signup' | 'athlete' | 'forgot' | 'confirm' | 'ready';
 type ChildRow = { firstName: string; age: number; sport: string };
 
 const newChild = (): ChildRow => ({ firstName: '', age: 11, sport: 'Hockey' });
@@ -98,6 +103,18 @@ export default function LoginPage() {
   // Réinitialisation du mot de passe
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
+
+  // Confirmation d'e-mail obligatoire (Loi 25) : adresse en attente de
+  // confirmation, et état du bouton « renvoyer le lien ».
+  const [awaitingConfirm, setAwaitingConfirm] = useState<string | null>(null);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<'idle' | 'busy' | 'sent'>('idle');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const tm = setTimeout(() => setResendCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(tm);
+  }, [resendCooldown]);
 
   // Session coupée à distance (compte désactivé) : la raison est lue depuis
   // sessionStorage (posée avant la déconnexion, robuste aux courses de
@@ -173,6 +190,24 @@ export default function LoginPage() {
     return () => clearTimeout(tm);
   }, [confirmed, submitting, screen, user?.role, router]);
 
+  const resend = async (address: string) => {
+    if (resendState === 'busy' || resendCooldown > 0) return;
+    setResendState('busy');
+    setError('');
+    try {
+      await resendConfirmation(address);
+      setResendState('sent');
+      setResendCooldown(60);
+    } catch (err: any) {
+      setResendState('idle');
+      setError(
+        /rate|too many|seconds/i.test(err?.message ?? '')
+          ? t.errResendRate
+          : humanAuthError(err?.message ?? t.errSendMail, t)
+      );
+    }
+  };
+
   const handleForgot = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!forgotEmail.trim()) { setError(t.errEmailRequired); return; }
@@ -200,6 +235,9 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await signIn(email.trim(), password);
+      // Première connexion après confirmation : crée les enfants déclarés à
+      // l'inscription (si le lien a été ouvert sur un autre appareil).
+      await finalizePendingSignup();
       // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
       // Vérification 100 % locale (lecture du JWT) : aucun appel réseau en plus.
       const dest = destinationFor(useAuthStore.getState().user?.role);
@@ -208,7 +246,15 @@ export default function LoginPage() {
       );
       // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
     } catch (err: any) {
-      setError(humanAuthError(err?.message ?? t.errSignin, t));
+      const msg = err?.message ?? t.errSignin;
+      if (/not confirmed|email_not_confirmed/i.test(msg) || err?.code === 'email_not_confirmed') {
+        setUnconfirmedEmail(email.trim());
+        setResendState('idle');
+        setError(t.errNotConfirmed);
+        setSubmitting(false);
+        return;
+      }
+      setError(humanAuthError(msg, t));
       setSubmitting(false);
     }
   };
@@ -240,65 +286,49 @@ export default function LoginPage() {
     setError('');
     setSubmitting(true);
 
-    // ── Étape critique : compte parent + connexion. Un échec ici est bloquant. ──
-    let userId: string;
+    // ── Création du compte. Aucune session tant que l'e-mail n'est pas confirmé
+    // (Loi 25) : les enfants déclarés sont mis en attente dans les métadonnées
+    // et créés à la première connexion confirmée (voir lib/pending-signup).
     try {
-      const { error: upErr } = await supabase.auth.signUp({
+      const { data, error: upErr } = await supabase.auth.signUp({
         email: mail.trim(),
         password: pwd,
         options: {
-          data: { firstName: firstName.trim(), lastName: lastName.trim(), role: 'PARENT' },
+          emailRedirectTo: confirmRedirectUrl(),
+          data: {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            pendingChildren: children.map((c) => ({
+              firstName: c.firstName.trim(),
+              age: c.age,
+              sport: c.sport || 'Hockey',
+            })),
+          },
         },
       });
       if (upErr) throw upErr;
-
-      // Connexion immédiate (le trigger DB a déjà confirmé l'email)
+      // Adresse déjà inscrite : Supabase renvoie un utilisateur sans identité
+      // (anti-énumération). On affiche le même écran, sans rien révéler.
+      if (!data.session) {
+        setAwaitingConfirm(mail.trim());
+        setResendState('idle');
+        setResendCooldown(60);
+        setSubmitting(false);
+        go('confirm');
+        return;
+      }
+      // Projet configuré sans confirmation (autoconfirm) : on entre directement,
+      // en passant par l'écran « compte créé ».
       await signIn(mail.trim(), pwd);
-      const { data: { user: authUser } } = await supabase.auth.getUser();
-      if (!authUser) throw new Error(t.errAfterSignup);
-      userId = authUser.id;
+      const { failed } = await finalizePendingSignup();
+      setReadyDest(!failed && children.length > 0 ? '/parent/bilans' : '/parent?setup=children');
+      setScreen('ready');
+      setSubmitting(false);
+      window.scrollTo({ top: 0 });
     } catch (err: any) {
       setError(humanAuthError(err?.message ?? t.errSignup, t));
       setSubmitting(false);
-      return;
     }
-
-    // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
-    // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
-    // le parent dans l'app plutôt que de le coincer dans un cul-de-sac « compte
-    // existe déjà » au retry. Il ajoutera ses enfants depuis son espace.
-    let dest = '/parent?setup=children';
-    try {
-      if (children.length > 0) {
-        const { data: family, error: famErr } = await supabase
-          .from('families')
-          .insert({ name: `Famille ${lastName.trim()}`, parent_id: userId })
-          .select('id')
-          .single();
-        if (famErr) throw famErr;
-
-        const rows = children.map((c) => {
-          const dob = new Date();
-          dob.setFullYear(dob.getFullYear() - c.age);
-          return {
-            family_id: family.id,
-            first_name: c.firstName.trim(),
-            date_of_birth: dob.toISOString().split('T')[0],
-            sport: c.sport || 'Hockey',
-            is_active: true,
-          };
-        });
-        const { error: childErr } = await supabase.from('children').insert(rows);
-        if (childErr) throw childErr;
-        dest = '/parent/bilans';
-      }
-    } catch {
-      dest = '/parent?setup=children';
-    }
-    setReadyDest(dest);
-    setScreen('ready');
-    setSubmitting(false);
-    window.scrollTo({ top: 0 });
   };
 
   const updateChild = (i: number, patch: Partial<ChildRow>) =>
@@ -326,6 +356,7 @@ export default function LoginPage() {
   const goBack = () => {
     if (screen === 'athlete') go('signup');
     else if (screen === 'forgot') { setResetSent(false); go('signin'); }
+    else if (screen === 'confirm') go('signup');
     else go('welcome');
   };
 
@@ -391,7 +422,7 @@ export default function LoginPage() {
 
   const legal = (
     <p className="text-center text-xs leading-normal text-[rgba(234,243,241,.66)] lg:text-left">
-      {t.legal}
+      {t.confirmNote} {t.legal}
     </p>
   );
 
@@ -448,6 +479,19 @@ export default function LoginPage() {
           }
         />
         {error && <Alert>{error}</Alert>}
+        {unconfirmedEmail && (
+          <GhostButton
+            onClick={() => resend(unconfirmedEmail)}
+            disabled={resendState === 'busy' || resendCooldown > 0}
+            className="h-12 text-sm disabled:opacity-60"
+          >
+            {resendState === 'busy'
+              ? t.sending
+              : resendState === 'sent'
+                ? resendCooldown > 0 ? t.resentIn(resendCooldown) : t.resendAgain
+                : t.resendConfirm}
+          </GhostButton>
+        )}
         <SunButton type="submit" disabled={submitting} loading={submitting} className="mt-1">
           {submitting ? t.signingIn : t.signin}
         </SunButton>
@@ -805,14 +849,59 @@ export default function LoginPage() {
     </div>
   );
 
+  const confirmPanel = (
+    <div className="flex flex-1 flex-col">
+      <div className="relative mt-4 flex justify-center lg:mt-0">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(249,235,80,.14) 0%, rgba(249,235,80,0) 64%)' }}
+        />
+        <MascotArch src={MASCOT.letter} alt={t.confirmAlt} mat={9} className="w-[184px]" />
+      </div>
+      <div role="status" className="login-rise mt-7 flex flex-col items-center gap-2.5 text-center">
+        <Title className="text-[30px] lg:text-[38px]">{t.confirmTitle}</Title>
+        <Lead className="max-w-[340px]">{t.confirmSub(awaitingConfirm ?? '')}</Lead>
+        <Lead className="max-w-[340px] text-sage">{t.confirmChildren}</Lead>
+      </div>
+      <div className="mt-7 flex flex-col gap-3">
+        {error && <Alert>{error}</Alert>}
+        <SunButton
+          type="button"
+          onClick={() => {
+            setEmail(awaitingConfirm ?? '');
+            setAwaitingConfirm(null);
+            go('signin');
+          }}
+        >
+          {t.iConfirmed}
+        </SunButton>
+        <GhostButton
+          onClick={() => awaitingConfirm && resend(awaitingConfirm)}
+          disabled={resendState === 'busy' || resendCooldown > 0}
+          className="disabled:opacity-60"
+        >
+          {resendState === 'busy'
+            ? t.sending
+            : resendCooldown > 0
+              ? t.resendIn(resendCooldown)
+              : t.resendLink}
+        </GhostButton>
+        {resendState === 'sent' && (
+          <p role="status" className="text-center text-sm text-sage">{t.linkSent}</p>
+        )}
+      </div>
+    </div>
+  );
+
   // ─── En-tête : retour / logo / étapes à gauche et au centre, langue à droite ─
   const mobileLeft =
     screen === 'welcome' || screen === 'ready' ? brandLockup : <BackButton onClick={goBack} label={t.back} />;
   const desktopLeft =
-    screen === 'athlete' || screen === 'forgot' ? <BackButton onClick={goBack} label={t.back} /> : siteLink;
+    screen === 'athlete' || screen === 'forgot' || screen === 'confirm' ? <BackButton onClick={goBack} label={t.back} /> : siteLink;
   const center = inSignup ? (
     <Steps label={screen === 'signup' ? t.step1 : t.step2} current={screen === 'signup' ? 1 : 2} />
-  ) : screen === 'signin' || screen === 'forgot' ? (
+  ) : screen === 'signin' || screen === 'forgot' || screen === 'confirm' ? (
     <BrandLogo className="h-[30px] w-[30px] shadow-[0_0_0_1px_rgba(255,255,255,.14),0_6px_16px_rgba(0,0,0,.35)] lg:hidden" />
   ) : null;
 
@@ -885,6 +974,7 @@ export default function LoginPage() {
           {screen === 'signup' && parentPanel}
           {screen === 'athlete' && athletePanel}
           {screen === 'forgot' && forgotPanel}
+          {screen === 'confirm' && confirmPanel}
           {screen === 'ready' && readyPanel}
         </div>
 

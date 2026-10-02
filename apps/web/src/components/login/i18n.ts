@@ -127,6 +127,33 @@ const fr = {
   resend: 'Renvoyer l’email',
   backToSignin: 'Retour à la connexion',
 
+  // Confirmation d'e-mail (Loi 25)
+  confirmAlt: 'La mascotte THRIVE glisse une lettre au cœur rouge',
+  confirmTitle: 'Confirme ton adresse e-mail',
+  confirmSub: (email: string) =>
+    `Nous avons envoyé un lien à ${email}. Clique dessus pour activer ton compte (pense à vérifier tes indésirables).`,
+  confirmChildren: 'Tes enfants seront ajoutés automatiquement à ta première connexion.',
+  confirmNote: 'Un lien de confirmation te sera envoyé par e-mail pour activer ton compte.',
+  iConfirmed: 'J’ai confirmé — me connecter',
+  resendLink: 'Renvoyer le lien',
+  resendConfirm: 'Renvoyer le lien de confirmation',
+  resendIn: (n: number) => `Renvoyer le lien (${n} s)`,
+  resentIn: (n: number) => `Lien renvoyé (${n} s)`,
+  resendAgain: 'Renvoyer encore',
+  linkSent: 'Nouveau lien envoyé.',
+  errNotConfirmed: 'Ton adresse e-mail n’est pas encore confirmée. Clique sur le lien reçu par e-mail.',
+  errResendRate: 'Un e-mail vient déjà d’être envoyé. Réessaie dans une minute.',
+
+  // /auth/confirm
+  confirming: 'Confirmation de ton adresse…',
+  confirmingAria: 'Confirmation en cours',
+  linkExpiredTitle: 'Lien expiré ou déjà utilisé',
+  linkExpiredSub: 'Si ton adresse est déjà confirmée, connecte-toi. Sinon, reçois un nouveau lien\u00a0:',
+  newLinkTitle: 'Nouveau lien envoyé',
+  newLinkSub: (email: string) =>
+    `Ouvre l’e-mail reçu sur ${email} et clique sur le lien (pense à vérifier tes indésirables).`,
+  errResend: 'Envoi impossible. Vérifie l’adresse et réessaie.',
+
   // Messages
   disabled: 'Ton compte a été désactivé. Contacte un administrateur pour le réactiver.',
   errRequired: 'Tous les champs sont requis.',
@@ -243,6 +270,31 @@ const en: Dict = {
     `If an account exists for ${email}, a link is waiting for you. Take a look in your spam folder too.`,
   resend: 'Resend the email',
   backToSignin: 'Back to sign in',
+
+  confirmAlt: 'The THRIVE mascot slipping a letter with a red heart',
+  confirmTitle: 'Confirm your email address',
+  confirmSub: (email: string) =>
+    `We sent a link to ${email}. Click it to activate your account (check your spam folder too).`,
+  confirmChildren: 'Your children will be added automatically the first time you sign in.',
+  confirmNote: 'A confirmation link will be emailed to you to activate your account.',
+  iConfirmed: 'I’ve confirmed — sign me in',
+  resendLink: 'Resend the link',
+  resendConfirm: 'Resend the confirmation link',
+  resendIn: (n: number) => `Resend the link (${n} s)`,
+  resentIn: (n: number) => `Link resent (${n} s)`,
+  resendAgain: 'Resend again',
+  linkSent: 'New link sent.',
+  errNotConfirmed: 'Your email address isn’t confirmed yet. Click the link we emailed you.',
+  errResendRate: 'An email was just sent. Try again in a minute.',
+
+  confirming: 'Confirming your address…',
+  confirmingAria: 'Confirmation in progress',
+  linkExpiredTitle: 'Link expired or already used',
+  linkExpiredSub: 'If your address is already confirmed, sign in. Otherwise, get a new link:',
+  newLinkTitle: 'New link sent',
+  newLinkSub: (email: string) =>
+    `Open the email sent to ${email} and click the link (check your spam folder too).`,
+  errResend: 'Unable to send. Check the address and try again.',
 
   disabled: 'Your account has been deactivated. Contact an administrator to reactivate it.',
   errRequired: 'All fields are required.',
