@@ -6,21 +6,36 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import { Icon } from '@/components/ui/Icon';
+import { DICT, LANG_KEY, SPORTS, humanAuthError, type Lang } from '@/components/login/i18n';
+import {
+  Alert,
+  BackButton,
+  Confetti,
+  Eyebrow,
+  Field,
+  GhostButton,
+  HeroScene,
+  LangSwitch,
+  Lead,
+  MASCOT,
+  MascotArch,
+  RevealButton,
+  Stars,
+  Steps,
+  StrengthMeter,
+  SunButton,
+  Title,
+  passwordLevel,
+} from '@/components/login/pieces';
 
-type Mode = 'signin' | 'signup' | 'forgot';
-type ChildRow = { firstName: string; age: string; sport: string };
+// Écrans du parcours. Sur ordinateur, l'accueil est le panneau de gauche :
+// la colonne de droite montre alors directement la connexion.
+type Screen = 'welcome' | 'signin' | 'signup' | 'athlete' | 'forgot' | 'ready';
+type ChildRow = { firstName: string; age: number; sport: string };
 
-const EMPTY_CHILD: ChildRow = { firstName: '', age: '', sport: '' };
-
-// Traduit les messages d'erreur techniques de Supabase en messages lisibles.
-function humanAuthError(msg: string): string {
-  if (/already|exist|registered/i.test(msg)) return 'Un compte existe déjà avec cet email.';
-  if (/invalid.*email|email.*invalid/i.test(msg)) return "L'adresse email n'est pas valide.";
-  if (/rate|too many/i.test(msg)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
-  if (/password/i.test(msg) && /weak|short|least|6|8/i.test(msg))
-    return 'Mot de passe trop faible (min. 8 caractères).';
-  return msg;
-}
+const newChild = (): ChildRow => ({ firstName: '', age: 11, sport: 'Hockey' });
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // URL du site vitrine (marketing). Configurable via NEXT_PUBLIC_SITE_URL ;
 // sinon site local (Vite, port 5173) en dev, site déployé en production.
@@ -55,12 +70,6 @@ function destinationFor(role?: string | null): string {
   return homeForRole(role);
 }
 
-const SPORT_OPTIONS = [
-  'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
-  'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
-  'Patinage', 'Football', 'Athlétisme', 'Autre',
-];
-
 export default function LoginPage() {
   const router = useRouter();
   const { signIn, hydrate, isAuthenticated, sessionVerified, user } = useAuthStore();
@@ -68,30 +77,36 @@ export default function LoginPage() {
   // relu du localStorage, qui peut être périmé).
   const confirmed = isAuthenticated && sessionVerified;
 
-  const [mode, setMode] = useState<Mode>('signin');
+  const [lang, setLang] = useState<Lang>('fr');
+  const t = DICT[lang];
+  const [screen, setScreen] = useState<Screen>('welcome');
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
   // Connexion
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
 
   // Inscription parent + enfants
-  const [signup, setSignup] = useState({
-    firstName: '', lastName: '', email: '', password: '',
-  });
-  const [childRows, setChildRows] = useState<ChildRow[]>([{ ...EMPTY_CHILD }]);
+  const [signup, setSignup] = useState({ firstName: '', lastName: '', email: '', password: '' });
+  const [showSignupPw, setShowSignupPw] = useState(false);
+  const [childRows, setChildRows] = useState<ChildRow[]>([newChild()]);
+  // Après l'inscription : où mène le bouton principal de l'écran « compte créé ».
+  const [readyDest, setReadyDest] = useState<string | null>(null);
 
   // Réinitialisation du mot de passe
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
-  // Message affiché quand la session a été coupée à distance (compte désactivé).
-  // On lit la raison depuis sessionStorage (posée avant la déconnexion, robuste
-  // aux courses de navigation) avec repli sur le paramètre d'URL.
-  const [accountNotice, setAccountNotice] = useState('');
+  // Session coupée à distance (compte désactivé) : la raison est lue depuis
+  // sessionStorage (posée avant la déconnexion, robuste aux courses de
+  // navigation) avec repli sur le paramètre d'URL.
+  const [accountDisabled, setAccountDisabled] = useState(false);
+
   useEffect(() => {
-    let reason = new URLSearchParams(window.location.search).get('reason');
+    const params = new URLSearchParams(window.location.search);
+    let reason = params.get('reason');
     try {
       const stored = window.sessionStorage.getItem('thrive_logout_reason');
       if (stored) {
@@ -101,34 +116,66 @@ export default function LoginPage() {
     } catch {
       /* sessionStorage indisponible : on garde le paramètre d'URL */
     }
-    if (reason === 'disabled') {
-      setAccountNotice(
-        'Ton compte a été désactivé. Contacte un administrateur pour le réactiver.'
-      );
+    if (reason === 'disabled') setAccountDisabled(true);
+    // Renvoyé ici depuis une page protégée, ou compte coupé : c'est un membre,
+    // on lui épargne l'écran d'accueil.
+    if (reason || params.get('next')) setScreen('signin');
+
+    try {
+      const saved = window.localStorage.getItem(LANG_KEY);
+      if (saved === 'en' || saved === 'fr') setLang(saved);
+    } catch {
+      /* stockage indisponible : français par défaut */
     }
   }, []);
+
+  // La langue choisie vaut pour <html lang> le temps de la visite ; le reste
+  // de l'app est en français, on le rétablit en quittant l'écran.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    return () => {
+      document.documentElement.lang = 'fr';
+    };
+  }, [lang]);
+
+  const changeLang = (l: Lang) => {
+    setLang(l);
+    setError('');
+    try {
+      window.localStorage.setItem(LANG_KEY, l);
+    } catch {
+      /* rien à faire */
+    }
+  };
+
+  const go = (s: Screen) => {
+    setScreen(s);
+    setError('');
+    window.scrollTo({ top: 0 });
+  };
 
   // Un utilisateur déjà connecté ne reste pas sur /login. Utile aussi quand le
   // middleware renvoie ici une session au cookie (access token) expiré : hydrate
   // revalide/rafraîchit la session, puis on part DIRECTEMENT vers son espace.
   // On attend la confirmation (sessionVerified) : se fier à l'état persisté
   // provoquait un aller-retour /login ↔ middleware puis un spinner sans fin.
+  // Exception : l'écran « compte créé », que le parent quitte lui-même.
   useEffect(() => { hydrate(); }, [hydrate]);
   useEffect(() => {
-    if (!confirmed || submitting) return;
+    if (!confirmed || submitting || screen === 'ready') return;
     const dest = destinationFor(user?.role);
     router.replace(dest);
     // Filet de sécurité : si la navigation client n'a pas abouti (réseau
     // capricieux, rebond), on force un chargement complet une seule fois.
-    const t = setTimeout(() => {
+    const tm = setTimeout(() => {
       if (window.location.pathname === '/login') window.location.replace(dest);
     }, 4_000);
-    return () => clearTimeout(t);
-  }, [confirmed, submitting, user?.role, router]);
+    return () => clearTimeout(tm);
+  }, [confirmed, submitting, screen, user?.role, router]);
 
-  const handleForgot = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!forgotEmail.trim()) { setError('Entre ton adresse email'); return; }
+  const handleForgot = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!forgotEmail.trim()) { setError(t.errEmailRequired); return; }
     setError('');
     setSubmitting(true);
     try {
@@ -139,7 +186,7 @@ export default function LoginPage() {
       if (rErr) throw rErr;
       setResetSent(true);
     } catch (err: any) {
-      setError(err?.message ?? "Envoi de l'email impossible");
+      setError(err?.message ? humanAuthError(err.message, t) : t.errSendMail);
     } finally {
       setSubmitting(false);
     }
@@ -148,7 +195,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return; // anti double-submit
-    if (!email || !password) { setError('Tous les champs sont requis'); return; }
+    if (!email || !password) { setError(t.errRequired); return; }
     setError('');
     setSubmitting(true);
     try {
@@ -161,41 +208,34 @@ export default function LoginPage() {
       );
       // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
     } catch (err: any) {
-      const msg = err?.message ?? 'Connexion impossible';
-      setError(
-        /invalid login|credentials/i.test(msg)
-          ? 'Email ou mot de passe incorrect.'
-          : /fetch|network|abort|timed? ?out/i.test(msg)
-            ? 'Connexion lente ou interrompue. Vérifie ton réseau et réessaie.'
-            : humanAuthError(msg)
-      );
+      setError(humanAuthError(err?.message ?? t.errSignin, t));
       setSubmitting(false);
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  // Étape 1 : on valide le parent avant de passer à l'athlète.
+  const handleParentStep = (e: React.FormEvent) => {
     e.preventDefault();
     const { firstName, lastName, email: mail, password: pwd } = signup;
-    if (!firstName.trim() || !lastName.trim() || !mail.trim() || !pwd) {
-      setError('Tous les champs sont requis');
-      return;
-    }
-    if (pwd.length < 8) {
-      setError('Le mot de passe doit faire au moins 8 caractères');
-      return;
-    }
-    const children = childRows.filter((c) => c.firstName.trim() && c.age);
-    // L'app cible les 8-17 ans : on rejette tôt tout âge hors tranche (le
-    // libellé le promet, la validation doit l'appliquer).
-    const badAge = children.find((c) => {
-      const n = Number(c.age);
-      return !Number.isInteger(n) || n < 8 || n > 17;
-    });
-    if (badAge) {
-      setError(
-        `L'âge de ${badAge.firstName.trim() || "l'enfant"} doit être compris entre 8 et 17 ans.`
-      );
-      return;
+    if (!firstName.trim() || !lastName.trim() || !mail.trim() || !pwd) { setError(t.errRequired); return; }
+    if (!EMAIL_RE.test(mail.trim())) { setError(t.errEmail); return; }
+    if (pwd.length < 8) { setError(t.errPwShort); return; }
+    go('athlete');
+  };
+
+  // Étape 2 : création du compte, puis des enfants déclarés (facultatifs).
+  const handleSignup = async (withChildren: boolean) => {
+    if (submitting) return;
+    const { firstName, lastName, email: mail, password: pwd } = signup;
+    let children: ChildRow[] = [];
+    if (withChildren) {
+      children = childRows.filter((c) => c.firstName.trim());
+      // Un prénom manquant parmi plusieurs enfants : on le signale plutôt que
+      // de l'ignorer en silence. Un seul formulaire vide vaut « passer ».
+      const missing = childRows.findIndex((c) => !c.firstName.trim());
+      if (children.length > 0 && missing !== -1) { setError(t.errChildName(missing + 1)); return; }
+      // L'app cible les 8-17 ans : le sélecteur borne déjà l'âge, on revérifie.
+      if (children.some((c) => !Number.isInteger(c.age) || c.age < 8 || c.age > 17)) return;
     }
     setError('');
     setSubmitting(true);
@@ -214,11 +254,11 @@ export default function LoginPage() {
 
       // Connexion immédiate (le trigger DB a déjà confirmé l'email)
       await signIn(mail.trim(), pwd);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Connexion impossible après inscription');
-      userId = user.id;
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) throw new Error(t.errAfterSignup);
+      userId = authUser.id;
     } catch (err: any) {
-      setError(humanAuthError(err?.message ?? 'Inscription impossible'));
+      setError(humanAuthError(err?.message ?? t.errSignup, t));
       setSubmitting(false);
       return;
     }
@@ -226,7 +266,8 @@ export default function LoginPage() {
     // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
     // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
     // le parent dans l'app plutôt que de le coincer dans un cul-de-sac « compte
-    // existe déjà » au retry. Il ajoutera ses enfants via « + Ajouter un enfant ».
+    // existe déjà » au retry. Il ajoutera ses enfants depuis son espace.
+    let dest = '/parent?setup=children';
     try {
       if (children.length > 0) {
         const { data: family, error: famErr } = await supabase
@@ -238,361 +279,626 @@ export default function LoginPage() {
 
         const rows = children.map((c) => {
           const dob = new Date();
-          dob.setFullYear(dob.getFullYear() - Number(c.age));
+          dob.setFullYear(dob.getFullYear() - c.age);
           return {
             family_id: family.id,
             first_name: c.firstName.trim(),
             date_of_birth: dob.toISOString().split('T')[0],
-            sport: c.sport.trim() || 'Hockey',
+            sport: c.sport || 'Hockey',
             is_active: true,
           };
         });
         const { error: childErr } = await supabase.from('children').insert(rows);
         if (childErr) throw childErr;
+        dest = '/parent/bilans';
       }
-      router.push('/parent/bilans');
     } catch {
-      // Compte créé + session active : on entre dans l'app (les enfants pourront
-      // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
-      router.push('/parent?setup=children');
+      dest = '/parent?setup=children';
     }
+    setReadyDest(dest);
+    setScreen('ready');
+    setSubmitting(false);
+    window.scrollTo({ top: 0 });
   };
+
+  const updateChild = (i: number, patch: Partial<ChildRow>) =>
+    setChildRows((rows) => rows.map((c, j) => (j === i ? { ...c, ...patch } : c)));
 
   // Session confirmée : état de redirection plutôt qu'un flash du formulaire.
   // Tant qu'une session persistée est en cours de vérification (quelques
   // centaines de ms, 6 s au pire), on affiche aussi ce même état.
-  if (confirmed || (isAuthenticated && !sessionVerified)) {
+  if (
+    screen !== 'ready' &&
+    !submitting &&
+    (confirmed || (isAuthenticated && !sessionVerified))
+  ) {
     return (
-      <main className="min-h-dvh bg-cream flex items-center justify-center" aria-busy>
+      <main className="login-root flex min-h-dvh items-center justify-center" aria-busy>
         <div
-          className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin"
+          className="h-10 w-10 animate-spin rounded-full border-4 border-sun border-t-transparent"
           role="status"
-          aria-label="Redirection vers ton espace…"
+          aria-label={t.redirecting}
         />
       </main>
     );
   }
 
-  return (
-    <main className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
-      {/* Retour vers le site vitrine */}
+  const goBack = () => {
+    if (screen === 'athlete') go('signup');
+    else if (screen === 'forgot') { setResetSent(false); go('signin'); }
+    else go('welcome');
+  };
+
+  const inSignup = screen === 'signup' || screen === 'athlete';
+  const pwLevel = passwordLevel(signup.password);
+
+  // ─── Morceaux d'écran (variables JSX, pas des composants : les champs ne
+  // doivent pas être remontés à chaque frappe) ────────────────────────────────
+
+  const brandLockup = (
+    <div className="flex items-center gap-2.5">
+      <BrandLogo className="h-8 w-8 shadow-[0_0_0_1px_rgba(255,255,255,.14),0_6px_16px_rgba(0,0,0,.35)] lg:h-10 lg:w-10" />
+      <div className="flex flex-col gap-[3px] lg:gap-1">
+        <span className="text-[13px] font-extrabold leading-none tracking-[.24em] lg:text-[15px]">THRIVE</span>
+        <span className="text-[9px] font-bold uppercase leading-none tracking-[.22em] text-sage lg:text-[10px]">
+          Sport Positive
+        </span>
+      </div>
+    </div>
+  );
+
+  const siteLink = (
+    <a
+      href={SITE_URL}
+      className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-white/10 bg-white/[.05] px-3.5 text-sm font-semibold text-[rgba(234,243,241,.85)] transition-colors hover:bg-white/[.09] hover:text-cream"
+    >
+      <Icon name="arrow-left" className="h-4 w-4" strokeWidth={2.2} />
+      {t.backSite}
+    </a>
+  );
+
+  const tabs = (
+    <div
+      role="group"
+      aria-label={t.modeLabel}
+      className="mt-7 hidden grid-cols-2 gap-1 rounded-full border border-white/[.08] bg-white/[.05] p-1 lg:grid"
+    >
+      {([
+        ['signin', t.tabSignin],
+        ['signup', t.tabSignup],
+      ] as const).map(([m, label]) => {
+        const active = m === 'signin' ? screen === 'signin' || screen === 'welcome' : inSignup;
+        return (
+          <button
+            key={m}
+            type="button"
+            disabled={submitting}
+            aria-pressed={active}
+            onClick={() => go(m)}
+            className={`h-11 rounded-full text-[15px] font-bold transition-colors duration-base disabled:opacity-60 ${
+              active ? 'bg-sun text-navy-900' : 'text-[rgba(234,243,241,.78)] hover:text-cream'
+            }`}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
+  const cardCls =
+    'flex flex-col gap-4 rounded-[26px] border border-white/[.08] bg-[#0c2029] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.06)] lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none';
+
+  const legal = (
+    <p className="text-center text-xs leading-normal text-[rgba(234,243,241,.66)] lg:text-left">
+      {t.legal}
+    </p>
+  );
+
+  const signinPanel = (
+    <div className="login-rise flex flex-col">
+      <div className="flex items-end gap-3.5">
+        <div className="flex flex-1 flex-col gap-2.5 pb-1.5">
+          <Eyebrow>{t.familySpace}</Eyebrow>
+          <Title className="text-[36px] lg:text-[42px]">{t.signinTitle}</Title>
+          <Lead className="lg:text-base">{t.signinSub}</Lead>
+        </div>
+        <MascotArch src={MASCOT.shield} alt={t.signinAlt} small mat={7} className="w-[116px] lg:hidden" />
+      </div>
+      {tabs}
+      {accountDisabled && (
+        <div className="mt-6">
+          <Alert>{t.disabled}</Alert>
+        </div>
+      )}
+      <form onSubmit={handleLogin} noValidate className={`mt-6 ${cardCls}`}>
+        <Field
+          id="login-email"
+          label={t.email}
+          icon="mail"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          required
+          placeholder={t.emailPh}
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(''); }}
+        />
+        <Field
+          id="login-password"
+          label={t.password}
+          icon="lock"
+          type={showPw ? 'text' : 'password'}
+          autoComplete="current-password"
+          required
+          placeholder="••••••••"
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setError(''); }}
+          aside={
+            <button
+              type="button"
+              onClick={() => { setForgotEmail(email); setResetSent(false); go('forgot'); }}
+              className="-my-2 px-1 py-2 text-[13px] font-semibold text-sun transition-colors hover:text-[#fff6a3]"
+            >
+              {t.forgotShort}
+            </button>
+          }
+          trailing={
+            <RevealButton shown={showPw} onToggle={() => setShowPw((v) => !v)} showLabel={t.showPw} hideLabel={t.hidePw} />
+          }
+        />
+        {error && <Alert>{error}</Alert>}
+        <SunButton type="submit" disabled={submitting} loading={submitting} className="mt-1">
+          {submitting ? t.signingIn : t.signin}
+        </SunButton>
+      </form>
+      <p className="mt-5 text-center text-[15px] text-[rgba(234,243,241,.78)] lg:hidden">
+        {t.newHere}{' '}
+        <button type="button" onClick={() => go('signup')} className="px-1 py-2.5 font-bold text-sun hover:text-[#fff6a3]">
+          {t.createAccount}
+        </button>
+      </p>
+    </div>
+  );
+
+  const welcomeMobile = (
+    <div className="flex flex-1 flex-col lg:hidden">
+      <div className="flex flex-1 items-center">
+        <HeroScene src={MASCOT.hello} alt={t.heroAlt} bubble={t.bubble} />
+      </div>
+      <div className="login-rise flex flex-col items-center gap-3 text-center">
+        <Eyebrow>{t.eyebrow}</Eyebrow>
+        <Title className="text-[33px] leading-[1.06]">
+          <span className="block">{t.slogan1}</span>
+          <span className="block italic text-sun">{t.slogan2}</span>
+        </Title>
+        <Lead className="max-w-[312px]">{t.pitch}</Lead>
+      </div>
+      <div className="mt-6 flex flex-col gap-3">
+        <SunButton type="button" onClick={() => go('signup')}>{t.ctaCreate}</SunButton>
+        <GhostButton onClick={() => go('signin')}>{t.ctaHave}</GhostButton>
+      </div>
       <a
         href={SITE_URL}
-        aria-label="Retourner au site Thrive Sport Positive"
-        className="absolute top-4 right-4 z-10 inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full bg-white/60 hover:bg-white/80 text-navy-600 hover:text-navy-900 text-sm font-bold shadow-card transition-colors"
+        className="mt-1.5 inline-flex min-h-[44px] items-center gap-1.5 self-center px-2 text-[13px] font-semibold text-[rgba(234,243,241,.7)] hover:text-cream"
       >
-        <svg
-          aria-hidden
-          className="w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M19 12H5" />
-          <path d="m12 19-7-7 7-7" />
-        </svg>
-        Retour au site
+        <Icon name="arrow-left" className="h-3.5 w-3.5" strokeWidth={2.2} />
+        {t.backSite}
       </a>
+    </div>
+  );
 
-      {/* Halos de fond (liquid glass) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-        <div className="absolute -top-32 -left-32 w-[34rem] h-[34rem] rounded-full bg-navy-200/50 blur-3xl" />
-        <div className="absolute top-1/3 -right-40 w-[30rem] h-[30rem] rounded-full bg-sage/40 blur-3xl" />
-        <div className="absolute -bottom-40 left-1/4 w-[28rem] h-[28rem] rounded-full bg-sun/25 blur-3xl" />
+  const parentPanel = (
+    <div className="login-rise flex flex-col">
+      <div className="flex items-end gap-3.5">
+        <div className="flex flex-1 flex-col gap-2.5 pb-1">
+          <Eyebrow>{t.signupEyebrow}</Eyebrow>
+          <Title className="text-[34px] lg:text-[42px]">{t.parentTitle}</Title>
+          <Lead className="lg:text-base">{t.parentSub}</Lead>
+        </div>
+        <MascotArch src={MASCOT.me} alt={t.parentAlt} small mat={7} className="w-[108px] lg:hidden" />
+      </div>
+      {tabs}
+      <form onSubmit={handleParentStep} noValidate className={`mt-6 ${cardCls}`}>
+        <div className="grid grid-cols-2 gap-3">
+          <Field
+            id="signup-first"
+            label={t.firstName}
+            autoComplete="given-name"
+            autoCapitalize="words"
+            enterKeyHint="next"
+            value={signup.firstName}
+            onChange={(e) => setSignup({ ...signup, firstName: e.target.value })}
+          />
+          <Field
+            id="signup-last"
+            label={t.lastName}
+            autoComplete="family-name"
+            autoCapitalize="words"
+            enterKeyHint="next"
+            value={signup.lastName}
+            onChange={(e) => setSignup({ ...signup, lastName: e.target.value })}
+          />
+        </div>
+        <Field
+          id="signup-email"
+          label={t.email}
+          icon="mail"
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder={t.emailPh}
+          value={signup.email}
+          onChange={(e) => setSignup({ ...signup, email: e.target.value })}
+        />
+        <Field
+          id="signup-password"
+          label={t.password}
+          icon="lock"
+          type={showSignupPw ? 'text' : 'password'}
+          autoComplete="new-password"
+          minLength={8}
+          aria-describedby="signup-password-hint"
+          placeholder="••••••••"
+          value={signup.password}
+          onChange={(e) => setSignup({ ...signup, password: e.target.value })}
+          trailing={
+            <RevealButton shown={showSignupPw} onToggle={() => setShowSignupPw((v) => !v)} showLabel={t.showPw} hideLabel={t.hidePw} />
+          }
+        />
+        <StrengthMeter id="signup-password-hint" level={pwLevel} hint={t.pwHint} labels={t.pwLevels} />
+        {error && <Alert>{error}</Alert>}
+        <SunButton type="submit" className="mt-1">{t.next}</SunButton>
+        {legal}
+      </form>
+      <p className="mt-4 text-center text-[15px] text-[rgba(234,243,241,.78)] lg:hidden">
+        {t.haveAccount}{' '}
+        <button type="button" onClick={() => go('signin')} className="px-1 py-2.5 font-bold text-sun hover:text-[#fff6a3]">
+          {t.signin}
+        </button>
+      </p>
+    </div>
+  );
+
+  const athletePanel = (
+    <div className="login-rise flex flex-col">
+      <div className="flex items-end gap-3.5">
+        <div className="flex flex-1 flex-col gap-2.5 pb-1">
+          <Eyebrow>{t.athleteEyebrow}</Eyebrow>
+          <Title className="text-[30px] lg:text-[40px]">{t.athleteTitle}</Title>
+          <Lead className="lg:text-base">{t.athleteSub}</Lead>
+        </div>
+        <MascotArch src={MASCOT.sports} alt={t.athleteAlt} small mat={7} className="w-[100px] lg:w-[120px]" />
       </div>
 
-      <div className="relative w-full max-w-md">
-        {/* Logo */}
-        <div className="flex flex-col items-center mb-6">
-          <BrandLogo className="w-20 h-20 shadow-card mb-3" />
-          <span className="text-[11px] uppercase tracking-[0.25em] text-navy-700 font-bold">
-            Sport Positive
-          </span>
-          <h1 className="sr-only">Espace membres THRIVE Sport Positive</h1>
-        </div>
-
-        <div className="glass-strong rounded-3xl p-6 md:p-8">
-          {accountNotice && (
-            <p className="mb-5 rounded-2xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
-              {accountNotice}
-            </p>
-          )}
-          {/* Onglets */}
-          {mode !== 'forgot' && (
-            <div className="flex gap-1 p-1 rounded-full bg-white/60 mb-6">
-              {([
-                ['signin', 'Se connecter'],
-                ['signup', 'Créer un compte'],
-              ] as [Mode, string][]).map(([m, label]) => (
+      <div className="mt-6 flex flex-col gap-3">
+        {childRows.map((c, i) => (
+          <div
+            key={i}
+            role="group"
+            aria-label={`${t.child} ${i + 1}`}
+            className="flex min-w-0 flex-col gap-4 rounded-[26px] border border-white/[.08] bg-[#0c2029] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,.06)]"
+          >
+            {childRows.length > 1 && (
+              <div className="-mb-1 flex items-center gap-2">
+                <span className="text-[11px] font-bold uppercase tracking-[.18em] text-sage">
+                  {t.child} {i + 1}
+                </span>
+                <span className="flex-1 border-t border-white/[.08]" />
                 <button
-                  key={m}
                   type="button"
-                  disabled={submitting}
-                  aria-pressed={mode === m}
-                  onClick={() => { setMode(m); setError(''); }}
-                  className={`flex-1 min-h-[44px] py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-60 ${
-                    mode === m ? 'bg-navy-600 text-white shadow-card' : 'text-navy-600 hover:bg-white/70'
-                  }`}
+                  onClick={() => setChildRows(childRows.filter((_, j) => j !== i))}
+                  aria-label={`${t.removeChild} (${i + 1})`}
+                  className="-my-2 -mr-2 flex h-11 w-11 items-center justify-center rounded-full text-[rgba(234,243,241,.7)] transition-colors hover:bg-white/[.06] hover:text-[#fca5a5]"
                 >
-                  {label}
+                  <Icon name="close" className="h-4 w-4" strokeWidth={2.2} />
                 </button>
-              ))}
+              </div>
+            )}
+            <Field
+              id={`child-${i}-first`}
+              label={t.childFirst}
+              autoComplete="off"
+              autoCapitalize="words"
+              placeholder={t.childFirstPh}
+              value={c.firstName}
+              onChange={(e) => updateChild(i, { firstName: e.target.value })}
+            />
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex flex-col gap-1">
+                <span id={`child-${i}-age`} className="text-[13px] font-semibold text-[rgba(234,243,241,.82)]">
+                  {t.age}
+                </span>
+                <span className="text-xs text-[rgba(234,243,241,.62)]">{t.ageHint}</span>
+              </div>
+              <div
+                role="group"
+                aria-labelledby={`child-${i}-age`}
+                className="flex items-center gap-1 rounded-full border border-white/[.12] bg-white/[.06] p-[3px]"
+              >
+                <button
+                  type="button"
+                  onClick={() => updateChild(i, { age: Math.max(8, c.age - 1) })}
+                  disabled={c.age <= 8}
+                  aria-label={t.younger}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-white/[.08] text-cream transition-opacity disabled:opacity-35"
+                >
+                  <Icon name="minus" className="h-[18px] w-[18px]" strokeWidth={2.2} />
+                </button>
+                <output aria-live="polite" className="min-w-[64px] text-center font-display text-2xl font-semibold tabular-nums">
+                  {c.age}{' '}
+                  <span className="font-sans text-[13px] font-semibold text-[rgba(234,243,241,.66)]">{t.years}</span>
+                </output>
+                <button
+                  type="button"
+                  onClick={() => updateChild(i, { age: Math.min(17, c.age + 1) })}
+                  disabled={c.age >= 17}
+                  aria-label={t.older}
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-sun text-navy-900 transition-opacity disabled:opacity-35"
+                >
+                  <Icon name="plus" className="h-[18px] w-[18px]" strokeWidth={2.2} />
+                </button>
+              </div>
             </div>
-          )}
-
-          {mode === 'forgot' ? (
-            resetSent ? (
-              <div className="text-center py-4">
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-sage/40 flex items-center justify-center text-2xl">
-                  ✉️
-                </div>
-                <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
-                  Email envoyé !
-                </h2>
-                <p className="text-sm text-navy-700 mb-6">
-                  Si un compte existe pour <span className="font-medium">{forgotEmail}</span>,
-                  un lien de réinitialisation vient d&apos;être envoyé. Vérifie ta boîte de
-                  réception (et tes spams).
-                </p>
-                <button
-                  onClick={() => {
-                    setMode('signin');
-                    setResetSent(false);
-                    setError('');
-                  }}
-                  className="w-full py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold"
-                >
-                  Retour à la connexion
-                </button>
+            <div role="group" aria-labelledby={`child-${i}-sport`} className="flex min-w-0 flex-col gap-2.5">
+              <span id={`child-${i}-sport`} className="text-[13px] font-semibold text-[rgba(234,243,241,.82)]">
+                {t.sport}
+              </span>
+              <div className="scrollbar-hide overscroll-x-contain -mx-5 grid auto-cols-max grid-flow-col grid-rows-2 gap-2 overflow-x-auto px-5 lg:mx-0 lg:flex lg:flex-wrap lg:px-0">
+                {SPORTS.map((s) => {
+                  const on = c.sport === s.value;
+                  return (
+                    <button
+                      key={s.value}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => updateChild(i, { sport: s.value })}
+                      className={`flex h-11 items-center gap-1.5 whitespace-nowrap rounded-full border px-4 text-sm font-semibold transition-colors duration-base ${
+                        on
+                          ? 'border-sun bg-sun text-navy-900'
+                          : 'border-white/[.14] bg-white/[.05] text-cream hover:bg-white/[.09]'
+                      }`}
+                    >
+                      {on && <Icon name="check" className="h-[15px] w-[15px]" strokeWidth={2.6} />}
+                      {lang === 'fr' ? s.value : s.en}
+                    </button>
+                  );
+                })}
               </div>
-            ) : (
-              <form onSubmit={handleForgot} className="space-y-4">
-                <div>
-                  <h2 className="font-display text-xl font-semibold text-navy-900 mb-1">
-                    Mot de passe oublié
-                  </h2>
-                  <p className="text-sm text-navy-700">
-                    Entre ton email : on t&apos;envoie un lien pour choisir un nouveau mot de passe.
-                  </p>
-                </div>
-                <Field label="Email">
-                  <input
-                    type="email"
-                    className="input-auth"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    placeholder="ton@email.com"
-                    autoComplete="email"
-                  />
-                </Field>
-                {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  aria-busy={submitting}
-                  className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
-                >
-                  {submitting ? (<><ButtonSpinner />Envoi…</>) : "Envoyer le lien de réinitialisation"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => { setMode('signin'); setError(''); }}
-                  className="w-full min-h-[44px] py-2 text-sm text-navy-700 hover:text-navy-900 transition-colors"
-                >
-                  ← Retour à la connexion
-                </button>
-              </form>
-            )
-          ) : mode === 'signin' ? (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <Field label="Email">
-                <input
-                  type="email"
-                  required
-                  className="input-auth"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ton@email.com"
-                  autoComplete="email"
-                  autoFocus
-                />
-              </Field>
-              <Field label="Mot de passe">
-                <input
-                  type="password"
-                  required
-                  className="input-auth"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                />
-              </Field>
-              <button
-                type="button"
-                onClick={() => {
-                  setForgotEmail(email);
-                  setMode('forgot');
-                  setError('');
-                }}
-                className="block ml-auto -my-2 py-3 px-1 text-xs font-medium text-navy-700 hover:text-navy-900 transition-colors relative before:absolute before:-inset-1 before:content-['']"
-              >
-                Mot de passe oublié ?
-              </button>
-              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-              <button
-                type="submit"
-                disabled={submitting}
-                aria-busy={submitting}
-                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
-              >
-                {submitting ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="Prénom">
-                  <input className="input-auth" value={signup.firstName} autoComplete="given-name" autoCapitalize="words" enterKeyHint="next"
-                    onChange={(e) => setSignup({ ...signup, firstName: e.target.value })} />
-                </Field>
-                <Field label="Nom">
-                  <input className="input-auth" value={signup.lastName} autoComplete="family-name" autoCapitalize="words" enterKeyHint="next"
-                    onChange={(e) => setSignup({ ...signup, lastName: e.target.value })} />
-                </Field>
-              </div>
-              <Field label="Email">
-                <input type="email" className="input-auth" value={signup.email}
-                  autoComplete="email"
-                  onChange={(e) => setSignup({ ...signup, email: e.target.value })} />
-              </Field>
-              <Field label="Mot de passe (min. 8 caractères)">
-                <input type="password" className="input-auth" value={signup.password}
-                  autoComplete="new-password" minLength={8}
-                  onChange={(e) => setSignup({ ...signup, password: e.target.value })} />
-              </Field>
-
-              {/* Enfants dès l'inscription */}
-              <div className="pt-2">
-                <p className="text-xs font-bold uppercase tracking-wide text-navy-700 mb-2">
-                  Tes enfants (8–17 ans)
-                </p>
-                <div className="space-y-3">
-                  {childRows.map((c, i) => (
-                    <div key={i} className="rounded-2xl bg-white/60 p-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-bold text-navy-700 shrink-0">
-                          Enfant {i + 1}
-                        </span>
-                        <div className="flex-1 border-t border-navy-100/60" />
-                        {childRows.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setChildRows(childRows.filter((_, j) => j !== i))}
-                            className="w-8 h-8 shrink-0 rounded-lg bg-red-50 hover:bg-red-100 text-red-500 font-bold leading-none transition-colors relative before:absolute before:-inset-1.5 before:content-['']"
-                            aria-label="Retirer cet enfant"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
-                      <input
-                        aria-label={`Prénom de l'enfant ${i + 1}`}
-                        autoComplete="off"
-                        autoCapitalize="words"
-                        placeholder="Prénom de l'enfant"
-                        className="input-auth"
-                        value={c.firstName}
-                        onChange={(e) => {
-                          const next = [...childRows];
-                          next[i] = { ...c, firstName: e.target.value };
-                          setChildRows(next);
-                        }}
-                      />
-                      <div className="flex gap-2">
-                        <input
-                          aria-label={`Âge de l'enfant ${i + 1}`}
-                          type="number" min={8} max={17} placeholder="Âge (8-17)"
-                          inputMode="numeric"
-                          className="input-auth w-24"
-                          value={c.age}
-                          onChange={(e) => {
-                            const next = [...childRows];
-                            next[i] = { ...c, age: e.target.value };
-                            setChildRows(next);
-                          }}
-                        />
-                        <select
-                          aria-label={`Sport de l'enfant ${i + 1}`}
-                          className="input-auth flex-1"
-                          value={c.sport}
-                          onChange={(e) => {
-                            const next = [...childRows];
-                            next[i] = { ...c, sport: e.target.value };
-                            setChildRows(next);
-                          }}
-                        >
-                          <option value="">Sport…</option>
-                          {SPORT_OPTIONS.map((s) => (
-                            <option key={s} value={s}>{s}</option>
-                          ))}
-                        </select>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setChildRows([...childRows, { ...EMPTY_CHILD }])}
-                  className="mt-1 min-h-[44px] py-2 text-sm font-bold text-navy-600 hover:text-navy-900 transition-colors"
-                >
-                  + Ajouter un autre enfant
-                </button>
-              </div>
-
-              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-              <button
-                type="submit"
-                disabled={submitting}
-                aria-busy={submitting}
-                className="w-full min-h-[48px] py-3.5 rounded-full bg-sun hover:bg-sun-dark text-navy-900 font-bold disabled:opacity-50 transition-colors"
-              >
-                {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
-              </button>
-              <p className="text-[11px] text-navy-700 text-center">
-                Compte actif immédiatement — aucun email de validation requis.
-              </p>
-            </form>
-          )}
-        </div>
+            </div>
+          </div>
+        ))}
       </div>
 
+      <button
+        type="button"
+        onClick={() => setChildRows([...childRows, newChild()])}
+        className="mt-3 flex h-[52px] items-center justify-center gap-2 rounded-[18px] border-[1.5px] border-dashed border-[rgba(167,196,188,.4)] text-[15px] font-semibold text-sage transition-colors hover:bg-[rgba(167,196,188,.06)]"
+      >
+        <Icon name="plus" className="h-[18px] w-[18px]" strokeWidth={2.2} />
+        {t.addChild}
+      </button>
+
+      {error && (
+        <div className="mt-4">
+          <Alert>{error}</Alert>
+        </div>
+      )}
+      <SunButton type="button" onClick={() => handleSignup(true)} disabled={submitting} loading={submitting} className="mt-4">
+        {submitting ? t.creating : t.createMine}
+      </SunButton>
+      <button
+        type="button"
+        onClick={() => handleSignup(false)}
+        disabled={submitting}
+        className="mt-1.5 inline-flex min-h-[44px] items-center self-center px-2 text-sm font-semibold text-[rgba(234,243,241,.72)] hover:text-cream disabled:opacity-50"
+      >
+        {t.skip}
+      </button>
+    </div>
+  );
+
+  const readyPanel = (
+    <div className="flex flex-1 flex-col lg:justify-center">
+      <div className="flex flex-1 items-center lg:flex-none">
+        <div className="relative flex w-full justify-center py-6">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[380px] w-[380px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(249,235,80,.22) 0%, rgba(249,235,80,.06) 40%, rgba(249,235,80,0) 66%)' }}
+          />
+          <MascotArch src={MASCOT.party} alt={t.readyAlt} priority className="w-[min(250px,64vw)]" />
+        </div>
+      </div>
+      <div role="status" className="login-rise flex flex-col items-center gap-3 text-center">
+        <span className="inline-flex h-[30px] items-center gap-2 rounded-full bg-[rgba(167,196,188,.14)] pl-1.5 pr-3 text-xs font-bold uppercase tracking-[.14em] text-sage">
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-sage text-[#06222a]">
+            <Icon name="check" className="h-3 w-3" strokeWidth={3} />
+          </span>
+          {t.readyBadge}
+        </span>
+        <Title className="text-[34px] lg:text-[44px]">
+          <span className="block">{t.ready1}</span>
+          <span className="block italic text-sun">{t.ready2}</span>
+        </Title>
+        <Lead className="max-w-[340px]">
+          {readyDest === '/parent/bilans' ? t.readySub : t.readySubNoChild}
+        </Lead>
+      </div>
+      <div className="mt-6 flex flex-col gap-1.5">
+        <SunButton type="button" onClick={() => router.push(readyDest ?? '/parent')}>
+          {readyDest === '/parent/bilans' ? t.readyCta : t.readyCtaNoChild}
+        </SunButton>
+        <button
+          type="button"
+          onClick={() => router.push('/parent')}
+          className="inline-flex min-h-[44px] items-center self-center px-2 text-[15px] font-semibold text-[rgba(234,243,241,.78)] hover:text-cream"
+        >
+          {t.readyLater}
+        </button>
+      </div>
+    </div>
+  );
+
+  const forgotPanel = (
+    <div className="flex flex-1 flex-col">
+      <div className="relative mt-4 flex justify-center lg:mt-0">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{ background: 'radial-gradient(circle, rgba(249,235,80,.14) 0%, rgba(249,235,80,0) 64%)' }}
+        />
+        <MascotArch src={MASCOT.letter} alt={t.forgotAlt} mat={9} className="w-[184px]" />
+      </div>
+      {resetSent ? (
+        <div
+          role="status"
+          className="login-rise mt-7 flex flex-col items-center gap-3 rounded-[26px] border border-white/[.08] bg-[#0c2029] px-5 py-6 text-center"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-full bg-sage text-[#06222a]">
+            <Icon name="check" className="h-[22px] w-[22px]" strokeWidth={2.6} />
+          </span>
+          <Title className="text-[26px]">{t.sentTitle}</Title>
+          <Lead>{t.sentSub(forgotEmail.trim())}</Lead>
+          <button
+            type="button"
+            onClick={() => setResetSent(false)}
+            className="min-h-[44px] px-3 text-sm font-bold text-sun hover:text-[#fff6a3]"
+          >
+            {t.resend}
+          </button>
+        </div>
+      ) : (
+        <>
+          <div className="login-rise mt-7 flex flex-col items-center gap-2.5 text-center">
+            <Title className="text-[32px] lg:text-[38px]">{t.forgotTitle}</Title>
+            <Lead className="max-w-[320px]">{t.forgotSub}</Lead>
+          </div>
+          <form onSubmit={handleForgot} noValidate className="mt-7 flex flex-col gap-4">
+            <Field
+              id="forgot-email"
+              label={t.email}
+              icon="mail"
+              type="email"
+              inputMode="email"
+              autoComplete="email"
+              placeholder={t.emailPh}
+              value={forgotEmail}
+              onChange={(e) => { setForgotEmail(e.target.value); setError(''); }}
+            />
+            {error && <Alert>{error}</Alert>}
+            <SunButton type="submit" icon="send" disabled={submitting} loading={submitting}>
+              {submitting ? t.sending : t.sendLink}
+            </SunButton>
+          </form>
+        </>
+      )}
+      <div className="flex-1" />
+      <button
+        type="button"
+        onClick={() => { setResetSent(false); go('signin'); }}
+        className="mt-6 inline-flex min-h-[44px] items-center gap-1.5 self-center px-2 text-[15px] font-semibold text-[rgba(234,243,241,.78)] hover:text-cream"
+      >
+        <Icon name="arrow-left" className="h-4 w-4" strokeWidth={2.2} />
+        {t.backToSignin}
+      </button>
+    </div>
+  );
+
+  // ─── En-tête : retour / logo / étapes à gauche et au centre, langue à droite ─
+  const mobileLeft =
+    screen === 'welcome' || screen === 'ready' ? brandLockup : <BackButton onClick={goBack} label={t.back} />;
+  const desktopLeft =
+    screen === 'athlete' || screen === 'forgot' ? <BackButton onClick={goBack} label={t.back} /> : siteLink;
+  const center = inSignup ? (
+    <Steps label={screen === 'signup' ? t.step1 : t.step2} current={screen === 'signup' ? 1 : 2} />
+  ) : screen === 'signin' || screen === 'forgot' ? (
+    <BrandLogo className="h-[30px] w-[30px] shadow-[0_0_0_1px_rgba(255,255,255,.14),0_6px_16px_rgba(0,0,0,.35)] lg:hidden" />
+  ) : null;
+
+  return (
+    <main className="login-root min-h-dvh lg:grid lg:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)]">
+      {/* Ordinateur : l'accueil immersif, toujours visible à gauche */}
+      <aside className="login-hero relative hidden overflow-hidden px-14 pb-11 pt-10 lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
+        <Stars />
+        <div className="relative">{brandLockup}</div>
+        <div className="relative flex min-h-[360px] flex-1 items-center">
+          <HeroScene src={MASCOT.hello} alt={t.heroAlt} bubble={t.bubble} big />
+        </div>
+        <div className="login-rise relative flex flex-col items-center gap-3.5 text-center">
+          <Eyebrow>{t.eyebrow}</Eyebrow>
+          <h2 className="font-display text-[clamp(40px,3.8vw,56px)] font-medium leading-[1.04] tracking-[-.015em] [font-variation-settings:'SOFT'_50]">
+            <span className="block">{t.slogan1}</span>
+            <span className="block italic text-sun">{t.slogan2}</span>
+          </h2>
+          <p className="max-w-[520px] text-[17px] leading-relaxed text-[rgba(234,243,241,.8)]">{t.pitchWide}</p>
+          <ul className="mt-2.5 flex flex-wrap justify-center gap-2.5">
+            {([
+              ['users', t.feat1, 'text-sun'],
+              ['chart', t.feat2, 'text-sage'],
+              ['home', t.feat3, 'text-cream'],
+            ] as const).map(([icon, label, tone]) => (
+              <li
+                key={icon}
+                className="flex h-10 items-center gap-2 rounded-full border border-white/10 bg-white/[.05] pl-3 pr-4 text-sm font-semibold text-[rgba(234,243,241,.88)]"
+              >
+                <Icon name={icon} className={`h-[18px] w-[18px] ${tone}`} />
+                {label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+
+      {/* Parcours : plein écran sur téléphone, colonne de droite sur ordinateur */}
+      <section className="relative flex min-h-dvh flex-col overflow-hidden px-6 pb-[max(24px,env(safe-area-inset-bottom))] pt-[max(18px,env(safe-area-inset-top))] sm:px-10 lg:border-l lg:border-white/[.06] lg:bg-[#081b24] lg:px-14 lg:pb-10 lg:pt-9">
+        {screen === 'welcome' && (
+          <div className="lg:hidden">
+            <Stars />
+          </div>
+        )}
+        {screen === 'ready' && <Confetti />}
+
+        <header className="relative grid h-[46px] grid-cols-[1fr_auto_1fr] items-center">
+          <div className="justify-self-start">
+            <div className="lg:hidden">{mobileLeft}</div>
+            <div className="hidden lg:block">{desktopLeft}</div>
+          </div>
+          <div className="justify-self-center">{center}</div>
+          <div className="justify-self-end">
+            <LangSwitch lang={lang} onChange={changeLang} label={t.langLabel} />
+          </div>
+        </header>
+
+        <div
+          className={`relative mx-auto flex w-full max-w-[420px] flex-1 flex-col ${
+            screen === 'welcome' ? '' : 'pt-6'
+          } lg:justify-center lg:py-8`}
+        >
+          {screen === 'welcome' && (
+            <>
+              {welcomeMobile}
+              <div className="hidden lg:block">{signinPanel}</div>
+            </>
+          )}
+          {screen === 'signin' && signinPanel}
+          {screen === 'signup' && parentPanel}
+          {screen === 'athlete' && athletePanel}
+          {screen === 'forgot' && forgotPanel}
+          {screen === 'ready' && readyPanel}
+        </div>
+
+        {(screen === 'signin' || screen === 'welcome') && (
+          <p
+            className={`relative mt-6 items-center justify-center gap-2 text-xs font-medium text-[rgba(234,243,241,.62)] ${
+              screen === 'welcome' ? 'hidden lg:flex' : 'flex'
+            }`}
+          >
+            <Icon name="shield" className="h-3.5 w-3.5" strokeWidth={2} />
+            {t.secure}
+          </p>
+        )}
+      </section>
     </main>
-  );
-}
-
-// Petit spinner inline pour les boutons en action asynchrone
-function ButtonSpinner({ light = true }: { light?: boolean }) {
-  return (
-    <span
-      aria-hidden
-      className={`inline-block w-4 h-4 mr-2 -mb-0.5 rounded-full border-2 animate-spin ${
-        light ? 'border-white/40 border-t-white' : 'border-navy-900/30 border-t-navy-900'
-      }`}
-    />
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <label className="block">
-      <span className="block text-xs font-bold uppercase tracking-wide text-navy-700 mb-1">
-        {label}
-      </span>
-      {children}
-    </label>
   );
 }

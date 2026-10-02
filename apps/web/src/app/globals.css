@@ -975,3 +975,137 @@
   border-radius: 50% 50% 22px 22px / 44% 44% 22px 22px;
   box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(2, 37, 57, 0.12);
 }
+
+/* ─── Accueil / connexion (section client) ────────────────────────────────────
+   Toujours en ambiance « Nuit calme », quelle que soit l'ambiance choisie dans
+   l'espace parent : c'est la porte d'entrée de la marque. La mascotte vit dans
+   la même arche de lin que l'onglet Maison, posée sur des lignes de piste. */
+.login-root {
+  background:
+    radial-gradient(130% 55% at 50% -6%, #0f4563 0%, rgba(6, 22, 30, 0) 62%),
+    linear-gradient(180deg, #06161e 0%, #041118 100%);
+  color: #f7f5f2;
+}
+.login-hero {
+  background:
+    radial-gradient(90% 60% at 50% 0%, #0f4563 0%, rgba(6, 22, 30, 0) 66%),
+    linear-gradient(180deg, #071c26 0%, #041118 100%);
+}
+.login-arch {
+  position: relative;
+  padding: var(--login-mat, 10px);
+  border-radius: 50% 50% 30px 30px / 44.8% 44.8% 30px 30px;
+  background: var(--mat-linen), #efe9dd;
+  box-shadow: 0 40px 70px -30px rgba(0, 0, 0, 0.8), inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+.login-arch-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: 50% 50% 21px 21px / 44% 44% 21px 21px;
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(2, 37, 57, 0.12);
+}
+.login-sun {
+  position: relative;
+  background: linear-gradient(180deg, #fbf16c, #f9eb50);
+  color: #022539;
+  box-shadow: 0 12px 30px -8px rgba(249, 235, 80, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+.login-sun::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 0 8px rgba(249, 235, 80, 0.28);
+  opacity: 0;
+  animation: maison-halo 3.4s ease-in-out infinite;
+  pointer-events: none;
+}
+.login-sun:disabled::after {
+  animation: none;
+}
+.login-field {
+  transition:
+    border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out);
+}
+.login-field:focus-within {
+  border-color: rgba(249, 235, 80, 0.55);
+  box-shadow: 0 0 0 4px rgba(249, 235, 80, 0.1);
+}
+.login-field input,
+.login-field input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+.login-field input::placeholder {
+  color: rgba(234, 243, 241, 0.5);
+}
+/* Remplissage automatique du navigateur : garder le champ sombre et lisible. */
+.login-field input:-webkit-autofill {
+  -webkit-text-fill-color: #f7f5f2;
+  -webkit-box-shadow: 0 0 0 1000px #102731 inset;
+  caret-color: #f7f5f2;
+}
+@keyframes login-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes login-twinkle {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+@keyframes login-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes login-confetti {
+  0% {
+    transform: translateY(-14px) rotate(var(--r, 0deg));
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(16px) rotate(calc(var(--r, 0deg) + 40deg));
+    opacity: 0.9;
+  }
+}
+.login-float {
+  animation: login-float 6s ease-in-out infinite;
+}
+.login-twinkle {
+  animation: login-twinkle 4.5s ease-in-out infinite;
+}
+.login-rise {
+  animation: login-rise 0.7s var(--ease-out) both;
+}
+.login-confetti {
+  animation: login-confetti 3.8s ease-in-out infinite alternate;
+}
+/* Petite arche (à côté d'un titre) : arrondis du bas resserrés. */
+.login-arch-sm {
+  border-radius: 50% 50% 20px 20px / 44.8% 44.8% 20px 20px;
+  box-shadow: 0 26px 44px -22px rgba(0, 0, 0, 0.85), inset 0 0 0 1px rgba(255, 255, 255, 0.45);
+}
+.login-arch-sm .login-arch-inner {
+  border-radius: 50% 50% 14px 14px / 44% 44% 14px 14px;
+}
