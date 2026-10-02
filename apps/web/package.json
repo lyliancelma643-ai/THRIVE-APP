@@ -20,7 +20,7 @@
     "@supabase/supabase-js": "^2.107.0",
     "@tanstack/react-query": "^5.101.2",
     "@thrive/shared": "workspace:*",
-    "next": "15.5.20",
+    "next": "15.5.27",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-hook-form": "^7.0.0",

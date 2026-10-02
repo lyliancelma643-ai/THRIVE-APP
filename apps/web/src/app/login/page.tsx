@@ -6,6 +6,11 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import {
+  confirmRedirectUrl,
+  finalizePendingSignup,
+  resendConfirmation,
+} from '@/lib/pending-signup';
 
 type Mode = 'signin' | 'signup' | 'forgot';
 type ChildRow = { firstName: string; age: string; sport: string };
@@ -86,6 +91,36 @@ export default function LoginPage() {
   const [forgotEmail, setForgotEmail] = useState('');
   const [resetSent, setResetSent] = useState(false);
 
+  // Confirmation d'e-mail obligatoire (Loi 25) : adresse en attente de
+  // confirmation, et état du bouton « renvoyer le lien ».
+  const [awaitingConfirm, setAwaitingConfirm] = useState<string | null>(null);
+  const [unconfirmedEmail, setUnconfirmedEmail] = useState<string | null>(null);
+  const [resendState, setResendState] = useState<'idle' | 'busy' | 'sent'>('idle');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((n) => n - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  const resend = async (address: string) => {
+    if (resendState === 'busy' || resendCooldown > 0) return;
+    setResendState('busy');
+    setError('');
+    try {
+      await resendConfirmation(address);
+      setResendState('sent');
+      setResendCooldown(60);
+    } catch (err: any) {
+      setResendState('idle');
+      setError(
+        /rate|too many|seconds/i.test(err?.message ?? '')
+          ? 'Un e-mail vient déjà d’être envoyé. Réessaie dans une minute.'
+          : humanAuthError(err?.message ?? 'Envoi impossible')
+      );
+    }
+  };
+
   // Message affiché quand la session a été coupée à distance (compte désactivé).
   // On lit la raison depuis sessionStorage (posée avant la déconnexion, robuste
   // aux courses de navigation) avec repli sur le paramètre d'URL.
@@ -153,6 +188,9 @@ export default function LoginPage() {
     setSubmitting(true);
     try {
       await signIn(email.trim(), password);
+      // Première connexion après confirmation : crée les enfants déclarés à
+      // l'inscription (si le lien a été ouvert sur un autre appareil).
+      await finalizePendingSignup();
       // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
       // Vérification 100 % locale (lecture du JWT) : aucun appel réseau en plus.
       const dest = destinationFor(useAuthStore.getState().user?.role);
@@ -162,6 +200,13 @@ export default function LoginPage() {
       // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
     } catch (err: any) {
       const msg = err?.message ?? 'Connexion impossible';
+      if (/not confirmed|email_not_confirmed/i.test(msg) || err?.code === 'email_not_confirmed') {
+        setUnconfirmedEmail(email.trim());
+        setResendState('idle');
+        setError('Ton adresse e-mail n’est pas encore confirmée. Clique sur le lien reçu par e-mail.');
+        setSubmitting(false);
+        return;
+      }
       setError(
         /invalid login|credentials/i.test(msg)
           ? 'Email ou mot de passe incorrect.'
@@ -200,61 +245,42 @@ export default function LoginPage() {
     setError('');
     setSubmitting(true);
 
-    // ── Étape critique : compte parent + connexion. Un échec ici est bloquant. ──
-    let userId: string;
+    // ── Création du compte. Aucune session tant que l'e-mail n'est pas confirmé
+    // (Loi 25) : les enfants déclarés sont mis en attente dans les métadonnées
+    // et créés à la première connexion confirmée (voir lib/pending-signup).
     try {
-      const { error: upErr } = await supabase.auth.signUp({
+      const { data, error: upErr } = await supabase.auth.signUp({
         email: mail.trim(),
         password: pwd,
         options: {
-          data: { firstName: firstName.trim(), lastName: lastName.trim(), role: 'PARENT' },
+          emailRedirectTo: confirmRedirectUrl(),
+          data: {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            pendingChildren: children.map((c) => ({
+              firstName: c.firstName.trim(),
+              age: Number(c.age),
+              sport: c.sport.trim(),
+            })),
+          },
         },
       });
       if (upErr) throw upErr;
-
-      // Connexion immédiate (le trigger DB a déjà confirmé l'email)
+      // Adresse déjà inscrite : Supabase renvoie un utilisateur sans identité
+      // (anti-énumération). On affiche le même écran, sans rien révéler.
+      if (!data.session) {
+        setAwaitingConfirm(mail.trim());
+        setResendCooldown(60);
+        setSubmitting(false);
+        return;
+      }
+      // Projet configuré sans confirmation (autoconfirm) : on entre directement.
       await signIn(mail.trim(), pwd);
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Connexion impossible après inscription');
-      userId = user.id;
+      const { failed } = await finalizePendingSignup();
+      router.push(failed ? '/parent?setup=children' : '/parent/bilans');
     } catch (err: any) {
       setError(humanAuthError(err?.message ?? 'Inscription impossible'));
       setSubmitting(false);
-      return;
-    }
-
-    // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
-    // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
-    // le parent dans l'app plutôt que de le coincer dans un cul-de-sac « compte
-    // existe déjà » au retry. Il ajoutera ses enfants via « + Ajouter un enfant ».
-    try {
-      if (children.length > 0) {
-        const { data: family, error: famErr } = await supabase
-          .from('families')
-          .insert({ name: `Famille ${lastName.trim()}`, parent_id: userId })
-          .select('id')
-          .single();
-        if (famErr) throw famErr;
-
-        const rows = children.map((c) => {
-          const dob = new Date();
-          dob.setFullYear(dob.getFullYear() - Number(c.age));
-          return {
-            family_id: family.id,
-            first_name: c.firstName.trim(),
-            date_of_birth: dob.toISOString().split('T')[0],
-            sport: c.sport.trim() || 'Hockey',
-            is_active: true,
-          };
-        });
-        const { error: childErr } = await supabase.from('children').insert(rows);
-        if (childErr) throw childErr;
-      }
-      router.push('/parent/bilans');
-    } catch {
-      // Compte créé + session active : on entre dans l'app (les enfants pourront
-      // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
-      router.push('/parent?setup=children');
     }
   };
 
@@ -343,7 +369,49 @@ export default function LoginPage() {
             </div>
           )}
 
-          {mode === 'forgot' ? (
+          {awaitingConfirm ? (
+            <div className="text-center py-4">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-sage/40 flex items-center justify-center text-2xl">
+                ✉️
+              </div>
+              <h2 className="font-display text-xl font-semibold text-navy-900 mb-2">
+                Confirme ton adresse e-mail
+              </h2>
+              <p className="text-sm text-navy-700 mb-6">
+                Nous avons envoyé un lien à <span className="font-medium">{awaitingConfirm}</span>.
+                Clique dessus pour activer ton compte parent (pense à vérifier tes spams).
+                Tes enfants seront ajoutés automatiquement à ta première connexion.
+              </p>
+              {error && <p role="alert" className="text-red-600 text-sm mb-3">{error}</p>}
+              <button
+                type="button"
+                onClick={() => resend(awaitingConfirm)}
+                disabled={resendState === 'busy' || resendCooldown > 0}
+                className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors mb-2"
+              >
+                {resendState === 'busy'
+                  ? 'Envoi…'
+                  : resendCooldown > 0
+                    ? `Renvoyer le lien (${resendCooldown} s)`
+                    : 'Renvoyer le lien'}
+              </button>
+              {resendState === 'sent' && (
+                <p className="text-xs text-navy-700 mb-2" role="status">Nouveau lien envoyé.</p>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setAwaitingConfirm(null);
+                  setEmail(awaitingConfirm);
+                  setMode('signin');
+                  setError('');
+                }}
+                className="w-full min-h-[44px] py-2 text-sm text-navy-700 hover:text-navy-900 transition-colors"
+              >
+                J’ai confirmé — me connecter
+              </button>
+            </div>
+          ) : mode === 'forgot' ? (
             resetSent ? (
               <div className="text-center py-4">
                 <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-sage/40 flex items-center justify-center text-2xl">
@@ -443,6 +511,18 @@ export default function LoginPage() {
                 Mot de passe oublié ?
               </button>
               {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
+              {unconfirmedEmail && (
+                <button
+                  type="button"
+                  onClick={() => resend(unconfirmedEmail)}
+                  disabled={resendState === 'busy' || resendCooldown > 0}
+                  className="w-full min-h-[44px] py-2 rounded-full border border-navy-600 text-navy-600 text-sm font-bold disabled:opacity-50"
+                >
+                  {resendState === 'sent'
+                    ? resendCooldown > 0 ? `Lien renvoyé (${resendCooldown} s)` : 'Renvoyer encore'
+                    : 'Renvoyer le lien de confirmation'}
+                </button>
+              )}
               <button
                 type="submit"
                 disabled={submitting}
@@ -563,7 +643,7 @@ export default function LoginPage() {
                 {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
               <p className="text-[11px] text-navy-700 text-center">
-                Compte actif immédiatement — aucun email de validation requis.
+                Un lien de confirmation te sera envoyé par e-mail pour activer ton compte.
               </p>
             </form>
           )}
