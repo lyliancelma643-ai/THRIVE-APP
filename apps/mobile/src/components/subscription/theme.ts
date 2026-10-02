@@ -13,12 +13,12 @@ export const C = {
   warn: '#fbbf24',
 } as const;
 
-// Liens légaux exigés par Apple et Google sur tout écran d'abonnement.
-// Conditions : si aucune URL propre n'est fournie, le contrat de licence
-// standard d'Apple (EULA) s'applique sur iOS.
+// Liens légaux exigés par Apple et Google sur tout écran d'abonnement :
+// pages publiques de l'app web (CGU = contrat de licence, politique de
+// confidentialité). Aucune variable requise ; une URL d'environnement peut
+// seulement les remplacer.
+const APP_URL = 'https://app.thrivesportpositive.com';
 export const LEGAL = {
-  terms:
-    process.env.EXPO_PUBLIC_TERMS_URL ||
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || '',
+  terms: process.env.EXPO_PUBLIC_TERMS_URL || `${APP_URL}/cgu`,
+  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || `${APP_URL}/confidentialite`,
 } as const;

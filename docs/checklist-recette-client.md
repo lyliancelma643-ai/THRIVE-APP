@@ -12,7 +12,8 @@ Appareils : 1 iPhone (Safari + PWA installée), 1 Android (Chrome + PWA install�
 - [ ] Co-parent : titulaire abonné Maison invite un parent → e-mail reçu → le co-parent voit enfant, Bilan, Maison
 - [ ] Suppression : demande depuis Compte → alerte super-admin → `/admin/suppressions` → suppression → abonnement Stripe test annulé
 - [ ] Certificat Maison (3 fiches de la semaine 13) sur un compte abonné web → coupon visible sur l'abonnement Stripe test, message « appliqué » sous le badge
-- [ ] Pages `/legal/conditions` et `/legal/confidentialite` : aucun « [à compléter] » après configuration
+- [ ] Pages `/cgu` et `/confidentialite` ouvertes depuis l’app iPhone et Android (paywall, inscription, Compte)
+- [ ] URL `https://app.thrivesportpositive.com/confidentialite` déclarée dans App Store Connect et Google Play ; suppression : `…/confidentialite#suppression`
 
 ## Appareil (ne se teste pas en émulation)
 - [ ] iPhone : ouvrir le certificat / le contrat depuis le Bilan (nouvel onglet, pas de blocage)

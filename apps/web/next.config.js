@@ -56,6 +56,9 @@ const nextConfig = {
       // Bibliothèque fusionnée dans l'onglet Fitness ; ancienne page Progrès retirée
       { source: '/parent/library', destination: '/parent/fitness', permanent: false },
       { source: '/parent/progress', destination: '/parent/bilans', permanent: false },
+      // Documents légaux : adresses courtes et définitives (déclarées aux stores)
+      { source: '/legal/conditions', destination: '/cgu', permanent: true },
+      { source: '/legal/confidentialite', destination: '/confidentialite', permanent: true },
     ];
   },
 };

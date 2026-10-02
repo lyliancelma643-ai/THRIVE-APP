@@ -17,6 +17,7 @@ import {
 import { formatDateFr } from '@/lib/billing';
 import { dueDate } from '@/lib/deletion-requests';
 import { PRIVACY_CONTACT } from '@/lib/legal-entity';
+import { LEGAL_LINKS } from '@/lib/legal';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -301,7 +302,7 @@ function MyData({ userId, email }: { userId: string; email: string }) {
           'le support THRIVE depuis la messagerie'
         )}
         {PRIVACY_CONTACT.officer ? ` (${PRIVACY_CONTACT.officer}, ${PRIVACY_CONTACT.title})` : ''}. Voir la{' '}
-        <Link href="/legal/confidentialite" className="font-semibold underline underline-offset-2">
+        <Link href={LEGAL_LINKS.privacy} className="font-semibold underline underline-offset-2">
           politique de confidentialité
         </Link>
         .

@@ -64,7 +64,7 @@ test.describe('Inscription parent', () => {
     await page.getByRole('button', { name: 'Créer mon compte parent' }).click();
     expect(await consent.evaluate((el: HTMLInputElement) => el.validity.valueMissing)).toBe(true);
     await expect(page).toHaveURL(/\/login/);
-    await expect(page.getByRole('link', { name: 'politique de confidentialité' })).toHaveAttribute('href', '/legal/confidentialite');
+    await expect(page.getByRole('link', { name: 'politique de confidentialité' })).toHaveAttribute('href', '/confidentialite');
   });
 
   test('mauvais mot de passe : message en français', async ({ page }) => {

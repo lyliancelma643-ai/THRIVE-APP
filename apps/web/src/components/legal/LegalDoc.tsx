@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { BrandLogo } from '@/components/BrandLogo';
 import { LEGAL_VERSION_DATE } from '@/lib/legal-entity';
+import { PRIVACY_PATH, TERMS_PATH } from '@/lib/legal';
 
-// Gabarit des documents légaux publics (/legal/*) : lisible sur téléphone,
-// imprimable, sans dépendance au compte connecté.
+// Gabarit des documents légaux publics (/cgu, /confidentialite) : lisible sur
+// téléphone, imprimable, accessible sans compte (URL à déclarer aux stores).
 
 export function LegalDoc({ title, intro, children }: { title: string; intro: ReactNode; children: ReactNode }) {
   const date = new Intl.DateTimeFormat('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' }).format(
@@ -23,8 +24,8 @@ export function LegalDoc({ title, intro, children }: { title: string; intro: Rea
         </header>
         <div className="space-y-8 text-[15px] text-navy-800">{children}</div>
         <footer className="mt-10 pt-6 border-t border-navy-100 text-sm text-navy-700 flex flex-wrap gap-4">
-          <Link href="/legal/conditions" className="underline underline-offset-2">Conditions d’utilisation</Link>
-          <Link href="/legal/confidentialite" className="underline underline-offset-2">Politique de confidentialité</Link>
+          <Link href={TERMS_PATH} className="underline underline-offset-2">Conditions d’utilisation</Link>
+          <Link href={PRIVACY_PATH} className="underline underline-offset-2">Politique de confidentialité</Link>
         </footer>
       </article>
     </main>
@@ -33,7 +34,7 @@ export function LegalDoc({ title, intro, children }: { title: string; intro: Rea
 
 export function Section({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
-    <section id={id} aria-labelledby={`${id}-t`} className="space-y-3">
+    <section id={id} aria-labelledby={`${id}-t`} className="space-y-3 scroll-mt-6">
       <h2 id={`${id}-t`} className="font-display text-xl md:text-2xl font-semibold text-navy-900">
         {title}
       </h2>
@@ -49,14 +50,5 @@ export function List({ items }: { items: ReactNode[] }) {
         <li key={i}>{it}</li>
       ))}
     </ul>
-  );
-}
-
-/** Valeur issue de la configuration ; signalée visiblement si elle manque. */
-export function Fill({ value, label }: { value: string; label: string }) {
-  return value ? (
-    <>{value}</>
-  ) : (
-    <mark className="bg-amber-100 text-amber-900 px-1 rounded">[à compléter : {label}]</mark>
   );
 }

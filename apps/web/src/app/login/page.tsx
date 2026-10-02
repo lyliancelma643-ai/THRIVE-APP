@@ -7,7 +7,7 @@ import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 import Link from 'next/link';
-import { CONSENT_POLICY_VERSION, SIGNUP_CONSENTS } from '@/lib/legal';
+import { CONSENT_POLICY_VERSION, LEGAL_LINKS, SIGNUP_CONSENTS } from '@/lib/legal';
 import { humanAuthError } from '@/lib/auth-errors';
 import {
   CHILD_MAX_AGE,
@@ -583,11 +583,11 @@ export default function LoginPage() {
                 />
                 <span>
                   J&apos;accepte les{' '}
-                  <Link href="/legal/conditions" target="_blank" className="font-bold underline underline-offset-2">
+                  <Link href={LEGAL_LINKS.terms} target="_blank" className="font-bold underline underline-offset-2">
                     conditions d&apos;utilisation
                   </Link>{' '}
                   et la{' '}
-                  <Link href="/legal/confidentialite" target="_blank" className="font-bold underline underline-offset-2">
+                  <Link href={LEGAL_LINKS.privacy} target="_blank" className="font-bold underline underline-offset-2">
                     politique de confidentialité
                   </Link>
                   . Comme titulaire de l&apos;autorité parentale, je consens à ce que THRIVE recueille les
