@@ -17,6 +17,27 @@ Livrables associés (même dossier) :
 
 ---
 
+## 0. Avancement au 2 octobre 2026
+
+| ID | Statut | Ce qui a été fait |
+|---|---|---|
+| T-01 | 🔧 Corrigé | Écrans déplacés dans `src/app` (racine unique), layout racine unique. Bundles iOS et Android générés avec `expo export` : routes Maison, Bilans et Messages présentes |
+| A-13 / 4.2 | 🔧 Corrigé (MVP) | Onglets parent : Accueil, **Maison** (activités de la semaine selon l'âge, fiche, « C'est fait », carnet), **Bilans** (13 séances, coach, bilans du coach, questionnaires), **Messages**, Profil (abonnement, notifications) |
+| T-02 | 🔧 Partiel | Icônes sans transparence, écran de démarrage, `eas.json` (AAB, numéros de build gérés par EAS). Reste : `eas init` (projectId) avec le compte Expo |
+| T-03 / T-04 | 🔧 Corrigé | Session persistée (AsyncStorage) ; redirection selon le rôle ; admin renvoyé vers le web |
+| T-05 | 🔧 Corrigé | Permission de notification demandée après connexion |
+| T-06 | 🔧 Corrigé | Typecheck mobile ajouté à la CI ; dépendances manquantes déclarées |
+| A-04 / D-03 | 🔧 Corrigé | Avertissement santé et ressources (811, 9-8-8, Jeunesse, J'écoute, 9-1-1) dans Maison et les profils |
+| A-12 | 🔧 Corrigé | L'app reconnaît l'accès accordé par le serveur (forfait accompagné, abonnement web) : pas de paywall pour une famille qui a déjà accès |
+| C-02 / D-01 / D-04 | 🔧 Rédigé | Politique, conditions et conditions coachs complétées (Thrive Sport Positive, support@, confidentialite@). **Restent : NEQ et adresse du siège, puis publication des pages web** |
+| C-03 | 🔧 Rédigé | Responsable = dirigeant (art. 3.1) ; EFVP (`efvp.md`) ; politique de conservation (`politique-conservation.md`) |
+| A-18 / C-07 | 🔧 Figé | Délai de suppression : 30 jours, identique dans l'app et la politique |
+| D-05 | 🔧 Rédigé | `docs/legal/ip-registry.md` (52 vignettes + 11 visuels + polices + instruments) et courriels LSSS / EPOCH |
+| E-07 | 🔧 Rédigé | `supabase/seed/review_accounts.sql` (parent-test, coach-test) ; notes au reviewer mises à jour |
+| F-02 | ✅ Tranché | Identifiant conservé : `app.thrive.mobile` (iOS et Android), déjà configuré dans RevenueCat et la documentation |
+| **A-02** | ❌ **Reste bloquant** | Messagerie embarquée sans signalement ni blocage dans l'app (Apple 1.2) |
+| EFVP M1 | ❌ À faire | Les notifications de message envoient un extrait du contenu hors Québec (Expo, APNs, FCM) |
+
 ## 1. Synthèse
 
 ### Verdict : **NO-GO** pour les deux stores à ce jour

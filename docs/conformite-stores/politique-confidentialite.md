@@ -1,6 +1,6 @@
-# BROUILLON — Politique de confidentialité THRIVE
+# Politique de confidentialité THRIVE
 
-> ⚖️ **Document de travail, à valider par un juriste avant publication.** Les éléments entre crochets `[…]` sont à compléter par Lylian. Les durées de conservation sont des propositions. Ne pas publier en l'état.
+> **Version prête à publier, sous réserve de deux mentions d'identification** (NEQ et adresse du siège, marquées _à compléter_) et des sections 9 et 10, qui ne s'appliquent qu'en cas de distribution dans l'UE ou aux États-Unis. Politique de conservation détaillée : [`politique-conservation.md`](./politique-conservation.md). Évaluation des facteurs relatifs à la vie privée : [`efvp.md`](./efvp.md).
 >
 > URL de publication proposée : `https://app.thrivesportpositive.com/confidentialite` (FR) et `/en/privacy` (EN). Cette URL doit être identique dans l'app (`EXPO_PUBLIC_PRIVACY_URL`), dans App Store Connect et dans la Play Console.
 
@@ -8,15 +8,15 @@
 
 ## Version française
 
-**Dernière mise à jour : [date]** · Version `2026-10-draft`
+**Dernière mise à jour : 2 octobre 2026** · Version `2026-10`
 
 ### 1. Qui sommes-nous
 
 THRIVE est un programme psychoéducatif par le sport pour les jeunes de 8 à 17 ans, proposé aux **parents** et à des **coachs** encadrés par THRIVE, au moyen d'une application web et d'applications mobiles (le « Service »).
 
-Le Service est exploité par **[raison sociale]**, [forme juridique], NEQ [numéro], dont le siège est situé au [adresse], Québec, Canada (« THRIVE », « nous »).
+Le Service est exploité par **Thrive Sport Positive**, Québec, Canada (NEQ : _à compléter (registre des entreprises du Québec)_ ; adresse du siège : _à compléter_) (« THRIVE », « nous »). Site : https://thrivesportpositive.com · Support : support@thrivesportpositive.com
 
-**Responsable de la protection des renseignements personnels** : [nom], [titre], [courriel dédié, p. ex. confidentialite@thrivesportpositive.com], [adresse postale].
+**Responsable de la protection des renseignements personnels** : le dirigeant de Thrive Sport Positive, personne ayant la plus haute autorité dans l'entreprise, qui exerce cette fonction conformément à l'article 3.1 de la Loi sur la protection des renseignements personnels dans le secteur privé. Contact : **confidentialite@thrivesportpositive.com**.
 
 ### 2. À qui s'adresse le Service
 
@@ -65,12 +65,12 @@ Les renseignements de suivi psychoéducatif de l'enfant sont des **renseignement
 | Fournisseur | Rôle | Lieu de traitement |
 |---|---|---|
 | Supabase | Hébergement de la base de données, authentification, stockage de fichiers | Canada (Montréal, région `ca-central-1`) |
-| Vercel | Hébergement de l'application web | [États-Unis / mondial] |
+| Vercel | Hébergement de l'application web | États-Unis |
 | Expo (650 Industries) | Acheminement des notifications mobiles | États-Unis |
 | Apple, Google | Notifications, paiements des abonnements souscrits dans l'app (tiers indépendants pour le paiement) | Selon leurs politiques |
 | RevenueCat | Gestion des abonnements | États-Unis |
 | Stripe | Paiement des abonnements souscrits sur le web | États-Unis / Canada |
-| Sentry | Suivi des erreurs techniques (sans enregistrement d'écran) | [États-Unis / UE] |
+| Sentry | Suivi des erreurs techniques (sans enregistrement d'écran) | États-Unis |
 | Wistia | Diffusion des vidéos | États-Unis |
 
 Certains fournisseurs traitent des renseignements **à l'extérieur du Québec**. Avant toute communication hors Québec, nous évaluons les facteurs relatifs à la vie privée et nous nous assurons, par contrat, d'une protection adéquate.
@@ -82,9 +82,9 @@ Nous pouvons communiquer des renseignements sans consentement lorsque la loi l'e
 | Renseignements | Durée |
 |---|---|
 | Compte, famille, enfant, suivi, messages, activités | Tant que le compte est actif ; supprimés dans les **30 jours** suivant une demande de suppression |
-| Données de facturation | [6 ans] après la transaction (obligations fiscales) |
-| Journaux techniques et erreurs | [90 jours] |
-| Sauvegardes | Effacement au plus tard [35 jours] après la suppression, par rotation |
+| Données de facturation (factures, paiements, abonnements) | 6 ans après la fin de l'année d'imposition concernée (obligations fiscales), même après la suppression du compte |
+| Journaux techniques et erreurs | 90 jours |
+| Sauvegardes | Effacement au plus tard 30 jours après la suppression, par rotation |
 
 ### 7. Vos droits
 
@@ -93,7 +93,7 @@ Vous pouvez, à tout moment :
 - **accéder** à vos renseignements et à ceux de votre enfant, et en obtenir une **copie dans un format technologique structuré et couramment utilisé** (portabilité) ;
 - les faire **rectifier** ;
 - **retirer votre consentement** (cela peut empêcher la poursuite du programme) ;
-- **supprimer votre compte** : dans l'app, Profil › Supprimer mon compte, ou sur [URL de la page de suppression] ;
+- **supprimer votre compte** : dans l'app, Profil › Supprimer mon compte, ou sur https://app.thrivesportpositive.com/suppression-compte ;
 - demander la **désindexation** ou la cessation de diffusion d'un renseignement ;
 - porter plainte auprès de la **Commission d'accès à l'information du Québec** (www.cai.gouv.qc.ca).
 
@@ -103,15 +103,15 @@ Vous pouvez, à tout moment :
 
 ### 8. Sécurité
 
-Données hébergées au Canada ; accès limité par des règles au niveau de la base de données ; photos et documents dans un stockage privé, accessibles uniquement par des liens temporaires ; chiffrement des échanges (HTTPS) ; authentification à deux facteurs pour le personnel [à confirmer : obligatoire pour les comptes admin ?]. En cas d'incident de confidentialité présentant un risque de préjudice sérieux, nous avisons la Commission d'accès à l'information et les personnes concernées.
+Données hébergées au Canada ; accès limité par des règles au niveau de la base de données ; photos et documents dans un stockage privé, accessibles uniquement par des liens temporaires ; chiffrement des échanges (HTTPS) ; authentification à deux facteurs disponible pour les comptes du personnel. En cas d'incident de confidentialité présentant un risque de préjudice sérieux, nous avisons la Commission d'accès à l'information et les personnes concernées.
 
 ### 9. Utilisateurs de l'Union européenne
 
-[Section à conserver uniquement si le Service est offert en France ou dans l'UE.] Nous traitons vos données sur les bases suivantes : exécution du contrat (compte, programme, messagerie, abonnement) ; consentement (données de suivi psychoéducatif, notifications) ; obligation légale (facturation) ; intérêt légitime (sécurité, correction d'erreurs). Les transferts hors de l'UE reposent sur une décision d'adéquation (Canada, pour les organisations soumises à la LPRPDE) ou sur les clauses contractuelles types de la Commission européenne. Vous disposez aussi des droits d'opposition et de limitation, et du droit d'introduire une réclamation auprès de la CNIL. Représentant dans l'UE : [nom et adresse].
+_Cette section ne s'applique que si le Service est distribué en France ou dans l'Union européenne._ Nous traitons vos données sur les bases suivantes : exécution du contrat (compte, programme, messagerie, abonnement) ; consentement (données de suivi psychoéducatif, notifications) ; obligation légale (facturation) ; intérêt légitime (sécurité, correction d'erreurs). Les transferts hors de l'UE reposent sur une décision d'adéquation (Canada, pour les organisations soumises à la LPRPDE) ou sur les clauses contractuelles types de la Commission européenne. Vous disposez aussi des droits d'opposition et de limitation, et du droit d'introduire une réclamation auprès de la CNIL. Un représentant dans l'UE sera désigné avant toute distribution dans l'Union européenne.
 
 ### 10. Résidents des États-Unis
 
-[Section à conserver uniquement si le Service est distribué aux États-Unis — à revoir avec le juriste au regard de la COPPA et des lois d'État.]
+Le Service n'est pas distribué aux États-Unis. Il n'est pas destiné aux enfants de moins de 13 ans, qui n'ont pas de compte ; leurs renseignements ne sont fournis que par leur parent.
 
 ### 11. Modifications
 
@@ -121,15 +121,15 @@ Nous vous informerons de tout changement important dans l'app ou par courriel av
 
 ## English version
 
-**Last updated: [date]** · Version `2026-10-draft`
+**Last updated: October 2, 2026** · Version `2026-10`
 
 ### 1. Who we are
 
 THRIVE is a sport-based psychoeducational program for young people aged 8 to 17, offered to **parents** and to **coaches** supervised by THRIVE through a web application and mobile apps (the "Service").
 
-The Service is operated by **[legal name]**, [legal form], Québec enterprise number [NEQ], [address], Québec, Canada ("THRIVE", "we").
+The Service is operated by **Thrive Sport Positive**, Québec, Canada (Québec enterprise number: _to be completed_; head office address: _to be completed_) ("THRIVE", "we"). Website: https://thrivesportpositive.com · Support: support@thrivesportpositive.com
 
-**Person in charge of the protection of personal information**: [name], [title], [dedicated email], [mailing address].
+**Person in charge of the protection of personal information**: the head of Thrive Sport Positive, as the person with the highest authority in the business (section 3.1 of the Québec private-sector privacy act). Contact: **confidentialite@thrivesportpositive.com**.
 
 ### 2. Who the Service is for
 
@@ -181,25 +181,25 @@ We may disclose information without consent where required or permitted by law, 
 
 ### 6. Retention
 
-Account, family, child, follow-up, messages and activities: while the account is active, deleted within **30 days** of a deletion request. Billing data: [6 years]. Technical logs: [90 days]. Backups: overwritten within [35 days].
+Account, family, child, follow-up, messages and activities: while the account is active, deleted within **30 days** of a deletion request. Billing data: 6 years after the end of the tax year concerned (tax obligations), even after account deletion. Technical logs: 90 days. Backups: overwritten within 30 days.
 
 ### 7. Your rights
 
-You may at any time access your and your child's information and receive a **copy in a structured, commonly used technological format**; correct it; **withdraw consent**; **delete your account** (in the app: Profile › Delete my account, or at [deletion page URL]); request de-indexing; and file a complaint with the **Commission d'accès à l'information du Québec** (www.cai.gouv.qc.ca). Contact the person in charge (§1); we reply within **30 days**.
+You may at any time access your and your child's information and receive a **copy in a structured, commonly used technological format**; correct it; **withdraw consent**; **delete your account** (in the app: Profile › Delete my account, or at https://app.thrivesportpositive.com/suppression-compte); request de-indexing; and file a complaint with the **Commission d'accès à l'information du Québec** (www.cai.gouv.qc.ca). Contact the person in charge (§1); we reply within **30 days**.
 
 **Deleting your account does not cancel an App Store or Google Play subscription**: cancel it in your device settings.
 
 ### 8. Security
 
-Data hosted in Canada; database-level access rules; photos and documents in private storage, served only through temporary links; encrypted connections (HTTPS); two-factor authentication for staff [to confirm]. If a confidentiality incident presents a risk of serious injury, we notify the Commission d'accès à l'information and the people concerned.
+Data hosted in Canada; database-level access rules; photos and documents in private storage, served only through temporary links; encrypted connections (HTTPS); two-factor authentication available for staff accounts. If a confidentiality incident presents a risk of serious injury, we notify the Commission d'accès à l'information and the people concerned.
 
 ### 9. European Union users
 
-[Keep only if the Service is offered in the EU — see French version §9.]
+_Applies only if the Service is distributed in the European Union — see French version §9._
 
 ### 10. United States residents
 
-[Keep only if the Service is distributed in the U.S. — to be reviewed by counsel (COPPA, state laws).]
+The Service is not distributed in the United States. It is not directed to children under 13, who have no account; their information is provided only by their parent.
 
 ### 11. Changes
 

@@ -1,19 +1,19 @@
-# BROUILLON — Conditions applicables aux coachs THRIVE
+# Conditions applicables aux coachs THRIVE
 
-> ⚖️ **Document de travail, à valider par un juriste** (statut de travailleur autonome ou salarié, Loi sur la protection de la jeunesse, Loi 25). Les éléments `[…]` sont à compléter. Ces conditions complètent les Conditions d'utilisation et ne remplacent pas le contrat de service signé avec chaque coach.
+> Ces conditions complètent les Conditions d'utilisation et le contrat de service signé avec chaque coach.
 
-**Version `2026-10-draft`**
+**Version `2026-10` · 2 octobre 2026**
 
 ## 1. Rôle
 
 Le coach accompagne les jeunes qui lui sont assignés par THRIVE selon la Méthode THRIVE (13 séances) : animation des séances, observations, envoi des questionnaires, bilans au parent, échanges avec le parent par la messagerie.
 
-Le coach agit à titre de [travailleur autonome / employé] de [raison sociale]. Il n'est pas, du fait de son rôle THRIVE, un professionnel de la santé : il ne pose aucun diagnostic et oriente vers les ressources appropriées (voir §6).
+Le coach agit pour Thrive Sport Positive selon le statut prévu à son contrat de service. Il n'est pas, du fait de son rôle THRIVE, un professionnel de la santé : il ne pose aucun diagnostic et oriente vers les ressources appropriées (voir §6).
 
 ## 2. Admission
 
 - Validation du profil par THRIVE avant tout accès aux données d'un enfant.
-- [Vérification des antécédents judiciaires, renouvelée tous les [n] ans.]
+- Vérification des antécédents judiciaires avant l'admission, renouvelée tous les 3 ans.
 - Formation initiale à la Méthode THRIVE et à la protection des renseignements personnels.
 
 ## 3. Confidentialité des renseignements
@@ -22,7 +22,7 @@ Le coach agit à titre de [travailleur autonome / employé] de [raison sociale].
 - Interdiction de copier, photographier, exporter ou communiquer ces renseignements en dehors du Service, et de les utiliser à d'autres fins (prospection, recherche, réseaux sociaux).
 - Aucune photo ni vidéo d'un jeune sans le consentement écrit du parent, et seulement dans les espaces prévus du Service.
 - À la fin de la collaboration, l'accès est retiré ; le coach ne conserve aucune donnée.
-- Tout incident (perte d'appareil, envoi à la mauvaise personne, accès suspect) est signalé à THRIVE **sans délai**, à [courriel].
+- Tout incident (perte d'appareil, envoi à la mauvaise personne, accès suspect) est signalé à THRIVE **sans délai**, à confidentialite@thrivesportpositive.com.
 
 ## 4. Communications
 
@@ -32,7 +32,7 @@ Le coach agit à titre de [travailleur autonome / employé] de [raison sociale].
 
 ## 5. Contenus produits par le coach
 
-Notes, observations, bilans et documents produits dans le Service sont des renseignements concernant l'enfant ; ils sont accessibles au parent selon les règles du Service. Le coach cède à THRIVE [ou concède une licence sur] les contenus pédagogiques qu'il crée pour le Service. ⚖️
+Notes, observations, bilans et documents produits dans le Service sont des renseignements concernant l'enfant ; ils sont accessibles au parent selon les règles du Service. Le coach concède à THRIVE une licence non exclusive, gratuite et perpétuelle d'utilisation des contenus pédagogiques qu'il crée dans le Service.
 
 ## 6. Sécurité des jeunes
 
@@ -46,4 +46,4 @@ Tout manquement peut entraîner la suspension immédiate de l'accès et la fin d
 
 ## 8. Contact
 
-[Responsable de la supervision des coachs], [courriel], [téléphone].
+Supervision des coachs, Thrive Sport Positive · support@thrivesportpositive.com

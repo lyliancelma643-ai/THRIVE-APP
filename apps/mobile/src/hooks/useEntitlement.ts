@@ -30,14 +30,15 @@ export function useEntitlement(): EntitlementState {
   const status = useSubscriptionStore((s) => s.status);
   const customerInfo = useSubscriptionStore((s) => s.customerInfo);
   const refresh = useSubscriptionStore((s) => s.refresh);
+  const serverAccess = useSubscriptionStore((s) => s.serverAccess);
 
   const isStaff = isStaffRole(role);
   const ent = activeEntitlement(customerInfo);
   const isSubscribed = selectIsActive({ customerInfo });
 
   return {
-    isLoading: !isStaff && status === 'loading',
-    hasAccess: isStaff || isSubscribed,
+    isLoading: !isStaff && !isSubscribed && (status === 'loading' || serverAccess === null),
+    hasAccess: isStaff || isSubscribed || serverAccess === true,
     isSubscribed,
     isStaff,
     isTrial: ent?.periodType === 'TRIAL',

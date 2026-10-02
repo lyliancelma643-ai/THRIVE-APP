@@ -57,6 +57,7 @@ export function SubscriptionSettings() {
 
   let status: string;
   if (ent.isLoading) status = 'Vérification…';
+  else if (!ent.isSubscribed && ent.hasAccess) status = 'Inclus dans votre accompagnement THRIVE.';
   else if (!ent.isSubscribed) status = 'Aucun abonnement actif.';
   else if (ent.management === 'gift') status = end ? `Accès offert jusqu’au ${end}.` : 'Accès offert.';
   else if (ent.isTrial) status = end ? `Essai gratuit jusqu’au ${end}.` : 'Essai gratuit en cours.';
@@ -88,7 +89,7 @@ export function SubscriptionSettings() {
         </>
       )}
 
-      {!ent.isLoading && !ent.isSubscribed && (
+      {!ent.isLoading && !ent.hasAccess && (
         <>
           <View style={styles.divider} />
           <TouchableOpacity style={styles.action} onPress={() => router.push('/(parent)/abonnement')} accessibilityRole="button">

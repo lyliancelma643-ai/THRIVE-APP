@@ -1,66 +1,97 @@
 # Déclarations prêtes à copier — App Store Connect et Play Console
 
-> Réponses établies d'après le code au 1er octobre 2026 (branche `claude/hopeful-goldberg-xfnhpi`).
-> Deux colonnes quand cela change : **binaire actuel** (`src/app` seul) et **binaire cible** (avec abonnement, messagerie, questionnaires et onboarding de `app/`, une fois le routeur fusionné). **Déclarez le binaire réellement soumis.** Une déclaration plus large que le binaire est tolérée ; une déclaration plus étroite est un motif de rejet ou de retrait.
+> Réponses établies d'après le **binaire actuel** (branche `claude/hopeful-goldberg-xfnhpi`, 2 octobre 2026). Ce binaire contient : inscription et connexion, enfants, Maison (activités et carnet), Bilans (lecture), messagerie coach ↔ parent, abonnement (RevenueCat), notifications, suppression du compte.
+> Les questionnaires LSSS et EPOCH s'ouvrent dans le navigateur (web app) : ils ne sont **pas** collectés par l'app. Si un jour ils sont intégrés à l'app, passer « Santé » à **Oui**.
 
----
 
-## 1. Google Play — formulaire « Sécurité des données »
+## 1. Google Play — Sécurité des données (grille de saisie)
 
-### 1.1 Questions générales
+Play Console › Contenu de l'application › Sécurité des données. Saisir dans l'ordre des écrans.
+
+### 1.1 Collecte et sécurité
 
 | Question | Réponse |
 |---|---|
-| Votre app collecte-t-elle ou partage-t-elle des types de données utilisateur obligatoires ? | **Oui** |
-| Toutes les données sont-elles chiffrées en transit ? | **Oui** (HTTPS / TLS vers Supabase, Expo, RevenueCat) |
-| Proposez-vous un moyen de demander la suppression des données ? | **Oui** — dans l'app (Profil › Supprimer mon compte) et via l'URL web : `[URL de la page de suppression]` |
-| Les comptes peuvent-ils être créés dans l'app ? | **Oui** (courriel + mot de passe) |
-| URL de suppression du compte | `[https://app.thrivesportpositive.com/suppression-compte]` (à publier) |
-| Données partagées avec des tiers ? | **Non** : Supabase, Expo, RevenueCat agissent comme fournisseurs de services pour notre compte (exclus de la notion de « partage » selon Google). Apple/Google traitent les paiements eux-mêmes |
-| Avez-vous fait valider vos pratiques par un organisme indépendant (MASA) ? | Non |
+| Votre application collecte-t-elle ou partage-t-elle l'un des types de données utilisateur requis ? | **Oui** |
+| Toutes les données utilisateur collectées par votre application sont-elles chiffrées en transit ? | **Oui** |
+| Proposez-vous aux utilisateurs un moyen de demander la suppression de leurs données ? | **Oui** |
+| URL de suppression du compte | `https://app.thrivesportpositive.com/suppression-compte` (page à publier avant la soumission) |
+| Les utilisateurs peuvent-ils demander la suppression de certaines données sans supprimer leur compte ? | **Non** |
+| Validation de sécurité indépendante (MASA) | **Non** |
 
-### 1.2 Types de données (tous : **collectés**, **non partagés**, **non éphémères**)
+### 1.2 Types de données
 
-| Catégorie Google | Type | Binaire actuel | Binaire cible | Obligatoire ? | Finalités |
-|---|---|---|---|---|---|
-| Informations personnelles | Nom | ✔ (parent, coach, enfant) | ✔ | Obligatoire | Fonctionnement de l'app ; Gestion du compte |
-| Informations personnelles | Adresse e-mail | ✔ | ✔ | Obligatoire | Fonctionnement de l'app ; Gestion du compte ; Communications du développeur (courriels de service) |
-| Informations personnelles | ID utilisateur | ✔ (ID Supabase) | ✔ (aussi ID RevenueCat) | Obligatoire | Fonctionnement de l'app ; Gestion du compte |
-| Informations personnelles | Numéro de téléphone | — | ✔ (onboarding, profil) | Facultatif | Fonctionnement de l'app ; Gestion du compte |
-| Informations personnelles | Autres informations (date de naissance et âge de l'enfant) | ✔ | ✔ | Obligatoire pour ajouter un enfant | Fonctionnement de l'app ; Personnalisation |
-| Informations financières | Historique des achats | — | ✔ (RevenueCat / Google Play Billing) | Facultatif | Fonctionnement de l'app ; Gestion du compte |
-| Santé et remise en forme | Informations de santé (réponses aux questionnaires de bien-être LSSS / EPOCH) | — | ✔ si le questionnaire est embarqué | Facultatif | Fonctionnement de l'app ; Personnalisation |
-| Messages | Autres messages dans l'application | — | ✔ (messagerie coach ↔ parent) | Facultatif | Fonctionnement de l'app |
-| Activité dans l'application | Autre contenu généré par l'utilisateur (notes de séance du coach, carnet) | ✔ (notes de séance, côté coach) | ✔ | Facultatif | Fonctionnement de l'app |
-| Identifiants de l'appareil ou autres | Jeton de notification push (Expo / FCM) | ✔ | ✔ | Facultatif (refus possible) | Fonctionnement de l'app (notifications) |
-| Informations et performances de l'app | Journaux de plantage, diagnostics | — | — (aucun SDK de crash sur mobile) | — | Ajouter si Sentry React Native est intégré |
-| Position, contacts, photos et vidéos, fichiers, agenda, audio, historique web, applis installées | — | — | — | — | Non collectés |
+Pour chaque type coché : **Collectées = Oui · Partagées = Non** (Supabase, Expo, RevenueCat sont des fournisseurs de services) · **Traitées de façon éphémère = Non**.
 
----
+| Catégorie | Type | Coché | Collecte obligatoire ou facultative | Finalités à cocher |
+|---|---|---|---|---|
+| Informations personnelles | Nom | **Oui** | Obligatoire | Fonctionnement de l'application · Gestion du compte |
+| | Adresse e-mail | **Oui** | Obligatoire | Fonctionnement de l'application · Gestion du compte · Communications du développeur |
+| | ID utilisateur | **Oui** | Obligatoire | Fonctionnement de l'application · Gestion du compte |
+| | Adresse | Non | — | — |
+| | Numéro de téléphone | Non (pas de saisie dans l'app) | — | — |
+| | Origine ethnique, opinions, religion, orientation sexuelle | Non | — | — |
+| | Autres informations (date de naissance, genre et sport de l'enfant) | **Oui** | Facultative (ajout d'un enfant) | Fonctionnement de l'application · Personnalisation |
+| Informations financières | Infos de paiement de l'utilisateur | Non (traitées par Google Play) | — | — |
+| | Historique des achats | **Oui** | Facultative | Fonctionnement de l'application · Gestion du compte |
+| | Cote de solvabilité, autres infos financières | Non | — | — |
+| Santé et remise en forme | Informations de santé | **Non** (questionnaires hors app) | — | — |
+| | Informations sur la remise en forme | Non | — | — |
+| Messages | E-mails | Non | — | — |
+| | SMS ou MMS | Non | — | — |
+| | Autres messages dans l'application | **Oui** | Facultative | Fonctionnement de l'application |
+| Photos et vidéos | Photos · Vidéos | Non | — | — |
+| Fichiers audio | tous | Non | — | — |
+| Fichiers et documents | | Non | — | — |
+| Agenda | | Non | — | — |
+| Contacts | | Non | — | — |
+| Activité dans l'application | Interactions avec l'application | Non (aucun outil d'analytics) | — | — |
+| | Historique des recherches | Non | — | — |
+| | Applications installées | Non | — | — |
+| | Autre contenu généré par l'utilisateur (carnet Maison, notes de séance du coach) | **Oui** | Facultative | Fonctionnement de l'application |
+| | Autres actions (moments vécus) | **Oui** | Facultative | Fonctionnement de l'application · Personnalisation |
+| Navigation Web | | Non | — | — |
+| Infos et performances de l'application | Journaux de plantage · Diagnostics · Autres | Non (aucun SDK de crash sur mobile) | — | — |
+| Identifiants de l'appareil ou autres | Identifiant de l'appareil (jeton de notification) | **Oui** | Facultative | Fonctionnement de l'application |
+| Position | Approximative · Précise | Non | — | — |
 
-## 2. Apple — App Privacy (« Nutrition Labels »)
+## 2. Apple — App Privacy (grille de saisie)
 
-**Suivi (tracking) : NON** pour tous les types. Aucune donnée n'est utilisée pour la publicité ni combinée avec des données de tiers.
+App Store Connect › l'app › Confidentialité de l'app › Commencer.
 
-| Catégorie Apple | Type | Binaire actuel | Binaire cible | Lié à l'identité | Finalités |
-|---|---|---|---|---|---|
-| Coordonnées | Nom | ✔ | ✔ | Oui | Fonctionnalité de l'app |
-| Coordonnées | Adresse e-mail | ✔ | ✔ | Oui | Fonctionnalité de l'app |
-| Coordonnées | Numéro de téléphone | — | ✔ | Oui | Fonctionnalité de l'app |
-| Santé et forme | Santé | — | ✔ si questionnaires embarqués | Oui | Fonctionnalité de l'app ; Personnalisation du produit |
-| Achats | Historique des achats | — | ✔ | Oui | Fonctionnalité de l'app ; Analyses (usage par RevenueCat, cf. sa documentation) |
-| Contenu utilisateur | E-mails ou messages texte (messagerie in-app) | — | ✔ | Oui | Fonctionnalité de l'app |
-| Contenu utilisateur | Autre contenu (notes de séance, carnet) | ✔ | ✔ | Oui | Fonctionnalité de l'app |
-| Identifiants | Identifiant utilisateur | ✔ | ✔ | Oui | Fonctionnalité de l'app |
-| Identifiants | Identifiant de l'appareil (jeton push) | ✔ | ✔ | Oui | Fonctionnalité de l'app — déclaration prudente |
-| Autres données | Autres types (date de naissance, genre et sport de l'enfant) | ✔ | ✔ | Oui | Fonctionnalité de l'app ; Personnalisation du produit |
-| Diagnostics | — | — | — | — | Non collecté (pas de SDK de crash sur mobile) |
+| Question | Réponse |
+|---|---|
+| Vous ou vos partenaires tiers collectez-vous des données depuis cette app ? | **Oui** |
+| Utilisez-vous des données pour suivre (« tracking ») les utilisateurs ? | **Non**, pour tous les types |
 
-URL de la politique de confidentialité : `[https://app.thrivesportpositive.com/confidentialite]`.
+Pour chaque type coché : **Liée à l'identité de l'utilisateur = Oui · Utilisée pour le suivi = Non**.
 
-Contrôle à faire après le premier build EAS : Xcode › Organizer › archive › « Generate Privacy Report » doit être cohérent avec ce tableau (RevenueCat déclare « Purchase History » dans son propre manifeste).
+| Catégorie Apple | Type | Collecté | Finalités à cocher |
+|---|---|---|---|
+| Coordonnées | Nom | **Oui** | Fonctionnalité de l'app |
+| | Adresse e-mail | **Oui** | Fonctionnalité de l'app |
+| | Numéro de téléphone · Adresse physique · Autres coordonnées | Non | — |
+| Santé et forme | Santé · Forme | **Non** (questionnaires hors app) | — |
+| Informations financières | Infos de paiement · Solvabilité · Autres | Non | — |
+| Localisation | Précise · Approximative | Non | — |
+| Informations sensibles | | Non | — |
+| Contacts | | Non | — |
+| Contenu utilisateur | E-mails ou messages texte | **Oui** (messagerie in-app) | Fonctionnalité de l'app |
+| | Photos ou vidéos · Contenu audio · Gameplay · Service client | Non | — |
+| | Autre contenu utilisateur (carnet Maison, notes de séance du coach) | **Oui** | Fonctionnalité de l'app |
+| Historique de navigation · Historique de recherche | | Non | — |
+| Identifiants | Identifiant utilisateur | **Oui** | Fonctionnalité de l'app |
+| | Identifiant de l'appareil (jeton push) | **Oui** | Fonctionnalité de l'app |
+| Achats | Historique des achats | **Oui** | Fonctionnalité de l'app · Analyses (usage par RevenueCat) |
+| Données d'utilisation | Interactions · Publicité · Autres | Non | — |
+| Diagnostics | Plantages · Performances · Autres | Non | — |
+| Environnement | | Non | — |
+| Corps | | Non | — |
+| Autres données | Autres types de données (date de naissance, genre, sport de l'enfant) | **Oui** | Fonctionnalité de l'app · Personnalisation du produit |
 
----
+URL de la politique de confidentialité : `https://app.thrivesportpositive.com/confidentialite`.
+Contrôle après le premier build EAS : Xcode › Organizer › archive › « Generate Privacy Report » doit correspondre à ce tableau.
+
 
 ## 3. Textes de permissions
 
@@ -195,20 +226,22 @@ Catégorie : « Référence, actualités ou éducation ». Violence, sexualité,
 
 ## 7. Notes pour le reviewer (App Store Connect › App Review Information ; Play Console › Accès à l'app)
 
+Comptes créés par `supabase/seed/review_accounts.sql` (mot de passe choisi à l'exécution, jamais committé).
+
 > **Demo accounts** (production backend, active during review)
-> • Parent: `review-parent@thrivesportpositive.com` / `[mot de passe]` — family with two fictional children, sessions, coach reports and an active complimentary subscription.
-> • Coach: `review-coach@thrivesportpositive.com` / `[mot de passe]` — assigned fictional athletes, programs and sessions.
+> • Parent: `parent-test@thrivesportpositive.com` / `[password]` — fictional family with two children, completed sessions, coach reports, a message thread with the coach and Home activity journal. This family is enrolled in an in-person coached plan, so the "Home" tab is included and no purchase is required.
+> • Coach: `coach-test@thrivesportpositive.com` / `[password]` — assigned fictional athletes, sessions and the message thread.
+>
+> **To test the in-app subscription**, please create a new parent account in the app (Create an account) and open the "Maison" tab: the paywall shows the monthly and annual auto-renewable subscriptions ("Le moment qui compte", free trial for new subscribers), Restore Purchases, Terms of Use and Privacy Policy.
 >
 > **About the app.** THRIVE is a sport-based psychoeducational program. The app is used by **adults only**: parents (who create their own account) and coaches (approved by THRIVE). **Children never have an account**; parents add their child's first name and date of birth to receive age-appropriate content.
 >
-> **Subscription.** "Le moment qui compte" (monthly / annual auto-renewable, free trial for new subscribers) is sold in the app through In-App Purchase. The same subscription can also be purchased on our website; a subscriber who bought on the web is recognized in the app (Guideline 3.1.3(b)). The app contains no link, button or text pointing to the web purchase. To test the purchase flow, sign in with the parent account, open Profile › Subscription.
+> **Payments.** Digital content ("Le moment qui compte") is sold in the app through In-App Purchase. Families enrolled in our in-person coaching program (real-time sessions with a coach, Guideline 3.1.3(d)/(e)) get the same content included, and a subscription bought on our website is recognized in the app (3.1.3(b)). The app contains no link, button or text pointing to an external purchase.
 >
-> **[N'inclure qu'une fois le signalement implémenté — A-02]** **Messaging.** Private one-to-one messaging between a parent and the coach assigned by THRIVE. Users can report a message; reports are reviewed by THRIVE staff within 24 hours. Contact: `[support email]`.
+> **Messaging.** Private one-to-one messaging between a parent and the coach assigned by THRIVE (no public or anonymous content). Reports can be sent to support@thrivesportpositive.com and are reviewed within 24 hours. *(Remplacer cette phrase par le parcours in-app dès que signalement et blocage sont implémentés — rapport A-02.)*
 >
-> **Account deletion.** Profile › Delete my account. The request is processed within 30 days; App Store subscriptions must be cancelled by the user in Settings, as stated in the app.
+> **Account deletion.** Profile › Supprimer mon compte. The request is processed within 30 days; App Store subscriptions must be cancelled by the user in Settings, as stated in the app.
 >
-> **[N'inclure qu'une fois l'avertissement affiché dans l'app — A-04]** **Health.** Educational content only; no diagnosis or treatment. The app displays a reminder to consult a professional and crisis resources.
+> **Health.** Educational content only; no diagnosis or treatment. The Home tab and the Profile screen show a reminder to consult a professional and Canadian crisis resources.
 >
-> **Notifications.** Optional; the app works fully if declined.
-
-Adapter ce texte si la messagerie ou l'abonnement ne sont pas dans le binaire soumis (ne pas décrire une fonction absente : Apple 2.3.1).
+> **Notifications.** Requested only after sign-in; optional, the app works fully if declined.

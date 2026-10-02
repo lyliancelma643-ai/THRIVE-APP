@@ -13,6 +13,8 @@ import { LEGAL } from '../services/legal';
 //     complète). Le délai annoncé doit correspondre au processus réel.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Délai figé, identique à la politique de confidentialité (§6) : ne pas le
+// modifier sans mettre les deux à jour.
 const DELETION_DELAY = '30 jours';
 
 const STORE_BILLING_NOTICE =

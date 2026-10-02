@@ -6,14 +6,12 @@
 // l'environnement (EXPO_PUBLIC_*) pour rester identiques à celles saisies dans
 // App Store Connect et la Play Console.
 export const LEGAL = {
-  // Sans URL propre, le contrat de licence standard d'Apple (EULA) s'applique sur iOS.
-  terms:
-    process.env.EXPO_PUBLIC_TERMS_URL ||
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || '',
-  support: process.env.EXPO_PUBLIC_SUPPORT_URL || '',
+  // Pages publiques de la web app (docs/conformite-stores/ pour leur texte).
+  terms: process.env.EXPO_PUBLIC_TERMS_URL || 'https://app.thrivesportpositive.com/conditions',
+  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || 'https://app.thrivesportpositive.com/confidentialite',
+  support: process.env.EXPO_PUBLIC_SUPPORT_URL || 'https://app.thrivesportpositive.com/aide',
 } as const;
 
 // Version des textes acceptés à l'inscription : à incrémenter à chaque
 // changement de fond de la politique ou des conditions (preuve de consentement).
-export const LEGAL_VERSION = '2026-10-draft';
+export const LEGAL_VERSION = '2026-10';
