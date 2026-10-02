@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
+import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -16,6 +17,11 @@ export default function RegisterScreen() {
   const handleRegister = async () => {
     if (!firstName || !lastName || !email || !password) {
       setError('Tous les champs sont requis');
+      return;
+    }
+    const pwdErr = passwordError(password);
+    if (pwdErr) {
+      setError(pwdErr);
       return;
     }
     try {
@@ -49,7 +55,7 @@ export default function RegisterScreen() {
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Prénom" value={firstName} onChangeText={setFirstName} />
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Nom" value={lastName} onChangeText={setLastName} />
         <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
+        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`} value={password} onChangeText={setPassword} secureTextEntry />
 
         {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
 

@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { WebPushToggle } from '@/components/WebPushToggle';
+import { PRIVACY_PATH, SUPPORT_PATH } from '@/lib/legal';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -154,6 +155,25 @@ export default function ComptePage() {
 
       {/* Notifications push (PWA — invisible si non supporté/configuré) */}
       {user?.id && <WebPushToggle userId={user.id} />}
+
+      {/* Aide et confidentialité (pages publiques) */}
+      <section className="rounded-card bg-night-surface shadow-[var(--shadow)] p-5 md:p-6 mb-5">
+        <h2 className="nc-eyebrow mb-3">Aide et confidentialité</h2>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Link
+            href={SUPPORT_PATH}
+            className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-line text-ink text-sm font-bold active:scale-95 transition-transform"
+          >
+            Support et questions fréquentes
+          </Link>
+          <Link
+            href={PRIVACY_PATH}
+            className="inline-flex items-center justify-center h-12 px-5 rounded-full border border-line text-ink text-sm font-bold active:scale-95 transition-transform"
+          >
+            Politique de confidentialité
+          </Link>
+        </div>
+      </section>
 
       {/* Déconnexion */}
       <section className="rounded-card border border-red-500/25 bg-red-500/[0.06] p-5 md:p-6">

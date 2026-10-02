@@ -23,6 +23,7 @@ export type { Database, Json } from './types/database';
 export * from './validation/family.schema';
 export * from './validation/program.schema';
 export * from './validation/user.schema';
+export * from './validation/password';
 
 // Supabase client
 export { supabaseClient } from './lib/supabase';

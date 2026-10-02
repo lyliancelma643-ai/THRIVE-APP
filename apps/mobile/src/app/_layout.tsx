@@ -1,9 +1,10 @@
+import { Sentry, setSentryUser } from '../lib/sentry';
 import { useEffect } from 'react';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { useAuthStore } from '../stores/auth.store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 
-export default function RootLayout() {
+function RootLayout() {
   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
@@ -12,6 +13,9 @@ export default function RootLayout() {
   usePushNotifications(user?.id);
 
   useEffect(() => { hydrate(); }, []);
+
+  // Sentry : rattache les erreurs au compte (uuid seulement, jamais le courriel).
+  useEffect(() => { setSentryUser(user?.id ?? null); }, [user?.id]);
 
   useEffect(() => {
     if (isLoading) return;
@@ -46,3 +50,6 @@ export default function RootLayout() {
     </Stack>
   );
 }
+
+// Sentry.wrap : capte les erreurs de rendu et les crashs de démarrage.
+export default Sentry.wrap(RootLayout);

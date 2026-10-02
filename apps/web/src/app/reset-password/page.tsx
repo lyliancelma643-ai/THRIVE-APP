@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseClient as supabase } from '@thrive/shared';
+import { supabaseClient as supabase, passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type Phase = 'loading' | 'ready' | 'invalid' | 'done';
@@ -52,7 +52,8 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) { setError('Le mot de passe doit faire au moins 8 caractères'); return; }
+    const pwdErr = passwordError(password);
+    if (pwdErr) { setError(pwdErr); return; }
     if (password !== confirm) { setError('Les deux mots de passe ne correspondent pas'); return; }
     setError('');
     setSubmitting(true);
@@ -136,7 +137,7 @@ export default function ResetPasswordPage() {
               </div>
               <label className="block">
                 <span className="block text-xs font-bold uppercase tracking-wide text-navy-700 mb-1">
-                  Nouveau mot de passe (min. 8 caractères)
+                  Nouveau mot de passe (min. {PASSWORD_MIN_LENGTH} caractères)
                 </span>
                 <input
                   type="password"
@@ -144,7 +145,7 @@ export default function ResetPasswordPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="new-password"
-                  minLength={8}
+                  minLength={PASSWORD_MIN_LENGTH}
                   placeholder="••••••••"
                 />
               </label>

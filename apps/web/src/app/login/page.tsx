@@ -2,10 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseClient as supabase } from '@thrive/shared';
+import { supabaseClient as supabase, passwordError, PASSWORD_MIN_LENGTH, PASSWORD_HINT } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
+import Link from 'next/link';
+import { PRIVACY_PATH, SUPPORT_PATH } from '@/lib/legal';
 
 type Mode = 'signin' | 'signup' | 'forgot';
 type ChildRow = { firstName: string; age: string; sport: string };
@@ -17,8 +19,8 @@ function humanAuthError(msg: string): string {
   if (/already|exist|registered/i.test(msg)) return 'Un compte existe déjà avec cet email.';
   if (/invalid.*email|email.*invalid/i.test(msg)) return "L'adresse email n'est pas valide.";
   if (/rate|too many/i.test(msg)) return 'Trop de tentatives. Réessaie dans quelques minutes.';
-  if (/password/i.test(msg) && /weak|short|least|6|8/i.test(msg))
-    return 'Mot de passe trop faible (min. 8 caractères).';
+  if (/password/i.test(msg) && /weak|short|least|pwned|leaked|character|[0-9]/i.test(msg))
+    return `Mot de passe trop faible (${PASSWORD_HINT}).`;
   return msg;
 }
 
@@ -180,8 +182,9 @@ export default function LoginPage() {
       setError('Tous les champs sont requis');
       return;
     }
-    if (pwd.length < 8) {
-      setError('Le mot de passe doit faire au moins 8 caractères');
+    const pwdErr = passwordError(pwd);
+    if (pwdErr) {
+      setError(pwdErr);
       return;
     }
     const children = childRows.filter((c) => c.firstName.trim() && c.age);
@@ -469,9 +472,9 @@ export default function LoginPage() {
                   autoComplete="email"
                   onChange={(e) => setSignup({ ...signup, email: e.target.value })} />
               </Field>
-              <Field label="Mot de passe (min. 8 caractères)">
+              <Field label={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`}>
                 <input type="password" className="input-auth" value={signup.password}
-                  autoComplete="new-password" minLength={8}
+                  autoComplete="new-password" minLength={PASSWORD_MIN_LENGTH}
                   onChange={(e) => setSignup({ ...signup, password: e.target.value })} />
               </Field>
 
@@ -565,11 +568,30 @@ export default function LoginPage() {
               <p className="text-[11px] text-navy-700 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
               </p>
+              <p className="text-[11px] text-navy-700 text-center leading-relaxed">
+                En créant ton compte, tu confirmes avoir lu notre{' '}
+                <Link href={PRIVACY_PATH} className="font-bold underline">
+                  politique de confidentialité
+                </Link>
+                .
+              </p>
             </form>
           )}
         </div>
       </div>
 
+      {/* Liens publics exigés par les stores (support, confidentialité) */}
+      <nav
+        aria-label="Informations"
+        className="absolute bottom-3 inset-x-0 z-10 flex justify-center gap-5 text-xs font-bold text-navy-700"
+      >
+        <Link href={SUPPORT_PATH} className="min-h-[32px] inline-flex items-center hover:underline">
+          Support
+        </Link>
+        <Link href={PRIVACY_PATH} className="min-h-[32px] inline-flex items-center hover:underline">
+          Confidentialité
+        </Link>
+      </nav>
     </main>
   );
 }

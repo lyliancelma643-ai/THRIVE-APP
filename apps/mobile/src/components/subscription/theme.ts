@@ -20,5 +20,7 @@ export const LEGAL = {
   terms:
     process.env.EXPO_PUBLIC_TERMS_URL ||
     'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || '',
+  privacy:
+    process.env.EXPO_PUBLIC_PRIVACY_URL ||
+    'https://app.thrivesportpositive.com/politique-confidentialite',
 } as const;
