@@ -14,6 +14,13 @@
 -- Ce qui ne change pas : les écritures sensibles (fiche enfant, famille,
 -- membres) restent réservées au parent principal et aux admins ; aucune
 -- donnée ne devient visible hors de la famille.
+--
+-- Appliquée en production le 2 octobre 2026 en trois parties (historique
+-- Supabase : 066a_coparent_helpers, 066b_coparent_access_state,
+-- 066c_coparent_read_policies ; les politiques remplacées l'ont été par
+-- ALTER POLICY, même effet). Vérifié : état d'accès des parents existants
+-- inchangé, chaque parent ne lit que les enfants de sa famille.
+-- Retour arrière : docs/rollback-migrations-066-067.sql
 -- ─────────────────────────────────────────────────────────────────────────────
 
 -- 1. Helpers ------------------------------------------------------------------

@@ -221,4 +221,6 @@ Revue de bout en bout de la partie client (parent + questionnaire de l'enfant), 
 | « Hockey sur glace » affiché quand le sport est inconnu | P2 | « — » + migration `067` (plus de valeur par défaut) |
 | Forfaits : 24 lignes de jargon interne | P2 | Commun dit une fois, libellés en mots de parent |
 
-**À faire hors code** : appliquer les migrations `066` et `067` en production ; faire relire `/confidentialite` (texte juridique) ; contenu éditorial « Quand il dit non » (masculin) à neutraliser à la source.
+**Migrations** `066` et `067` appliquées en production le 2 octobre 2026 (retour arrière : `docs/rollback-migrations-066-067.sql`).
+
+**À faire hors code** : faire relire `/confidentialite` (texte juridique) ; contenu éditorial « Quand il dit non » (masculin) à neutraliser à la source.
