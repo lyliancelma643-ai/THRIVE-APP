@@ -54,9 +54,19 @@ const fetchWithTimeout: typeof fetch = (input, init) => {
   return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
 };
 
+// Stockage de session : le navigateur utilise localStorage par défaut. L'app
+// mobile n'en a pas : elle dépose un adaptateur AsyncStorage dans
+// `globalThis.__THRIVE_AUTH_STORAGE__` AVANT le chargement des routes
+// (apps/mobile/index.js). Sans lui, la session ne survivrait pas à une relance.
+const authStorage = (globalThis as { __THRIVE_AUTH_STORAGE__?: unknown })
+  .__THRIVE_AUTH_STORAGE__ as
+  | { getItem(k: string): Promise<string | null>; setItem(k: string, v: string): Promise<void>; removeItem(k: string): Promise<void> }
+  | undefined;
+
 export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   global: { fetch: fetchWithTimeout },
   auth: {
+    ...(authStorage ? { storage: authStorage } : {}),
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,

@@ -91,7 +91,7 @@ export function SubscriptionSettings() {
       {!ent.isLoading && !ent.isSubscribed && (
         <>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.action} onPress={() => router.push('/abonnement')} accessibilityRole="button">
+          <TouchableOpacity style={styles.action} onPress={() => router.push('/(parent)/abonnement')} accessibilityRole="button">
             <Text style={styles.actionText}>Découvrir l’abonnement</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>

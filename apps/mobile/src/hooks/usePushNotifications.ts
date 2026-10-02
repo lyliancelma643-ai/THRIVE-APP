@@ -21,9 +21,11 @@ export function usePushNotifications(userId?: string) {
   const [expoPushToken, setExpoPushToken] = useState<string | undefined>();
   const [notification, setNotification] = useState<Notifications.Notification | undefined>();
   const notificationListener = useRef<EventSubscription | null>(null);
-  const responseListener = useRef<EventSubscription | null>(null);
 
   useEffect(() => {
+    // Pas de demande de permission avant la connexion (Apple 5.1.2 : jamais
+    // exigée, et demandée au moment où elle a du sens).
+    if (!userId) return;
     registerForPushNotificationsAsync().then(async (token) => {
       setExpoPushToken(token);
 
@@ -41,14 +43,10 @@ export function usePushNotifications(userId?: string) {
       setNotification(received);
     });
 
-    // Écouteur quand l'utilisateur tape sur la notification
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(() => {
-      // TODO: Logique de navigation selon le type de notification (ex: router.push('/messages'))
-    });
+    // La navigation à l'ouverture d'une notification est gérée par le layout racine.
 
     return () => {
       notificationListener.current?.remove();
-      responseListener.current?.remove();
     };
   }, [userId]);
 

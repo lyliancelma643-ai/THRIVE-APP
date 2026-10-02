@@ -1,7 +1,6 @@
 # CI THRIVE — garde-fou avant le déploiement Vercel (auto sur main).
 # Périmètre : ce qui part en prod (packages/shared + apps/web).
-# L'app mobile Expo (non déployée) est volontairement hors CI tant que sa
-# résolution de types n'est pas stabilisée — la réintégrer le moment venu.
+# L'app mobile Expo est vérifiée par son typecheck (le build natif passe par EAS).
 name: CI
 
 on:
@@ -37,6 +36,10 @@ jobs:
 
       - name: Typecheck web
         run: pnpm --filter web typecheck
+
+      # App mobile Expo (soumise aux stores) : racine des routes = src/app.
+      - name: Typecheck mobile
+        run: pnpm --filter mobile typecheck
 
       - name: Lint web
         run: pnpm --filter web lint

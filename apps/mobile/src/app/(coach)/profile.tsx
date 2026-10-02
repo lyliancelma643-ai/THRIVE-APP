@@ -2,6 +2,7 @@ import { View, Text, Pressable, ScrollView } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
 import { useRouter } from 'expo-router';
 import { AccountPrivacySection } from '../../components/AccountPrivacySection';
+import { HealthNotice } from '../../components/HealthNotice';
 
 export default function CoachProfileScreen() {
   const { user, signOut } = useAuthStore();
@@ -28,8 +29,17 @@ export default function CoachProfileScreen() {
           <Text className="text-gray-500 text-sm">Email</Text>
           <Text className="font-semibold text-base">{user?.email ?? '—'}</Text>
         </View>
+        <Pressable
+          className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4 flex-row justify-between"
+          onPress={() => router.push('/(coach)/notifications')}
+          accessibilityRole="button"
+        >
+          <Text className="text-base">Notifications</Text>
+          <Text className="text-gray-400 text-lg">›</Text>
+        </Pressable>
+        <HealthNotice />
         <AccountPrivacySection />
-        <Pressable className="bg-black rounded-2xl py-4 items-center" onPress={handleSignOut}>
+        <Pressable className="bg-black rounded-2xl py-4 items-center mb-12" onPress={handleSignOut}>
           <Text className="text-white font-semibold">Se déconnecter</Text>
         </Pressable>
       </View>
