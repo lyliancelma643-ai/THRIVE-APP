@@ -44,6 +44,7 @@ const NAV_SECTIONS: { title: string; items: NavItem[] }[] = [
     title: 'Personnes',
     items: [
       { href: '/admin/users', label: 'Comptes', icon: 'user' },
+      { href: '/admin/suppressions', label: 'Suppressions', short: 'Suppr.', icon: 'timer' },
       { href: '/admin/coaches', label: 'Coaches', icon: 'target' },
       { href: '/admin/families', label: 'Familles', icon: 'users' },
       { href: '/admin/children', label: 'Enfants', icon: 'child' },

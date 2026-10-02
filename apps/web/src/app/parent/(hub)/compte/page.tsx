@@ -15,6 +15,8 @@ import {
   type DeletionRequest,
 } from '@/lib/account';
 import { formatDateFr } from '@/lib/billing';
+import { dueDate } from '@/lib/deletion-requests';
+import { PRIVACY_CONTACT } from '@/lib/legal-entity';
 
 const ROLE_LABELS: Record<string, string> = {
   PARENT: 'Parent',
@@ -277,7 +279,7 @@ function MyData({ userId, email }: { userId: string; email: string }) {
 
       <p className="text-sm text-soft leading-relaxed">
         Télécharge une copie de tes données et de celles de ta famille (profil, enfants, séances,
-        bilans, messages) au format JSON.
+        bilans, messages) dans un format structuré et couramment utilisé (JSON).
       </p>
       <button
         onClick={doExport}
@@ -288,19 +290,42 @@ function MyData({ userId, email }: { userId: string; email: string }) {
       </button>
       {exportError && <p role="alert" className="text-sm text-danger-ink mt-2">{exportError}</p>}
 
+      <p className="text-xs text-faint mt-4 leading-relaxed">
+        Pour corriger une information, retirer un consentement ou poser une question sur tes
+        données :{' '}
+        {PRIVACY_CONTACT.email ? (
+          <a href={`mailto:${PRIVACY_CONTACT.email}`} className="font-semibold underline underline-offset-2">
+            {PRIVACY_CONTACT.email}
+          </a>
+        ) : (
+          'le support THRIVE depuis la messagerie'
+        )}
+        {PRIVACY_CONTACT.officer ? ` (${PRIVACY_CONTACT.officer}, ${PRIVACY_CONTACT.title})` : ''}. Voir la{' '}
+        <Link href="/legal/confidentialite" className="font-semibold underline underline-offset-2">
+          politique de confidentialité
+        </Link>
+        .
+      </p>
+
       <div className="mt-6 pt-5 border-t border-line">
         <h3 className="text-sm font-semibold text-ink mb-1">Supprimer mon compte</h3>
         {pending ? (
           <p role="status" className="text-sm text-body leading-relaxed">
-            Ta demande de suppression du {formatDateFr(pending.requested_at)} est enregistrée.
-            L&apos;équipe THRIVE supprime ton compte et les données de ta famille, puis te le
-            confirme à {email}.
+            Ta demande de suppression du {formatDateFr(pending.requested_at)} est enregistrée. Ton
+            compte et les données de ta famille seront supprimés au plus tard le{' '}
+            <strong>{formatDateFr(dueDate(pending).toISOString())}</strong> (30 jours, comme le
+            prévoit la Loi 25), et nous te le confirmerons à {email}. Pour retirer ta demande,
+            écris au support depuis la{' '}
+            <Link href="/parent/messages" className="font-semibold underline underline-offset-2">
+              messagerie
+            </Link>
+            .
           </p>
         ) : !confirming ? (
           <>
             <p className="text-xs text-soft leading-relaxed mb-3">
-              Ton compte, les profils de tes enfants, leurs bilans et vos messages seront
-              définitivement effacés.
+              Ton compte, les profils de tes enfants, leurs bilans, vos messages et vos moments
+              Maison seront définitivement effacés, dans un délai maximal de 30 jours.
             </p>
             <button
               onClick={() => setConfirming(true)}
@@ -312,9 +337,12 @@ function MyData({ userId, email }: { userId: string; email: string }) {
         ) : (
           <div className="rounded-xl border border-red-500/30 bg-red-500/[0.06] p-4">
             <p className="text-sm text-body leading-relaxed">
-              Cette action est <strong>définitive</strong>. Un abonnement Maison pris sur le web
-              est arrêté avec le compte ; un abonnement pris sur iPhone ou Android s&apos;annule
-              depuis les réglages du téléphone.
+              Cette action est <strong>définitive</strong>. Si tu es titulaire du compte famille,
+              la famille entière est supprimée (le co-parent garde son propre compte, sans accès
+              aux enfants). Un abonnement Maison pris sur le web est arrêté avec le compte ; un
+              abonnement pris sur iPhone ou Android s&apos;annule depuis les réglages du
+              téléphone. Les factures restent conservées par notre prestataire de paiement, comme
+              l&apos;exige la loi.
             </p>
             <label className="block mt-3">
               <span className="block text-xs font-medium text-soft mb-1.5">

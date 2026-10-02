@@ -1120,11 +1120,37 @@ export function makeFunctions(db) {
       subject: { user_id: me?.id ?? null },
       data: { families: db.families.filter((f) => f.parent_id === me?.id) },
     }),
+    // Même comportement que la migration 067 : échéance 30 jours, adresse figée,
+    // responsable = super-admin actif le plus ancien.
     'request-account-deletion': (b, me) => {
-      db.deletion_requests ??= [];
-      const request = { id: `del-${db.deletion_requests.length + 1}`, status: 'PENDING', requested_at: new Date().toISOString() };
-      db.deletion_requests.push({ ...request, requested_by: me?.id, target_profile_id: me?.id, reason: b?.reason ?? null });
+      const existing = db.deletion_requests.find((d) => d.target_profile_id === me?.id && d.status === 'PENDING');
+      if (existing) return { message: 'Une demande de suppression est déjà en attente.', request: existing };
+      const profile = db.profiles.find((p) => p.id === me?.id);
+      const owner = db.profiles.filter((p) => p.role === 'SUPER_ADMIN').sort((a, c) => String(a.created_at).localeCompare(String(c.created_at)))[0];
+      const requested_at = new Date().toISOString();
+      const request = {
+        id: `00000000-0000-4000-e000-${String(db.deletion_requests.length + 1).padStart(12, '0')}`,
+        status: 'PENDING',
+        requested_at,
+        due_at: new Date(Date.parse(requested_at) + 30 * 86_400_000).toISOString(),
+        requested_by: me?.id,
+        target_profile_id: me?.id,
+        target_email: profile?.email ?? null,
+        target_name: profile ? `${profile.first_name ?? ''} ${profile.last_name ?? ''}`.trim() : null,
+        assigned_to: owner?.id ?? null,
+        reason: b?.reason ?? null,
+        processed_at: null,
+        resolution_note: null,
+        store_subscription: null,
+      };
+      db.deletion_requests.push(request);
       return { success: true, request };
+    },
+    // Suppression définitive (super-admin) : la demande est close, la trace reste.
+    'admin-delete-user': (b, me) => {
+      const r = db.deletion_requests.find((d) => d.id === b?.requestId);
+      if (r) Object.assign(r, { status: 'PURGED', target_profile_id: null, processed_at: new Date().toISOString(), processed_by: me?.id });
+      return { ok: true, deletedEmail: r?.target_email ?? null, storeSubscription: null };
     },
   };
 }

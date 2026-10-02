@@ -6,7 +6,8 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
-import { LegalNotice } from '@/components/LegalNotice';
+import Link from 'next/link';
+import { CONSENT_POLICY_VERSION, SIGNUP_CONSENTS } from '@/lib/legal';
 import { humanAuthError } from '@/lib/auth-errors';
 import {
   CHILD_MAX_AGE,
@@ -74,6 +75,9 @@ export default function LoginPage() {
     firstName: '', lastName: '', email: '', password: '',
   });
   const [childRows, setChildRows] = useState<ChildRow[]>([{ ...EMPTY_CHILD }]);
+  // Consentement exprès (Loi 25, art. 4.1 et 12) : CGU, confidentialité et
+  // renseignements sensibles de l'enfant (questionnaires de bien-être).
+  const [consent, setConsent] = useState(false);
 
   // Réinitialisation du mot de passe
   const [forgotEmail, setForgotEmail] = useState('');
@@ -170,6 +174,10 @@ export default function LoginPage() {
       setError('Le mot de passe doit faire au moins 8 caractères');
       return;
     }
+    if (!consent) {
+      setError('Coche la case de consentement pour créer ton compte.');
+      return;
+    }
     // Lignes vides ignorées ; une ligne à moitié remplie (prénom sans âge…) est
     // signalée au lieu d'être écartée en silence. Âge strictement 8–17 ans.
     const { children, error: childError } = validateChildRows(childRows);
@@ -187,7 +195,14 @@ export default function LoginPage() {
         email: mail.trim(),
         password: pwd,
         options: {
-          data: { firstName: firstName.trim(), lastName: lastName.trim(), role: 'PARENT' },
+          data: {
+            firstName: firstName.trim(),
+            lastName: lastName.trim(),
+            role: 'PARENT',
+            // Trace du consentement aussi dans le compte (repli si l'insertion ci-dessous échoue).
+            consentVersion: CONSENT_POLICY_VERSION,
+            consentAt: new Date().toISOString(),
+          },
         },
       });
       if (upErr) throw upErr;
@@ -202,6 +217,22 @@ export default function LoginPage() {
       setSubmitting(false);
       return;
     }
+
+    // Registre des consentements (preuve datée, par finalité). Best effort :
+    // la version du consentement est déjà dans les métadonnées du compte.
+    const consentAt = new Date().toISOString();
+    await supabase
+      .from('consents')
+      .insert(
+        SIGNUP_CONSENTS.map((purpose) => ({
+          profile_id: userId,
+          purpose,
+          policy_version: CONSENT_POLICY_VERSION,
+          granted: true,
+          granted_at: consentAt,
+        }))
+      )
+      .then(() => undefined, () => undefined);
 
     // ── Étape best-effort : famille + enfants déclarés à l'inscription. ──
     // Si elle échoue, le compte est DÉJÀ créé et la session active : on emmène
@@ -542,7 +573,28 @@ export default function LoginPage() {
               >
                 {submitting ? (<><ButtonSpinner light={false} />Création du compte…</>) : 'Créer mon compte parent'}
               </button>
-              <LegalNotice action="En créant ton compte" className="text-navy-700" />
+              <label className="flex items-start gap-3 rounded-2xl bg-white/60 p-3 text-xs leading-relaxed text-navy-800">
+                <input
+                  type="checkbox"
+                  required
+                  checked={consent}
+                  onChange={(e) => setConsent(e.target.checked)}
+                  className="mt-0.5 w-5 h-5 shrink-0 accent-navy-600"
+                />
+                <span>
+                  J&apos;accepte les{' '}
+                  <Link href="/legal/conditions" target="_blank" className="font-bold underline underline-offset-2">
+                    conditions d&apos;utilisation
+                  </Link>{' '}
+                  et la{' '}
+                  <Link href="/legal/confidentialite" target="_blank" className="font-bold underline underline-offset-2">
+                    politique de confidentialité
+                  </Link>
+                  . Comme titulaire de l&apos;autorité parentale, je consens à ce que THRIVE recueille les
+                  renseignements de mon enfant décrits dans la politique, y compris ses réponses aux
+                  questionnaires de bien-être.
+                </span>
+              </label>
               <p className="text-[11px] text-navy-700 text-center">
                 Compte actif immédiatement — aucun email de validation requis.
               </p>

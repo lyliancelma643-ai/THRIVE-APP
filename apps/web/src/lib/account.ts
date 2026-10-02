@@ -12,7 +12,13 @@
 
 import { supabaseClient as supabase } from '@thrive/shared';
 
-export type DeletionRequest = { id: string; status: string; requested_at: string };
+export type DeletionRequest = {
+  id: string;
+  status: string;
+  requested_at: string;
+  /** Échéance légale (réception + 30 jours), posée en base par la migration 067. */
+  due_at?: string | null;
+};
 
 /** Nom du fichier d'export : thrive-mes-donnees-AAAA-MM-JJ.json (date locale). */
 export function exportFileName(now = new Date()): string {
@@ -43,7 +49,7 @@ export async function downloadMyData(): Promise<void> {
 export async function fetchPendingDeletion(userId: string): Promise<DeletionRequest | null> {
   const { data } = await supabase
     .from('deletion_requests')
-    .select('id, status, requested_at')
+    .select('*')
     .eq('target_profile_id', userId)
     .eq('status', 'PENDING')
     .maybeSingle();

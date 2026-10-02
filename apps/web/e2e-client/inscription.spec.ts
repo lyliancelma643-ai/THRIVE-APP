@@ -14,6 +14,7 @@ test.describe('Inscription parent', () => {
     await page.getByLabel("Prénom de l'enfant 1").fill('Zoé');
     await page.getByLabel("Âge de l'enfant 1").fill('10');
     await page.getByLabel("Sport de l'enfant 1").selectOption('Natation');
+    await page.getByRole('checkbox', { name: /J'accepte les conditions/ }).check();
     await page.getByRole('button', { name: 'Créer mon compte parent' }).click();
 
     await expect(page).toHaveURL(/\/parent\/bilans/);
@@ -28,6 +29,7 @@ test.describe('Inscription parent', () => {
     await page.getByLabel('Email', { exact: true }).fill(`lou.${Date.now()}@test.thrive`);
     await page.getByLabel('Mot de passe (min. 8 caractères)').fill(PASSWORD);
     await page.getByLabel("Prénom de l'enfant 1").fill('Noah');
+    await page.getByRole('checkbox', { name: /J'accepte les conditions/ }).check();
     await page.getByRole('button', { name: 'Créer mon compte parent' }).click();
 
     await expect(page.locator('main [role=alert]')).toHaveText("Indique l'âge de Noah.");
@@ -44,10 +46,25 @@ test.describe('Inscription parent', () => {
     await page.getByLabel("Prénom de l'enfant 1").fill('Noah');
     const age = page.getByLabel("Âge de l'enfant 1");
     await age.fill('6');
+    await page.getByRole('checkbox', { name: /J'accepte les conditions/ }).check();
     await page.getByRole('button', { name: 'Créer mon compte parent' }).click();
     // Bloqué avant tout appel réseau par la validation du champ (min = 8).
     expect(await age.evaluate((el: HTMLInputElement) => el.validity.rangeUnderflow)).toBe(true);
     await expect(page).toHaveURL(/\/login/);
+  });
+
+  test('sans consentement, le compte n’est pas créé', async ({ page }) => {
+    await page.goto('/login');
+    await page.getByRole('button', { name: 'Créer un compte' }).click();
+    await page.getByLabel('Prénom', { exact: true }).fill('Lou');
+    await page.getByLabel('Nom', { exact: true }).fill('Roy');
+    await page.getByLabel('Email', { exact: true }).fill(`lou3.${Date.now()}@test.thrive`);
+    await page.getByLabel('Mot de passe (min. 8 caractères)').fill(PASSWORD);
+    const consent = page.getByRole('checkbox', { name: /J'accepte les conditions/ });
+    await page.getByRole('button', { name: 'Créer mon compte parent' }).click();
+    expect(await consent.evaluate((el: HTMLInputElement) => el.validity.valueMissing)).toBe(true);
+    await expect(page).toHaveURL(/\/login/);
+    await expect(page.getByRole('link', { name: 'politique de confidentialité' })).toHaveAttribute('href', '/legal/confidentialite');
   });
 
   test('mauvais mot de passe : message en français', async ({ page }) => {

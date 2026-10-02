@@ -12,6 +12,9 @@
 //   - Interdiction de se supprimer soi-même et de supprimer un SUPER_ADMIN.
 //   - Les FK RESTRICT (programs.coach_id, reports.generated_by) font échouer
 //     proprement la suppression d'un coach encore titulaire → message clair.
+//   - Demande de suppression (requestId, page /admin/suppressions) : vérifiée
+//     AVANT (en attente, même compte), close APRÈS (PURGED, traitant, store
+//     encore actif). La ligne survit à la suppression (migration 067).
 //   - Facturation P3 : l'abonnement Stripe est annulé et l'abonné RevenueCat
 //     supprimé AVANT la suppression (voir billing_cleanup.ts). Si Stripe ne
 //     peut pas être annulé, le compte n'est PAS supprimé.
@@ -60,7 +63,7 @@ Deno.serve(withSentry("admin-delete-user", async (req: Request) => {
       return json({ error: "Réservé au Super Admin" }, 403);
     }
 
-    const { userId } = await req.json().catch(() => ({}));
+    const { userId, requestId } = await req.json().catch(() => ({}));
     if (!userId || typeof userId !== "string") {
       return json({ error: "userId manquant" }, 400);
     }
@@ -72,6 +75,21 @@ Deno.serve(withSentry("admin-delete-user", async (req: Request) => {
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     );
+
+    // Demande de suppression traitée depuis /admin/suppressions
+    if (requestId !== undefined) {
+      if (typeof requestId !== "string") return json({ error: "requestId invalide" }, 400);
+      const { data: request } = await admin
+        .from("deletion_requests")
+        .select("id, status, target_profile_id")
+        .eq("id", requestId)
+        .maybeSingle();
+      if (!request) return json({ error: "Demande introuvable" }, 404);
+      if (request.status !== "PENDING") return json({ error: "Demande déjà traitée" }, 409);
+      if (request.target_profile_id !== userId) {
+        return json({ error: "La demande ne correspond pas à ce compte" }, 400);
+      }
+    }
 
     // Cible : jamais un SUPER_ADMIN
     const { data: target, error: targetErr } = await admin.auth.admin.getUserById(userId);
@@ -114,6 +132,20 @@ Deno.serve(withSentry("admin-delete-user", async (req: Request) => {
           "programmes ou auteur de rapports). Réassigne ou supprime d'abord ces éléments."
         : delErr.message;
       return json({ error: msg }, 409);
+    }
+
+    if (typeof requestId === "string") {
+      const { error: closeErr } = await admin
+        .from("deletion_requests")
+        .update({
+          status: "PURGED",
+          processed_by: user.id,
+          processed_at: new Date().toISOString(),
+          store_subscription: cleanup.storeSubscription ?? null,
+        })
+        .eq("id", requestId);
+      // Le compte est supprimé : on le signale sans échouer, la demande se clôt à la main.
+      if (closeErr) await captureError(closeErr);
     }
 
     return json({

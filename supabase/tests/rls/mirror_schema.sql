@@ -386,3 +386,54 @@ insert into public.plans (code, features, limits) values
   ('AVANCE', '{}', '{"maxChildren": 2, "maxParents": 2, "detailLevel": 2}'),
   ('PERFORMANCE', '{}', '{"detailLevel": 3}');
 insert into public.app_settings (key, enabled) values ('fitness_enabled', true), ('p3_enabled', true);
+
+-- ── Notifications admin + trigger des demandes de suppression (production) ──
+create table public.admin_notification_prefs (
+  user_id uuid primary key references public.profiles(id) on delete cascade,
+  enabled boolean default true, include_self boolean default false, categories text[]
+);
+create function private.actor_label(p_user uuid) returns text language sql stable security definer set search_path = public as $$
+  select coalesce((
+    select coalesce(nullif(btrim(coalesce(first_name, '') || ' ' || coalesce(last_name, '')), ''), split_part(email, '@', 1))
+    from public.profiles where id = p_user), 'Quelqu''un');
+$$;
+create function private.notify_admins(p_event text, p_category text, p_title text, p_body text, p_path text,
+  p_data jsonb, p_actor uuid, p_targets uuid[] default null, p_exclude uuid[] default null,
+  p_super_only boolean default false, p_type text default 'ADMIN_ALERT')
+returns integer language plpgsql security definer set search_path = public as $$
+declare
+  v_actor uuid := coalesce(p_actor, auth.uid());
+  v_sent  integer := 0;
+  r       record;
+begin
+  for r in
+    select p.id, coalesce(pr.enabled, true) as enabled, coalesce(pr.include_self, false) as include_self, pr.categories as categories
+    from public.profiles p left join public.admin_notification_prefs pr on pr.user_id = p.id
+    where p.role in ('ADMIN', 'SUPER_ADMIN') and coalesce(p.is_active, true)
+      and (not p_super_only or p.role = 'SUPER_ADMIN')
+      and (p_targets is null or p.id = any(p_targets))
+      and (p_exclude is null or not (p.id = any(p_exclude)))
+  loop
+    continue when not r.enabled;
+    continue when r.categories is not null and not (p_category = any(r.categories));
+    continue when v_actor is not null and r.id = v_actor and not r.include_self;
+    insert into public.notifications (user_id, type, title, body, data)
+    values (r.id, p_type::public.notification_type, p_title, p_body,
+      coalesce(p_data, '{}'::jsonb) || jsonb_build_object('event', p_event, 'category', p_category)
+        || case when v_actor is not null then jsonb_build_object('actor_id', v_actor) else '{}'::jsonb end
+        || case when p_path is not null then jsonb_build_object('path', p_path) else '{}'::jsonb end);
+    v_sent := v_sent + 1;
+  end loop;
+  return v_sent;
+exception when others then
+  return v_sent;
+end $$;
+create function private.notify_deletion_request() returns trigger language plpgsql security definer set search_path = public as $$
+begin
+  perform private.notify_admins('deletion_request', 'accounts', 'Demande de suppression de compte',
+    private.actor_label(coalesce(new.target_profile_id, new.requested_by)) || ' demande la suppression de son compte.',
+    '/admin/users', jsonb_build_object('request_id', new.id, 'target_profile_id', new.target_profile_id), null);
+  return new;
+end $$;
+create trigger trg_deletion_requests_notify_admins after insert on public.deletion_requests
+  for each row execute function private.notify_deletion_request();

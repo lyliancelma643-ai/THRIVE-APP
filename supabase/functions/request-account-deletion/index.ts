@@ -31,7 +31,7 @@ Deno.serve(withSentry("request-account-deletion", async (req: Request) => {
     const reason: string | null = body?.reason ?? null;
     const { data: existing } = await supa
       .from("deletion_requests")
-      .select("id, status, requested_at")
+      .select("*")
       .eq("target_profile_id", user.id)
       .eq("status", "PENDING")
       .maybeSingle();
@@ -41,7 +41,7 @@ Deno.serve(withSentry("request-account-deletion", async (req: Request) => {
     const { data: inserted, error: insErr } = await supa
       .from("deletion_requests")
       .insert({ requested_by: user.id, target_profile_id: user.id, reason })
-      .select("id, status, requested_at")
+      .select("*")
       .single();
     if (insErr) return json({ error: insErr.message }, 400);
     return json({ success: true, request: inserted, message: "Demande de suppression enregistrée." }, 201);
