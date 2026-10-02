@@ -14,6 +14,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { claimCertificateReward } from '@/lib/reward-grant';
 import { supabaseClient as supabase } from '@thrive/shared';
 import {
   bandForAge,
@@ -240,6 +241,9 @@ export function useP3Moments(childId: string | null, dateOfBirth: string | null,
           supabase.from('p3_rewards').insert({ child_id: childId, reward_id: id, payload })
         );
         if (!saved) appendLocal('p3_rewards', childId, reward);
+        // Certificat : « 1 mois offert » appliqué par le serveur (la base le
+        // déclenche aussi ; appel idempotent, sans attendre la réponse).
+        if (saved && id === 'certificat') claimCertificateReward(childId).catch(() => undefined);
         newRows.push(reward);
       }
       sealedAtRef.current = null;

@@ -14,13 +14,17 @@
 //     expirées (deux onglets ne peuvent pas créer deux abonnements).
 //   • Client Stripe unique par compte, réutilisé (portail client, cartes).
 //   • success_url / cancel_url ramènent sur /parent/abonnement (origine filtrée).
+//   • « 1 mois offert » du Certificat Maison réservé (reward_grants PENDING,
+//     famille du parent) : posé en remise sur la session ; le webhook le marque
+//     appliqué au paiement. Stripe interdit alors les codes promo dans la même session.
 //
 // verify_jwt: true · rôle : PARENT.
 // Secrets : STRIPE_SECRET_KEY, APP_ORIGINS (optionnel).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
-import { adminClient, authUser, corsHeaders, env, fail, json, stripe, StripeError } from "../_shared/billing.ts";
+import { adminClient, authUser, corsHeaders, ensureAmountCoupon, env, fail, json, stripe, StripeError } from "../_shared/billing.ts";
+import { CERTIFICATE_COUPON_NAME, CERTIFICATE_REWARD_ID, couponIdFor } from "../_shared/reward_core.ts";
 import {
   isPlanCode,
   parseOrigins,
@@ -109,17 +113,40 @@ Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
       }
     }
 
+    // Crédit du certificat réservé pour la famille (titulaire ou co-parent).
+    const { data: owned } = await admin.from("families").select("id").eq("parent_id", user.id);
+    const { data: joined } = await admin
+      .from("family_members").select("family_id").eq("profile_id", user.id).in("member_role", ["OWNER", "PARENT"]);
+    const familyIds = [...new Set([...(owned ?? []).map((f) => f.id), ...(joined ?? []).map((m) => m.family_id)])];
+    let rewardGrantId: string | null = null;
+    let couponId: string | null = null;
+    if (familyIds.length) {
+      const { data: grant } = await admin
+        .from("reward_grants")
+        .select("id, amount_minor, currency")
+        .in("family_id", familyIds)
+        .eq("reward_id", CERTIFICATE_REWARD_ID)
+        .eq("status", "PENDING")
+        .limit(1)
+        .maybeSingle();
+      if (grant?.amount_minor && grant.currency) {
+        couponId = couponIdFor(grant.amount_minor, grant.currency);
+        await ensureAmountCoupon(couponId, grant.amount_minor, grant.currency, CERTIFICATE_COUPON_NAME);
+        rewardGrantId = grant.id;
+      }
+    }
+
     const session = await stripe<{ id: string; url: string }>("POST", "/checkout/sessions", {
       mode: "subscription",
       customer: customerId,
       client_reference_id: user.id,
       line_items: [{ price: priceId, quantity: 1 }],
       payment_method_collection: "always",
-      allow_promotion_codes: true,
+      ...(couponId ? { discounts: [{ coupon: couponId }] } : { allow_promotion_codes: true }),
       locale: "fr-CA",
       billing_address_collection: "auto",
       customer_update: { address: "auto", name: "auto" },
-      metadata: { app_user_id: user.id, plan },
+      metadata: { app_user_id: user.id, plan, ...(rewardGrantId ? { reward_grant_id: rewardGrantId } : {}) },
       subscription_data: {
         metadata: { app_user_id: user.id, plan },
         ...(trialEligible

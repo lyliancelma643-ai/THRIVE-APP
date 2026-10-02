@@ -159,3 +159,19 @@ export async function syncFromRevenueCat(admin: SupabaseClient, appUserId: strin
   if (error) throw new Error(`billing_subscriptions: ${error.message}`);
   return { ...status, ever_subscribed: status.ever_subscribed || existing?.ever_subscribed === true };
 }
+
+/** Coupon « once » à montant fixe : créé s'il n'existe pas (identifiant déterministe). */
+export async function ensureAmountCoupon(id: string, amountMinor: number, currency: string, name: string): Promise<void> {
+  try {
+    await stripe("GET", `/coupons/${id}`);
+  } catch (e) {
+    if (!(e instanceof StripeError) || e.status !== 404) throw e;
+    await stripe("POST", "/coupons", {
+      id,
+      amount_off: amountMinor,
+      currency,
+      duration: "once",
+      name,
+    }, `coupon-${id}`);
+  }
+}

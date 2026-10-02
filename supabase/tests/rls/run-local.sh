@@ -34,3 +34,4 @@ run() { # $1 = nom du test, $2… = migrations à appliquer
 
 run 066_coparent_access 20261002_066_coparent_access.sql
 run 067_deletion_requests_workflow 20261002_067_deletion_requests_workflow.sql
+run 068_certificate_reward_grants 20261002_066_coparent_access.sql 20261002_068_certificate_reward_grants.sql

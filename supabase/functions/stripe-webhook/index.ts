@@ -59,6 +59,17 @@ Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
           { onConflict: "user_id" },
         );
       }
+      // « 1 mois offert » du certificat utilisé à ce paiement (create-checkout-session).
+      const rewardGrantId = object?.metadata?.reward_grant_id;
+      if (isUuid(rewardGrantId)) {
+        await admin.from("reward_grants").update({
+          status: "APPLIED",
+          channel: "checkout",
+          stripe_checkout_session_id: object.id ?? null,
+          stripe_subscription_id: typeof object.subscription === "string" ? object.subscription : null,
+          applied_at: new Date().toISOString(),
+        }).eq("id", rewardGrantId).eq("status", "PENDING");
+      }
       if (object.subscription) await rcPostStripeReceipt(appUserId, object.subscription);
       await syncFromRevenueCat(admin, appUserId);
       return json({ received: true });

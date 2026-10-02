@@ -11,10 +11,32 @@ import { RewardView } from '@/components/parent/p3/RewardView';
 import { readLocalJSON } from '@/components/parent/p3/session';
 import type { RewardId } from '@/lib/p3-moments';
 import { P3_BASE } from '@/lib/p3-moments/app';
+import { claimCertificateReward, fetchCertificateGrant, grantMessage } from '@/lib/reward-grant';
 
 function ObjetInner({ ctx, id }: { ctx: P3Ctx; id: string }) {
   const row = ctx.data.rewardRows.find((r) => r.reward_id === id);
   const [bilan4Pending, setBilan4Pending] = useState(false);
+  const [bonusNote, setBonusNote] = useState<string | null>(null);
+
+  // Certificat : état réel du « 1 mois offert ». Pas encore appliqué → on relance
+  // la réclamation (idempotente) puis on relit l'état.
+  const familyId = ctx.child.family_id;
+  const isCertificate = id === 'certificat' && Boolean(row) && Boolean(familyId);
+  useEffect(() => {
+    if (!isCertificate) return;
+    let alive = true;
+    (async () => {
+      let grant = await fetchCertificateGrant(familyId).catch(() => null);
+      if (!grant || grant.status === 'FAILED' || (grant.status === 'PENDING' && grant.channel !== 'deferred')) {
+        await claimCertificateReward(ctx.child.id).catch(() => undefined);
+        grant = await fetchCertificateGrant(familyId).catch(() => null);
+      }
+      if (alive) setBonusNote(grantMessage(grant));
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [isCertificate, familyId, ctx.child.id]);
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
@@ -35,6 +57,7 @@ function ObjetInner({ ctx, id }: { ctx: P3Ctx; id: string }) {
             earnedAt={row.earned_at}
             firstName={ctx.firstName}
             bilan4Pending={bilan4Pending}
+            bonusNote={bonusNote}
           />
         ) : (
           <div className="py-12">

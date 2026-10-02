@@ -129,6 +129,7 @@ export function RewardView({
   earnedAt,
   firstName,
   compact = false,
+  bonusNote = null,
   bilan4Pending = false,
 }: {
   id: RewardId;
@@ -136,6 +137,8 @@ export function RewardView({
   earnedAt: string;
   firstName: string;
   compact?: boolean;
+  /** Certificat : état réel du « 1 mois offert » (reward_grants). */
+  bonusNote?: string | null;
   /** Bilan de mi-parcours : rappeler les 3 questions à 4 semaines si elles n'ont pas été remplies. */
   bilan4Pending?: boolean;
 }) {
@@ -187,10 +190,15 @@ export function RewardView({
           </div>
           {keep.length > 0 && <p className="mt-6 font-display text-[20px] text-ink">« {keep[0]} »</p>}
           <p className="mt-6 text-[14px] text-soft">{formatFullDate(earnedAt)}</p>
-          {/* TODO(facturation) : l'application réelle du « 1 mois offert » dépend de la facturation P3, hors périmètre. */}
+          {/* Appliqué par claim-certificate-reward (coupon Stripe, crédit réservé ou remise store). */}
           <p className="mt-4 inline-block rounded-full bg-accent text-accent-on px-4 py-1.5 text-[14px] font-bold">
             {REWARDS.find((r) => r.id === 'certificat')?.bonus}
           </p>
+          {bonusNote && (
+            <p role="status" className="p3-noprint mt-2 text-[14px] text-soft text-pretty">
+              {bonusNote}
+            </p>
+          )}
           <span aria-hidden className="maison-star w-[62px] h-[62px] mx-auto mt-6">
             <Icon name="star" className="w-[30px] h-[30px]" strokeWidth={1.7} fill="currentColor" />
           </span>
