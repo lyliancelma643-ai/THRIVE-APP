@@ -52,6 +52,8 @@ export const PERSONAS = {
   coach: { id: U(20), email: 'marc.lefebvre@demo.thrive', role: 'COACH', firstName: 'Marc', lastName: 'Lefebvre' },
   admin: { id: U(30), email: 'claire.dubois@demo.thrive', role: 'ADMIN', firstName: 'Claire', lastName: 'Dubois' },
   'super-admin': { id: U(31), email: 'alex.pelletier@demo.thrive', role: 'SUPER_ADMIN', firstName: 'Alex', lastName: 'Pelletier' },
+  // Co-parent de la famille Tremblay (invité par Julie) : family_members PARENT.
+  'co-parent': { id: U(10), email: 'mathieu.tremblay@demo.thrive', role: 'PARENT', firstName: 'Mathieu', lastName: 'Tremblay' },
 };
 
 const extraParents = [
@@ -174,6 +176,7 @@ export function buildDb() {
   for (const [n, f, l, sp] of extraCoaches) addProfile(n, f, l, 'COACH', { speciality: sp });
   addProfile(30, 'Claire', 'Dubois', 'ADMIN');
   addProfile(31, 'Alex', 'Pelletier', 'SUPER_ADMIN');
+  addProfile(10, 'Mathieu', 'Tremblay', 'PARENT', { coach_validated: false });
 
   const families = [
     { id: F(1), name: 'Famille Tremblay', parent_id: U(1), pack: 'PERFORMANCE', city: 'Laval', province: 'QC', created_at: daysAgo(110, 10) },
@@ -768,7 +771,11 @@ export function buildDb() {
   return {
     profiles,
     families,
-    family_members: families.map((f, i) => ({ id: X(1700 + i), family_id: f.id, user_id: f.parent_id, role: 'PARENT', created_at: f.created_at })),
+    // Colonnes de production : profile_id, member_role (OWNER = titulaire).
+    family_members: [
+      ...families.map((f, i) => ({ id: X(1700 + i), family_id: f.id, profile_id: f.parent_id, member_role: 'OWNER', created_at: f.created_at })),
+      { id: X(1799), family_id: F(1), profile_id: U(10), member_role: 'PARENT', created_at: daysAgo(20, 9) },
+    ],
     children,
     coach_assignments,
     programs,
@@ -909,11 +916,18 @@ export function makeRpc(db) {
     if (me.role !== 'PARENT') {
       return { role: me.role, unlocked: true, has_child: true, has_confirmed_child: true, coach_validated: true, fitness_enabled: true, p3_subscribed: false, p3_access: true };
     }
-    const profile = db.profiles.find((p) => p.id === me.id);
-    const fams = db.families.filter((f) => f.parent_id === me.id).map((f) => f.id);
-    const kids = db.children.filter((c) => fams.includes(c.family_id));
-    const sub = db.billing_subscriptions.find((s) => s.user_id === me.id && s.active);
-    const unlocked = Boolean(profile?.coach_validated) && kids.some((k) => k.validation_status === 'CONFIRMED');
+    // Même règle que la migration 066 : titulaire OU co-parent (family_members
+    // OWNER/PARENT) ; l'activation par le coach est celle du titulaire.
+    const famIds = new Set([
+      ...db.families.filter((f) => f.parent_id === me.id).map((f) => f.id),
+      ...db.family_members.filter((m) => m.profile_id === me.id && ['OWNER', 'PARENT'].includes(m.member_role)).map((m) => m.family_id),
+    ]);
+    const myFams = db.families.filter((f) => famIds.has(f.id));
+    const kids = db.children.filter((c) => famIds.has(c.family_id));
+    const ownerValidated = (f) => Boolean(db.profiles.find((p) => p.id === f.parent_id)?.coach_validated);
+    const sub = db.billing_subscriptions.find((s) => s.active && (s.user_id === me.id || myFams.some((f) => f.parent_id === s.user_id)));
+    const unlocked = myFams.some((f) => ownerValidated(f) && kids.some((k) => k.family_id === f.id && k.validation_status === 'CONFIRMED'));
+    const profile = { coach_validated: myFams.some(ownerValidated) };
     const flag = (key) => db.app_settings.find((s) => s.key === key)?.enabled === true;
     return {
       role: 'PARENT',

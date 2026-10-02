@@ -12,6 +12,7 @@ import {
   type PlanFeature,
   type PlanLimitKey,
 } from './packs';
+import { fetchMyFamilies } from './family';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Droits du forfait courant, exposés à toute l'UI parent (miroir de
@@ -45,12 +46,9 @@ export const usePlanStore = create<PlanStore>((set) => ({
         set({ pack: 'ESSENTIEL', familyId: null, childId: null, isLoading: false });
         return;
       }
-      const { data } = await supabase
-        .from('families')
-        .select('id, pack')
-        .eq('parent_id', user.id)
-        .maybeSingle();
-      set({ pack: asPack(data?.pack), familyId: data?.id ?? null, childId: null, isLoading: false });
+      // Famille du titulaire en priorité, sinon celle rejointe comme co-parent.
+      const fam = (await fetchMyFamilies(user.id))[0] ?? null;
+      set({ pack: asPack(fam?.pack), familyId: fam?.id ?? null, childId: null, isLoading: false });
       return;
     }
     const { data } = await supabase

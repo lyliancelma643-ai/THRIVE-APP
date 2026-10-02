@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { supabaseClient as supabase } from '@thrive/shared';
 import type { ChildProfile } from '@/lib/catalog';
+import { fetchMyFamilies } from '@/lib/family';
 
 type ChildStore = {
   children: ChildProfile[];
@@ -21,12 +22,8 @@ export const useChildStore = create<ChildStore>()(
 
       loadChildren: async (parentId: string) => {
         set({ isLoading: true });
-        const { data: families } = await supabase
-          .from('families')
-          .select('id')
-          .eq('parent_id', parentId);
-
-        const familyIds = (families ?? []).map((f) => f.id);
+        // Titulaire OU co-parent (family_members) : les deux parents voient les enfants.
+        const familyIds = (await fetchMyFamilies(parentId)).map((f) => f.id);
         if (familyIds.length === 0) {
           set({ children: [], isLoading: false });
           return;

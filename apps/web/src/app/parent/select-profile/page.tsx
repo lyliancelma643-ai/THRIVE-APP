@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { PACK_LABELS, asPack, limit as planLimit, type Pack } from '@/lib/packs';
 import { CHILD_MAX_AGE, CHILD_MIN_AGE, SPORT_OPTIONS, ageToDob, childAgeError } from '@/lib/child-form';
+import { fetchMyFamilies } from '@/lib/family';
+import { useAccessStore } from '@/lib/access';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type MemberType = 'PARENT' | 'CHILD';
@@ -53,6 +55,15 @@ export default function SelectProfilePage() {
   const [pack, setPack]                 = useState<Pack>('ESSENTIEL');
   const [childCount, setChildCount]     = useState(0);
   const [memberCount, setMemberCount]   = useState(1);
+  // Titulaire du compte famille ? Seul lui invite d'autres parents (RLS 066).
+  const [isOwner, setIsOwner]           = useState(true);
+  // Un abonnement Maison inclut l'accès pour deux parents (migration 066).
+  const { access, refresh: refreshAccess } = useAccessStore();
+  const p3Subscribed = access?.p3Subscribed === true;
+  const parentLimit = (): number | null => {
+    const max = planLimit(pack, 'maxParents');
+    return max !== null && p3Subscribed ? Math.max(max, 2) : max;
+  };
 
   // Formulaires
   const [parentForm, setParentForm] = useState({
@@ -80,15 +91,15 @@ export default function SelectProfilePage() {
         setStep('form');
       }
 
-      const { data: fam } = await supabase
-        .from('families')
-        .select('id, pack')
-        .eq('parent_id', user.id)
-        .maybeSingle();
+      refreshAccess();
+      // Titulaire OU co-parent : un co-parent ajoute ses enfants dans la famille
+      // existante au lieu d'en créer une seconde.
+      const fam = (await fetchMyFamilies(user.id))[0] ?? null;
 
       if (fam?.id) {
         setFamilyId(fam.id);
         setPack(asPack(fam.pack));
+        setIsOwner(fam.isOwner);
         // Compteurs de quotas (enfants actifs + comptes parents de la famille)
         const [childrenRes, membersRes] = await Promise.all([
           supabase
@@ -107,7 +118,7 @@ export default function SelectProfilePage() {
       setInitLoading(false);
     };
     init();
-  }, [router]);
+  }, [router, refreshAccess]);
 
   // Quota atteint pour ce type de profil ? (null = illimité)
   const quotaBlocked = (type: MemberType): boolean => {
@@ -116,7 +127,7 @@ export default function SelectProfilePage() {
       const max = planLimit(pack, 'maxChildren');
       return max !== null && childCount >= max;
     }
-    const max = planLimit(pack, 'maxParents');
+    const max = parentLimit();
     return max !== null && memberCount >= max;
   };
 
@@ -308,23 +319,29 @@ export default function SelectProfilePage() {
             {([
               { type: 'PARENT' as MemberType, icon: '👨‍👩‍👧', label: 'Parent',  desc: 'Ajouter un parent ou tuteur',      color: 'from-navy-500 to-navy-700',    border: 'hover:border-navy-300' },
               { type: 'CHILD'  as MemberType, icon: '🧒',         label: 'Enfant',  desc: 'Ajouter un enfant à la famille', color: 'from-sun to-sun-dark',  border: 'hover:border-sun-dark' },
-            ]).map(({ type, icon, label, desc, color, border }) => (
+            ]).map(({ type, icon, label, desc, color, border }) => {
+              const ownerOnly = type === 'PARENT' && Boolean(familyId) && !isOwner;
+              return (
               <button
                 key={type}
+                disabled={ownerOnly}
                 onClick={() => {
                   setMemberType(type);
                   setError(null);
                   setStep(quotaBlocked(type) ? 'quota' : 'form');
                 }}
-                className={`group bg-white rounded-2xl p-6 border-2 border-transparent ${border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left`}
+                className={`group bg-white rounded-2xl p-6 border-2 border-transparent ${border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left disabled:opacity-60 disabled:hover:translate-y-0 disabled:hover:shadow-sm disabled:cursor-not-allowed`}
               >
                 <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-md mb-4 group-hover:scale-110 transition-transform`}>
                   {icon}
                 </div>
                 <p className="font-bold text-navy-900 text-lg">{label}</p>
-                <p className="text-navy-600 text-sm mt-1">{desc}</p>
+                <p className="text-navy-600 text-sm mt-1">
+                  {ownerOnly ? 'Seul le titulaire du compte famille peut inviter un parent.' : desc}
+                </p>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -356,7 +373,7 @@ export default function SelectProfilePage() {
                   Ton forfait {PACK_LABELS[pack]} inclut{' '}
                   {memberType === 'CHILD'
                     ? `${planLimit(pack, 'maxChildren')} profil${(planLimit(pack, 'maxChildren') ?? 0) > 1 ? 's' : ''} enfant`
-                    : `${planLimit(pack, 'maxParents')} compte${(planLimit(pack, 'maxParents') ?? 0) > 1 ? 's' : ''} parent`}
+                    : `${parentLimit()} compte${(parentLimit() ?? 0) > 1 ? 's' : ''} parent`}
                   .
                 </span>{' '}
                 Passe à un forfait supérieur pour{' '}
