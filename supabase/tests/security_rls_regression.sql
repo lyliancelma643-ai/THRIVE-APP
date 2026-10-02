@@ -242,6 +242,10 @@ begin
   select role::text into t from public.profiles where id = new_user;
   res := res || jsonb_build_object('T11_signup_profile_role', t);
   if t is distinct from 'PARENT' then fails := fails || ('T11 auto-inscription obtient le rôle ' || coalesce(t, 'NULL')); end if;
+  -- ── T14 · Loi 25 : l'auto-inscription n'est pas confirmée d'office ───────
+  select (email_confirmed_at is not null)::text into t from auth.users where id = new_user;
+  res := res || jsonb_build_object('T14_signup_auto_confirmed', t);
+  if t = 'true' then fails := fails || 'T14 e-mail confirmé automatiquement à l''inscription'::text; end if;
 
   if array_length(fails, 1) > 0 then
     raise exception 'SECURITY_TESTS_FAILED % %', fails, res;

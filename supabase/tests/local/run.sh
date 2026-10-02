@@ -11,6 +11,7 @@ set -euo pipefail
 here="$(cd "$(dirname "$0")" && pwd)"
 root="$(cd "$here/../../.." && pwd)"
 migration="$root/supabase/migrations/20261001_066_security_audit_final.sql"
+migration_067="$root/supabase/migrations/20261002_067_require_email_confirmation.sql"
 tests="$root/supabase/tests/security_rls_regression.sql"
 
 run_case() {
@@ -28,8 +29,8 @@ echo "── AVANT migration 066 (échec attendu) ──"
 before="$(run_case thrive_sec_before)"
 echo "$before"
 echo
-echo "── APRÈS migration 066 (succès attendu) ──"
-after="$(run_case thrive_sec_after "$migration")"
+echo "── APRÈS migrations 066 + 067 (succès attendu) ──"
+after="$(run_case thrive_sec_after "$migration" "$migration_067")"
 echo "$after"
 
 [[ "$before" == SECURITY_TESTS_FAILED* ]] || { echo "ERREUR : les tests ne détectent pas les failles d'origine" >&2; exit 1; }
