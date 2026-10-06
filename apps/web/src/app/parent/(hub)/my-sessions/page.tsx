@@ -3,8 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
-import { useAccessStore } from '@/lib/access';
+import { sectionLockReason, useAccessStore } from '@/lib/access';
 import { SessionsLockedNotice } from '@/components/parent/AccessGate';
+import { PackRequired } from '@/components/parent/PackRequired';
 import { BilanCard, LockedText, ScoreGauge, UpgradeHintBar } from '@/components/parent/PackGate';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
@@ -531,6 +532,8 @@ export default function MySessionsPage() {
   if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
-  if (!access.unlocked) return <SessionsLockedNotice />;
+  if (!access.seancesAccess) {
+    return sectionLockReason(access) === 'pending' ? <SessionsLockedNotice /> : <PackRequired section="seances" />;
+  }
   return <MySessionsPageInner />;
 }
