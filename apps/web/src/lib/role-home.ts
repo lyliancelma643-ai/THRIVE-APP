@@ -13,6 +13,6 @@ export function homeForRole(role?: string | null): string {
     case 'COACH':
       return '/coach/dashboard';
     default:
-      return '/parent/bilans';
+      return '/parent/fitness';
   }
 }

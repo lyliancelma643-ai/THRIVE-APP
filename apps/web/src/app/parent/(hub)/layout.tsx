@@ -142,7 +142,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
         <div className="max-w-7xl mx-auto px-5 md:px-8 py-3 flex items-center justify-between gap-2 sm:gap-3 animate-om-fade">
           <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1 lg:basis-0">
             {/* Zone tactile de 44 px autour du logo de 32 px. */}
-            <Link href="/parent/bilans" className="shrink-0 select-none -m-1.5 p-1.5 rounded-xl" aria-label="Accueil THRIVE">
+            <Link href="/parent/fitness" className="shrink-0 select-none -m-1.5 p-1.5 rounded-xl" aria-label="Accueil THRIVE">
               <BrandLogo className="w-8 h-8" />
             </Link>
             <ChildSwitcher />

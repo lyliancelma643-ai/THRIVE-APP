@@ -321,7 +321,7 @@ export default function LoginPage() {
       // en passant par l'écran « compte créé ».
       await signIn(mail.trim(), pwd);
       const { failed } = await finalizePendingSignup();
-      setReadyDest(!failed && children.length > 0 ? '/parent/bilans' : '/parent?setup=children');
+      setReadyDest(!failed && children.length > 0 ? '/parent/fitness' : '/parent?setup=children');
       setScreen('ready');
       setSubmitting(false);
       window.scrollTo({ top: 0 });
@@ -766,12 +766,12 @@ export default function LoginPage() {
           <span className="block italic text-sun">{t.ready2}</span>
         </Title>
         <Lead className="max-w-[340px]">
-          {readyDest === '/parent/bilans' ? t.readySub : t.readySubNoChild}
+          {readyDest === '/parent/fitness' ? t.readySub : t.readySubNoChild}
         </Lead>
       </div>
       <div className="mt-6 flex flex-col gap-1.5">
         <SunButton type="button" onClick={() => router.push(readyDest ?? '/parent')}>
-          {readyDest === '/parent/bilans' ? t.readyCta : t.readyCtaNoChild}
+          {readyDest === '/parent/fitness' ? t.readyCta : t.readyCtaNoChild}
         </SunButton>
         <button
           type="button"
