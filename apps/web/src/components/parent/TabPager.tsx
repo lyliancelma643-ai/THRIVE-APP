@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Les trois onglets (Bilan · Mes séances · Maison) sont montés dès le lancement, puis
+// Les trois onglets (Maison · Bilan · Mes séances) sont montés dès le lancement, puis
 // ne sont jamais démontés :
 // changer d'onglet ne recharge plus rien, chaque écran garde ses données, son état
 // et sa hauteur de défilement. Le passage de l'un à l'autre est un glissement

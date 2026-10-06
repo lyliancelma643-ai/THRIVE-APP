@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Barre d'onglets « verre liquide » (Bilan · Mes séances · Maison), téléphone et iPad portrait.
+// Barre d'onglets « verre liquide » (Maison · Bilan · Mes séances), téléphone et iPad portrait.
 //
 //   • Toucher : l'onglet s'ouvre, le repère glisse avec un léger rebond.
 //   • Maintenir (≈ 170 ms) : le repère se soulève sous le doigt — plus grand, plus clair,

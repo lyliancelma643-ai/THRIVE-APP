@@ -31,30 +31,31 @@ import { useAccessStore } from '@/lib/access';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useThumbNav } from '@/hooks/useThumbNav';
 
-// Onglets façon Apple Forme : Bilan (résumé) · Mes séances · Maison (programme P3 ;
-// les séances vidéo Fitness restent dans /parent/fitness/seances)
+// Onglets façon Apple Forme : Maison (programme P3 ; les séances vidéo Fitness restent
+// dans /parent/fitness/seances) · Bilan (résumé) · Mes séances
 const TABS: { href: string; label: string; icon: IconName }[] = [
+  { href: '/parent/fitness', label: 'Maison', icon: 'home' },
   { href: '/parent/bilans', label: 'Bilan', icon: 'sparkle' },
   { href: '/parent/my-sessions', label: 'Mes séances', icon: 'star' },
-  { href: '/parent/fitness', label: 'Maison', icon: 'home' },
 ];
-const MAISON_TAB = 2;
+const MAISON_TAB = 0;
+const BILAN_TAB = 1;
 // Les trois écrans d'onglet, gardés montés par TabPager (aucun rechargement d'un onglet à l'autre).
-const TAB_PAGES = [BilansPage, MySessionsPage, MaisonPage];
+const TAB_PAGES = [MaisonPage, BilansPage, MySessionsPage];
 
 // Le lecteur de séance (/parent/session/…) appartient à l'univers Fitness ;
 // la messagerie et la page forfaits vivent hors onglets (accès par le header).
 function activeTabIndex(pathname: string): number {
   const i = TABS.findIndex((t) => pathname.startsWith(t.href));
   if (i >= 0) return i;
-  if (pathname.startsWith('/parent/session')) return 2;
+  if (pathname.startsWith('/parent/session')) return MAISON_TAB;
   if (
     pathname.startsWith('/parent/messages') ||
     pathname.startsWith('/parent/upgrade') ||
     pathname.startsWith('/parent/abonnement')
   )
     return -1;
-  return 0;
+  return BILAN_TAB;
 }
 
 export default function ParentHubLayout({ children }: { children: React.ReactNode }) {
@@ -84,7 +85,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const locked = !accessLoading && access ? !access.unlocked : false;
   // Bilan et Maison restent toujours ouverts : Maison s'ouvre aux abonnés P3
   // sans activation par un coach, et montre l'invitation à s'abonner sinon.
-  const tabOpen = (i: number) => !locked || i === 0 || i === MAISON_TAB;
+  const tabOpen = (i: number) => !locked || i === BILAN_TAB || i === MAISON_TAB;
 
   // Sens de la dernière navigation : l'écran entrant glisse depuis ce côté.
   const [enterFrom, setEnterFrom] = useState(44);
