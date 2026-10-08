@@ -82,3 +82,8 @@ ux-audit/lighthouse/**/*.json
 # Supabase CLI — état local (lien de projet, versions) : jamais commité
 supabase/.temp/
 supabase/.branches/
+
+# Clés de publication (jamais commitées)
+google-play-service-account.json
+*.p8
+*.jks

@@ -20,6 +20,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAccessStore } from '@/lib/access';
+import { isNativeApp, postToNative } from '@/lib/native-bridge';
 import {
   annualSavingsPercent,
   BillingError,
@@ -78,6 +79,9 @@ function Abonnement() {
   const [activating, setActivating] = useState(false);
   const [notice, setNotice] = useState<{ tone: 'ok' | 'info' | 'warn'; text: string } | null>(null);
   const handled = useRef(false);
+  // Contexte app (WebView) : aucun paiement web, l'achat passe par le paywall natif.
+  const [native, setNative] = useState(false);
+  useEffect(() => setNative(isNativeApp()), []);
 
   useEffect(() => {
     refresh();
@@ -160,15 +164,32 @@ function Abonnement() {
     <Shell>
       {notice && <Notice tone={notice.tone}>{notice.text}</Notice>}
       {active && row ? (
-        <ActiveSubscription />
+        <ActiveSubscription native={native} />
       ) : coached ? (
         // Compte activé par le coach : Maison est déjà inclus (access_state.p3_access).
         // Ne jamais lui proposer de payer pour ce qu'il a.
         <IncludedWithCoach />
       ) : (
-        <Offer onNotice={setNotice} />
+        native ? <NativeOffer /> : <Offer onNotice={setNotice} />
       )}
     </Shell>
+  );
+}
+
+function NativeOffer() {
+  return (
+    <section className="nc-card">
+      <p className="font-display text-[20px] font-semibold text-night-ink">Le moment qui compte · Maison</p>
+      <p className="text-[15px] leading-[1.55] text-body mt-3">
+        Abonne-toi pour débloquer toutes les activités Maison.
+      </p>
+      <button
+        onClick={() => postToNative({ type: 'open-paywall' })}
+        className="mt-6 w-full h-14 rounded-full bg-accent text-accent-on font-bold text-[16px] active:scale-95 transition-transform"
+      >
+        S’abonner
+      </button>
+    </section>
   );
 }
 
@@ -200,7 +221,7 @@ function IncludedWithCoach() {
 
 // ── Abonné ──────────────────────────────────────────────────────────────────
 
-function ActiveSubscription() {
+function ActiveSubscription({ native = false }: { native?: boolean }) {
   const { row, sync } = useSubscriptionStore();
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -265,7 +286,12 @@ function ActiveSubscription() {
         )}
 
         <div className="mt-6 pt-5 border-t border-line space-y-3">
-          {channel === 'web' && (
+          {channel === 'web' && native && (
+            <p className="text-[14px] leading-[1.55] text-body">
+              Ton abonnement est actif. Pour toute question sur ta facturation, écris-nous depuis la messagerie.
+            </p>
+          )}
+          {channel === 'web' && !native && (
             <>
               <button
                 onClick={openPortal}

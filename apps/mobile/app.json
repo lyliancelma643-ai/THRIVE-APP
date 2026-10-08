@@ -43,7 +43,11 @@
           }
         ]
       },
-      "icon": "./assets/icon.png"
+      "icon": "./assets/icon.png",
+      "buildNumber": "1",
+      "associatedDomains": [
+        "applinks:app.thrivesportpositive.com"
+      ]
     },
     "android": {
       "package": "app.thrive.mobile",
@@ -62,7 +66,36 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#004e7a"
-      }
+      },
+      "versionCode": 1,
+      "permissions": [
+        "android.permission.INTERNET",
+        "android.permission.POST_NOTIFICATIONS",
+        "android.permission.VIBRATE",
+        "com.android.vending.BILLING"
+      ],
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "app.thrivesportpositive.com",
+              "pathPrefix": "/parent"
+            },
+            {
+              "scheme": "https",
+              "host": "app.thrivesportpositive.com",
+              "pathPrefix": "/coach"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
@@ -94,6 +127,9 @@
       "typedRoutes": false,
       "tsconfigPaths": true
     },
-    "icon": "./assets/icon.png"
+    "icon": "./assets/icon.png",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
   }
 }
