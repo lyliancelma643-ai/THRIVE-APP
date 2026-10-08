@@ -84,6 +84,7 @@ type Tr = {
   already: string;
   expired: string;
   invalid: string;
+  network: string;
   home: string;
   send: string;
   sending: string;
@@ -112,6 +113,7 @@ const T: Record<Lang, Tr> = {
     already: 'Ce questionnaire a déjà été complété. Merci !',
     expired: 'Ce lien a expiré. Demande un nouveau lien à ton coach.',
     invalid: 'Lien invalide ou introuvable.',
+    network: 'La connexion est coupée. Vérifie ta connexion, puis réessaie.',
     home: 'Terminer',
     send: 'Envoyer mes réponses',
     sending: 'Envoi…',
@@ -138,6 +140,7 @@ const T: Record<Lang, Tr> = {
     already: 'This questionnaire has already been completed. Thank you!',
     expired: 'This link has expired. Ask your coach for a new one.',
     invalid: 'Invalid or missing link.',
+    network: 'The connection was lost. Check your connection, then try again.',
     home: 'Finish',
     send: 'Send my answers',
     sending: 'Sending…',
@@ -197,9 +200,11 @@ export default function QuestionnairePage() {
 
   const load = useCallback(async () => {
     if (!token) return;
-    const { data, error } = await supabase.rpc('questionnaire_get', { p_token: token });
+    const { data, error, status } = await supabase.rpc('questionnaire_get', { p_token: token });
     if (error) {
-      setState({ error: error.message });
+      // Réseau coupé (status 0) ou serveur indisponible (5xx) : « connexion coupée ».
+      // Toute autre erreur (ex. lien tronqué, uuid malformé → 400) = lien invalide.
+      setState({ error: status === 0 || status >= 500 ? 'network' : 'invalid' });
       return;
     }
     setState(data as LoadState);
@@ -285,10 +290,11 @@ export default function QuestionnairePage() {
     if (!token || !allAnswered || submitting) return;
     setSubmitting(true);
     setSubmitError('');
-    const { data, error } = await supabase.rpc('questionnaire_submit', { p_token: token, p_answers: answers });
+    const { data, error, status } = await supabase.rpc('questionnaire_submit', { p_token: token, p_answers: answers });
     setSubmitting(false);
     if (error) {
-      setSubmitError(/fetch|network/i.test(error.message) ? tr.genericErr : error.message);
+      // Message technique jamais affiché à l'enfant ; ses réponses restent là.
+      setSubmitError(status === 0 || status >= 500 ? tr.network : tr.genericErr);
       return;
     }
     if ((data as any)?.error) {
@@ -325,7 +331,15 @@ export default function QuestionnairePage() {
 
   if (state.error || done || state.completed) {
     const ok = done || state.completed;
-    const msg = done ? tr.thanks : state.completed ? tr.already : state.error === 'expired' ? tr.expired : tr.invalid;
+    const msg = done
+      ? tr.thanks
+      : state.completed
+      ? tr.already
+      : state.error === 'expired'
+      ? tr.expired
+      : state.error === 'network'
+      ? tr.network
+      : tr.invalid;
     return (
       <Shell perma={isPerma}>
         <div style={{ textAlign: 'center', paddingTop: 60 }}>
