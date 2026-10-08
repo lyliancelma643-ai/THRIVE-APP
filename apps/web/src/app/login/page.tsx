@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabaseClient as supabase } from '@thrive/shared';
+import { supabaseClient as supabase, passwordError } from '@thrive/shared';
 import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { needsMfaStepUp } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 import {
   confirmRedirectUrl,
   finalizePendingSignup,
+  buildPendingConsent,
   resendConfirmation,
 } from '@/lib/pending-signup';
 import { Icon } from '@/components/ui/Icon';
@@ -96,6 +97,7 @@ export default function LoginPage() {
   // Inscription parent + enfants
   const [signup, setSignup] = useState({ firstName: '', lastName: '', email: '', password: '' });
   const [showSignupPw, setShowSignupPw] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [childRows, setChildRows] = useState<ChildRow[]>([newChild()]);
   // Après l'inscription : où mène le bouton principal de l'écran « compte créé ».
   const [readyDest, setReadyDest] = useState<string | null>(null);
@@ -237,10 +239,12 @@ export default function LoginPage() {
       await signIn(email.trim(), password);
       // Première connexion après confirmation : crée les enfants déclarés à
       // l'inscription (si le lien a été ouvert sur un autre appareil).
-      await finalizePendingSignup();
+      const { failed: childrenMissed } = await finalizePendingSignup();
       // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
       // Vérification 100 % locale (lecture du JWT) : aucun appel réseau en plus.
-      const dest = destinationFor(useAuthStore.getState().user?.role);
+      const roleDest = destinationFor(useAuthStore.getState().user?.role);
+      const dest = childrenMissed && roleDest.startsWith('/parent')
+        ? '/parent/select-profile?type=CHILD&from=signup' : roleDest;
       router.replace(
         (await needsMfaStepUp()) ? `/mfa-verify?next=${encodeURIComponent(dest)}` : dest
       );
@@ -265,7 +269,8 @@ export default function LoginPage() {
     const { firstName, lastName, email: mail, password: pwd } = signup;
     if (!firstName.trim() || !lastName.trim() || !mail.trim() || !pwd) { setError(t.errRequired); return; }
     if (!EMAIL_RE.test(mail.trim())) { setError(t.errEmail); return; }
-    if (pwd.length < 8) { setError(t.errPwShort); return; }
+    if (passwordError(pwd)) { setError(t.errPwShort); return; }
+    if (!consent) { setError(t.errConsent); return; }
     go('athlete');
   };
 
@@ -298,6 +303,9 @@ export default function LoginPage() {
           data: {
             firstName: firstName.trim(),
             lastName: lastName.trim(),
+            // Preuve de consentement (Loi 25) : écrite dans `consents` à la
+            // première session confirmée (pas de session avant la confirmation).
+            pendingConsent: buildPendingConsent(),
             pendingChildren: children.map((c) => ({
               firstName: c.firstName.trim(),
               age: c.age,
@@ -321,7 +329,10 @@ export default function LoginPage() {
       // en passant par l'écran « compte créé ».
       await signIn(mail.trim(), pwd);
       const { failed } = await finalizePendingSignup();
-      setReadyDest(!failed && children.length > 0 ? '/parent/fitness' : '/parent?setup=children');
+      setReadyDest(
+        failed ? '/parent/select-profile?type=CHILD&from=signup'
+          : children.length > 0 ? '/parent/fitness' : '/parent?setup=children'
+      );
       setScreen('ready');
       setSubmitting(false);
       window.scrollTo({ top: 0 });
@@ -422,7 +433,8 @@ export default function LoginPage() {
 
   const legal = (
     <p className="text-center text-xs leading-normal text-[rgba(234,243,241,.66)] lg:text-left">
-      {t.confirmNote} {t.legal}
+      {t.confirmNote} {t.legal}{' '}
+      <a href="/support" className="font-semibold underline underline-offset-2 hover:text-sun">{t.supportLink}</a>
     </p>
   );
 
@@ -581,7 +593,7 @@ export default function LoginPage() {
           icon="lock"
           type={showSignupPw ? 'text' : 'password'}
           autoComplete="new-password"
-          minLength={8}
+          minLength={12}
           aria-describedby="signup-password-hint"
           placeholder="••••••••"
           value={signup.password}
@@ -591,6 +603,22 @@ export default function LoginPage() {
           }
         />
         <StrengthMeter id="signup-password-hint" level={pwLevel} hint={t.pwHint} labels={t.pwLevels} />
+        <label className="flex min-h-11 cursor-pointer items-start gap-3 text-[13px] leading-snug text-[rgba(234,243,241,.82)]">
+          <input
+            type="checkbox"
+            id="signup-consent"
+            checked={consent}
+            onChange={(e) => { setConsent(e.target.checked); setError(''); }}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[#F9EB50]"
+          />
+          <span>
+            {t.consentLead}{' '}
+            <a href="/confidentialite" target="_blank" rel="noopener noreferrer" className="font-semibold underline underline-offset-2 hover:text-sun">
+              {t.consentLink}
+            </a>{' '}
+            {t.consentTail}
+          </span>
+        </label>
         {error && <Alert>{error}</Alert>}
         <SunButton type="submit" className="mt-1">{t.next}</SunButton>
         {legal}

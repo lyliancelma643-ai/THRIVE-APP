@@ -4,6 +4,7 @@
 // (même passe-partout de lin que l'onglet Maison), les lignes de piste, le ciel
 // étoilé, les champs et boutons de la marque, le choix de langue.
 import type { CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
+import { PASSWORD_MIN_LENGTH, passwordError } from '@thrive/shared';
 import { Icon, type IconName } from '@/components/ui/Icon';
 import type { Lang } from './i18n';
 
@@ -380,10 +381,10 @@ export function Alert({ children }: { children: ReactNode }) {
 /** Jauge de solidité du mot de passe (0 à 4). */
 export function passwordLevel(pw: string): number {
   if (!pw) return 0;
-  if (pw.length < 8) return 1;
-  const digit = /\d/.test(pw);
-  if (pw.length >= 12 && digit && /[A-Z]/.test(pw) && /[a-z]/.test(pw)) return 4;
-  return digit ? 3 : 2;
+  // Même règle que le serveur (@thrive/shared validation/password) : 12 car.,
+  // minuscule + majuscule + chiffre. En dessous, le niveau reste « Trop court ».
+  if (passwordError(pw)) return pw.length < PASSWORD_MIN_LENGTH ? 1 : 2;
+  return pw.length >= 16 ? 4 : 3;
 }
 
 const LEVEL_COLORS = ['rgba(255,255,255,.12)', '#e78a8a', '#e0b45a', '#a7c4bc', '#a7c4bc'];
