@@ -21,12 +21,19 @@ export const useChildStore = create<ChildStore>()(
 
       loadChildren: async (parentId: string) => {
         set({ isLoading: true });
-        const { data: families } = await supabase
-          .from('families')
-          .select('id')
-          .eq('parent_id', parentId);
+        // Familles dont on est le parent principal ET celles où l'on a été
+        // ajouté comme co-parent (family_members).
+        const [{ data: families }, { data: memberships }] = await Promise.all([
+          supabase.from('families').select('id').eq('parent_id', parentId),
+          supabase.from('family_members').select('family_id').eq('profile_id', parentId),
+        ]);
 
-        const familyIds = (families ?? []).map((f) => f.id);
+        const familyIds = Array.from(
+          new Set([
+            ...(families ?? []).map((f) => f.id),
+            ...(memberships ?? []).map((m) => m.family_id as string),
+          ])
+        );
         if (familyIds.length === 0) {
           set({ children: [], isLoading: false });
           return;

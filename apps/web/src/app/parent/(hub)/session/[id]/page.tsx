@@ -130,7 +130,7 @@ function SessionDetailPageInner() {
                   Sélectionne d&apos;abord un profil enfant
                 </p>
                 <Link
-                  href="/parent/select-profile"
+                  href="/parent/select-profile?type=CHILD"
                   className="inline-flex items-center min-h-[44px] px-6 rounded-full bg-sun text-navy-900 font-bold text-sm"
                 >
                   + Ajouter un enfant

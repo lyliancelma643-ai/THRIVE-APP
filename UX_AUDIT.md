@@ -200,3 +200,27 @@ L'audit automatique était déjà vierge (0 débordement, 0 cible < 44 px, 0 vio
 Les points « accueil très long », « icônes sans libellé » et « codes internes » ont été validés puis traités (MA-12 à MA-14).
 
 Vérifications : typecheck, lint, 365 tests unitaires, 17 tests e2e, audit Maison sur 6 formats (0 défaut automatique), audit rapide de toute l'app sur 4 formats (aucune régression), parcours complet du mode activité sur 393 et 360 px, barre de la fiche vérifiée en capture écran sur 393 et 360 px.
+
+## 7. Recette de l'espace client (octobre 2026)
+
+Revue de bout en bout de la partie client (parent + questionnaire de l'enfant), corrections comprises, puis recette automatisée : `node scripts/ux-audit/recette-client.mjs [sortie] [LxH]` (45 étapes, **45/45** sur iPhone SE, iPhone 15 et ordinateur ; typecheck, lint, 370 tests unitaires et 34 tests e2e au vert).
+
+| Défaut trouvé | Gravité | Correction |
+|---|---|---|
+| Inscription : les enfants déclarés n'étaient **jamais créés** (`children.last_name` obligatoire, insertion groupée ; quota Essentiel d'un enfant qui faisait échouer toute l'insertion) | P0 | Insertion une à une avec le nom du parent, enfants non enregistrés repris sur l'écran d'ajout avec la raison |
+| Co-parent ajouté par « Ajouter un parent » : espace vide (enfants, séances, accès) | P0 | Chargement via `family_members` + migration `066_coparent_access` (à appliquer) |
+| Parent accompagné : « Mon abonnement » proposait de payer Maison, déjà inclus | P0 | « Inclus dans ton accompagnement » |
+| Ajout de profil hors de l'app (retour au site vitrine, message « visible dans le dashboard admin », âge 1–25) | P0 | Écran dans la DA parent, retour dans l'app, 8–17 ans |
+| Questionnaire enfant : libellés en 8 px, tout sur une page, réponses perdues au rechargement | P0 | Une question par écran, gros choix, brouillon gardé sur l'appareil |
+| Aucun consentement ni politique de confidentialité ; pas de mot de passe, d'export ni de suppression en libre-service | P0 | Case de consentement (table `consents`), page `/confidentialite`, Compte complété (fonctions `export-my-data` et `request-account-deletion` déjà déployées) |
+| Documents (contrat, certificat) bloqués sur Safari iOS (`window.open` après `await`) | P1 | Fenêtre ouverte dans le geste, message si échec |
+| Séances vidéo introuvables (lien gris en bas de Maison) | P1 | Porte « Les séances vidéo de 20 min » |
+| Mes séances : aucune heure, prochaine séance noyée | P1 | Carte « Prochaine séance » + ajout au calendrier (.ics) |
+| Glisser sur une fiche ou le lecteur changeait d'onglet | P1 | Geste limité aux trois écrans d'onglet |
+| Compte en préparation : six rectangles vides, aucune étape ni contact | P1 | Les trois étapes de l'activation + « Ajouter mon enfant » / « Écris-nous » |
+| « Hockey sur glace » affiché quand le sport est inconnu | P2 | « — » + migration `067` (plus de valeur par défaut) |
+| Forfaits : 24 lignes de jargon interne | P2 | Commun dit une fois, libellés en mots de parent |
+
+**Migrations** `066` et `067` appliquées en production le 2 octobre 2026 (retour arrière : `docs/rollback-migrations-066-067.sql`).
+
+**À faire hors code** : faire relire `/confidentialite` (texte juridique) ; contenu éditorial « Quand il dit non » (masculin) à neutraliser à la source.

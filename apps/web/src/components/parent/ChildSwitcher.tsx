@@ -74,7 +74,7 @@ export function ChildSwitcher() {
   if (children.length === 0) {
     return (
       <Link
-        href="/parent/select-profile"
+        href="/parent/select-profile?type=CHILD"
         className="px-4 py-2 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
       >
         + Ajouter un enfant
@@ -156,7 +156,7 @@ export function ChildSwitcher() {
               className="flex items-center px-4 py-3 min-h-[48px] text-[13px] font-semibold text-accent-ink hover:bg-chip active:bg-chip transition-colors border-t border-line"
               onClick={() => setOpen(false)}
             >
-              + Gérer les profils
+              + Ajouter un enfant ou un parent
             </Link>
             </div>
           </>,

@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { sectionLockReason, useAccessStore } from '@/lib/access';
@@ -13,6 +14,7 @@ import { usePlan } from '@/lib/entitlements';
 import { type Pack } from '@/lib/packs';
 import { useModalDismiss } from '@/lib/useModalDismiss';
 import { Icon } from '@/components/ui';
+import { sessionIcs, sessionWhen } from '@/lib/session-time';
 
 type OneToOneSession = {
   id: string;
@@ -22,6 +24,7 @@ type OneToOneSession = {
   scheduled_at: string | null;
   completed_at: string | null;
   coach_notes: string | null;
+  duration_minutes: number | null;
 };
 
 // Bilan de séance servi par le RPC filtré `session_report` (migration 039) :
@@ -70,7 +73,7 @@ function MySessionsPageInner() {
     const [sessionsRes, assignmentRes] = await Promise.all([
       supabase
         .from('sessions')
-        .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes')
+        .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes, duration_minutes')
         .eq('child_id', selectedChildId)
         .order('session_number', { ascending: true, nullsFirst: false }),
       supabase
@@ -165,6 +168,13 @@ function MySessionsPageInner() {
   }
 
   const completedCount = sessions.filter((s) => s.status === 'COMPLETED').length;
+  // Prochaine séance : celle en cours, sinon la première planifiée.
+  const nextSession =
+    sessions.find((x) => x.status === 'IN_PROGRESS') ??
+    sessions
+      .filter((x) => x.status === 'SCHEDULED')
+      .sort((a, b) => (a.session_number ?? 99) - (b.session_number ?? 99))[0] ??
+    null;
 
   // Séance sélectionnée → alimente le lecteur de bilan (panneau de droite ≥ lg)
   const selectedSession = selectedId
@@ -219,6 +229,15 @@ function MySessionsPageInner() {
         )}
       </div>
 
+      {nextSession && (
+        <NextSessionCard
+          session={nextSession}
+          fallbackTitle={THRIVE_SESSIONS.find((t) => t.num === nextSession.session_number)?.title ?? null}
+          childName={selectedChild.first_name}
+          coachName={coach ? `${coach.first_name} ${coach.last_name}` : null}
+        />
+      )}
+
       {/* Les 13 séances : contour seul tant que le coach n'a pas validé, surface
           pleine dès la validation, anneau d'accent sur la séance en cours. */}
       <div className="mt-8 flex flex-col gap-2">
@@ -237,13 +256,7 @@ function MySessionsPageInner() {
           // Ligne de contexte : « Phase 2 — Développer · lundi 4 mai · validée »
           const meta = [
             PHASE_LABELS[phase],
-            s?.scheduled_at
-              ? new Date(s.scheduled_at).toLocaleDateString('fr-CA', {
-                  weekday: 'long',
-                  day: 'numeric',
-                  month: 'long',
-                })
-              : null,
+            s?.scheduled_at ? sessionWhen(s.scheduled_at) : null,
             isDone ? 'validée' : isCurrent ? 'en cours' : isOff ? (s?.status === 'MISSED' ? 'manquée' : 'annulée') : 'à venir',
           ]
             .filter(Boolean)
@@ -346,6 +359,79 @@ function MySessionsPageInner() {
   );
 }
 
+function NextSessionCard({
+  session,
+  fallbackTitle,
+  childName,
+  coachName,
+}: {
+  session: OneToOneSession;
+  fallbackTitle: string | null;
+  childName: string;
+  coachName: string | null;
+}) {
+  const title = session.title ?? fallbackTitle ?? `Séance ${session.session_number ?? ''}`;
+  const live = session.status === 'IN_PROGRESS';
+  const upcoming = Boolean(session.scheduled_at && new Date(session.scheduled_at).getTime() > Date.now());
+
+  const addToCalendar = () => {
+    if (!session.scheduled_at) return;
+    const ics = sessionIcs({
+      id: session.id,
+      title: `THRIVE · ${title} (${childName})`,
+      start: session.scheduled_at,
+      durationMinutes: session.duration_minutes,
+      description: coachName ? `Séance ${session.session_number ?? ''} avec ${coachName}, coach THRIVE.` : undefined,
+    });
+    const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `thrive-seance-${session.session_number ?? ''}.ics`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  };
+
+  return (
+    <section
+      aria-label="Prochaine séance"
+      className="mt-6 nc-card ring-1 ring-accent-line animate-om-up"
+      style={{ ['--om-d' as string]: '0.14s' }}
+    >
+      <p className="nc-eyebrow">{live ? 'Séance en cours' : 'Prochaine séance'}</p>
+      <p className="font-display text-[20px] font-semibold text-night-ink mt-1.5 leading-[1.25]">
+        {session.session_number ? `${session.session_number}. ` : ''}
+        {title}
+      </p>
+      <p className="mt-2 inline-flex items-center gap-2 text-[15px] font-semibold text-accent-ink">
+        <Icon name="calendar" className="w-4 h-4" />
+        {session.scheduled_at ? sessionWhen(session.scheduled_at) : 'Date à fixer avec ton coach'}
+      </p>
+      {coachName && <p className="text-[14px] text-soft mt-1">Avec {coachName}</p>}
+      <div className="mt-4 flex flex-wrap gap-2.5">
+        {upcoming && (
+          <button
+            type="button"
+            onClick={addToCalendar}
+            className="inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full bg-accent text-accent-on text-[14px] font-bold"
+          >
+            <Icon name="calendar" className="w-4 h-4" />
+            Ajouter au calendrier
+          </button>
+        )}
+        <Link
+          href="/parent/messages"
+          className="inline-flex items-center gap-2 min-h-[44px] px-5 rounded-full border border-line2 bg-chip text-ink text-[14px] font-semibold"
+        >
+          <Icon name="mail" className="w-4 h-4" />
+          Écrire au coach
+        </Link>
+      </div>
+    </section>
+  );
+}
+
 function EmptyState({ title, body }: { title: string; body: string }) {
   return (
     <div className="max-w-xl mx-auto text-center py-20 animate-om-up">
@@ -354,6 +440,12 @@ function EmptyState({ title, body }: { title: string; body: string }) {
       </div>
       <h2 className="font-display text-2xl font-semibold text-night-ink mb-3">{title}</h2>
       <p className="text-soft">{body}</p>
+      <Link
+        href="/parent/select-profile?type=CHILD"
+        className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+      >
+        Ajouter mon enfant
+      </Link>
     </div>
   );
 }

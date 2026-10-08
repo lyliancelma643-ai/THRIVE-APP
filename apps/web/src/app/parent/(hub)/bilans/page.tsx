@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
@@ -11,7 +12,7 @@ import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
 import { PackRequired } from '@/components/parent/PackRequired';
 import { Icon } from '@/components/ui';
-import { DocMeta, programPct, signedDocUrl } from '@/lib/bilan';
+import { DocMeta, openSignedDoc, programPct } from '@/lib/bilan';
 import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
 import { DESIGN_CSS, ageFromDob, buildHtml } from './bilan-html';
 import { CARD_INFO, InfoModal, BilanSkeleton } from './card-info';
@@ -42,6 +43,7 @@ function AthleteIdentityPageInner() {
   const [infoKey, setInfoKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [docError, setDocError] = useState(false);
   const htmlRef = useRef<HTMLDivElement>(null);
   const { data, isPending } = useBilanData(selectedChildId);
 
@@ -92,7 +94,7 @@ function AthleteIdentityPageInner() {
   // Clics délégués : [data-action] ouvre l'édition du passeport, [data-doc]
   // télécharge (URL signée), [data-href] navigue, [data-info] ouvre la fiche
   // d'explication.
-  const onClick = async (e: React.MouseEvent<HTMLDivElement>) => {
+  const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
     if (target.closest('[data-action="edit-passport"]')) {
       e.stopPropagation();
@@ -102,11 +104,7 @@ function AthleteIdentityPageInner() {
     const docId = target.closest('[data-doc]')?.getAttribute('data-doc');
     if (docId) {
       e.stopPropagation();
-      const doc = data?.docs.find((d) => d.id === docId);
-      if (doc) {
-        const url = await signedDocUrl(doc.storage_path, 120);
-        if (url) window.open(url, '_blank', 'noopener');
-      }
+      openDoc(docId);
       return;
     }
     const nav = target.closest('[data-href]');
@@ -123,11 +121,17 @@ function AthleteIdentityPageInner() {
     else if (CARD_INFO[key]) setInfoKey(key);
   };
 
-  const openDoc = async (docId: string) => {
+  // Synchrone jusqu'à l'ouverture de la fenêtre (voir openSignedDoc).
+  const openDoc = (docId: string) => {
     const doc = data?.docs.find((dd) => dd.id === docId);
-    if (!doc) return;
-    const url = await signedDocUrl(doc.storage_path, 120);
-    if (url) window.open(url, '_blank', 'noopener');
+    if (!doc) {
+      setDocError(true);
+      return;
+    }
+    setDocError(false);
+    openSignedDoc(doc.storage_path).then((ok) => {
+      if (!ok) setDocError(true);
+    });
   };
 
   // Accès clavier du gabarit : les zones d'action simples deviennent des
@@ -176,6 +180,12 @@ function AthleteIdentityPageInner() {
         <p className="text-soft">
           Ajoute un enfant pour découvrir sa carte d&apos;identité d&apos;athlète THRIVE.
         </p>
+        <Link
+          href="/parent/select-profile?type=CHILD"
+          className="mt-6 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+        >
+          Ajouter mon enfant
+        </Link>
       </div>
     );
   }
@@ -211,7 +221,7 @@ function AthleteIdentityPageInner() {
     jerseyNumber: selectedChild.jersey_number ?? null,
     accentColor: accentHex(selectedChild.accent_color),
     age,
-    sport: identity?.sport || 'Hockey sur glace',
+    sport: identity?.sport || '—',
     poste: identity?.position || '—',
     club: identity?.club ?? null,
     coachLast: coach?.last_name || '—',
@@ -303,6 +313,16 @@ function AthleteIdentityPageInner() {
           )}
         </div>
       )}
+      {docError && (
+        <div role="alert" className="fixed z-toast inset-x-4 bottom-[calc(96px+env(safe-area-inset-bottom))] lg:bottom-6 mx-auto max-w-md p-4 rounded-[18px] bg-night-surface ring-1 ring-red-400/30 shadow-card flex items-center gap-3 animate-om-up">
+          <p className="flex-1 text-[14px] text-body">
+            Le document n&apos;a pas pu s&apos;ouvrir. Vérifie ta connexion et réessaie ; s&apos;il manque, écris à ton coach.
+          </p>
+          <button type="button" onClick={() => setDocError(false)} aria-label="Fermer" className="nc-iconbtn shrink-0">
+            <Icon name="close" className="w-4 h-4" />
+          </button>
+        </div>
+      )}
       <div
         ref={htmlRef}
         onClick={onClick}
@@ -332,7 +352,7 @@ function AthleteIdentityPageInner() {
               sportStory: identity?.sport_story ?? null,
               strengths: identity?.strengths ?? [],
               seasonDream: identity?.season_dream ?? null,
-              sport: identity?.sport || 'Hockey sur glace',
+              sport: identity?.sport || '—',
               poste: identity?.position || '—',
               club: identity?.club ?? null,
               smartGoal: identity?.smart_goal ?? null,

@@ -111,12 +111,14 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     [locked, router, rootTab]
   );
 
-  // Geste : actif seulement quand on est sur un des trois onglets.
+  // Geste : actif seulement sur les trois écrans d'onglet eux-mêmes. Sur une
+  // fiche, le lecteur vidéo ou le carnet, un glissement horizontal ne doit pas
+  // changer d'onglet (on s'attend à « retour », et le lecteur a sa propre barre).
   const { dragX, dragging, handlers } = useThumbNav({
-    index: active < 0 ? 0 : active,
+    index: rootTab < 0 ? 0 : rootTab,
     count: TABS.length,
     onChange: goToTab,
-    enabled: active >= 0 && !locked,
+    enabled: rootTab >= 0 && !locked,
   });
 
   // Hors racines d'onglet (fiche, carnet…) : retour en haut au changement d'onglet.
@@ -194,7 +196,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
 
           <div className="flex items-center justify-end gap-1 sm:gap-1.5 md:gap-2 shrink-0 lg:flex-1 lg:basis-0">
             <Link
-              href="/parent/select-profile"
+              href="/parent/select-profile?type=CHILD"
               className="hidden md:inline-flex lg:hidden xl:inline-flex items-center gap-1.5 h-11 px-5 whitespace-nowrap rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all select-none"
             >
               + Ajouter un enfant

@@ -1,7 +1,8 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { ACCESS_MESSAGES } from '@/lib/access';
+import Link from 'next/link';
+import { ACCESS_MESSAGES, useAccessStore } from '@/lib/access';
 import { Icon, type IconName } from '@/components/ui';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -17,7 +18,7 @@ export function LockedBanner({ message }: { message?: string }) {
         <span className="w-10 h-10 rounded-xl bg-sun/10 flex items-center justify-center text-accent-ink shrink-0">
           <Icon name="sparkle" className="w-5 h-5" />
         </span>
-        <div>
+        <div className="min-w-0 flex-1">
           <p className="font-display text-[19px] font-semibold text-night-ink">
             Ton espace se prépare
           </p>
@@ -25,6 +26,78 @@ export function LockedBanner({ message }: { message?: string }) {
             {message ?? ACCESS_MESSAGES.welcomeLocked}
           </p>
         </div>
+      </div>
+      <ActivationSteps />
+    </div>
+  );
+}
+
+/**
+ * Les trois étapes de l'activation, lues dans access_state() : le parent voit où
+ * il en est, ce qui dépend de lui (ajouter son enfant) et à qui s'adresser.
+ */
+export function ActivationSteps({ divider = true }: { divider?: boolean }) {
+  const access = useAccessStore((s) => s.access);
+  if (!access) return null;
+  const steps: { label: string; detail: string; done: boolean }[] = [
+    {
+      label: 'La fiche de ton enfant',
+      detail: access.hasChild ? 'Enregistrée.' : 'À créer : c’est elle qui ouvre son parcours.',
+      done: access.hasChild,
+    },
+    {
+      label: 'La validation par l’équipe THRIVE',
+      detail: access.hasConfirmedChild ? 'Validée.' : 'En cours : l’équipe THRIVE vérifie la fiche.',
+      done: access.hasConfirmedChild,
+    },
+    {
+      label: 'L’activation par ton coach',
+      detail: access.coachValidated ? 'Faite.' : 'Ton coach te contacte pour démarrer.',
+      done: access.coachValidated,
+    },
+  ];
+  const current = steps.findIndex((st) => !st.done);
+  return (
+    <div className={divider ? 'mt-5 pt-5 border-t border-line' : ''}>
+      <ol className="flex flex-col gap-3.5">
+        {steps.map((st, i) => (
+          <li key={st.label} className="flex items-start gap-3">
+            <span
+              className={`w-7 h-7 shrink-0 rounded-full grid place-items-center text-[13px] font-bold ${
+                st.done
+                  ? 'bg-sage text-[#06222A]'
+                  : i === current
+                    ? 'bg-accent text-accent-on'
+                    : 'border border-line2 text-soft'
+              }`}
+            >
+              {st.done ? <Icon name="check" className="w-3.5 h-3.5" strokeWidth={2.6} /> : i + 1}
+            </span>
+            <span className="min-w-0">
+              <span className={`block text-[15px] font-semibold ${st.done || i === current ? 'text-ink' : 'text-soft'}`}>
+                {st.label}
+              </span>
+              <span className="block text-[13px] text-soft mt-0.5">{st.detail}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <div className="mt-5 flex flex-wrap gap-2.5">
+        {!access.hasChild && (
+          <Link
+            href="/parent/select-profile?type=CHILD"
+            className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-accent text-accent-on text-[14px] font-bold"
+          >
+            Ajouter mon enfant
+          </Link>
+        )}
+        <Link
+          href="/parent/messages"
+          className="inline-flex items-center justify-center gap-2 min-h-[44px] px-5 rounded-full border border-line2 bg-chip text-ink text-[14px] font-semibold"
+        >
+          <Icon name="mail" className="w-4 h-4" />
+          Une question ? Écris-nous
+        </Link>
       </div>
     </div>
   );
@@ -97,33 +170,58 @@ const BILAN_SECTIONS: { title: string; subtitle: string }[] = [
 
 export function BilanLockedPreview() {
   return (
-    <div className="space-y-8">
+    <div className="max-w-2xl">
       <LockedBanner />
-      {BILAN_SECTIONS.map((s) => (
-        <GreyedSection key={s.title} title={s.title} subtitle={s.subtitle} />
-      ))}
+      <h2 className="font-display text-[22px] font-semibold text-night-ink mt-2">Ce que tu découvriras ici</h2>
+      <ul className="mt-4 flex flex-col gap-2">
+        {BILAN_SECTIONS.map((sec) => (
+          <li key={sec.title} className="nc-row-idle flex items-start gap-3 px-4 py-3.5">
+            <Icon name="lock" className="w-4 h-4 mt-1 shrink-0 text-faint" />
+            <span className="min-w-0">
+              <span className="block text-[15px] font-semibold text-body">{sec.title}</span>
+              <span className="block text-[13px] text-soft mt-0.5">{sec.subtitle}</span>
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 export function SessionsLockedNotice() {
   return (
-    <NoticeScreen
-      icon="star"
-      tone="sun"
-      title="Tes séances arrivent"
-      body={ACCESS_MESSAGES.sessionsLocked}
-    />
+    <div className="max-w-xl mx-auto">
+      <NoticeScreen
+        icon="star"
+        tone="sun"
+        title="Tes séances arrivent"
+        body={ACCESS_MESSAGES.sessionsLocked}
+      />
+      <div className="nc-card -mt-6 md:-mt-12 text-left">
+        <ActivationSteps divider={false} />
+      </div>
+    </div>
   );
 }
 
-export function FitnessConstructionNotice() {
+export function FitnessConstructionNotice({ videosHref }: { videosHref?: string }) {
   return (
-    <NoticeScreen
-      icon="grid"
-      tone="sage"
-      title="En construction"
-      body={ACCESS_MESSAGES.fitnessConstruction}
-    />
+    <div className="text-center">
+      <NoticeScreen
+        icon="grid"
+        tone="sage"
+        title="En construction"
+        body={ACCESS_MESSAGES.fitnessConstruction}
+      />
+      {videosHref && (
+        <Link
+          href={videosHref}
+          className="-mt-8 md:-mt-16 inline-flex items-center gap-2 min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+        >
+          <Icon name="video" className="w-4 h-4" />
+          Voir les séances vidéo
+        </Link>
+      )}
+    </div>
   );
 }

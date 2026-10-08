@@ -1,70 +1,126 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { supabaseClient as supabase } from '@thrive/shared';
-import { PACK_LABELS, asPack, limit as planLimit, type Pack } from '@/lib/packs';
+// ─────────────────────────────────────────────────────────────────────────────
+// Ajouter un membre à la famille (enfant ou co-parent) — dans la DA de l'espace
+// parent (ambiances Nuit / Jour, mêmes jetons que la coque).
+//
+//   • /parent/select-profile                       → choix Enfant / Parent
+//   • /parent/select-profile?type=CHILD            → formulaire enfant direct
+//   • …&from=signup                                → suite de l'inscription :
+//       message d'accueil, enfants non enregistrés repris, « Plus tard ».
+//
+// On revient toujours dans l'app (jamais vers le site vitrine) et la liste des
+// enfants du header est rechargée avant le retour.
+// ─────────────────────────────────────────────────────────────────────────────
 
-// ── Types ────────────────────────────────────────────────────────────────────
+import { Suspense, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { supabaseClient as supabase } from '@thrive/shared';
+import { BrandLogo } from '@/components/BrandLogo';
+import { Icon, type IconName } from '@/components/ui';
+import { PACK_LABELS, asPack, limit as planLimit, type Pack } from '@/lib/packs';
+import { SIGNUP_MISSED_KEY, type SignupMissed } from '@/lib/signup';
+import { useAuthStore } from '@/stores/auth.store';
+import { useChildStore } from '@/stores/child.store';
+import { useAccessStore } from '@/lib/access';
+
 type MemberType = 'PARENT' | 'CHILD';
 type Step = 'choose' | 'form' | 'success' | 'quota';
 
 const GENDER_OPTIONS = [
-  { value: 'MALE',   label: 'Garçon' },
-  { value: 'FEMALE', label: 'Fille'   },
-  { value: 'OTHER',  label: 'Autre'   },
+  { value: 'FEMALE', label: 'Fille' },
+  { value: 'MALE', label: 'Garçon' },
+  { value: 'OTHER', label: 'Autre / ne pas préciser' },
 ];
 
 const SPORT_OPTIONS = [
-  'Soccer', 'Basketball', 'Hockey', 'Natation', 'Tennis',
-  'Volleyball', 'Gym', 'Arts martiaux', 'Baseball', 'Autre',
+  'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis', 'Volleyball',
+  'Gymnastique', 'Arts martiaux', 'Baseball', 'Patinage', 'Football',
+  'Athlétisme', 'Autre',
 ];
 
-// Calcul date de naissance depuis âge
+const MIN_AGE = 8;
+const MAX_AGE = 17;
+const HOME = '/parent/bilans';
+
 const ageToDob = (age: number): string => {
   const d = new Date();
   d.setFullYear(d.getFullYear() - age);
   return d.toISOString().split('T')[0];
 };
 
-// URL du site vitrine (marketing). Configurable via NEXT_PUBLIC_SITE_URL ;
-// sinon site local (Vite, port 5173) en dev, site déployé en production.
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ||
-  (process.env.NODE_ENV === 'production'
-    ? 'https://thrivesportpositive.com'
-    : 'http://localhost:5173');
+const FIELD =
+  'w-full min-h-[48px] rounded-[14px] bg-field border border-line2 px-4 text-[16px] text-ink placeholder:text-faint focus:outline-none focus:ring-2 focus:ring-[color:var(--accent-line)]';
+const LABEL = 'block text-[13px] font-semibold text-soft mb-1.5';
 
-// ── Page principale ───────────────────────────────────────────────────────────────
-export default function SelectProfilePage() {
+// Messages de la base traduits pour un parent.
+function humanError(msg: string): string {
+  if (/quota/i.test(msg)) return 'Ton forfait ne permet pas d’ajouter un profil de plus.';
+  if (/already|exist|registered|duplicate/i.test(msg)) return 'Un compte existe déjà avec cet email.';
+  if (/fetch|network/i.test(msg)) return 'Connexion interrompue. Vérifie ton réseau et réessaie.';
+  return msg || 'Une erreur est survenue. Réessaie dans un instant.';
+}
+
+function readMissed(): SignupMissed | null {
+  try {
+    const raw = window.sessionStorage.getItem(SIGNUP_MISSED_KEY);
+    if (!raw) return null;
+    window.sessionStorage.removeItem(SIGNUP_MISSED_KEY);
+    const parsed = JSON.parse(raw) as SignupMissed;
+    return Array.isArray(parsed?.names) && parsed.names.length ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function SelectProfileInner() {
   const router = useRouter();
+  const search = useSearchParams();
+  const fromSignup = search.get('from') === 'signup';
+  const wanted = search.get('type') === 'CHILD' ? 'CHILD' : search.get('type') === 'PARENT' ? 'PARENT' : null;
 
-  const [step, setStep]                 = useState<Step>('choose');
-  const [memberType, setMemberType]     = useState<MemberType | null>(null);
-  const [currentUser, setCurrentUser]   = useState<{ id: string; email: string } | null>(null);
-  const [familyId, setFamilyId]         = useState<string | null>(null);
+  const authUser = useAuthStore((s) => s.user);
+  const loadChildren = useChildStore((s) => s.loadChildren);
+  const selectChild = useChildStore((s) => s.selectChild);
+  const refreshAccess = useAccessStore((s) => s.refresh);
+
+  const [step, setStep] = useState<Step>('choose');
+  const [memberType, setMemberType] = useState<MemberType | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email: string } | null>(null);
+  const [familyId, setFamilyId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError]               = useState<string | null>(null);
-  const [successName, setSuccessName]   = useState('');
-  const [initLoading, setInitLoading]   = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [successName, setSuccessName] = useState('');
+  const [newChildId, setNewChildId] = useState<string | null>(null);
+  const [initLoading, setInitLoading] = useState(true);
+  const [missed, setMissed] = useState<SignupMissed | null>(null);
+  // Co-parent (membre d'une famille créée par un autre parent) : seul le parent
+  // principal ajoute des profils — la base le garantit, l'écran le dit.
+  const [coParent, setCoParent] = useState(false);
   // Quotas du forfait (maxChildren / maxParents) — l'UI prévient, la base garantit
-  const [pack, setPack]                 = useState<Pack>('ESSENTIEL');
-  const [childCount, setChildCount]     = useState(0);
-  const [memberCount, setMemberCount]   = useState(1);
+  const [pack, setPack] = useState<Pack>('ESSENTIEL');
+  const [childCount, setChildCount] = useState(0);
+  const [memberCount, setMemberCount] = useState(1);
 
-  // Formulaires
-  const [parentForm, setParentForm] = useState({
-    first_name: '', last_name: '', email: '', phone: '',
-  });
+  const [parentForm, setParentForm] = useState({ first_name: '', last_name: '', email: '', phone: '' });
   const [childForm, setChildForm] = useState({
     first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '',
   });
 
-  // Init : récup session + famille existante
+  // Quota atteint pour ce type de profil ? (null = illimité)
+  const isQuotaBlocked = (type: MemberType, fam: string | null, p: Pack, kids: number, members: number) => {
+    if (!fam) return false; // pas encore de famille : premier ajout toujours permis
+    const max = planLimit(p, type === 'CHILD' ? 'maxChildren' : 'maxParents');
+    return max !== null && (type === 'CHILD' ? kids : members) >= max;
+  };
+
+  // Init : session, famille existante, compteurs, puis étape de départ.
   useEffect(() => {
-    const init = async () => {
+    let alive = true;
+    (async () => {
       const { data: { user }, error: userErr } = await supabase.auth.getUser();
+      if (!alive) return;
       if (userErr || !user) {
         router.push('/login');
         return;
@@ -77,99 +133,132 @@ export default function SelectProfilePage() {
         .eq('parent_id', user.id)
         .maybeSingle();
 
+      if (!fam?.id) {
+        const { data: membership } = await supabase
+          .from('family_members')
+          .select('family_id')
+          .eq('profile_id', user.id)
+          .limit(1)
+          .maybeSingle();
+        if (!alive) return;
+        if (membership?.family_id) {
+          setCoParent(true);
+          setInitLoading(false);
+          return;
+        }
+      }
+
+      let p: Pack = 'ESSENTIEL';
+      let kids = 0;
+      let members = 1;
       if (fam?.id) {
-        setFamilyId(fam.id);
-        setPack(asPack(fam.pack));
-        // Compteurs de quotas (enfants actifs + comptes parents de la famille)
+        p = asPack(fam.pack);
         const [childrenRes, membersRes] = await Promise.all([
-          supabase
-            .from('children')
-            .select('id', { count: 'exact', head: true })
-            .eq('family_id', fam.id)
-            .eq('is_active', true),
-          supabase
-            .from('family_members')
-            .select('id', { count: 'exact', head: true })
-            .eq('family_id', fam.id),
+          supabase.from('children').select('id', { count: 'exact', head: true }).eq('family_id', fam.id).eq('is_active', true),
+          supabase.from('family_members').select('id', { count: 'exact', head: true }).eq('family_id', fam.id),
         ]);
-        setChildCount(childrenRes.count ?? 0);
-        setMemberCount(Math.max(membersRes.count ?? 1, 1));
+        kids = childrenRes.count ?? 0;
+        members = Math.max(membersRes.count ?? 1, 1);
+      }
+      if (!alive) return;
+      setFamilyId(fam?.id ?? null);
+      setPack(p);
+      setChildCount(kids);
+      setMemberCount(members);
+
+      const m = fromSignup ? readMissed() : null;
+      setMissed(m);
+      const lastName = (user.user_metadata?.lastName as string | undefined)?.trim() ?? '';
+      setChildForm((f) => ({ ...f, first_name: m?.names[0] ?? '', last_name: lastName }));
+
+      if (wanted) {
+        setMemberType(wanted);
+        setStep(isQuotaBlocked(wanted, fam?.id ?? null, p, kids, members) ? 'quota' : 'form');
       }
       setInitLoading(false);
+    })();
+    return () => {
+      alive = false;
     };
-    init();
-  }, [router]);
+    // Une seule fois à l'arrivée.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Quota atteint pour ce type de profil ? (null = illimité)
-  const quotaBlocked = (type: MemberType): boolean => {
-    if (!familyId) return false; // pas encore de famille : premier ajout toujours permis
-    if (type === 'CHILD') {
-      const max = planLimit(pack, 'maxChildren');
-      return max !== null && childCount >= max;
-    }
-    const max = planLimit(pack, 'maxParents');
-    return max !== null && memberCount >= max;
+  const choose = (type: MemberType) => {
+    setMemberType(type);
+    setError(null);
+    setStep(isQuotaBlocked(type, familyId, pack, childCount, memberCount) ? 'quota' : 'form');
   };
 
   const resetForms = () => {
     setStep('choose');
     setMemberType(null);
     setError(null);
+    setNewChildId(null);
     setParentForm({ first_name: '', last_name: '', email: '', phone: '' });
-    setChildForm({ first_name: '', last_name: '', age: '', gender: '', sport: '', notes: '' });
+    setChildForm((f) => ({ first_name: '', last_name: f.last_name, age: '', gender: '', sport: '', notes: '' }));
   };
 
-  // Soumission
+  // Retour dans l'app : liste des enfants et état d'accès à jour, nouvel enfant sélectionné.
+  const goHome = async () => {
+    if (currentUser) await loadChildren(currentUser.id);
+    if (newChildId) selectChild(newChildId);
+    refreshAccess();
+    router.push(HOME);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError(null);
     setIsSubmitting(true);
     try {
-      memberType === 'PARENT' ? await submitParent() : await submitChild();
+      if (memberType === 'PARENT') await submitParent();
+      else await submitChild();
       setStep('success');
+      window.scrollTo({ top: 0, behavior: 'instant' });
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Une erreur est survenue.');
+      setError(humanError(err instanceof Error ? err.message : ''));
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Créer parent — via l'edge function admin-create-user (service role) :
+  // Créer un co-parent — via l'edge function admin-create-user (service role) :
   // ne touche PAS à la session du parent connecté (signUp basculerait la session).
   const submitParent = async () => {
     const { first_name, last_name, email, phone } = parentForm;
     if (!first_name.trim() || !last_name.trim() || !email.trim())
       throw new Error('Prénom, nom et email sont obligatoires.');
+    if (!familyId) throw new Error('Ajoute d’abord ton enfant : le co-parent rejoindra sa famille.');
 
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Session expirée : reconnecte-toi.');
 
-    const tempPwd = `Thrive${Math.random().toString(36).slice(-8)}!1`;
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://kkdcgzvdmipmrgkawnky.supabase.co'}/functions/v1/admin-create-user`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({
-          email: email.trim(),
-          password: tempPwd,
-          firstName: first_name.trim(),
-          lastName: last_name.trim(),
-          role: 'PARENT',
-          phone: phone || undefined,
-        }),
+    const tempPwd = `Thrive${crypto.getRandomValues(new Uint32Array(2)).join('')}!aA`;
+    const { data, error: fnErr } = await supabase.functions.invoke('admin-create-user', {
+      body: {
+        email: email.trim(),
+        password: tempPwd,
+        firstName: first_name.trim(),
+        lastName: last_name.trim(),
+        role: 'PARENT',
+        phone: phone || undefined,
+      },
+    });
+    if (fnErr || data?.error) {
+      let msg = data?.error as string | undefined;
+      const ctx = (fnErr as { context?: Response } | null)?.context;
+      if (!msg && ctx && typeof ctx.json === 'function') {
+        msg = await ctx.json().then((b: { error?: string }) => b?.error, () => undefined);
       }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(data?.error ?? 'Impossible de créer le compte.');
+      throw new Error(msg ?? 'Impossible de créer le compte.');
+    }
 
     // Rattacher le co-parent à la famille (socle du quota maxParents — le
     // trigger de la migration 039 revérifie côté base).
     const newProfileId: string | undefined = data?.profile?.id;
-    if (familyId && newProfileId) {
+    if (newProfileId) {
       const { error: memberErr } = await supabase
         .from('family_members')
         .insert({ family_id: familyId, profile_id: newProfileId, member_role: 'PARENT' });
@@ -178,354 +267,428 @@ export default function SelectProfilePage() {
     }
 
     // Le compte est créé avec un mot de passe temporaire jamais montré : on
-    // envoie donc un email « définir mon mot de passe » au nouveau parent,
-    // sans quoi il ne pourrait jamais se connecter.
+    // envoie donc un email « définir mon mot de passe » au nouveau parent.
     await supabase.auth.resetPasswordForEmail(email.trim(), {
       redirectTo: `${window.location.origin}/reset-password`,
     });
 
-    setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
+    setSuccessName(first_name.trim());
   };
 
-  // Créer enfant
   const submitChild = async () => {
     const { first_name, last_name, age, gender, sport, notes } = childForm;
-    if (!first_name.trim() || !last_name.trim())
-      throw new Error('Prénom et nom sont obligatoires.');
+    if (!first_name.trim() || !last_name.trim()) throw new Error('Prénom et nom sont obligatoires.');
     const ageNum = Number(age);
-    if (!age || isNaN(ageNum) || ageNum < 1 || ageNum > 25)
-      throw new Error('L’âge doit être entre 1 et 25 ans.');
-    if (!currentUser)
-      throw new Error('Session expirée : reconnecte-toi.');
+    if (!age || !Number.isInteger(ageNum) || ageNum < MIN_AGE || ageNum > MAX_AGE)
+      throw new Error(`Le programme THRIVE accompagne les ${MIN_AGE}–${MAX_AGE} ans : indique un âge dans cette tranche.`);
+    if (!currentUser) throw new Error('Session expirée : reconnecte-toi.');
 
-    // Créer famille si inexistante
+    // Créer la famille si elle n'existe pas encore
     let fid = familyId;
     if (!fid) {
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('first_name, last_name')
-        .eq('id', currentUser.id)
-        .single();
-
       const { data: newFam, error: famErr } = await supabase
         .from('families')
-        .insert({
-          name: `Famille ${(prof?.last_name ?? 'Nouvelle').trim()}`,
-          parent_id: currentUser.id,
-        })
+        .insert({ name: `Famille ${last_name.trim()}`, parent_id: currentUser.id })
         .select('id')
         .single();
-
-      if (famErr) throw new Error('Erreur création famille : ' + famErr.message);
-      fid = newFam.id;
+      if (famErr) throw new Error(famErr.message);
+      fid = newFam.id as string;
       setFamilyId(fid);
     }
 
-    // Insérer enfant
-    const { error: childErr } = await supabase.from('children').insert({
-      family_id:     fid,
-      first_name:    first_name.trim(),
-      last_name:     last_name.trim(),
-      date_of_birth: ageToDob(ageNum),
-      gender:        gender || null,
-      sport:         sport  || null,
-      notes:         notes  || null,
-      is_active:     true,
-    });
+    const { data: inserted, error: childErr } = await supabase
+      .from('children')
+      .insert({
+        family_id: fid,
+        first_name: first_name.trim(),
+        last_name: last_name.trim(),
+        date_of_birth: ageToDob(ageNum),
+        gender: gender || null,
+        sport: sport || null,
+        notes: notes.trim() || null,
+        is_active: true,
+      })
+      .select('id')
+      .single();
     if (childErr) throw new Error(childErr.message);
+    setNewChildId((inserted?.id as string | undefined) ?? null);
     setChildCount((n) => n + 1);
-    setSuccessName(`${first_name.trim()} ${last_name.trim()}`);
+    setSuccessName(first_name.trim());
+    // Enfant suivant non enregistré à l'inscription : on le propose ensuite.
+    setMissed((m) => {
+      if (!m) return m;
+      const rest = m.names.filter((n) => n !== first_name.trim());
+      return rest.length ? { ...m, names: rest } : null;
+    });
   };
 
-  // Loading init
   if (initLoading) {
     return (
-      <div className="min-h-dvh bg-cream flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-navy-600 border-t-transparent rounded-full animate-spin" />
+      <div className="min-h-dvh flex items-center justify-center bg-night-bg" role="status" aria-label="Chargement">
+        <span className="w-6 h-6 rounded-full border-2 border-line2 border-t-accent animate-spin" aria-hidden />
       </div>
     );
   }
 
+  const maxChildren = planLimit(pack, 'maxChildren');
+  const maxParents = planLimit(pack, 'maxParents');
+
   return (
-    <div className="min-h-dvh bg-cream relative flex items-center justify-center p-4">
-      {/* Retour vers le site vitrine */}
-      <a
-        href={SITE_URL}
-        aria-label="Retourner au site Thrive Sport Positive"
-        className="absolute top-4 right-4 z-10 inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full bg-white/60 hover:bg-white/80 text-navy-600 hover:text-navy-900 text-sm font-bold shadow-card transition-colors"
-      >
-        <svg
-          aria-hidden
-          className="w-4 h-4"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M19 12H5" />
-          <path d="m12 19-7-7 7-7" />
-        </svg>
-        Retour au site
-      </a>
-
-      <div className="w-full max-w-lg">
-
-        {/* Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-500 to-navy-700 text-3xl shadow-card mb-4">
-            👨‍👩‍👧‍👦
-          </div>
-          <h1 className="text-2xl font-bold text-navy-900">Ajouter un membre</h1>
-          <p className="text-navy-600 mt-1 text-sm">Choisis le type de profil à créer</p>
+    <div className="min-h-dvh bg-night-bg text-night-body">
+      <header className="sticky top-0 z-header bg-night-bg safe-top">
+        <div className="max-w-xl mx-auto px-5 py-3 flex items-center justify-between gap-3">
+          <Link
+            href={HOME}
+            onClick={(e) => {
+              e.preventDefault();
+              goHome();
+            }}
+            className="inline-flex items-center gap-1.5 min-h-[44px] -ml-1 px-1 text-[15px] font-semibold text-soft hover:text-ink transition-colors"
+          >
+            <Icon name="arrow-left" className="w-4 h-4" />
+            {fromSignup ? 'Plus tard' : 'Retour'}
+          </Link>
+          <BrandLogo className="w-8 h-8" />
         </div>
+      </header>
 
-        {/* ─── STEP 1 : Choix ─── */}
-        {step === 'choose' && (
-          <div className="grid grid-cols-2 gap-4">
-            {([
-              { type: 'PARENT' as MemberType, icon: '👨‍👩‍👧', label: 'Parent',  desc: 'Ajouter un parent ou tuteur',      color: 'from-navy-500 to-navy-700',    border: 'hover:border-navy-300' },
-              { type: 'CHILD'  as MemberType, icon: '🧒',         label: 'Enfant',  desc: 'Ajouter un enfant à la famille', color: 'from-sun to-sun-dark',  border: 'hover:border-sun-dark' },
-            ]).map(({ type, icon, label, desc, color, border }) => (
-              <button
-                key={type}
-                onClick={() => {
-                  setMemberType(type);
-                  setError(null);
-                  setStep(quotaBlocked(type) ? 'quota' : 'form');
-                }}
-                className={`group bg-white rounded-2xl p-6 border-2 border-transparent ${border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1 text-left`}
-              >
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${color} flex items-center justify-center text-3xl shadow-md mb-4 group-hover:scale-110 transition-transform`}>
-                  {icon}
-                </div>
-                <p className="font-bold text-navy-900 text-lg">{label}</p>
-                <p className="text-navy-600 text-sm mt-1">{desc}</p>
-              </button>
-            ))}
+      <main className="max-w-xl mx-auto px-5 pt-4 pb-16 animate-om-up">
+        {fromSignup && step !== 'success' && (
+          <div className="nc-card ring-1 ring-accent-line mb-6">
+            <p className="font-display text-[19px] font-semibold text-ink">Ton compte est créé.</p>
+            <p className="text-[15px] leading-[1.55] text-soft mt-1 text-pretty">
+              {missed
+                ? missed.quota
+                  ? `Ton forfait ${PACK_LABELS[pack]} inclut ${maxChildren ?? 1} profil enfant : ${missed.names.join(', ')} n’a pas pu être ajouté. Ton coach peut faire évoluer ton forfait.`
+                  : `On n’a pas pu enregistrer ${missed.names.join(', ')}. Vérifie les informations ci-dessous et réessaie.`
+                : 'Ajoute la fiche de ton enfant : c’est elle qui ouvre son parcours avec son coach.'}
+            </p>
           </div>
         )}
 
-        {/* ─── Quota du forfait atteint : proposer l'upgrade plutôt que le formulaire ─── */}
-        {step === 'quota' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <button
-                onClick={() => { setStep('choose'); setMemberType(null); }}
-                aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-navy-600 hover:text-navy-800 hover:bg-navy-50 text-xl transition-colors"
-              >
-                ←
-              </button>
-              <div>
-                <h2 className="text-xl font-bold text-navy-900">
-                  {memberType === 'CHILD' ? '🧒 Ajouter un enfant' : '👨‍👩‍👧 Ajouter un parent'}
-                </h2>
-                <p className="text-xs text-navy-600">Forfait {PACK_LABELS[pack]}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3 rounded-xl border border-navy-100 bg-navy-50 px-4 py-3.5 mb-6">
-              <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5 text-navy-600 shrink-0 mt-0.5" aria-hidden>
-                <rect x="4.5" y="10.5" width="15" height="9.5" rx="2.4" stroke="currentColor" strokeWidth="1.8" />
-                <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-              </svg>
-              <p className="text-sm text-navy-800 leading-relaxed">
-                <span className="font-semibold">
-                  Ton forfait {PACK_LABELS[pack]} inclut{' '}
-                  {memberType === 'CHILD'
-                    ? `${planLimit(pack, 'maxChildren')} profil${(planLimit(pack, 'maxChildren') ?? 0) > 1 ? 's' : ''} enfant`
-                    : `${planLimit(pack, 'maxParents')} compte${(planLimit(pack, 'maxParents') ?? 0) > 1 ? 's' : ''} parent`}
-                  .
-                </span>{' '}
-                Passe à un forfait supérieur pour{' '}
-                {memberType === 'CHILD'
-                  ? 'accompagner un enfant de plus'
-                  : 'ajouter un parent ou superviseur'}
-                .
-              </p>
-            </div>
+        {coParent && (
+          <div className="nc-card">
+            <p className="font-display text-[20px] font-semibold text-ink">Ta famille est gérée par un autre parent</p>
+            <p className="text-[15px] leading-[1.55] text-soft mt-2 text-pretty">
+              Seul le parent qui a créé la famille peut ajouter un enfant ou un parent. Demande-lui, ou écris au support THRIVE.
+            </p>
             <Link
-              href="/parent/upgrade"
-              className="block w-full text-center px-6 py-3 rounded-full bg-sun text-navy-900 text-sm font-bold hover:bg-sun-dark transition-colors"
+              href="/parent/messages"
+              className="mt-5 inline-flex items-center justify-center min-h-[48px] px-6 rounded-full border border-line2 bg-chip text-ink text-[15px] font-semibold"
             >
-              Voir les forfaits
+              Écrire au support
             </Link>
           </div>
         )}
 
-        {/* ─── STEP 2 : Formulaire ─── */}
-        {step === 'form' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <button
-                onClick={() => { setStep('choose'); setError(null); }}
-                aria-label="Retour au choix du profil"
-                className="w-11 h-11 -ml-2 shrink-0 rounded-full flex items-center justify-center text-navy-600 hover:text-navy-800 hover:bg-navy-50 text-xl transition-colors"
-              >
-                ←
-              </button>
-              <div>
-                <h2 className="text-xl font-bold text-navy-900">
-                  {memberType === 'PARENT' ? '👨‍👩‍👧 Nouveau parent' : '🧒 Nouvel enfant'}
-                </h2>
-                <p className="text-xs text-navy-600">
-                  {memberType === 'CHILD' && !familyId ? 'La famille sera créée automatiquement' : 'Les champs * sont obligatoires'}
-                </p>
-              </div>
+        {/* ─── Choix ─── */}
+        {!coParent && step === 'choose' && (
+          <>
+            <h1 className="font-display text-[30px] leading-[1.15] font-semibold text-night-ink">Ajouter à ta famille</h1>
+            <p className="text-[15px] text-soft mt-2">Qui veux-tu ajouter ?</p>
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {(
+                [
+                  { type: 'CHILD', icon: 'child', label: 'Un enfant', desc: 'Il suivra le parcours THRIVE avec son coach.' },
+                  { type: 'PARENT', icon: 'users', label: 'Un parent ou tuteur', desc: 'Il verra le parcours de vos enfants dans l’app.' },
+                ] as { type: MemberType; icon: IconName; label: string; desc: string }[]
+              ).map((o) => (
+                <button
+                  key={o.type}
+                  type="button"
+                  onClick={() => choose(o.type)}
+                  className="nc-row text-left p-5 flex items-start gap-4 transition-colors hover:bg-chip"
+                >
+                  <span className="w-11 h-11 shrink-0 rounded-full bg-sun/10 text-accent-ink grid place-items-center">
+                    <Icon name={o.icon} className="w-5 h-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-display text-[18px] font-semibold text-ink">{o.label}</span>
+                    <span className="block text-[14px] leading-[1.45] text-soft mt-1">{o.desc}</span>
+                  </span>
+                </button>
+              ))}
             </div>
+          </>
+        )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+        {/* ─── Quota du forfait atteint ─── */}
+        {step === 'quota' && (
+          <>
+            <BackToChoice onClick={() => { setStep('choose'); setMemberType(null); }} hidden={Boolean(wanted)} />
+            <h1 className="font-display text-[28px] leading-[1.15] font-semibold text-night-ink">
+              {memberType === 'CHILD' ? 'Ajouter un enfant' : 'Ajouter un parent'}
+            </h1>
+            <div className="nc-card mt-5 flex items-start gap-3">
+              <span className="w-10 h-10 shrink-0 rounded-xl bg-sun/10 text-accent-ink grid place-items-center">
+                <Icon name="lock" className="w-5 h-5" />
+              </span>
+              <p className="text-[15px] leading-[1.55] text-body">
+                <span className="font-semibold text-ink">
+                  Ton forfait {PACK_LABELS[pack]} inclut{' '}
+                  {memberType === 'CHILD'
+                    ? `${maxChildren} profil${(maxChildren ?? 0) > 1 ? 's' : ''} enfant`
+                    : `${maxParents} compte${(maxParents ?? 0) > 1 ? 's' : ''} parent`}
+                  .
+                </span>{' '}
+                {memberType === 'CHILD'
+                  ? 'Pour accompagner un enfant de plus, ton coach peut faire évoluer ton forfait.'
+                  : 'Pour ajouter un parent ou tuteur, ton coach peut faire évoluer ton forfait.'}
+              </p>
+            </div>
+            <div className="mt-5 flex flex-col sm:flex-row gap-3">
+              <Link
+                href="/parent/upgrade"
+                className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+              >
+                Voir les forfaits
+              </Link>
+              <Link
+                href="/parent/messages"
+                className="inline-flex items-center justify-center min-h-[48px] px-6 rounded-full border border-line2 bg-chip text-ink text-[15px] font-semibold"
+              >
+                Écrire à mon coach
+              </Link>
+            </div>
+          </>
+        )}
 
-              {/* Prénom + Nom — commun aux deux */}
+        {/* ─── Formulaire ─── */}
+        {step === 'form' && memberType && (
+          <>
+            <BackToChoice onClick={() => { setStep('choose'); setError(null); }} hidden={Boolean(wanted)} />
+            <h1 className="font-display text-[28px] leading-[1.15] font-semibold text-night-ink">
+              {memberType === 'PARENT' ? 'Nouveau parent ou tuteur' : missed ? `La fiche de ${childForm.first_name || 'ton enfant'}` : 'La fiche de ton enfant'}
+            </h1>
+            {memberType === 'PARENT' && (
+              <p className="text-[15px] text-soft mt-2 text-pretty">
+                Il recevra un email pour choisir son mot de passe, puis verra le parcours de vos enfants.
+              </p>
+            )}
+
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4" noValidate>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Prénom *</label>
-                  <input required type="text" placeholder={memberType === 'PARENT' ? 'Jean' : 'Emma'}
+                  <label htmlFor="sp-first" className={LABEL}>Prénom</label>
+                  <input
+                    id="sp-first"
+                    required
+                    autoComplete={memberType === 'PARENT' ? 'given-name' : 'off'}
+                    autoCapitalize="words"
                     value={memberType === 'PARENT' ? parentForm.first_name : childForm.first_name}
-                    onChange={(e) => memberType === 'PARENT'
-                      ? setParentForm({ ...parentForm, first_name: e.target.value })
-                      : setChildForm({ ...childForm, first_name: e.target.value })}
-                    className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                    onChange={(e) =>
+                      memberType === 'PARENT'
+                        ? setParentForm({ ...parentForm, first_name: e.target.value })
+                        : setChildForm({ ...childForm, first_name: e.target.value })
+                    }
+                    className={FIELD}
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Nom *</label>
-                  <input required type="text" placeholder="Tremblay"
+                  <label htmlFor="sp-last" className={LABEL}>Nom</label>
+                  <input
+                    id="sp-last"
+                    required
+                    autoComplete={memberType === 'PARENT' ? 'family-name' : 'off'}
+                    autoCapitalize="words"
                     value={memberType === 'PARENT' ? parentForm.last_name : childForm.last_name}
-                    onChange={(e) => memberType === 'PARENT'
-                      ? setParentForm({ ...parentForm, last_name: e.target.value })
-                      : setChildForm({ ...childForm, last_name: e.target.value })}
-                    className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                    onChange={(e) =>
+                      memberType === 'PARENT'
+                        ? setParentForm({ ...parentForm, last_name: e.target.value })
+                        : setChildForm({ ...childForm, last_name: e.target.value })
+                    }
+                    className={FIELD}
                   />
                 </div>
               </div>
 
-              {/* PARENT — champs spécifiques */}
               {memberType === 'PARENT' && (
                 <>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Email *</label>
-                    <input required type="email" placeholder="jean@exemple.com"
+                    <label htmlFor="sp-email" className={LABEL}>Email</label>
+                    <input
+                      id="sp-email"
+                      required
+                      type="email"
+                      autoComplete="email"
                       value={parentForm.email}
                       onChange={(e) => setParentForm({ ...parentForm, email: e.target.value })}
-                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                      className={FIELD}
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Téléphone</label>
-                    <input type="tel" placeholder="514-555-0123"
+                    <label htmlFor="sp-phone" className={LABEL}>Téléphone (facultatif)</label>
+                    <input
+                      id="sp-phone"
+                      type="tel"
+                      autoComplete="tel"
                       value={parentForm.phone}
                       onChange={(e) => setParentForm({ ...parentForm, phone: e.target.value })}
-                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                      className={FIELD}
                     />
                   </div>
                 </>
               )}
 
-              {/* ENFANT — champs spécifiques */}
               {memberType === 'CHILD' && (
                 <>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Âge *</label>
-                      <input required type="number" min={1} max={25} placeholder="8"
+                      <label htmlFor="sp-age" className={LABEL}>Âge ({MIN_AGE}–{MAX_AGE} ans)</label>
+                      <input
+                        id="sp-age"
+                        required
+                        type="number"
+                        inputMode="numeric"
+                        min={MIN_AGE}
+                        max={MAX_AGE}
                         value={childForm.age}
                         onChange={(e) => setChildForm({ ...childForm, age: e.target.value })}
-                        className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400"
+                        className={FIELD}
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Genre</label>
-                      <select value={childForm.gender} onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
-                        className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
+                      <label htmlFor="sp-gender" className={LABEL}>Genre (facultatif)</label>
+                      <select
+                        id="sp-gender"
+                        value={childForm.gender}
+                        onChange={(e) => setChildForm({ ...childForm, gender: e.target.value })}
+                        className={FIELD}
+                      >
                         <option value="">—</option>
-                        {GENDER_OPTIONS.map((g) => <option key={g.value} value={g.value}>{g.label}</option>)}
+                        {GENDER_OPTIONS.map((g) => (
+                          <option key={g.value} value={g.value}>{g.label}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Sport principal</label>
-                    <select value={childForm.sport} onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
-                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 bg-white">
-                      <option value="">Choisir un sport...</option>
-                      {SPORT_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    <label htmlFor="sp-sport" className={LABEL}>Sport principal (facultatif)</label>
+                    <select
+                      id="sp-sport"
+                      value={childForm.sport}
+                      onChange={(e) => setChildForm({ ...childForm, sport: e.target.value })}
+                      className={FIELD}
+                    >
+                      <option value="">Choisir un sport…</option>
+                      {SPORT_OPTIONS.map((s) => (
+                        <option key={s} value={s}>{s}</option>
+                      ))}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-navy-700 mb-1 uppercase tracking-wide">Notes</label>
-                    <textarea rows={3} placeholder="Allergies, besoins spéciaux..."
+                    <label htmlFor="sp-notes" className={LABEL}>À savoir pour le coach (facultatif)</label>
+                    <textarea
+                      id="sp-notes"
+                      rows={3}
+                      maxLength={600}
                       value={childForm.notes}
                       onChange={(e) => setChildForm({ ...childForm, notes: e.target.value })}
-                      className="w-full border border-navy-100 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-navy-500/20 focus:border-navy-400 resize-none"
+                      className={`${FIELD} py-3 resize-none`}
                     />
+                    <p className="text-[13px] text-faint mt-1.5">
+                      Uniquement ce qui aide l’accompagnement (allergie, besoin particulier…). Visible par son coach et l’équipe THRIVE.
+                    </p>
                   </div>
                 </>
               )}
 
-              {/* Erreur */}
               {error && (
-                <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 flex items-start gap-2">
-                  <span className="shrink-0">⚠️</span>
-                  <span>{error}</span>
-                </div>
+                <p role="alert" className="rounded-[14px] bg-red-500/10 ring-1 ring-red-400/30 px-4 py-3 text-[14px] text-danger-ink">
+                  {error}
+                </p>
               )}
 
-              {/* Submit */}
-              <button type="submit" disabled={isSubmitting}
-                className={`w-full py-3.5 rounded-xl font-bold text-white text-sm transition-all duration-200 shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${
-                  memberType === 'PARENT'
-                    ? 'bg-navy-600 hover:bg-navy-700'
-                    : 'bg-navy-600 hover:bg-navy-700'
-                }`}>
-                {isSubmitting ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="white" strokeWidth="4"/>
-                      <path className="opacity-75" fill="white" d="M4 12a8 8 0 018-8v8z"/>
-                    </svg>
-                    Création en cours...
-                  </span>
-                ) : memberType === 'PARENT' ? 'Créer le compte parent' : 'Ajouter l’enfant'}
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                aria-busy={isSubmitting}
+                className="w-full min-h-[52px] rounded-full bg-accent text-accent-on font-bold text-[16px] disabled:opacity-60 inline-flex items-center justify-center gap-2"
+              >
+                {isSubmitting && <span className="w-4 h-4 rounded-full border-2 border-navy-900/30 border-t-navy-900 animate-spin" aria-hidden />}
+                {isSubmitting ? 'Enregistrement…' : memberType === 'PARENT' ? 'Créer son compte' : 'Enregistrer la fiche'}
               </button>
             </form>
-          </div>
+          </>
         )}
 
-        {/* ─── STEP 3 : Succès ─── */}
+        {/* ─── Succès ─── */}
         {step === 'success' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-navy-100 p-10 text-center">
-            <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center text-4xl mx-auto mb-6">✅</div>
-            <h2 className="text-2xl font-bold text-navy-900 mb-2">
-              {memberType === 'PARENT' ? 'Compte créé !' : 'Enfant ajouté !'}
-            </h2>
-            <p className="text-navy-600 mb-1">
-              <span className="font-semibold text-navy-800">{successName}</span>
+          <div className="text-center pt-6">
+            <span className="w-16 h-16 mx-auto rounded-full bg-sage/15 text-sage-ink grid place-items-center">
+              <Icon name="check" className="w-7 h-7" strokeWidth={2.4} />
+            </span>
+            <h1 className="mt-5 font-display text-[28px] leading-[1.15] font-semibold text-night-ink">
+              {memberType === 'PARENT' ? `${successName} est invité·e` : `${successName} est ajouté·e`}
+            </h1>
+            <p className="mt-3 text-[15px] leading-[1.6] text-soft max-w-md mx-auto text-pretty">
               {memberType === 'PARENT'
-                ? ' a bien été enregistré(e) comme parent. Un email lui a été envoyé pour choisir son mot de passe.'
-                : ' a bien été ajouté(e) à ta famille.'}
+                ? 'Un email vient de partir pour choisir son mot de passe. Il pourra ensuite se connecter et suivre vos enfants.'
+                : 'Sa fiche est enregistrée. L’équipe THRIVE la valide puis ton coach ouvre son parcours — tu reçois une notification dès que c’est prêt.'}
             </p>
-            {memberType === 'CHILD' && (
-              <p className="text-sm text-navy-600 max-w-sm mx-auto mb-2">
-                La fiche de ton enfant a bien été enregistrée. Elle est en cours de
-                validation par notre équipe avant l'ouverture complète de ton espace.
-              </p>
-            )}
-            <p className="text-xs text-green-600 font-medium mb-8">🟢 Visible instantanément dans le dashboard admin</p>
-            <div className="flex flex-col gap-3">
-              <button onClick={resetForms}
-                className="w-full py-3 rounded-xl border-2 border-navy-100 font-semibold text-navy-800 hover:bg-navy-50 transition-colors">
-                + Ajouter un autre membre
+            <div className="mt-8 flex flex-col gap-3 max-w-sm mx-auto">
+              {missed && memberType === 'CHILD' ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setChildForm((f) => ({ first_name: missed.names[0], last_name: f.last_name, age: '', gender: '', sport: '', notes: '' }));
+                    setError(null);
+                    setStep(isQuotaBlocked('CHILD', familyId, pack, childCount, memberCount) ? 'quota' : 'form');
+                  }}
+                  className="min-h-[52px] rounded-full bg-accent text-accent-on font-bold text-[16px]"
+                >
+                  Ajouter {missed.names[0]}
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={goHome}
+                  className="min-h-[52px] rounded-full bg-accent text-accent-on font-bold text-[16px]"
+                >
+                  Aller à mon espace
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={resetForms}
+                className="min-h-[48px] rounded-full border border-line2 bg-chip text-ink font-semibold text-[15px]"
+              >
+                Ajouter quelqu’un d’autre
               </button>
-              <button onClick={() => router.push('/dashboard')}
-                className="w-full py-3 rounded-xl bg-navy-600 text-white font-bold hover:bg-navy-700 transition-colors shadow-md">
-                Retour au dashboard
-              </button>
+              {missed && memberType === 'CHILD' && (
+                <button type="button" onClick={goHome} className="min-h-[44px] text-[15px] font-semibold text-soft">
+                  Plus tard
+                </button>
+              )}
             </div>
           </div>
         )}
-
-      </div>
+        {authUser && step === 'choose' && !fromSignup && (
+          <p className="mt-8 text-[13px] text-faint">Connecté·e en tant que {authUser.email}</p>
+        )}
+      </main>
     </div>
+  );
+}
+
+function BackToChoice({ onClick, hidden }: { onClick: () => void; hidden: boolean }) {
+  if (hidden) return null;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="inline-flex items-center gap-1.5 min-h-[44px] mb-2 -ml-1 px-1 text-[14px] font-semibold text-soft hover:text-ink"
+    >
+      <Icon name="chevron-right" className="w-4 h-4 rotate-180" />
+      Changer de choix
+    </button>
+  );
+}
+
+export default function SelectProfilePage() {
+  return (
+    <Suspense>
+      <SelectProfileInner />
+    </Suspense>
   );
 }

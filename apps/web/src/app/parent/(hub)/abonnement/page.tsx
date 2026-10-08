@@ -71,6 +71,7 @@ function Abonnement() {
   const role = useAuthStore((s) => s.user?.role ?? null);
   const { row, isLoading, refresh, sync } = useSubscriptionStore();
   const refreshAccess = useAccessStore((s) => s.refresh);
+  const coached = useAccessStore((s) => s.access?.unlocked === true);
   const params = useSearchParams();
   const router = useRouter();
 
@@ -158,8 +159,42 @@ function Abonnement() {
   return (
     <Shell>
       {notice && <Notice tone={notice.tone}>{notice.text}</Notice>}
-      {active && row ? <ActiveSubscription /> : <Offer onNotice={setNotice} />}
+      {active && row ? (
+        <ActiveSubscription />
+      ) : coached ? (
+        // Compte activé par le coach : Maison est déjà inclus (access_state.p3_access).
+        // Ne jamais lui proposer de payer pour ce qu'il a.
+        <IncludedWithCoach />
+      ) : (
+        <Offer onNotice={setNotice} />
+      )}
     </Shell>
+  );
+}
+
+function IncludedWithCoach() {
+  return (
+    <section className="nc-card">
+      <div className="flex items-center gap-3">
+        <span className="w-10 h-10 rounded-xl bg-sage/15 text-sage-ink flex items-center justify-center shrink-0">
+          <Icon name="check" className="w-5 h-5" />
+        </span>
+        <div>
+          <p className="font-display text-[20px] font-semibold text-night-ink">Inclus dans ton accompagnement</p>
+          <p className="text-[14px] text-soft">Le moment qui compte · Maison</p>
+        </div>
+      </div>
+      <p className="text-[15px] leading-[1.55] text-body mt-4">
+        Ton parcours avec ton coach comprend toutes les activités Maison. Tu n&apos;as aucun abonnement à prendre.
+      </p>
+      <Link
+        href="/parent/fitness"
+        className="mt-5 inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-full bg-accent text-accent-on text-[15px] font-bold"
+      >
+        <Icon name="home" className="w-4 h-4" />
+        Aller à Maison
+      </Link>
+    </section>
   );
 }
 
@@ -260,7 +295,7 @@ function ActiveSubscription() {
       <div className="mt-6 flex flex-col sm:flex-row gap-3">
         <Link
           href="/parent/fitness"
-          className="flex-1 flex items-center justify-center gap-2 h-12 rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
+          className="sm:flex-1 flex items-center justify-center gap-2 min-h-[48px] rounded-full border border-line text-[15px] font-semibold text-night-ink active:scale-95 transition-transform"
         >
           Ouvrir Maison <Icon name="arrow-right" className="w-4 h-4" />
         </Link>
