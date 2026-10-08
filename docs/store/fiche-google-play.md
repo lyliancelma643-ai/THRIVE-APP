@@ -8,7 +8,7 @@
 | Champ Play Console | Valeur | Limite |
 |---|---|---|
 | Nom de l'app | `THRIVE Sport Positive` | 30 |
-| Description courte | `Accompagnez votre jeune sportif avec son coach et 10 minutes en famille par jour.` | 80 |
+| Description courte | `Accompagnez votre jeune sportif avec son coach et 10 minutes de famille par jour.` | 80 |
 | Catégorie | Santé et forme (Éducation en type secondaire si demandé) | — |
 | Type d'application | Application | — |
 | Gratuit ou payant | Gratuit (abonnements in-app) | — |

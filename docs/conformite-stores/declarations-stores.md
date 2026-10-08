@@ -176,7 +176,7 @@ Catégorie : « Référence, actualités ou éducation ». Violence, sexualité,
 
 - **Nom (≤ 30)** : `THRIVE Sport Positive` *(sous réserve de la recherche de marque)*
 - **Sous-titre iOS (≤ 30)** : `Le sport qui fait grandir`
-- **Description courte Play (≤ 80)** : `Accompagnez votre jeune sportif avec son coach et 10 minutes par jour en famille.`
+- **Description courte Play (≤ 80)** : `Accompagnez votre jeune sportif avec son coach et 10 minutes de famille par jour.`
 - **Mots-clés iOS (≤ 100)** : `sport,parent,coach,ado,motivation,confiance,famille,émotions,bien-être,habiletés,programme,bilan`
 - **Catégorie** : Santé et forme (principale) ; Éducation (secondaire)
 - **Description** :
