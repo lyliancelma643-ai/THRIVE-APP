@@ -6,7 +6,14 @@ import { Icon } from '@/components/ui';
 import { useParams, useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
-import { AssignedChild, CoachSession, childAge } from '@/lib/coach';
+import {
+  AssignedChild,
+  CoachSession,
+  CloseSessionPayload,
+  CLOSE_SESSION_FALLBACK_MESSAGE,
+  childAge,
+  completeSessionWithReport,
+} from '@/lib/coach';
 import { ageGroupFromBirthDate } from '@/lib/catalog';
 import {
   getSessionScript,
@@ -18,6 +25,63 @@ import { useSessionDraft } from '@/hooks/useSessionDraft';
 import { buildFieldModeSession } from '@/lib/field-mode/build';
 import { FIELD_MODE_ENABLED } from '@/lib/field-mode/flag';
 import { FieldModeShell } from '@/components/coach/field-mode';
+
+// Repli avant migration 071 : les trois écritures historiques. Non transactionnel.
+// Renvoie l'id du coach_report (ou null si son insertion a échoué — best-effort).
+async function legacyCloseWrites(
+  session: CoachSession,
+  childId: string,
+  coachId: string,
+  payload: CloseSessionPayload
+): Promise<string | null> {
+  try {
+    const { error: upErr } = await supabase
+      .from('sessions')
+      .update({
+        status: 'COMPLETED',
+        completed_at: new Date().toISOString(),
+        coach_notes: payload.message,
+      })
+      .eq('id', session.id);
+    if (upErr) throw upErr;
+
+    const { error: repErr } = await supabase.from('reports').insert({
+      child_id: childId,
+      program_id: session.program_id,
+      generated_by: coachId,
+      content: {
+        ...(payload.fields ?? {}),
+        session_id: session.id,
+        session_number: session.session_number,
+        titre: session.title,
+        'message du coach': payload.message,
+        ...(payload.observations && Object.keys(payload.observations).length > 0
+          ? { observations: payload.observations }
+          : {}),
+      },
+    });
+    if (repErr) throw repErr;
+  } catch {
+    throw new Error(CLOSE_SESSION_FALLBACK_MESSAGE);
+  }
+
+  const { data: cr } = await supabase
+    .from('coach_reports')
+    .insert({
+      child_id: childId,
+      coach_id: coachId,
+      session_id: session.id,
+      age_group: payload.age_group ?? null,
+      life_skill_target: payload.life_skill_target ?? null,
+      performance_summary: payload.performance_summary ?? null,
+      success_count: payload.success_count ?? null,
+      coach_message_parent: payload.message,
+    })
+    .select('id')
+    .single();
+  return cr?.id ?? null;
+}
+
 
 export default function CoachLiveSessionPage() {
   const params = useParams<{ id: string; sessionId: string }>();
@@ -129,77 +193,55 @@ export default function CoachLiveSessionPage() {
     if (!user?.id || !child || !session) return;
     setSending(true);
     setError('');
+    // Grille (clés sans le préfixe de bloc) et réponses libres non vides.
+    const observations: Record<string, number> = {};
+    Object.entries(ratings).forEach(([key, v]) => {
+      if (v > 0) observations[key.split('|').slice(1).join('|')] = v;
+    });
+    const filledFields = Object.fromEntries(
+      Object.entries(fields).filter(([, v]) => v.trim() !== '')
+    );
+    const perfSummary = Object.keys(observations).length
+      ? `Indicateurs cotés : ${Object.entries(observations)
+          .map(([k, v]) => `${k} ${v}/5`)
+          .join(' · ')}`
+      : null;
+    const payload: CloseSessionPayload = {
+      message: parentMsg,
+      observations,
+      fields: filledFields,
+      age_group: ageGroup,
+      life_skill_target: script?.title || session.title,
+      performance_summary: perfSummary,
+      success_count: ratedCount,
+    };
     try {
-      // 1. La séance passe « validée » (s'éclaire chez le parent)
-      const { error: upErr } = await supabase
-        .from('sessions')
-        .update({
-          status: 'COMPLETED',
-          completed_at: new Date().toISOString(),
-          coach_notes: parentMsg,
-        })
-        .eq('id', session.id);
-      if (upErr) throw upErr;
+      // Séance validée + bilan parent + moteur de bilans : une seule transaction (migration 071).
+      const outcome = await completeSessionWithReport(session.id, payload);
+      let coachReportId: string | null = null;
+      if ('result' in outcome) {
+        coachReportId = outcome.result.coach_report_id;
+      } else {
+        // REPLI : migration 071 pas encore appliquée sur la base. Ancien chemin en 3 écritures
+        // (non transactionnel). À retirer dès que 071 est en prod.
+        coachReportId = await legacyCloseWrites(session, child.id, user.id, payload);
+      }
 
-      // 2. Bilan complet -> compte parent (grille + réponses + message)
-      const observations: Record<string, number> = {};
-      Object.entries(ratings).forEach(([key, v]) => {
-        if (v > 0) observations[key.split('|').slice(1).join('|')] = v;
-      });
-      const filledFields = Object.fromEntries(
-        Object.entries(fields).filter(([, v]) => v.trim() !== '')
-      );
-
-      const { error: repErr } = await supabase.from('reports').insert({
-        child_id: child.id,
-        program_id: session.program_id,
-        generated_by: user.id,
-        content: {
-          session_id: session.id,
-          session_number: session.session_number,
-          titre: session.title,
-          'message du coach': parentMsg,
-          ...(Object.keys(observations).length > 0 ? { observations } : {}),
-          ...filledFields,
-        },
-      });
-      if (repErr) throw repErr;
-
-      // Alimente aussi le moteur de bilans (coach_reports → parent_reports via EF).
-      // Best-effort : l'envoi legacy a déjà réussi, on ne bloque pas dessus.
-      try {
-        const perfSummary = Object.keys(observations).length
-          ? `Indicateurs cotés : ${Object.entries(observations)
-              .map(([k, v]) => `${k} ${v}/5`)
-              .join(' · ')}`
-          : null;
-        const { data: cr } = await supabase
-          .from('coach_reports')
-          .insert({
-            child_id: child.id,
-            coach_id: user.id,
-            session_id: session.id,
-            age_group: ageGroup,
-            life_skill_target: script?.title || session.title,
-            performance_summary: perfSummary,
-            success_count: ratedCount,
-            coach_message_parent: parentMsg,
-          })
-          .select('id')
-          .single();
-        if (cr?.id) {
+      // Moteur de bilans (coach_reports → parent_reports) : best-effort, le bilan est déjà enregistré.
+      if (coachReportId) {
+        try {
           await supabase.functions.invoke('generate-parent-report', {
-            body: { coach_report_id: cr.id },
+            body: { coach_report_id: coachReportId },
           });
+        } catch {
+          /* best-effort */
         }
-      } catch {
-        /* moteur de bilans best-effort : le bilan legacy est déjà parti */
       }
 
       clearDraft();
       router.push(`/coach/athletes/${child.id}?sent=1`);
-    } catch (e: any) {
-      setError(e?.message ?? "Erreur lors de l'envoi du bilan");
+    } catch (e: unknown) {
+      setError(e instanceof Error && e.message ? e.message : CLOSE_SESSION_FALLBACK_MESSAGE);
       setSending(false);
     }
   }, [user, child, session, parentMsg, ratings, fields, ageGroup, script, ratedCount, clearDraft, router]);
