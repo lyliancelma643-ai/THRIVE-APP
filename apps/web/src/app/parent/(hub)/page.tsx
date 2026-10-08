@@ -7,7 +7,7 @@ import { redirect } from 'next/navigation';
 export default async function ParentIndexPage({
   searchParams,
 }: {
-  searchParams: Promise<{ setup?: string | string[] }> | { setup?: string | string[] };
+  searchParams: Promise<{ setup?: string | string[] }>;
 }) {
   const params = await searchParams;
   if (params?.setup === 'children') {
