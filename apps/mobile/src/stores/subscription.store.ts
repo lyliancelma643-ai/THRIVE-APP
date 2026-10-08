@@ -37,7 +37,25 @@ type SubscriptionStore = {
   reset: () => void;
 };
 
-export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
+// Après un achat / une restauration : le serveur (billing_subscriptions) est la
+// source de vérité de access_state(). On le resynchronise depuis RevenueCat
+// (edge function billing-sync) puis on relit access_state(). Une seule synchro
+// à la fois ; en cas d'échec le webhook finira le travail (relecture au prochain lancement).
+let syncing = false;
+async function syncServerAfterPurchase(reload: () => Promise<void>): Promise<void> {
+  if (syncing) return;
+  syncing = true;
+  try {
+    await supabase.functions.invoke('billing-sync', { body: {} });
+  } catch {
+    // ignoré : voir ci-dessus
+  } finally {
+    syncing = false;
+  }
+  await reload();
+}
+
+export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   status: 'loading',
   customerInfo: null,
   serverAccess: null,
@@ -48,8 +66,14 @@ export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
     set({ serverAccess: !error && Boolean(state?.p3_access) });
   },
 
-  setCustomerInfo: (info) =>
-    set({ customerInfo: info, status: isPurchasesAvailable() ? 'ready' : 'unavailable' }),
+  setCustomerInfo: (info) => {
+    set({ customerInfo: info, status: isPurchasesAvailable() ? 'ready' : 'unavailable' });
+    // Droit actif côté store mais pas encore reconnu par le serveur → resynchroniser.
+    if (selectIsActive({ customerInfo: info }) && get().serverAccess !== true) {
+      set({ serverAccess: null }); // « vérification en cours » plutôt que paywall qui clignote
+      void syncServerAfterPurchase(get().loadServerAccess);
+    }
+  },
 
   refresh: async () => {
     if (!isPurchasesAvailable()) {

@@ -7,7 +7,7 @@ import { isStaffRole, managementMode, type ManagementMode } from '../services/su
 export type EntitlementState = {
   /** Vérification en cours : afficher un chargement, jamais le paywall. */
   isLoading: boolean;
-  /** Accès à P3 : abonné `thrive_moments` actif, ou rôle staff. */
+  /** Accès à P3 : `access_state().p3_access` (source de vérité serveur) ou rôle staff. */
   hasAccess: boolean;
   /** Vrai abonnement (hors bypass staff). */
   isSubscribed: boolean;
@@ -37,8 +37,10 @@ export function useEntitlement(): EntitlementState {
   const isSubscribed = selectIsActive({ customerInfo });
 
   return {
-    isLoading: !isStaff && !isSubscribed && (status === 'loading' || serverAccess === null),
-    hasAccess: isStaff || isSubscribed || serverAccess === true,
+    isLoading: !isStaff && (status === 'loading' || serverAccess === null),
+    // Le serveur décide (abonnement, forçage admin, co-parent). L'état RevenueCat
+    // local sert à déclencher la resynchronisation (cf. subscription.store), pas à ouvrir.
+    hasAccess: isStaff || serverAccess === true,
     isSubscribed,
     isStaff,
     isTrial: ent?.periodType === 'TRIAL',
