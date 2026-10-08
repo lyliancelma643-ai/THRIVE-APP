@@ -6,7 +6,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { LegalPage, Section } from '@/components/legal/LegalPage';
-import { LEGAL, SUPPORT_PATH } from '@/lib/legal';
+import { LEGAL, SUPPORT_PATH, TERMS_PATH } from '@/lib/legal';
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité — THRIVE',
@@ -43,12 +43,14 @@ export default function PolitiqueConfidentialitePage() {
       <Section id="responsable" title="1. Qui est responsable de vos renseignements ?">
         <p>
           <strong>{LEGAL.company}</strong>, {LEGAL.city}, exploite l’application THRIVE.
+          NEQ : {LEGAL.neq}. Adresse du siège : {LEGAL.address}.
         </p>
         <p>
           Conformément à l’article 3.1 de la Loi 25, la personne responsable de la protection des
-          renseignements personnels est <strong>{LEGAL.privacyOfficerTitle.toLowerCase()}</strong>,
-          qui exerce la plus haute autorité au sein de l’entreprise. Pour toute question, demande
-          ou plainte : <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
+          renseignements personnels est <strong>{LEGAL.privacyOfficerName}</strong>
+          ({LEGAL.privacyOfficerTitle.toLowerCase()}, qui exerce la plus haute autorité au sein de
+          l’entreprise). Pour toute question, demande ou plainte :{' '}
+          <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
         </p>
       </Section>
 
@@ -235,7 +237,36 @@ export default function PolitiqueConfidentialitePage() {
         </p>
       </Section>
 
-      <Section id="modifications" title="10. Modifications">
+      <Section id="suppression" title="10. Supprimer votre compte et vos renseignements">
+        <p>
+          <strong>Depuis l’app :</strong> Compte › « Supprimer mon compte et mes données ». Vos
+          renseignements sont effacés dans un délai de{' '}
+          {LEGAL.rightsDelayDays} jours ; les copies de sauvegarde sont écrasées automatiquement dans
+          les 30 jours suivants.
+        </p>
+        <p>
+          <strong>Sans accès à l’app :</strong> écrivez à{' '}
+          <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a> depuis l’adresse de votre
+          compte, avec la mention « Suppression de compte ». Nous pouvons vous demander une confirmation
+          d’identité avant de traiter la demande.
+        </p>
+        <p>
+          <strong>Ce qui est supprimé :</strong> votre compte, les renseignements de vos enfants
+          rattachés à votre famille, leurs bilans, leurs réponses aux questionnaires, vos messages et
+          vos fichiers.
+        </p>
+        <p>
+          <strong>Ce qui peut être conservé :</strong> les factures et pièces comptables (6 ans, lois
+          fiscales) et, le cas échéant, une trace minimale de la demande pour démontrer son traitement.
+          Un abonnement Apple ou Google Play doit être annulé dans les réglages de votre appareil : sa
+          suppression dans l’app n’annule pas l’abonnement.
+        </p>
+        <p>
+          Conditions d’utilisation : <Link href={TERMS_PATH}>{TERMS_PATH}</Link>.
+        </p>
+      </Section>
+
+      <Section id="modifications" title="11. Modifications">
         <p>
           Nous pouvons mettre à jour cette politique. La date en haut de page indique la dernière
           version ; en cas de changement important, nous vous en informerons dans l’app ou par
