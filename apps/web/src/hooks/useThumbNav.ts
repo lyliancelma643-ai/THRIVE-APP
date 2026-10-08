@@ -9,7 +9,9 @@
 //   • aux deux extrémités, la course est freinée à 25 % — la butée se sent ;
 //   • le défilement vertical reste prioritaire : dès que le geste part vers le
 //     haut ou le bas, on lâche la main (et `touch-action: pan-y` sur l'élément) ;
-//   • l'écran entrant glisse de 30 px DANS LE SENS DU GESTE, jamais l'inverse.
+//   • l'écran entrant glisse de 30 px DANS LE SENS DU GESTE, jamais l'inverse ;
+//   • un élément qui défile lui-même à l'horizontale (carrousel de cartes,
+//     rangée de pastilles) porte `data-no-thumbnav` : le geste lui appartient.
 
 import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
 
@@ -60,6 +62,7 @@ export function useThumbNav({
       if (!enabled) return;
       // Souris : on laisse la sélection de texte et les clics tranquilles.
       if (e.pointerType === 'mouse') return;
+      if ((e.target as Element | null)?.closest?.('[data-no-thumbnav]')) return;
       start.current = { x: e.clientX, y: e.clientY };
       axis.current = 'none';
     },

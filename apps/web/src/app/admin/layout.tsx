@@ -10,6 +10,8 @@ import { Icon, type IconName } from '@/components/ui';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useModalDismiss } from '@/lib/useModalDismiss';
 import { useResponsiveTables } from '@/components/ResponsiveTables';
+import { useAdminNotifications } from '@/hooks/useAdminNotifications';
+import { AdminNotificationsBell } from '@/components/admin/AdminNotificationsBell';
 
 type NavItem = {
   href: string;
@@ -85,6 +87,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Toute navigation referme le menu du téléphone.
   useEffect(() => setMenuOpen(false), [pathname]);
+  // Un seul abonnement temps réel pour toute la zone admin : la cloche du
+  // header (mobile et desktop) et la pastille du menu lisent la même source.
+  const notifications = useAdminNotifications(isAuthenticated ? user?.id : undefined);
 
   useEffect(() => { hydrate(); }, [hydrate]);
 
@@ -130,13 +135,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const isActive = (href: string) =>
     pathname === href || (href !== '/admin' && pathname.startsWith(href));
   const current = sections.flatMap((s) => s.items).find((i) => isActive(i.href));
-  const unreadBadge = (href: string, cls: string) =>
-    href === '/admin/messages' && unreadMessages > 0 ? (
+  // Pastilles du menu : messages non lus et notifications non lues.
+  const navBadge = (href: string) =>
+    href === '/admin/messages' ? unreadMessages
+      : href === '/admin/notifications' ? notifications.unread
+      : 0;
+  const unreadBadge = (href: string, cls: string) => {
+    const n = navBadge(href);
+    if (n <= 0) return null;
+    const what = href === '/admin/messages' ? 'message(s)' : 'notification(s)';
+    return (
       <span className={cls}>
-        <span aria-hidden>{unreadMessages > 9 ? '9+' : unreadMessages}</span>
-        <span className="sr-only">{`${unreadMessages} message(s) non lu(s)`}</span>
+        <span aria-hidden>{n > 9 ? '9+' : n}</span>
+        <span className="sr-only">{`${n} ${what} non lu(s)`}</span>
       </span>
-    ) : null;
+    );
+  };
 
   return (
     <div className="min-h-dvh bg-cream">
@@ -147,6 +161,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <p className="flex-1 min-w-0 truncate text-sm font-semibold">
             {current?.label ?? 'Espace admin'}
           </p>
+          <AdminNotificationsBell notifications={notifications} placement="topbar" />
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
@@ -156,7 +171,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           >
             <Icon name="menu" className="w-5 h-5" />
             Menu
-            {unreadMessages > 0 && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sun" aria-hidden />}
+            {unreadMessages + notifications.unread > 0 && <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-sun" aria-hidden />}
           </button>
         </div>
       </div>
@@ -197,7 +212,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {/* iPad (768–1023 px) : rail ; ≥ 1024 px : barre latérale par sections */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 z-header w-[88px] lg:w-64 bg-navy-900 text-white flex-col safe-top">
         <div className="px-4 lg:px-6 pt-6 pb-4 flex flex-col items-center lg:items-start border-b border-navy-800">
-          <BrandLogo className="w-10 h-10 shadow-card" />
+          <div className="flex items-center justify-between w-full gap-2">
+            <BrandLogo className="w-10 h-10 shadow-card" />
+            <AdminNotificationsBell notifications={notifications} placement="sidebar" className="-mr-2" />
+          </div>
           <p className="hidden lg:block text-navy-200/80 text-xs mt-2">Espace admin</p>
         </div>
         <nav aria-label="Navigation admin" className="flex-1 px-2 lg:px-3 py-3 overflow-y-auto overscroll-contain">

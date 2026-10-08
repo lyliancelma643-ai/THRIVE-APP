@@ -47,6 +47,17 @@ type AccessStore = {
   refresh: () => Promise<void>;
 };
 
+// Revue locale de la section Fitness alors que le flag serveur est OFF :
+// `NEXT_PUBLIC_FITNESS_PREVIEW=1` dans .env.local. Ignoré hors `next dev` —
+// un build de production ne peut jamais l'activer.
+export const FITNESS_DEV_PREVIEW =
+  process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FITNESS_PREVIEW === '1';
+
+export function isFitnessOpen(access: AccessState): boolean {
+  return access.fitnessEnabled || FITNESS_DEV_PREVIEW;
+}
+
+
 const asForced = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null);
 
 /** Convertit la réponse brute de `access_state()` (fonction pure, testée). */

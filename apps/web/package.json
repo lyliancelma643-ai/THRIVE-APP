@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "ux:build": "node scripts/ux-audit/build-mock.mjs",
     "ux:audit": "node scripts/ux-audit/run.mjs",
-    "test:e2e:client": "playwright test -c playwright.client.config.ts"
+    "test:e2e:client": "playwright test -c playwright.client.config.ts",
+    "cards:build": "node --no-warnings scripts/build-home-cards.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.0.0",

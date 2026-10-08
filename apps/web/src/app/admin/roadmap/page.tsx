@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import {
@@ -34,7 +35,10 @@ const selectCls =
   'text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.06] ' +
   'text-slate-600 dark:text-slate-200 px-2 py-2 focus:outline-none focus:ring-2 focus:ring-navy-300';
 
-export default function AdminRoadmapPage() {
+function AdminRoadmapPageInner() {
+  // Deep-link des notifications : ?task=<id> ouvre la fiche, ?chat=<canal>
+  // ouvre le chat d'équipe sur le bon canal (cf. migration 060).
+  const params = useSearchParams();
   const { user } = useAuthStore();
   const me = user?.id ?? '';
   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
@@ -49,6 +53,7 @@ export default function AdminRoadmapPage() {
   const [dark, setDark] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
+  const [chatChannel, setChatChannel] = useState('GENERAL');
   const [doneOpen, setDoneOpen] = useState(false);
 
   // Bannière « changements récents » : curseur « vu jusqu'à » global
@@ -78,6 +83,17 @@ export default function AdminRoadmapPage() {
   useEffect(() => {
     setDark(typeof window !== 'undefined' && window.localStorage.getItem('thrive-roadmap-dark') === '1');
   }, []);
+
+  // Arrivée depuis une notification : on ouvre directement la bonne chose.
+  useEffect(() => {
+    const task = params.get('task');
+    const chat = params.get('chat');
+    if (task) setOpenTaskId(task);
+    if (chat) {
+      setChatChannel(chat.toUpperCase());
+      setChatOpen(true);
+    }
+  }, [params]);
   const toggleDark = () => {
     setDark((d) => {
       try { window.localStorage.setItem('thrive-roadmap-dark', d ? '0' : '1'); } catch { /* ok */ }
@@ -726,8 +742,18 @@ export default function AdminRoadmapPage() {
         )}
 
         {/* ── Chat d'équipe ── */}
-        {chatOpen && <ChatPanel me={me} admins={admins} dark={dark} onClose={() => setChatOpen(false)} />}
+        {chatOpen && (
+          <ChatPanel me={me} admins={admins} dark={dark} initialChannel={chatChannel} onClose={() => setChatOpen(false)} />
+        )}
       </div>
     </div>
+  );
+}
+
+export default function AdminRoadmapPage() {
+  return (
+    <Suspense fallback={<p className="text-sm text-slate-400 p-6">Chargement de la roadmap…</p>}>
+      <AdminRoadmapPageInner />
+    </Suspense>
   );
 }

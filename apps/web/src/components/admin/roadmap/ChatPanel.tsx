@@ -14,11 +14,13 @@ type Props = {
   me: string;
   admins: AdminProfile[];
   dark: boolean;
+  /** Canal ouvert à l'arrivée (deep-link ?chat=… d'une notification). */
+  initialChannel?: string;
   onClose: () => void;
 };
 
-export function ChatPanel({ me, admins, dark, onClose }: Props) {
-  const [channel, setChannel] = useState('GENERAL');
+export function ChatPanel({ me, admins, dark, initialChannel, onClose }: Props) {
+  const [channel, setChannel] = useState(initialChannel ?? 'GENERAL');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [body, setBody] = useState('');
   const [mentions, setMentions] = useState<string[]>([]);
