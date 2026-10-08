@@ -17,7 +17,8 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { useAccessStore } from '@/lib/access';
+import { useAccessStore, ACCESS_MESSAGES } from '@/lib/access';
+import Link from 'next/link';
 import { useChildStore } from '@/stores/child.store';
 import { useAuthStore } from '@/stores/auth.store';
 import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
@@ -43,6 +44,33 @@ function Notice({ children }: { children: ReactNode }) {
     <div className="max-w-xl mx-auto text-center py-16 md:py-24 animate-om-up">
       <p className="text-[17px] leading-[1.6] text-body text-pretty">{children}</p>
     </div>
+  );
+}
+
+/**
+ * Parcours d'onboarding : tant qu'aucun enfant n'est enregistré, on indique les
+ * trois étapes (au lieu d'un écran sans issue). Le bouton ouvre l'ajout d'enfant.
+ */
+function OnboardingSteps() {
+  return (
+    <section className="nc-card max-w-xl mx-auto mt-6 mb-2" aria-labelledby="onboarding-title">
+      <p className="nc-eyebrow">Pour commencer</p>
+      <h2 id="onboarding-title" className="font-display text-[20px] font-semibold text-ink mt-1">
+        Trois étapes pour démarrer
+      </h2>
+      <ol className="mt-3 space-y-2 text-[15px] leading-[1.5] text-soft list-decimal pl-5">
+        <li>Ajoute ton enfant.</li>
+        <li>Ton coach active son accès.</li>
+        <li>Lance une première séance.</li>
+      </ol>
+      <p className="mt-3 text-[14px] text-faint">{ACCESS_MESSAGES.childRequired}</p>
+      <Link
+        href="/parent/select-profile?type=CHILD&from=signup"
+        className="mt-4 inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-accent text-accent-on font-bold text-[15px]"
+      >
+        Ajouter mon enfant
+      </Link>
+    </section>
   );
 }
 
@@ -74,7 +102,12 @@ function P3Inner({ children }: { children: (ctx: P3Ctx) => ReactNode }) {
   // R6 : moins de 8 ans → aucune fiche servie.
   if (!data.band) return <Notice>{UNDER_8_MESSAGE}</Notice>;
 
-  return <>{children({ child, firstName, age: data.age, band: data.band, data })}</>;
+  return (
+    <>
+      {!selected && <OnboardingSteps />}
+      {children({ child, firstName, age: data.age, band: data.band, data })}
+    </>
+  );
 }
 
 /**
