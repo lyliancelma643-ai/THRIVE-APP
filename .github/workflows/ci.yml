@@ -109,7 +109,7 @@ jobs:
           retention-days: 7
 
   edge-tests:
-    name: Deno (webhook Stripe)
+    name: Deno (edge functions)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -117,14 +117,17 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - name: Test cœur de la facturation (billing_core)
-        run: deno test --no-config supabase/functions/_shared/billing_core.test.ts
+      # Tous les *.test.ts des fonctions (facturation, signature Stripe,
+      # nettoyage de compte, et tout test ajouté plus tard) sont exécutés
+      # automatiquement : un test oublié ne peut plus passer inaperçu.
       # --no-config : sinon Deno 2.9 lit les tsconfig du monorepo (apps/mobile,
-      # jsx « react-native ») et refuse de démarrer. Le test n'a besoin que de jsr:.
-      - name: Test signature Stripe
-        run: deno test --no-config supabase/functions/stripe-webhook/verify.test.ts
-      - name: Test nettoyage facturation (suppression de compte)
-        run: deno test --no-config supabase/functions/admin-delete-user/billing_cleanup.test.ts
+      # jsx « react-native ») et refuse de démarrer. Les tests n'ont besoin que de jsr:/esm.sh.
+      - name: Tests Deno des edge functions
+        run: find supabase/functions -name '*.test.ts' -print0 | xargs -0 deno test --no-config
+      # Types des points d'entrée : une régression de type dans une fonction
+      # déployée doit casser la CI, pas la production.
+      - name: Vérification des types des edge functions
+        run: deno check --no-config supabase/functions/*/index.ts
 
   rls-security:
     name: Sécurité RLS (Postgres jetable)
