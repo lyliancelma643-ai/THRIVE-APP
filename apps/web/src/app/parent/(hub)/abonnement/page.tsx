@@ -523,8 +523,8 @@ function PlanOption({
 // Conditions de vente / d'utilisation et politique de confidentialité, à côté
 // du bouton de paiement (information précontractuelle). URL publiques posées
 // dans Vercel : NEXT_PUBLIC_TERMS_URL, NEXT_PUBLIC_PRIVACY_URL.
-const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL ?? '';
-const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '';
+const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL || '/conditions';
+const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL || '/politique-confidentialite';
 
 function LegalLinks() {
   if (!TERMS_URL && !PRIVACY_URL) return null;
