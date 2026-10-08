@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import type { ErrorEvent } from '@sentry/nextjs';
-import { scrubEvent, scrubText } from './sentry-scrub';
+import type { ErrorEvent, Event } from '@sentry/nextjs';
+import { scrubEvent, scrubText, scrubTransaction } from './sentry-scrub';
 
 describe('nettoyage Sentry', () => {
   it('masque courriels, jetons de questionnaire, JWT et session de paiement', () => {
@@ -34,5 +34,29 @@ describe('nettoyage Sentry', () => {
     expect(e.request?.headers).toEqual({ 'user-agent': 'UA' });
     expect(e.request?.url).toBe('https://app/q/[jeton]');
     expect(e.exception?.values?.[0].value).toBe('échec pour [courriel]');
+  });
+
+  it('nettoie extra, tags, contexts et les traces (URL des spans, transaction)', () => {
+    const e = scrubEvent({
+      type: undefined,
+      extra: { note: 'parent@exemple.ca', nested: { deep: { a: { b: 'a@b.co' } } } },
+      tags: { lien: '/q/abc123' },
+      contexts: { page: { url: 'https://app/parent?session_id=cs_live_9' } },
+    } as ErrorEvent)!;
+    expect(JSON.stringify(e)).not.toContain('parent@exemple.ca');
+    expect(JSON.stringify(e)).not.toContain('abc123');
+    expect(JSON.stringify(e)).not.toContain('cs_live_9');
+    expect(JSON.stringify(e)).not.toContain('a@b.co');
+
+    type Tx = Event & { spans: { description?: string; data?: Record<string, unknown> }[] };
+    const t = scrubTransaction({
+      transaction: 'GET /q/tok42',
+      user: { id: 'u2', email: 'x@y.co' },
+      spans: [{ description: 'GET https://api/x?token=secret1', data: { url: '/q/tok99' } }],
+    } as unknown as Tx)!;
+    expect(t.user).toEqual({ id: 'u2' });
+    expect(t.transaction).toBe('GET /q/[jeton]');
+    expect(t.spans?.[0].description).toBe('GET https://api/x?token=[masqué]');
+    expect(JSON.stringify(t.spans?.[0].data)).not.toContain('tok99');
   });
 });

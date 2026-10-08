@@ -1,7 +1,7 @@
 // Sentry — runtime serveur Node (SSR, route handlers).
 // Inerte tant que NEXT_PUBLIC_SENTRY_DSN n'est pas posé dans Vercel.
 import * as Sentry from '@sentry/nextjs';
-import { scrubEvent } from './src/lib/sentry-scrub';
+import { scrubEvent, scrubTransaction } from './src/lib/sentry-scrub';
 
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
@@ -12,4 +12,5 @@ Sentry.init({
   // Mineurs (Loi 25) : ni IP, ni cookies, ni courriels, ni jetons — voir sentry-scrub.
   sendDefaultPii: false,
   beforeSend: scrubEvent,
+  beforeSendTransaction: scrubTransaction,
 });
