@@ -1,6 +1,7 @@
 import { Sentry, setSentryUser } from '../lib/sentry';
 import { useEffect } from 'react';
-import { Alert } from 'react-native';
+import { Alert, AppState } from 'react-native';
+import { supabaseClient as supabase } from '@thrive/shared';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../stores/auth.store';
@@ -32,6 +33,17 @@ function RootLayout() {
     hydrate();
   }, []);
 
+  // Renouvellement du jeton : actif seulement quand l'app est au premier plan
+  // (sinon les minuteries sont suspendues et le jeton expire sans qu'on le sache).
+  useEffect(() => {
+    if (AppState.currentState === 'active') supabase.auth.startAutoRefresh();
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') supabase.auth.startAutoRefresh();
+      else supabase.auth.stopAutoRefresh();
+    });
+    return () => { sub.remove(); supabase.auth.stopAutoRefresh(); };
+  }, []);
+
   // Redirection selon la session et le rôle (app_metadata, non falsifiable).
   useEffect(() => {
     if (isLoading) return;
@@ -46,6 +58,17 @@ function RootLayout() {
       Alert.alert(
         'Espace administrateur',
         'L’administration de THRIVE se fait sur le web : app.thrivesportpositive.com.',
+      );
+      signOut();
+      return;
+    }
+
+    // Rôle inconnu (CHILD, vide…) : pas d'espace dans l'app. On le dit et on
+    // déconnecte, plutôt que de l'envoyer dans l'espace parent.
+    if (user?.role !== 'COACH' && user?.role !== 'PARENT') {
+      Alert.alert(
+        'Compte non configuré',
+        'Ton compte n’a pas encore d’espace dans l’application. Écris-nous à support@thrivesportpositive.com.',
       );
       signOut();
       return;
