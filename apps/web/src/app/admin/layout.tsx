@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
-import { useAuthStore, logout } from '@/stores/auth.store';
+import { useAuthStore, logout, homeForRole } from '@/stores/auth.store';
 import { getMfaStatus } from '@/lib/mfa';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
@@ -92,7 +92,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     if (isLoading) return;
     if (!isAuthenticated) { router.push('/login'); return; }
     if (user?.role && !['ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
-      router.push('/dashboard');
+      router.replace(homeForRole(user.role));
     }
   }, [isLoading, isAuthenticated, user, router]);
 

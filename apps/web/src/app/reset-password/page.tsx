@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase, passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared';
+import { writeAuthCookie } from '@/lib/auth-cookie';
 import { BrandLogo } from '@/components/BrandLogo';
 
 type Phase = 'loading' | 'ready' | 'invalid' | 'done';
@@ -40,9 +41,16 @@ export default function ResetPasswordPage() {
           if (!cancelled && !sErr) { setPhase('ready'); return; }
         }
 
-        // 3. Une session de récupération est peut-être déjà active
-        const { data } = await supabase.auth.getSession();
-        if (!cancelled) setPhase(data.session ? 'ready' : 'invalid');
+        // Une session déjà établie par CE lien (double exécution de l'effet en
+        // dev : le code est consommé) est acceptée. Sans lien dans l'URL, on
+        // n'affiche PAS le formulaire pour une simple session ouverte : un
+        // appareil laissé connecté ne doit pas permettre de changer le mot de
+        // passe sans le lien reçu par e-mail.
+        if (code || (access_token && refresh_token)) {
+          const { data } = await supabase.auth.getSession();
+          if (!cancelled && data.session) { setPhase('ready'); return; }
+        }
+        if (!cancelled) setPhase('invalid');
       } catch {
         if (!cancelled) setPhase('invalid');
       }
@@ -63,7 +71,7 @@ export default function ResetPasswordPage() {
       // Le middleware lit le token dans ce cookie pour protéger les routes
       const { data } = await supabase.auth.getSession();
       if (data.session?.access_token) {
-        document.cookie = `sb-access-token=${data.session.access_token}; path=/; max-age=604800; SameSite=Lax`;
+        writeAuthCookie(data.session.access_token);
       }
       setPhase('done');
       setTimeout(() => router.push('/dashboard'), 1800);

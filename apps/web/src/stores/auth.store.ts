@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { writeAuthCookie } from '@/lib/auth-cookie';
 
 type AuthStore = IAuthState & {
   /**
@@ -18,15 +19,7 @@ type AuthStore = IAuthState & {
 };
 
 // Le middleware Next lit le token dans ce cookie pour protéger les routes
-function syncAuthCookie(accessToken: string | null) {
-  if (typeof document === 'undefined') return;
-  if (accessToken) {
-    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
-    document.cookie = `sb-access-token=${accessToken}; path=/; max-age=604800; SameSite=Lax${secure}`;
-  } else {
-    document.cookie = 'sb-access-token=; path=/; max-age=0';
-  }
-}
+const syncAuthCookie = writeAuthCookie;
 
 // Mémorise (hors URL, robuste aux courses de navigation) qu'une session a été
 // coupée car le compte est désactivé. Lu puis effacé par la page de connexion.
@@ -234,7 +227,9 @@ export async function logout() {
 // l'app « décrochait » de Supabase jusqu'à reconnexion manuelle.
 if (typeof window !== 'undefined') {
   supabase.auth.onAuthStateChange((event, session) => {
-    if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN') {
+    // MFA_CHALLENGE_VERIFIED / USER_UPDATED : le jeton passe en aal2 — le cookie
+    // doit suivre, sinon le middleware renvoie en boucle vers /mfa-verify.
+    if (event === 'TOKEN_REFRESHED' || event === 'SIGNED_IN' || event === 'MFA_CHALLENGE_VERIFIED' || event === 'USER_UPDATED') {
       if (session) {
         syncAuthCookie(session.access_token);
         const mapped = mapSession(session);

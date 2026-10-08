@@ -3,7 +3,7 @@
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore, logout } from '@/stores/auth.store';
+import { useAuthStore, logout, homeForRole } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
@@ -36,7 +36,7 @@ export default function CoachLayout({ children }: { children: React.ReactNode })
       return;
     }
     if (user?.role && !['COACH', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
-      router.push('/dashboard');
+      router.replace(homeForRole(user.role));
     }
   }, [isLoading, isAuthenticated, user, router]);
 

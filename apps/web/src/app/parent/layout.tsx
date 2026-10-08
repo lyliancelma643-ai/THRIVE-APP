@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/stores/auth.store';
+import { useAuthStore, homeForRole } from '@/stores/auth.store';
 import { BrandLogo } from '@/components/BrandLogo';
 
 export default function ParentLayout({ children }: { children: React.ReactNode }) {
@@ -19,7 +19,7 @@ export default function ParentLayout({ children }: { children: React.ReactNode }
     }
     // Seuls PARENT, ADMIN, SUPER_ADMIN peuvent accéder aux pages /parent
     if (user?.role && !['PARENT', 'ADMIN', 'SUPER_ADMIN'].includes(user.role)) {
-      router.push('/dashboard');
+      router.replace(homeForRole(user.role));
     }
   }, [isLoading, isAuthenticated, user, router]);
 
