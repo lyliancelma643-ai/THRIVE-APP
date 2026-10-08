@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { asProgramPack, type ProgramPack } from './program-packs';
+import { asProgramPack, type ParentSection, type ProgramPack } from './program-packs';
+import { asPack, type Pack } from './packs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // État d'accès du compte (cycle : enfant créé → confirmé par l'admin →
@@ -9,9 +10,9 @@ import { asProgramPack, type ProgramPack } from './program-packs';
 // Source de vérité : RPC `access_state()` (SECURITY DEFINER, migration 035).
 // L'UI ne fait que REFLÉTER cet état — l'enforcement réel est en RLS.
 //
-// Repli si la migration n'est pas encore appliquée (RPC absente) : on se
-// comporte comme avant (tout ouvert) pour ne pas briser la prod pendant la
-// fenêtre de déploiement code → migration.
+// Erreur ≠ accès ouvert : si la RPC échoue (réseau, base), on GARDE le dernier
+// état connu ; sans état connu, `error` passe à vrai et l'UI affiche
+// « Impossible de vérifier ton accès — Réessayer ». Aucun repli « tout ouvert ».
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type AccessState = {
@@ -23,68 +24,79 @@ export type AccessState = {
   fitnessEnabled: boolean;
   /** Abonnement P3 actif (le sien ou celui du titulaire de la famille). */
   p3Subscribed: boolean;
-  /** Accès à « Maison » : pack THRIVE, compte activé, abonné P3 ou forçage admin (migration 068). */
+  /** Accès à « Maison » : abonnement P3 (propre ou partagé co-parent) ou forçage admin (068, aligné sur 067b). */
   p3Access: boolean;
   /** Pack THRIVE acheté (Groupe / Individuel / Complet), null = aucun. */
   programPack: ProgramPack | null;
   /** Accès aux onglets Bilan et Mes séances (automatique ou forcé par l'admin, migration 068). */
   bilanAccess: boolean;
   seancesAccess: boolean;
-};
-
-const OPEN_FALLBACK: AccessState = {
-  role: 'PARENT',
-  unlocked: true,
-  hasChild: true,
-  hasConfirmedChild: true,
-  coachValidated: true,
-  fitnessEnabled: true,
-  p3Subscribed: false,
-  p3Access: true,
-  programPack: null,
-  bilanAccess: true,
-  seancesAccess: true,
+  /** Niveau de détail des bilans (families.pack) : Essentiel / Avancé / Performance (migration 070). */
+  bilanLevel: Pack;
+  /** Coach / Admin / Super Admin : jamais de paywall (migration 070). */
+  isStaff: boolean;
+  /** Forçages admin par section : null = automatique, true = ouvert, false = fermé (migration 070). */
+  forced: Record<ParentSection, boolean | null>;
 };
 
 type AccessStore = {
   access: AccessState | null;
   isLoading: boolean;
+  /** La dernière vérification a échoué et aucun état n'est connu. */
+  error: boolean;
   refresh: () => Promise<void>;
 };
 
-export const useAccessStore = create<AccessStore>((set) => ({
+const asForced = (v: unknown): boolean | null => (typeof v === 'boolean' ? v : null);
+
+/** Convertit la réponse brute de `access_state()` (fonction pure, testée). */
+export function parseAccessState(data: unknown): AccessState | null {
+  if (!data || typeof data !== 'object') return null;
+  const d = data as Record<string, unknown>;
+  // Réponse anonyme / sans rôle : pas un état exploitable.
+  if (typeof d.role !== 'string') return null;
+  const unlocked = d.unlocked === true;
+  const sections = (d.sections ?? {}) as Record<string, unknown>;
+  const forced = (d.forced ?? {}) as Record<string, unknown>;
+  const pick = (key: ParentSection, legacy: unknown, fallback: boolean) =>
+    typeof sections[key] === 'boolean' ? (sections[key] as boolean) : typeof legacy === 'boolean' ? legacy : fallback;
+  return {
+    role: d.role,
+    unlocked,
+    hasChild: d.has_child === true,
+    hasConfirmedChild: d.has_confirmed_child === true,
+    coachValidated: d.coach_validated === true,
+    fitnessEnabled: d.fitness_enabled === true,
+    p3Subscribed: d.p3_subscribed === true,
+    p3Access: pick('maison', d.p3_access, unlocked),
+    programPack: asProgramPack(d.program_pack),
+    bilanAccess: pick('bilan', d.bilan_access, unlocked),
+    seancesAccess: pick('seances', d.seances_access, unlocked),
+    bilanLevel: asPack(d.bilan_level),
+    isStaff: d.is_staff === true,
+    forced: { maison: asForced(forced.maison), bilan: asForced(forced.bilan), seances: asForced(forced.seances) },
+  };
+}
+
+export const useAccessStore = create<AccessStore>((set, get) => ({
   access: null,
   isLoading: true,
+  error: false,
 
   refresh: async () => {
     set({ isLoading: true });
-    const { data, error } = await supabase.rpc('access_state');
-    if (error || !data) {
-      // RPC absente (migration 035 pas encore appliquée) ou erreur réseau :
-      // repli « ouvert » — la RLS reste l'autorité côté données.
-      set({ access: OPEN_FALLBACK, isLoading: false });
-      return;
+    try {
+      const { data, error } = await supabase.rpc('access_state');
+      const parsed = error ? null : parseAccessState(data);
+      if (parsed) {
+        set({ access: parsed, isLoading: false, error: false });
+        return;
+      }
+    } catch {
+      // réseau coupé : traité comme une erreur ci-dessous
     }
-    const d = data as Record<string, unknown>;
-    const unlocked = d.unlocked === true;
-    set({
-      access: {
-        role: String(d.role ?? 'PARENT'),
-        unlocked,
-        hasChild: d.has_child === true,
-        hasConfirmedChild: d.has_confirmed_child === true,
-        coachValidated: d.coach_validated === true,
-        fitnessEnabled: d.fitness_enabled === true,
-        p3Subscribed: d.p3_subscribed === true,
-        // Avant la migration 064 la clé n'existe pas : on retombe sur `unlocked`.
-        p3Access: typeof d.p3_access === 'boolean' ? d.p3_access : unlocked,
-        // Avant la migration 068 : pas de pack ni de forçage, on retombe sur `unlocked`.
-        programPack: asProgramPack(d.program_pack),
-        bilanAccess: typeof d.bilan_access === 'boolean' ? d.bilan_access : unlocked,
-        seancesAccess: typeof d.seances_access === 'boolean' ? d.seances_access : unlocked,
-      },
-      isLoading: false,
-    });
+    // Garde le dernier état connu ; sinon signale l'erreur (jamais « tout ouvert »).
+    set({ isLoading: false, error: get().access === null });
   },
 }));
 

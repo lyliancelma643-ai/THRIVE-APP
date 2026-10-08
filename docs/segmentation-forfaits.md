@@ -62,39 +62,40 @@ stockage), une **exclusivité** claire (messagerie, exports, IA à venir). Le te
 flouté rend l'upgrade désirable sans frustrer : structure et titres toujours
 visibles, contenu masqué, jamais de données réelles exposées.
 
-## 3. Architecture cible
+## 3. Architecture réelle (corrigée le 2026-10-08)
+
+> L'ancienne version décrivait un flux Stripe Checkout → webhook → `entitlements`
+> → trigger → `families.pack` pour les packs. **Ce flux n'est pas branché** : les
+> packs coachés (Essentiel / Avancé / Performance, et les packs programme Groupe /
+> Individuel / Complet) ne s'achètent pas dans l'app ni en ligne. Le paiement se
+> fait hors app avec le coach, puis un **Admin/Super Admin attribue le pack à la
+> main** (écriture de `families.pack`, seul chemin autorisé : trigger
+> `enforce_pack_change_authority`, migration 023 ; `sync_family_pack_from_entitlements`
+> (038) existe mais aucune ligne `entitlements` n'est créée automatiquement).
 
 ```
-Stripe Checkout (web, one-shot CAD)
-        │  webhook
-        ▼
-edge function autorisée (service_role → auth.uid() IS NULL)
-        │  insère un entitlement ACTIVE (journal d'abonnement)
-        ▼
-entitlements ──trigger de sync──► families.pack   ◄── seul chemin d'écriture
-        │                              │               (verrou enforce_pack_change_authority,
-        │ FK plan_id                   │                migration 023 — service_role + ADMIN/SUPER_ADMIN)
-        ▼                              ▼
-      plans  ─────────────►  PLAN_ENTITLEMENTS (constante partagée packs.ts)
-  (features jsonb,                     │
-   limits jsonb,          ┌────────────┼───────────────┐
-   price_cents CAD)       ▼            ▼               ▼
-                     RLS (base)   edge functions   usePlan() (UI)
-                     dernière     detail_level     can(feature) / limit(key)
-                     ligne de     piloté par le    teasers LockedText /
-                     défense      pack             ScoreGauge / UpgradeHintBar
+Packs coachés (hors app)            Abonnement Maison (P3, seul paiement en ligne)
+ Admin ── attribue ──► families.pack      Stripe / App Store / Google Play
+ Admin ── attribue ──► parent_access        │ RevenueCat → webhook / billing-sync
+        (pack programme + forçages)          ▼
+                │                       billing_subscriptions (sandbox exclu 070)
+                └──────────────┬──────────────┘
+                               ▼
+                    public.access_state()  ← UNIQUE source de vérité UI
+                    (web: lib/access.ts · mobile: useEntitlement)
+                               │
+                  RLS (dernière ligne de défense) : gate_parent_* , plans
 ```
 
-- **`families.pack` reste l'unique source de vérité lue par le web** (décision ⚠️-A).
-  `entitlements` (table présente en prod, 0 ligne, lue par personne) devient le
-  journal d'achat qui l'alimente via trigger. Aucune double vérité.
-- **Prix one-shot par parcours de 13 séances** (décision ⚠️-B), devise CAD.
-  `entitlements.starts_at` / `expires_at` existent déjà en prod → prêt pour un
-  futur passage au récurrent sans migration.
-- **`aiSummary` = OFF partout** (décision ⚠️-C) : l'emplacement (flag + ligne
-  « à venir » du comparatif) est codé, aucune intégration LLM.
-- **Paiement = Stripe côté web** (décision ⚠️-D) : Checkout + webhook → edge
-  function → entitlement → trigger → `pack`. Jamais d'écriture directe de `pack`.
+- **Trois couches distinctes** : pack programme (`parent_access.program_pack`) ·
+  niveau de bilan (`families.pack`, matrice `plans`/`packs.ts`) · abonnement
+  Maison (`billing_subscriptions`). Détail et références : `docs/acces-parents.md`.
+- **Maison = abonnement seul** (067b) ; Bilan / Mes séances = activation coach ;
+  forçage admin par section (Auto / Ouvert / Fermé).
+- **Fonctionnalités non livrées** (exports CSV/PDF, gabarits premium, historique
+  borné, stockage borné, synthèse IA) : conservées en base (`plans.features`/`limits`)
+  mais **ni vendues ni affichées** ; voir `docs/backlog-v1.1.md`.
+- **`aiSummary` = OFF partout** : aucune intégration LLM.
 
 ## 4. État des lieux vérifié (Phase 0, 2026-07-10)
 
