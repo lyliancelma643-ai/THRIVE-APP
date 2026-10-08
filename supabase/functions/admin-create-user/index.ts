@@ -1,16 +1,18 @@
 // Edge Function : admin-create-user
-// Création universelle de comptes (PARENT / COACH / ADMIN) auto-confirmés,
-// sans email de validation — style Netflix.
+// Création de comptes (PARENT / COACH / ADMIN).
+// Admin : compte confirmé avec mot de passe. Parent : INVITATION par e-mail
+// (le co-parent choisit lui-même son mot de passe via le lien).
 //
 // Règles d'accès :
 //   - ADMIN / SUPER_ADMIN : peuvent créer PARENT et COACH
 //   - SUPER_ADMIN uniquement : peut créer ADMIN
-//   - PARENT : peut créer un co-parent (PARENT) pour sa famille
+//   - PARENT : peut inviter un co-parent (PARENT) pour sa famille, quota du forfait vérifié AVANT
 //
 // verify_jwt: true
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { parentQuotaReached, passwordProblem, planCreation } from "./policy.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
 
 const corsHeaders = {
@@ -58,24 +60,16 @@ Deno.serve(withSentry("admin-create-user", async (req: Request) => {
       role = "PARENT", phone, speciality, bio,
     } = body ?? {};
 
-    if (!email || !password || !firstName || !lastName) {
-      return json({ error: "email, password, firstName et lastName sont requis" }, 400);
-    }
-    if (String(password).length < 8) {
-      return json({ error: "Le mot de passe doit faire au moins 8 caractères" }, 400);
-    }
-
     const targetRole = String(role).toUpperCase();
-    const isAdminCaller = callerRole === "ADMIN" || callerRole === "SUPER_ADMIN";
+    const plan = planCreation(callerRole, targetRole);
+    if (!plan.ok) return json({ error: plan.error }, plan.status);
 
-    if (!["PARENT", "COACH", "ADMIN"].includes(targetRole)) {
-      return json({ error: "Rôle invalide (PARENT, COACH ou ADMIN)" }, 400);
+    if (!email || !firstName || !lastName || (plan.mode === "direct" && !password)) {
+      return json({ error: "email, firstName, lastName (et password pour un compte direct) sont requis" }, 400);
     }
-    if (targetRole === "ADMIN" && callerRole !== "SUPER_ADMIN") {
-      return json({ error: "Seul un SUPER_ADMIN peut créer un compte ADMIN" }, 403);
-    }
-    if (!isAdminCaller && !(callerRole === "PARENT" && targetRole === "PARENT")) {
-      return json({ error: "Accès refusé" }, 403);
+    if (plan.mode === "direct") {
+      const problem = passwordProblem(String(password));
+      if (problem) return json({ error: problem }, 400);
     }
 
     const supabaseAdmin = createClient(
@@ -84,26 +78,53 @@ Deno.serve(withSentry("admin-create-user", async (req: Request) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     );
 
-    // Le trigger handle_new_user crée le profil avec le bon rôle pour
-    // PARENT/COACH ; le rôle ADMIN (interdit en self-service par le
-    // trigger) est promu explicitement juste après avec le service role.
-    const { data: created, error: createError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: String(email).trim().toLowerCase(),
+    const cleanEmail = String(email).trim().toLowerCase();
+    const meta = {
+      firstName: String(firstName).trim(),
+      lastName: String(lastName).trim(),
+      role: targetRole,
+    };
+
+    let created;
+    let createError;
+    if (plan.mode === "invite") {
+      // Quota du forfait vérifié AVANT toute création (le trigger de
+      // family_members le revérifie, mais le compte serait déjà créé).
+      const { data: fam } = await supabaseAdmin
+        .from("families").select("id, pack").eq("parent_id", user.id).limit(1).maybeSingle();
+      if (!fam) return json({ error: "Ajoute d'abord ton enfant : le co-parent rejoindra sa famille." }, 409);
+      const [{ data: planRow }, { count }] = await Promise.all([
+        supabaseAdmin.from("plans").select("limits").eq("code", fam.pack).maybeSingle(),
+        supabaseAdmin.from("family_members").select("id", { count: "exact", head: true }).eq("family_id", fam.id),
+      ]);
+      const maxParents = (planRow?.limits as { maxParents?: number } | null)?.maxParents;
+      if (parentQuotaReached(count ?? 0, maxParents)) {
+        return json({ error: "Quota de comptes parents atteint pour ton forfait." }, 403);
+      }
+      const appUrl = Deno.env.get("APP_URL") ?? "https://app.thrivesportpositive.com";
+      ({ data: created, error: createError } = await supabaseAdmin.auth.admin.inviteUserByEmail(
+        cleanEmail,
+        { data: meta, redirectTo: `${appUrl}/reset-password` },
+      ));
+      // app_metadata.role = autorité (non modifiable par l'utilisateur).
+      if (!createError && created?.user?.id) {
+        await supabaseAdmin.auth.admin.updateUserById(created.user.id, { app_metadata: { role: targetRole } });
+      }
+    } else {
+      // Le trigger handle_new_user crée le profil avec le bon rôle pour
+      // PARENT/COACH ; le rôle ADMIN est promu explicitement juste après.
+      ({ data: created, error: createError } = await supabaseAdmin.auth.admin.createUser({
+        email: cleanEmail,
         password: String(password),
         email_confirm: true,
-        // app_metadata.role = autorité (non modifiable par l'utilisateur).
         app_metadata: { role: targetRole },
-        user_metadata: {
-          firstName: String(firstName).trim(),
-          lastName: String(lastName).trim(),
-          role: targetRole,
-        },
-      });
+        user_metadata: meta,
+      }));
+    }
 
     if (createError) {
       const msg = createError.message ?? "Création impossible";
-      const status = /already|exist/i.test(msg) ? 409 : 400;
+      const status = /already|exist|registered/i.test(msg) ? 409 : 400;
       return json({ error: msg }, status);
     }
 

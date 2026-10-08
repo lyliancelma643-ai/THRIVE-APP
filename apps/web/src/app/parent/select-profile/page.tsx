@@ -235,11 +235,9 @@ function SelectProfileInner() {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) throw new Error('Session expirée : reconnecte-toi.');
 
-    const tempPwd = `Thrive${crypto.getRandomValues(new Uint32Array(2)).join('')}!aA`;
     const { data, error: fnErr } = await supabase.functions.invoke('admin-create-user', {
       body: {
         email: email.trim(),
-        password: tempPwd,
         firstName: first_name.trim(),
         lastName: last_name.trim(),
         role: 'PARENT',
@@ -266,11 +264,8 @@ function SelectProfileInner() {
       setMemberCount((n) => n + 1);
     }
 
-    // Le compte est créé avec un mot de passe temporaire jamais montré : on
-    // envoie donc un email « définir mon mot de passe » au nouveau parent.
-    await supabase.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: `${window.location.origin}/reset-password`,
-    });
+    // Le serveur envoie une INVITATION par e-mail : le co-parent choisit lui-même
+    // son mot de passe via le lien (aucun mot de passe n'est défini côté parent).
 
     setSuccessName(first_name.trim());
   };
