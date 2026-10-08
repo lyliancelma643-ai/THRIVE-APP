@@ -78,6 +78,19 @@ export default function ParentDashboard() {
           ))
         )}
 
+        {/* Raccourci Maison */}
+        <Pressable
+          className="bg-white rounded-2xl p-5 mt-4 border border-gray-100 flex-row justify-between items-center"
+          onPress={() => router.push('/(parent)/maison')}
+          accessibilityRole="button"
+        >
+          <View className="flex-1">
+            <Text className="font-bold text-base">Le moment qui compte</Text>
+            <Text className="text-gray-500 text-sm">Votre activité de 10 minutes ce soir</Text>
+          </View>
+          <Text className="text-xl">›</Text>
+        </Pressable>
+
         {/* Raccourci programmes */}
         <Pressable
           className="bg-black rounded-2xl p-5 mt-4 flex-row justify-between items-center"

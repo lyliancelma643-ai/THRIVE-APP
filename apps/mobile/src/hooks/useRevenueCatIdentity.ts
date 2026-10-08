@@ -20,9 +20,21 @@ export function useRevenueCatIdentity() {
   useEffect(() => {
     const store = useSubscriptionStore.getState();
     const available = configurePurchases();
+
+    // Accès accordé côté serveur (forfait accompagné, abonnement web) : lu à
+    // chaque connexion, que le SDK d'achat soit disponible ou non.
+    const syncServerAccess = (userId: string | null) => {
+      if (userId) useSubscriptionStore.getState().loadServerAccess();
+    };
+    supabase.auth.getSession().then(({ data }) => syncServerAccess(data.session?.user.id ?? null));
+    const { data: serverSub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') useSubscriptionStore.setState({ serverAccess: null });
+      else if (event === 'SIGNED_IN' || event === 'USER_UPDATED') syncServerAccess(session?.user.id ?? null);
+    });
+
     if (!available) {
       store.setCustomerInfo(null);
-      return;
+      return () => serverSub.subscription.unsubscribe();
     }
 
     const removeListener = addCustomerInfoListener((info) => {
@@ -56,6 +68,7 @@ export function useRevenueCatIdentity() {
     return () => {
       removeListener();
       sub.subscription.unsubscribe();
+      serverSub.subscription.unsubscribe();
     };
   }, []);
 }

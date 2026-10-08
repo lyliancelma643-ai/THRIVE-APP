@@ -3,6 +3,7 @@ import {
   View, Text, ScrollView, Pressable,
   ActivityIndicator, Modal, TextInput, Alert,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren } from '@thrive/shared';
 
@@ -13,6 +14,7 @@ function calculateAge(dob: string): number {
 
 export default function ChildrenScreen() {
   const { user } = useAuthStore();
+  const router = useRouter();
   const { family, isLoading: familyLoading, createFamily } = useFamily(user?.id);
   const { children, isLoading, createChild } = useChildren(family?.id);
 
@@ -71,7 +73,12 @@ export default function ChildrenScreen() {
       ) : (
         <View className="px-6">
           {children.map((child) => (
-            <View key={child.id} className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100">
+            <Pressable
+              key={child.id}
+              className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100"
+              onPress={() => router.push({ pathname: '/(parent)/badges', params: { childId: child.id } })}
+              accessibilityRole="button"
+            >
               <Text className="text-lg font-bold">
                 {child.first_name} {child.last_name}
               </Text>
@@ -89,7 +96,7 @@ export default function ChildrenScreen() {
                   ))}
                 </View>
               )}
-            </View>
+            </Pressable>
           ))}
         </View>
       )}
@@ -117,6 +124,11 @@ export default function ChildrenScreen() {
               value={dob}
               onChangeText={setDob}
             />
+            <Text className="text-xs text-gray-500 mb-6 -mt-3">
+              En ajoutant votre enfant, vous confirmez être titulaire de l’autorité parentale et consentez,
+              en son nom, au traitement de ces renseignements pour le suivi de son programme THRIVE.
+              Ils ne sont accessibles qu’à son coach et à l’équipe THRIVE.
+            </Text>
             <Pressable
               className="bg-black rounded-2xl py-4 items-center mb-3"
               onPress={handleAdd}

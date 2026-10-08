@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { CustomerInfo } from 'react-native-purchases';
+import { supabaseClient as supabase } from '@thrive/shared';
 import { activeEntitlement, getCustomerInfo, isPurchasesAvailable } from '../services/purchases';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -23,6 +24,15 @@ type SubscriptionStore = {
   status: Status;
   customerInfo: CustomerInfo | null;
   setCustomerInfo: (info: CustomerInfo | null) => void;
+  /**
+   * Accès Maison accordé par le serveur, hors achat dans CETTE app :
+   * forfait accompagné (coach validé + enfant confirmé) ou abonnement pris sur
+   * une autre plateforme (miroir RevenueCat). Apple 3.1.3(b) : un contenu acquis
+   * ailleurs est reconnu, sans lien ni mention du paiement externe.
+   * null = pas encore lu.
+   */
+  serverAccess: boolean | null;
+  loadServerAccess: () => Promise<void>;
   refresh: () => Promise<void>;
   reset: () => void;
 };
@@ -30,6 +40,13 @@ type SubscriptionStore = {
 export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
   status: 'loading',
   customerInfo: null,
+  serverAccess: null,
+
+  loadServerAccess: async () => {
+    const { data, error } = await supabase.rpc('access_state');
+    const state = data as { p3_access?: boolean } | null;
+    set({ serverAccess: !error && Boolean(state?.p3_access) });
+  },
 
   setCustomerInfo: (info) =>
     set({ customerInfo: info, status: isPurchasesAvailable() ? 'ready' : 'unavailable' }),
@@ -48,7 +65,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set) => ({
     }
   },
 
-  reset: () => set({ status: 'loading', customerInfo: null }),
+  reset: () => set({ status: 'loading', customerInfo: null, serverAccess: null }),
 }));
 
 export function selectIsActive(s: Pick<SubscriptionStore, 'customerInfo'>): boolean {

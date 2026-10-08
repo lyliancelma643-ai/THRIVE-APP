@@ -15,7 +15,7 @@ export default function LoginScreen() {
     try {
       setError('');
       await signIn(email, password);
-      router.replace('/(parent)/dashboard');
+      // La redirection selon le rôle est faite par le layout racine.
     } catch (err: any) {
       setError(err.message ?? 'Connexion impossible');
     }

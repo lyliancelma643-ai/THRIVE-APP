@@ -1,6 +1,18 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
+// Onglets de l'espace parent. Tout fichier de ce dossier devient un onglet :
+// les écrans secondaires sont masqués de la barre avec `href: null`.
+const HIDDEN = [
+  'children',
+  'programs',
+  'badges',
+  'notifications',
+  'abonnement',
+  'chat/[conversationId]',
+  'activite/[activityId]',
+];
+
 export default function ParentLayout() {
   return (
     <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: '#000' }}>
@@ -12,17 +24,24 @@ export default function ParentLayout() {
         }}
       />
       <Tabs.Screen
-        name="children"
+        name="maison"
         options={{
-          title: 'Mes enfants',
-          tabBarIcon: ({ color, size }) => <Ionicons name="people" size={size} color={color} />,
+          title: 'Maison',
+          tabBarIcon: ({ color, size }) => <Ionicons name="moon" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="programs"
+        name="bilans"
         options={{
-          title: 'Programmes',
-          tabBarIcon: ({ color, size }) => <Ionicons name="trophy" size={size} color={color} />,
+          title: 'Bilans',
+          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="messages"
+        options={{
+          title: 'Messages',
+          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
         }}
       />
       <Tabs.Screen
@@ -32,6 +51,9 @@ export default function ParentLayout() {
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />
+      {HIDDEN.map((name) => (
+        <Tabs.Screen key={name} name={name} options={{ href: null }} />
+      ))}
     </Tabs>
   );
 }

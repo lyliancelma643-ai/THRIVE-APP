@@ -1,9 +1,9 @@
 import React from 'react';
 import { router } from 'expo-router';
-import { Paywall } from '../../src/components/subscription/Paywall';
-import { SubscriptionLoader } from '../../src/components/subscription/SubscriptionLoader';
-import { SubscriptionSettings } from '../../src/components/subscription/SubscriptionSettings';
-import { useEntitlement } from '../../src/hooks/useEntitlement';
+import { Paywall } from '../../components/subscription/Paywall';
+import { SubscriptionLoader } from '../../components/subscription/SubscriptionLoader';
+import { SubscriptionSettings } from '../../components/subscription/SubscriptionSettings';
+import { useEntitlement } from '../../hooks/useEntitlement';
 import { ScrollView, StyleSheet } from 'react-native';
 
 /** Écran d'abonnement : paywall si pas d'accès, sinon état + gestion. */
