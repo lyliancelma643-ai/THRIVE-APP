@@ -68,7 +68,7 @@ export default function ConfirmEmailPage() {
         const { failed } = await finalizePendingSignup();
         const role = useAuthStore.getState().user?.role;
         const home = homeForRole(role);
-        router.replace(failed && home.startsWith('/parent') ? '/parent?setup=children' : home);
+        router.replace(failed && home.startsWith('/parent') ? '/parent/select-profile?type=CHILD&from=signup' : home);
       } catch {
         setState('error');
       }

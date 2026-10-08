@@ -45,6 +45,7 @@ export default function LoginScreen() {
           value={password}
           onChangeText={setPassword}
           secureTextEntry
+          autoComplete="current-password"
         />
 
         {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
@@ -57,6 +58,10 @@ export default function LoginScreen() {
           <Text className="text-white font-semibold text-base">
             {isLoading ? 'Connexion...' : 'Se connecter'}
           </Text>
+        </Pressable>
+
+        <Pressable className="items-center py-3 mb-2" onPress={() => router.push('/(auth)/forgot-password')}>
+          <Text className="text-gray-500 underline">Mot de passe oublié ?</Text>
         </Pressable>
 
         <Pressable onPress={() => router.push('/(auth)/register')}>

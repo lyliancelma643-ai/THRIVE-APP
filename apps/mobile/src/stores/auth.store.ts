@@ -56,7 +56,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   signUp: async (email, password, metadata) => {
     set({ isLoading: true });
     const { data, error } = await supabase.auth.signUp({
-      email, password, options: { data: metadata ?? {} },
+      email, password,
+      // Le lien de confirmation ouvre la page web (universal link si l'app est installée).
+      options: { data: metadata ?? {}, emailRedirectTo: 'https://app.thrivesportpositive.com/auth/confirm' },
     });
     if (error) { set({ isLoading: false }); throw error; }
     if (data.session) {

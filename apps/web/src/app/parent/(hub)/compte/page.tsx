@@ -6,6 +6,7 @@ import { Icon } from '@/components/ui';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore, logout } from '@/stores/auth.store';
 import { WebPushToggle } from '@/components/WebPushToggle';
+import { DeleteAccountSection } from '@/components/account/DeleteAccountSection';
 import { PRIVACY_PATH, SUPPORT_PATH } from '@/lib/legal';
 
 const ROLE_LABELS: Record<string, string> = {
@@ -275,26 +276,8 @@ function PasswordSection() {
 
 // ── Mes données (Loi 25) : copie, suppression, politique ─────────────────────
 function DataSection() {
-  const { user } = useAuthStore();
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState('');
-  const [askDelete, setAskDelete] = useState(false);
-  const [reason, setReason] = useState('');
-  const [deleting, setDeleting] = useState(false);
-  const [pendingSince, setPendingSince] = useState<string | null>(null);
-  const [deleteMsg, setDeleteMsg] = useState('');
-
-  // Demande de suppression déjà en cours ?
-  useEffect(() => {
-    if (!user?.id) return;
-    supabase
-      .from('deletion_requests')
-      .select('requested_at')
-      .eq('target_profile_id', user.id)
-      .eq('status', 'PENDING')
-      .maybeSingle()
-      .then(({ data }) => setPendingSince((data?.requested_at as string | undefined) ?? null));
-  }, [user?.id]);
 
   const exportData = async () => {
     setExporting(true);
@@ -317,21 +300,6 @@ function DataSection() {
     a.remove();
     setTimeout(() => URL.revokeObjectURL(url), 2000);
     setExportMsg('Ton fichier est téléchargé.');
-  };
-
-  const requestDeletion = async () => {
-    setDeleting(true);
-    setDeleteMsg('');
-    const { data, error } = await supabase.functions.invoke('request-account-deletion', {
-      body: { reason: reason.trim() || null },
-    });
-    setDeleting(false);
-    if (error || data?.error) {
-      setDeleteMsg('La demande n’a pas pu être envoyée. Réessaie, ou écris au support THRIVE.');
-      return;
-    }
-    setPendingSince((data?.request?.requested_at as string | undefined) ?? new Date().toISOString());
-    setAskDelete(false);
   };
 
   return (
@@ -358,56 +326,7 @@ function DataSection() {
       </div>
 
       <div className="mt-6 pt-5 border-t border-line">
-        {pendingSince ? (
-          <p role="status" className="text-sm text-body leading-relaxed">
-            <span className="font-semibold text-ink">Demande de suppression enregistrée</span> le{' '}
-            {new Date(pendingSince).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}. L&apos;équipe
-            THRIVE te confirme la suppression par email, au plus tard sous 30 jours.
-          </p>
-        ) : askDelete ? (
-          <div>
-            <p className="text-sm text-body leading-relaxed">
-              Ton compte, celui de ta famille et les données de ton enfant seront supprimés par l&apos;équipe THRIVE. Le
-              parcours en cours s&apos;arrête. Cette action est définitive.
-            </p>
-            <label className="block mt-4">
-              <span className="block text-xs font-medium text-soft mb-1.5">Une raison ? (facultatif)</span>
-              <textarea
-                rows={2}
-                maxLength={500}
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className={`${INPUT} h-auto py-3 resize-none`}
-              />
-            </label>
-            <div className="mt-4 flex flex-col sm:flex-row gap-3">
-              <button
-                type="button"
-                onClick={requestDeletion}
-                disabled={deleting}
-                className="h-12 px-6 rounded-full bg-red-500/15 border border-red-500/40 text-danger-ink text-sm font-bold hover:bg-red-500/25 transition-colors disabled:opacity-60"
-              >
-                {deleting ? 'Envoi…' : 'Confirmer la suppression'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAskDelete(false)}
-                className="h-12 px-6 rounded-full text-sm font-semibold text-soft hover:text-ink"
-              >
-                Annuler
-              </button>
-            </div>
-            {deleteMsg && <p role="alert" className="mt-3 text-sm text-danger-ink">{deleteMsg}</p>}
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAskDelete(true)}
-            className="min-h-[44px] text-sm font-semibold text-danger-ink hover:underline"
-          >
-            Supprimer mon compte et mes données
-          </button>
-        )}
+        <DeleteAccountSection tone="night" />
       </div>
     </section>
   );

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import { homeForRole } from '@/lib/role-home';
+import { homeForRole, hasWorkspace, UNCONFIGURED_PATH } from '@/lib/role-home';
 
 // Fallbacks alignés sur supabase-server.ts : les NEXT_PUBLIC_* peuvent être
 // absents du build (ex. plus de .env.local committé) → sans repli, createClient
@@ -25,6 +25,35 @@ const ROLE_PATHS: Record<string, string[]> = {
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
 });
+
+// Le JWT dit à quel niveau (aal) la session est, pas si le compte a un facteur.
+// On interroge donc GoTrue (/user) — seulement quand la session est en aal1, et
+// le « pas de facteur » est mis en cache 5 min par isolat pour ne pas ajouter un
+// aller-retour à chaque navigation. Erreur réseau : on laisse passer (le JWT est
+// déjà vérifié ; mieux vaut ne pas verrouiller tout le monde si GoTrue vacille).
+const NO_FACTOR_TTL_MS = 5 * 60_000;
+const noFactorUntil = new Map<string, number>();
+
+async function hasVerifiedFactor(accessToken: string, sub: string): Promise<boolean> {
+  const until = noFactorUntil.get(sub);
+  if (until && until > Date.now()) return false;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(3000),
+    });
+    if (!res.ok) return false;
+    const body = (await res.json()) as { factors?: { status?: string }[] | null };
+    const verified = !!body.factors?.some((f) => f.status === 'verified');
+    if (!verified) {
+      if (noFactorUntil.size > 500) noFactorUntil.clear();
+      noFactorUntil.set(sub, Date.now() + NO_FACTOR_TTL_MS);
+    }
+    return verified;
+  } catch {
+    return false;
+  }
+}
 
 function toLogin(request: NextRequest) {
   const url = new URL('/login', request.url);
@@ -66,6 +95,20 @@ export async function middleware(request: NextRequest) {
   // une escalade de privilèges verticale (se déclarer ADMIN pour franchir ce gate).
   const userRole = claims.app_metadata?.role as string | undefined;
 
+  // Rôle absent ou sans espace (CHILD…) : écran dédié avec déconnexion, jamais
+  // de rebond /dashboard ↔ espace.
+  if (!hasWorkspace(userRole)) {
+    return NextResponse.redirect(new URL(UNCONFIGURED_PATH, request.url));
+  }
+
+  // MFA : un compte qui a un facteur vérifié ne doit pas rester en aal1
+  // (fermer /mfa-verify ne contourne plus le second facteur).
+  if (claims.aal !== 'aal2' && (await hasVerifiedFactor(accessToken, claims.sub))) {
+    const url = new URL('/mfa-verify', request.url);
+    url.searchParams.set('next', pathname + request.nextUrl.search);
+    return NextResponse.redirect(url);
+  }
+
   // /dashboard n'est qu'une page de transit : on envoie tout de suite vers le
   // bon espace, sans charger la page puis rediriger côté client.
   // Seulement si l'espace cible accepte bien ce rôle (sinon boucle de rebonds).
@@ -81,7 +124,7 @@ export async function middleware(request: NextRequest) {
   const matchedPath = Object.keys(ROLE_PATHS).find((p) => pathname.startsWith(p));
   if (matchedPath) {
     if (!userRole || !ROLE_PATHS[matchedPath].includes(userRole)) {
-      return NextResponse.redirect(new URL(homeAllowed(home) ? home : '/dashboard', request.url));
+      return NextResponse.redirect(new URL(homeAllowed(home) ? home : UNCONFIGURED_PATH, request.url));
     }
   }
 
