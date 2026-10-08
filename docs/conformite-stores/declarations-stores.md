@@ -35,12 +35,12 @@ Pour chaque type coché : **Collectées = Oui · Partagées = Non** (Supabase, E
 | Informations financières | Infos de paiement de l'utilisateur | Non (traitées par Google Play) | — | — |
 | | Historique des achats | **Oui** | Facultative | Fonctionnement de l'application · Gestion du compte |
 | | Cote de solvabilité, autres infos financières | Non | — | — |
-| Santé et remise en forme | Informations de santé | **Non** (questionnaires hors app) | — | — |
+| Santé et remise en forme | Informations de santé | **Oui** — allergies ou besoins particuliers saisis par le parent, scores de bien-être (PERMA, LSSS) affichés dans les bilans *(corrigé le 8/10 : non déclaré à tort ; à confirmer par Lylian)* | Facultative | Fonctionnement de l'application · Personnalisation |
 | | Informations sur la remise en forme | Non | — | — |
 | Messages | E-mails | Non | — | — |
 | | SMS ou MMS | Non | — | — |
 | | Autres messages dans l'application | **Oui** | Facultative | Fonctionnement de l'application |
-| Photos et vidéos | Photos · Vidéos | Non | — | — |
+| Photos et vidéos | Photos · Vidéos | **Oui** — photo de profil de l'enfant, facultative *(corrigé le 8/10)* | Facultative | Fonctionnement de l'application · Gestion du compte |
 | Fichiers audio | tous | Non | — | — |
 | Fichiers et documents | | Non | — | — |
 | Agenda | | Non | — | — |
@@ -51,7 +51,7 @@ Pour chaque type coché : **Collectées = Oui · Partagées = Non** (Supabase, E
 | | Autre contenu généré par l'utilisateur (carnet Maison, notes de séance du coach) | **Oui** | Facultative | Fonctionnement de l'application |
 | | Autres actions (moments vécus) | **Oui** | Facultative | Fonctionnement de l'application · Personnalisation |
 | Navigation Web | | Non | — | — |
-| Infos et performances de l'application | Journaux de plantage · Diagnostics · Autres | Non (aucun SDK de crash sur mobile) | — | — |
+| Infos et performances de l'application | Journaux de plantage · Diagnostics | **Oui** — Sentry (mobile et web), identifiant utilisateur opaque, sans courriel ni capture d'écran *(corrigé le 8/10 : le SDK Sentry est présent dans `apps/mobile/src/lib/sentry.ts`)* | Obligatoire | Fonctionnement de l'application · Analyses |
 | Identifiants de l'appareil ou autres | Identifiant de l'appareil (jeton de notification) | **Oui** | Facultative | Fonctionnement de l'application |
 | Position | Approximative · Précise | Non | — | — |
 
@@ -66,25 +66,28 @@ App Store Connect › l'app › Confidentialité de l'app › Commencer.
 
 Pour chaque type coché : **Liée à l'identité de l'utilisateur = Oui · Utilisée pour le suivi = Non**.
 
+> Corrections du 8 octobre 2026 (revue A10) : Santé, photos de profil et diagnostics Sentry étaient déclarés « Non » alors que le code les traite. Voir `docs/store/` pour les points à trancher.
+
 | Catégorie Apple | Type | Collecté | Finalités à cocher |
 |---|---|---|---|
 | Coordonnées | Nom | **Oui** | Fonctionnalité de l'app |
 | | Adresse e-mail | **Oui** | Fonctionnalité de l'app |
 | | Numéro de téléphone · Adresse physique · Autres coordonnées | Non | — |
-| Santé et forme | Santé · Forme | **Non** (questionnaires hors app) | — |
+| Santé et forme | Santé · Forme | **Oui** — allergies ou besoins particuliers, scores de bien-être (PERMA, LSSS) *(corrigé le 8/10 ; à confirmer par Lylian)* | Fonctionnalité de l'app · Personnalisation |
 | Informations financières | Infos de paiement · Solvabilité · Autres | Non | — |
 | Localisation | Précise · Approximative | Non | — |
 | Informations sensibles | | Non | — |
 | Contacts | | Non | — |
 | Contenu utilisateur | E-mails ou messages texte | **Oui** (messagerie in-app) | Fonctionnalité de l'app |
-| | Photos ou vidéos · Contenu audio · Gameplay · Service client | Non | — |
+| | Photos ou vidéos | **Oui** — photo de profil de l'enfant, facultative | Fonctionnalité de l'app |
+| | Contenu audio · Gameplay · Service client | Non | — |
 | | Autre contenu utilisateur (carnet Maison, notes de séance du coach) | **Oui** | Fonctionnalité de l'app |
 | Historique de navigation · Historique de recherche | | Non | — |
 | Identifiants | Identifiant utilisateur | **Oui** | Fonctionnalité de l'app |
 | | Identifiant de l'appareil (jeton push) | **Oui** | Fonctionnalité de l'app |
 | Achats | Historique des achats | **Oui** | Fonctionnalité de l'app · Analyses (usage par RevenueCat) |
 | Données d'utilisation | Interactions · Publicité · Autres | Non | — |
-| Diagnostics | Plantages · Performances · Autres | Non | — |
+| Diagnostics | Plantages · Performances | **Oui** — Sentry, identifiant utilisateur opaque, liée à l'identité = Oui, suivi = Non *(corrigé le 8/10)* | Fonctionnalité de l'app |
 | Environnement | | Non | — |
 | Corps | | Non | — |
 | Autres données | Autres types de données (date de naissance, genre, sport de l'enfant) | **Oui** | Fonctionnalité de l'app · Personnalisation du produit |
@@ -173,7 +176,7 @@ Catégorie : « Référence, actualités ou éducation ». Violence, sexualité,
 
 - **Nom (≤ 30)** : `THRIVE Sport Positive` *(sous réserve de la recherche de marque)*
 - **Sous-titre iOS (≤ 30)** : `Le sport qui fait grandir`
-- **Description courte Play (≤ 80)** : `Accompagnez votre jeune sportif avec son coach et 10 minutes par jour en famille.`
+- **Description courte Play (≤ 80)** : `Accompagnez votre jeune sportif avec son coach et 10 min en famille chaque jour.`
 - **Mots-clés iOS (≤ 100)** : `sport,parent,coach,ado,motivation,confiance,famille,émotions,bien-être,habiletés,programme,bilan`
 - **Catégorie** : Santé et forme (principale) ; Éducation (secondaire)
 - **Description** :
@@ -211,7 +214,7 @@ Catégorie : « Référence, actualités ou éducation ». Violence, sexualité,
 
 | Champ | Valeur à publier |
 |---|---|
-| URL de support | `[https://app.thrivesportpositive.com/aide]` |
+| URL de support | `[https://app.thrivesportpositive.com/support]` |
 | URL marketing | `[https://thrivesportpositive.com]` |
 | URL de confidentialité | `[https://app.thrivesportpositive.com/confidentialite]` |
 | Conditions (EULA) | `[https://app.thrivesportpositive.com/conditions]` |

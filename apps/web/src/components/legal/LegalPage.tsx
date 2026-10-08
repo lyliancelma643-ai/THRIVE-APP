@@ -2,7 +2,7 @@
 // connexion, sans JavaScript, sur fond clair quel que soit le thème choisi
 // dans l'app — ce sont aussi les URL déclarées aux stores.
 import Link from 'next/link';
-import { LEGAL, PRIVACY_PATH, SUPPORT_PATH } from '@/lib/legal';
+import { LEGAL, PRIVACY_PATH, SUPPORT_PATH, TERMS_PATH } from '@/lib/legal';
 
 export function LegalPage({
   title,
@@ -28,6 +28,9 @@ export function LegalPage({
           <Link href={PRIVACY_PATH} className="text-navy-600 hover:text-navy-900 underline-offset-4 hover:underline">
             Confidentialité
           </Link>
+          <Link href={TERMS_PATH} className="text-navy-600 hover:text-navy-900 underline-offset-4 hover:underline">
+            Conditions
+          </Link>
         </nav>
 
         <h1 className="font-display text-[32px] md:text-[40px] font-semibold leading-tight text-balance mb-3">
@@ -42,6 +45,8 @@ export function LegalPage({
 
         <footer className="mt-14 border-t border-navy-900/10 pt-6 text-sm text-navy-700">
           {LEGAL.company} · {LEGAL.city} ·{' '}
+          <Link className="underline" href={PRIVACY_PATH}>Confidentialité</Link> ·{' '}
+          <Link className="underline" href={TERMS_PATH}>Conditions</Link> ·{' '}
           <a className="underline" href={`mailto:${LEGAL.supportEmail}`}>
             {LEGAL.supportEmail}
           </a>
