@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, Pressable, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { LEGAL } from '../services/legal';
+import { useEntitlement } from '../hooks/useEntitlement';
+import { deletionSubscriptionWarning } from '../services/subscription-logic';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Section « Confidentialité et compte » des écrans Profil.
@@ -16,11 +18,6 @@ import { LEGAL } from '../services/legal';
 // Délai figé, identique à la politique de confidentialité (§6) : ne pas le
 // modifier sans mettre les deux à jour.
 const DELETION_DELAY = '30 jours';
-
-const STORE_BILLING_NOTICE =
-  Platform.OS === 'ios'
-    ? 'Un abonnement pris sur l’App Store n’est pas annulé automatiquement : annulez-le dans Réglages › votre nom › Abonnements.'
-    : 'Un abonnement pris sur Google Play n’est pas annulé automatiquement : annulez-le dans Google Play › Paiements et abonnements.';
 
 function LinkRow({ label, url }: { label: string; url: string }) {
   if (!url) return null;
@@ -37,6 +34,7 @@ function LinkRow({ label, url }: { label: string; url: string }) {
 }
 
 export function AccountPrivacySection() {
+  const ent = useEntitlement();
   const [deleting, setDeleting] = useState(false);
 
   const submitDeletion = async () => {
@@ -62,9 +60,10 @@ export function AccountPrivacySection() {
   };
 
   const confirmDeletion = () => {
+    const warning = ent.isSubscribed ? deletionSubscriptionWarning(ent.store, ent.willRenew, Platform.OS) : null;
     Alert.alert(
       'Supprimer mon compte ?',
-      `Votre compte et toutes les données associées (profil, famille, enfants, bilans, messages) seront définitivement supprimés dans un délai de ${DELETION_DELAY}. Cette action est irréversible.\n\n${STORE_BILLING_NOTICE}`,
+      `Votre compte et toutes les données associées (profil, famille, enfants, bilans, messages) seront définitivement supprimés dans un délai de ${DELETION_DELAY}. Cette action est irréversible.${warning ? `\n\n${warning}` : ''}`,
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Supprimer mon compte', style: 'destructive', onPress: submitDeletion },
