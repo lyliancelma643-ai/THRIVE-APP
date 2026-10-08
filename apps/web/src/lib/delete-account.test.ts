@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isDeleteConfirmed } from './DeleteAccountSection';
+import { isDeleteConfirmed } from './delete-account';
 
 describe('confirmation de suppression', () => {
   it('exige le mot SUPPRIMER', () => {

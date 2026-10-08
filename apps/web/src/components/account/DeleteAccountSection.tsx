@@ -2,19 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { DELETE_CONFIRM_WORD, isDeleteConfirmed } from '@/lib/delete-account';
 import { useAuthStore } from '@/stores/auth.store';
 
 // Suppression de compte (Apple 5.1.1(v), Loi 25) : confirmation en deux temps
 // (étape 1 : explication, étape 2 : taper « SUPPRIMER »), appel de
 // request-account-deletion, puis écran de confirmation avec le délai (30 jours).
 // Partagé par l'espace parent et l'espace coach.
-
-export const DELETE_CONFIRM_WORD = 'SUPPRIMER';
-
-/** Vrai si le mot saisi confirme la suppression (insensible à la casse et aux espaces). */
-export function isDeleteConfirmed(typed: string): boolean {
-  return typed.trim().toUpperCase() === DELETE_CONFIRM_WORD;
-}
 
 type Tone = 'night' | 'light';
 const TONES: Record<Tone, { body: string; soft: string; ink: string; danger: string; line: string; input: string }> = {
