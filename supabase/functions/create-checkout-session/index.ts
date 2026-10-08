@@ -7,7 +7,8 @@
 //   • Essai gratuit de TRIAL_DAYS jours, une seule fois par compte ; la carte est
 //     toujours demandée (payment_method_collection=always).
 //   • Refus si un abonnement est déjà actif, quelle que soit la plateforme
-//     (évite le double prélèvement web + App Store). Filet indépendant du
+//     (évite le double prélèvement web + App Store) : l'état est d'abord relu
+//     chez RevenueCat (source de vérité), puis, filet indépendant du
 //     miroir RevenueCat : l'historique Stripe du client est relu (abonnement
 //     encore facturable → 409 ; abonnement passé → plus d'essai).
 //   • Une seule session de paiement ouverte par compte : les précédentes sont
@@ -20,7 +21,17 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
-import { adminClient, authUser, corsHeaders, env, fail, json, stripe, StripeError } from "../_shared/billing.ts";
+import {
+  adminClient,
+  authUser,
+  corsHeaders,
+  env,
+  fail,
+  json,
+  stripe,
+  StripeError,
+  syncFromRevenueCat,
+} from "../_shared/billing.ts";
 import {
   isPlanCode,
   parseOrigins,
@@ -46,6 +57,18 @@ Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
     if (!isPlanCode(plan)) return fail("validation", "Plan invalide (mensuel | annuel)", 422);
 
     const admin = adminClient();
+
+    // Source de vérité d'abord : un abonnement App Store / Google Play dont le
+    // webhook RevenueCat n'est pas encore arrivé (ou a été perdu) doit bloquer
+    // un second abonnement web (double prélèvement). En cas de panne
+    // RevenueCat, on continue avec le miroir + l'historique Stripe ci-dessous.
+    try {
+      const live = await syncFromRevenueCat(admin, user.id);
+      if (live.active) return fail("already_subscribed", "Votre abonnement est déjà actif", 409);
+    } catch (e) {
+      await captureError(e);
+    }
+
     const { data: row } = await admin
       .from("billing_subscriptions")
       .select("active, expires_at, ever_subscribed, stripe_customer_id")

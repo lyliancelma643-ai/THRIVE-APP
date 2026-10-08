@@ -10,8 +10,9 @@
 //     relit Stripe) puis le miroir est resynchronisé (l'état fait foi chez
 //     RevenueCat, jamais ici).
 //
-// Toujours 200 une fois la signature validée (sauf erreur interne) : Stripe
-// ne réessaie que sur 5xx, et chaque traitement est idempotent.
+// Toujours 200 une fois la signature validée (sauf erreur interne → 500) :
+// Stripe réessaie toute réponse non 2xx (jusqu'à 3 jours en mode live), et
+// chaque traitement est idempotent (l'état est relu chez RevenueCat).
 // verify_jwt: FALSE (authentification par signature Stripe).
 // Secrets : STRIPE_WEBHOOK_SECRET, REVENUECAT_SECRET_API_KEY, REVENUECAT_STRIPE_PUBLIC_KEY.
 

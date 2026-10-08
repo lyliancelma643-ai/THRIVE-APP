@@ -59,6 +59,14 @@ dessus (`private.parent_p3_access`).
 Mobile (`.env`, clés **publiques**) : `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` (`appl_…`),
 `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID` (`goog_…`), `EXPO_PUBLIC_TERMS_URL`,
 `EXPO_PUBLIC_PRIVACY_URL`.
+Sans `EXPO_PUBLIC_PRIVACY_URL` (et, sur Android, sans `EXPO_PUBLIC_TERMS_URL`), le
+paywall mobile n'affiche aucune offre : on ne vend pas sans les liens exigés par
+Apple 3.1.2 / Google Play.
+
+Web (Vercel, publiques) : `NEXT_PUBLIC_TERMS_URL`, `NEXT_PUBLIC_PRIVACY_URL` — liens
+affichés sous le bouton de paiement de `/parent/abonnement`.
+
+Audit complet et actions restantes : [audit-abonnement-2026-10.md](./audit-abonnement-2026-10.md).
 
 ## Garde-fous serveur
 
@@ -101,6 +109,7 @@ Mobile (`.env`, clés **publiques**) : `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS` (`ap
 2. **Mobile** : development build (EAS) — le Test Store RevenueCat (`test_…`) simule
    les achats ; puis Sandbox Apple / testeurs de licence Google Play.
 3. **Tests automatisés** :
-   - `deno test supabase/functions/_shared/billing_core.test.ts supabase/functions/stripe-webhook/verify.test.ts`
+   - `deno test supabase/functions/_shared/ supabase/functions/stripe-webhook/verify.test.ts supabase/functions/admin-delete-user/billing_cleanup.test.ts`
+     (dont la matrice du cycle de vie `billing_lifecycle.test.ts`)
    - `cd apps/web && npx vitest run` (dont `src/lib/billing.test.ts`)
    - `cd apps/web && npx vitest run --root ../mobile src/services`

@@ -1,3 +1,6 @@
+import { Platform } from 'react-native';
+import { legalLinks } from '../../services/subscription-logic';
+
 // Palette de l'app mobile (mêmes valeurs que les écrans parent existants).
 export const C = {
   bg: '#0f172a',
@@ -13,12 +16,11 @@ export const C = {
   warn: '#fbbf24',
 } as const;
 
-// Liens légaux exigés par Apple et Google sur tout écran d'abonnement.
-// Conditions : si aucune URL propre n'est fournie, le contrat de licence
-// standard d'Apple (EULA) s'applique sur iOS.
-export const LEGAL = {
-  terms:
-    process.env.EXPO_PUBLIC_TERMS_URL ||
-    'https://www.apple.com/legal/internet-services/itunes/dev/stdeula/',
-  privacy: process.env.EXPO_PUBLIC_PRIVACY_URL || '',
-} as const;
+// Liens légaux exigés par Apple (3.1.2) et Google sur tout écran d'abonnement.
+// Conditions : sur iOS seulement, le contrat de licence standard d'Apple (EULA)
+// sert de repli. La politique de confidentialité n'a PAS de repli : sans
+// EXPO_PUBLIC_PRIVACY_URL, `LEGAL.complete` est faux et le paywall ne vend pas.
+export const LEGAL = legalLinks(
+  { terms: process.env.EXPO_PUBLIC_TERMS_URL, privacy: process.env.EXPO_PUBLIC_PRIVACY_URL },
+  Platform.OS,
+);

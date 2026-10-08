@@ -236,7 +236,7 @@ function ActiveSubscription() {
           </div>
         </div>
 
-        {end && (
+        {end && !row.billing_issue_at && (
           <p className="text-[15px] leading-[1.55] text-body mt-4">
             {channel === 'offert'
               ? `Ton accès est ouvert jusqu’au ${end}.`
@@ -252,7 +252,15 @@ function ActiveSubscription() {
 
         {row.billing_issue_at && (
           <p className="mt-4 rounded-lg border border-sun/30 bg-sun/[0.08] px-4 py-3 text-[14px] leading-relaxed text-body">
-            Le dernier paiement n’est pas passé. Mets à jour ton moyen de paiement pour garder ton accès.
+            Le dernier paiement n’est pas passé.{' '}
+            {end ? `Ton accès reste ouvert jusqu’au ${end} le temps de régulariser. ` : ''}
+            {channel === 'web'
+              ? 'Mets à jour ta carte avec « Gérer mon abonnement » pour garder ton accès.'
+              : channel === 'app_store'
+                ? 'Mets à jour ton moyen de paiement dans les réglages de ton compte Apple pour garder ton accès.'
+                : channel === 'play_store'
+                  ? 'Mets à jour ton moyen de paiement dans Google Play pour garder ton accès.'
+                  : 'Mets à jour ton moyen de paiement pour garder ton accès.'}
           </p>
         )}
 
@@ -410,6 +418,7 @@ function Offer({ onNotice }: { onNotice: (n: { tone: 'ok' | 'info' | 'warn'; tex
                   : `${formatMoney(chosen.amount, chosen.currency)} par ${periodLabel(chosen)}, sans engagement.`}{' '}
                 Renouvellement automatique jusqu’à annulation, en deux clics. Paiement sécurisé par Stripe.
               </p>
+              <LegalLinks />
             </>
           )}
         </>
@@ -484,6 +493,30 @@ function PlanOption({
 }
 
 // ── Pièces communes ─────────────────────────────────────────────────────────
+
+// Conditions de vente / d'utilisation et politique de confidentialité, à côté
+// du bouton de paiement (information précontractuelle). URL publiques posées
+// dans Vercel : NEXT_PUBLIC_TERMS_URL, NEXT_PUBLIC_PRIVACY_URL.
+const TERMS_URL = process.env.NEXT_PUBLIC_TERMS_URL ?? '';
+const PRIVACY_URL = process.env.NEXT_PUBLIC_PRIVACY_URL ?? '';
+
+function LegalLinks() {
+  if (!TERMS_URL && !PRIVACY_URL) return null;
+  return (
+    <p className="text-[13px] text-faint text-center mt-2 space-x-3">
+      {TERMS_URL && (
+        <a href={TERMS_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+          Conditions d’utilisation
+        </a>
+      )}
+      {PRIVACY_URL && (
+        <a href={PRIVACY_URL} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+          Politique de confidentialité
+        </a>
+      )}
+    </p>
+  );
+}
 
 function RefreshAccessButton({ onDone }: { onDone: () => Promise<void> }) {
   const [busy, setBusy] = useState(false);

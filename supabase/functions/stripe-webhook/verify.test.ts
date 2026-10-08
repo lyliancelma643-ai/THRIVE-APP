@@ -55,3 +55,13 @@ Deno.test("header vide / malformé → false", async () => {
   assertEquals(await verifyStripeSignature("{}", "garbage", SECRET, clock), false);
   assertEquals(await verifyStripeSignature("{}", "t=123", SECRET, clock), false); // pas de v1
 });
+
+Deno.test("rotation du secret : plusieurs v1, une seule correspond → true", async () => {
+  const payload = JSON.stringify({ type: "invoice.paid" });
+  const good = (await sign(payload, NOW)).split(",v1=")[1];
+  const old = (await sign(payload, NOW, "whsec_ancien_secret")).split(",v1=")[1];
+  // L'ordre des v1 ne doit pas compter.
+  assertEquals(await verifyStripeSignature(payload, `t=${NOW},v1=${good},v1=${old}`, SECRET, clock), true);
+  assertEquals(await verifyStripeSignature(payload, `t=${NOW},v1=${old},v1=${good}`, SECRET, clock), true);
+  assertEquals(await verifyStripeSignature(payload, `t=${NOW},v1=${old}`, SECRET, clock), false);
+});

@@ -30,6 +30,9 @@ import { C, LEGAL } from './theme';
 // courant (jamais écrits en dur). Bouton « Restaurer les achats » obligatoire.
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Nom de l'abonnement, identique à celui des fiches App Store / Google Play. */
+const SUBSCRIPTION_NAME = 'THRIVE — Le moment qui compte';
+
 const PROMISES = [
   'Une activité de 10 minutes par jour, rien à préparer',
   'Choisie pour votre enfant, et de mieux en mieux au fil de vos retours',
@@ -44,7 +47,7 @@ function freeTrialPeriod(pkg: PurchasesPackage): string | null {
   return p.introPrice && p.introPrice.price === 0 ? p.introPrice.period : null;
 }
 
-export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
+export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; onClose?: () => void }) {
   const setCustomerInfo = useSubscriptionStore((s) => s.setCustomerInfo);
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loading, setLoading] = useState(true);
@@ -69,6 +72,9 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
 
   useEffect(() => {
     load();
+    if (!LEGAL.complete) {
+      console.warn('[Paywall] EXPO_PUBLIC_PRIVACY_URL / EXPO_PUBLIC_TERMS_URL manquants : vente désactivée.');
+    }
   }, [load]);
 
   // Annuel d'abord, puis mensuel, puis le reste.
@@ -96,6 +102,7 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
     if (result.status === 'success') {
       setCustomerInfo(result.customerInfo);
       if (activeEntitlement(result.customerInfo)) onSubscribed?.();
+      else Alert.alert('Achat enregistré', 'Votre achat est bien reçu ; l’accès s’ouvrira dans quelques instants. Sinon, touchez « Restaurer les achats ».');
     } else if (result.status === 'pending') {
       Alert.alert('Paiement en attente', 'Votre paiement est en cours de validation. L’accès s’ouvrira dès sa confirmation.');
     } else if (result.status === 'error') {
@@ -125,7 +132,18 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.eyebrow}>MAISON · LE MOMENT QUI COMPTE</Text>
+      {onClose ? (
+        <TouchableOpacity
+          onPress={onClose}
+          style={styles.close}
+          accessibilityRole="button"
+          accessibilityLabel="Fermer"
+          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
+        >
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
+      ) : null}
+      <Text style={styles.eyebrow} accessibilityRole="header">{SUBSCRIPTION_NAME.toUpperCase()}</Text>
       <Text style={styles.title}>Ce n’est pas le nombre d’heures qui compte. C’est la qualité du moment.</Text>
 
       <View style={styles.card}>
@@ -137,7 +155,7 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
         ))}
       </View>
 
-      {packages.length === 0 ? (
+      {packages.length === 0 || !LEGAL.complete ? (
         <View style={styles.card}>
           <Text style={styles.body}>L’abonnement n’est pas disponible pour le moment. Réessayez plus tard.</Text>
           <TouchableOpacity style={styles.secondaryBtn} onPress={load}>
@@ -155,6 +173,7 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
                   key={pkg.identifier}
                   accessibilityRole="radio"
                   accessibilityState={{ checked: isSel }}
+                  accessibilityLabel={`${SUBSCRIPTION_NAME}, ${isAnnual ? 'annuel' : 'mensuel'} : ${pkg.product.priceString} ${perPeriodFr(pkg.product.subscriptionPeriod)}, renouvellement automatique`}
                   onPress={() => setSelectedId(pkg.identifier)}
                   style={[styles.plan, isSel && styles.planSelected]}
                 >
@@ -200,6 +219,7 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
 
           {selected && (
             <Text style={styles.fineprint}>
+              {`${SUBSCRIPTION_NAME} — abonnement ${isoPeriodFr(selected.product.subscriptionPeriod) === '1 an' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
               {trial
                 ? `Gratuit pendant ${isoPeriodFr(trial)}, puis ${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `
                 : `${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `}
@@ -221,16 +241,16 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
       </TouchableOpacity>
 
       <View style={styles.legal}>
-        <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.terms)} accessibilityRole="link">
-          Conditions d’utilisation
-        </Text>
+        {LEGAL.terms ? (
+          <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.terms)} accessibilityRole="link">
+            Conditions d’utilisation (EULA)
+          </Text>
+        ) : null}
+        {LEGAL.terms && LEGAL.privacy ? <Text style={styles.legalSep}>·</Text> : null}
         {LEGAL.privacy ? (
-          <>
-            <Text style={styles.legalSep}>·</Text>
-            <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.privacy)} accessibilityRole="link">
-              Politique de confidentialité
-            </Text>
-          </>
+          <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.privacy)} accessibilityRole="link">
+            Politique de confidentialité
+          </Text>
         ) : null}
       </View>
     </ScrollView>
@@ -240,6 +260,8 @@ export function Paywall({ onSubscribed }: { onSubscribed?: () => void }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: C.bg },
   content: { padding: 20, paddingTop: 60, paddingBottom: 48, gap: 16 },
+  close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', marginTop: -24 },
+  closeText: { color: C.text, fontSize: 18, fontWeight: '700' },
   eyebrow: { color: C.faint, fontSize: 11, fontWeight: '700', letterSpacing: 1.2 },
   title: { color: C.text, fontSize: 26, fontWeight: '700', lineHeight: 32 },
   card: { backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 12 },
@@ -266,7 +288,7 @@ const styles = StyleSheet.create({
   secondaryText: { color: C.accentText, fontSize: 15, fontWeight: '600' },
   disabled: { opacity: 0.6 },
   fineprint: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: 'center' },
-  legal: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginTop: 4 },
-  link: { color: C.muted, fontSize: 12, textDecorationLine: 'underline' },
+  legal: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 },
+  link: { color: C.muted, fontSize: 13, textDecorationLine: 'underline', paddingVertical: 8 },
   legalSep: { color: C.faint, fontSize: 12 },
 });
