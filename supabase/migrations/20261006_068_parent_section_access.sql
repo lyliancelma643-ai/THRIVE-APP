@@ -3,14 +3,13 @@
 --
 -- Trois sections côté parent : Maison · Bilan · Mes séances.
 --
--- Règle AUTOMATIQUE (sans réglage manuel) :
---   • Maison      = pack THRIVE (Groupe, Individuel ou Complet)
---                   OU compte activé par le coach (cycle de la 035)
---                   OU abonnement Maison seul (P3, migration 064).
+-- Règle AUTOMATIQUE (sans réglage manuel) — alignée sur la prod (067b) :
+--   • Maison      = abonnement Maison actif (propre ou partagé co-parent, 066d)
+--                   SEUL. Le pack programme et l'activation coach n'ouvrent
+--                   PAS Maison automatiquement (décision produit 067b) ; l'admin
+--                   peut l'ouvrir par forçage.
 --   • Bilan       = compte activé par le coach (inchangé).
 --   • Mes séances = compte activé par le coach (inchangé).
---   → un abonné « Maison seul » n'a donc QUE Maison ; sans pack ni
---     abonnement, Maison affiche l'invitation à prendre un des trois packs.
 --
 -- Réglage MANUEL : pour chaque section, null = automatique, true = ouvert,
 -- false = fermé. Le manuel l'emporte toujours sur l'automatique (ex. ouvrir
@@ -23,13 +22,7 @@
 --
 -- Rétrocompatible : aucune ligne parent_access = comportement identique à avant.
 --
--- Rollback (down) :
---   restaurer private.parent_p3_access de la 064 ;
---   restaurer gate_parent_sessions / gate_parent_reports de la 066 ;
---   restaurer access_state() de la 064 ;
---   drop function public.admin_parent_access_list();
---   drop function private.parent_section_access(uuid, text);
---   drop table public.parent_access;
+-- Rollback : supabase/rollbacks/20261006_068_parent_section_access_rollback.sql
 -- ─────────────────────────────────────────────────────────────────────────────
 
 set lock_timeout = '5s';
@@ -57,7 +50,7 @@ alter table public.parent_access enable row level security;
 drop policy if exists parent_access_read on public.parent_access;
 create policy parent_access_read on public.parent_access
   for select to authenticated
-  using (parent_id = (select auth.uid()) or (select private.is_admin_or_super()));
+  using ((select private.is_admin_or_super()));  -- le parent lit son état via access_state() (la note admin reste privée)
 
 drop policy if exists parent_access_admin_insert on public.parent_access;
 create policy parent_access_admin_insert on public.parent_access
@@ -110,8 +103,12 @@ as $$
 declare
   r parent_access%rowtype;
   v_forced boolean;
-  v_unlocked boolean;
 begin
+  -- Pas de lecture des droits d'autrui (même garde que has_p3_subscription).
+  if not (auth.uid() is null or auth.uid() = p_parent or private.is_admin()) then
+    return false;
+  end if;
+
   select * into r from parent_access where parent_id = p_parent;
 
   v_forced := case p_section
@@ -123,16 +120,12 @@ begin
     return v_forced;
   end if;
 
-  v_unlocked := private.parent_access_unlocked(p_parent);
-
   if p_section = 'maison' then
-    return r.program_pack is not null
-        or v_unlocked
-        or private.has_p3_subscription(p_parent);
+    return private.has_p3_subscription(p_parent);          -- 067b
   end if;
 
   if p_section in ('bilan', 'seances') then
-    return v_unlocked;
+    return private.parent_access_unlocked(p_parent);
   end if;
 
   return false;
@@ -206,15 +199,23 @@ begin
   end if;
 
   select
-    exists (select 1 from children c join families f on f.id = c.family_id
-            where f.parent_id = v_uid and c.is_active),
-    exists (select 1 from children c join families f on f.id = c.family_id
-            where f.parent_id = v_uid and c.is_active
+    exists (select 1 from children c
+            where private.is_family_parent(c.family_id) and c.is_active),
+    exists (select 1 from children c
+            where private.is_family_parent(c.family_id) and c.is_active
               and c.validation_status = 'CONFIRMED')
   into v_has_child, v_has_confirmed;
 
-  select coalesce(coach_validated, false) into v_coach_ok
-  from profiles where id = v_uid;
+  -- Co-parent (066) : l'activation du titulaire de la famille compte.
+  select coalesce(p.coach_validated, false)
+      or exists (
+        select 1 from family_members m
+        join families f on f.id = m.family_id
+        join profiles owner on owner.id = f.parent_id
+        where m.profile_id = v_uid and coalesce(owner.coach_validated, false)
+      )
+  into v_coach_ok
+  from profiles p where p.id = v_uid;
 
   v_subscribed := private.has_p3_subscription(v_uid);
 
@@ -222,10 +223,10 @@ begin
 
   return jsonb_build_object(
     'role', v_role,
-    'unlocked', v_has_confirmed and v_coach_ok,
+    'unlocked', v_has_confirmed and coalesce(v_coach_ok, false),
     'has_child', v_has_child,
     'has_confirmed_child', v_has_confirmed,
-    'coach_validated', v_coach_ok,
+    'coach_validated', coalesce(v_coach_ok, false),
     'fitness_enabled', coalesce(v_fitness, false),
     'p3_subscribed', v_subscribed,
     'p3_access', private.parent_section_access(v_uid, 'maison'),
@@ -280,10 +281,10 @@ begin
   )
   select
     pid, pk, fm, fb, fs, nt, unl, sub,
-    (pk is not null or unl or sub),
+    sub,
     unl,
     unl,
-    coalesce(fm, pk is not null or unl or sub),
+    coalesce(fm, sub),
     coalesce(fb, unl),
     coalesce(fs, unl)
   from base;
