@@ -47,7 +47,11 @@ const nextConfig = {
   // jusqu'à un lockfile hors du projet et se trompe de racine).
   outputFileTracingRoot: require('path').join(__dirname, '../../'),
   async headers() {
-    return [{ source: '/:path*', headers: securityHeaders }];
+    return [
+      { source: '/:path*', headers: securityHeaders },
+      // Fichier sans extension : doit être servi en JSON pour les liens universels iOS.
+      { source: '/.well-known/apple-app-site-association', headers: [{ key: 'Content-Type', value: 'application/json' }] },
+    ];
   },
   async redirects() {
     return [
