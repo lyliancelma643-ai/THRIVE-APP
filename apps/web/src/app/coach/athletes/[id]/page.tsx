@@ -10,19 +10,32 @@ import { ageGroupFromBirthDate } from '@/lib/catalog';
 import { AthleteWorkspace } from '@/components/coach/AthleteWorkspace';
 import { WriteToParentButton } from '@/components/coach/WriteToParentButton';
 
+type NextSession = { id: string; session_number: number | null; title: string | null };
+
 export default function CoachAthletePage() {
   const params = useParams<{ id: string }>();
   const [child, setChild] = useState<AssignedChild | null>(null);
   const [loading, setLoading] = useState(true);
+  const [nextSession, setNextSession] = useState<NextSession | null>(null);
 
   const load = useCallback(async () => {
     if (!params?.id) return;
-    const { data } = await supabase
-      .from('children')
-      .select('id, first_name, last_name, date_of_birth, sport, family_id')
-      .eq('id', params.id)
-      .single();
+    const [{ data }, { data: upcoming }] = await Promise.all([
+      supabase
+        .from('children')
+        .select('id, first_name, last_name, date_of_birth, sport, family_id')
+        .eq('id', params.id)
+        .single(),
+      supabase
+        .from('sessions')
+        .select('id, session_number, title')
+        .eq('child_id', params.id)
+        .in('status', ['SCHEDULED', 'IN_PROGRESS'])
+        .order('session_number')
+        .limit(1),
+    ]);
     setChild((data ?? null) as AssignedChild | null);
+    setNextSession(((upcoming ?? [])[0] ?? null) as NextSession | null);
     setLoading(false);
   }, [params?.id]);
 
@@ -72,6 +85,23 @@ export default function CoachAthletePage() {
           className="sm:ml-auto"
         />
       </div>
+
+      {nextSession && (
+        <Link
+          href={`/coach/athletes/${child.id}/session/${nextSession.id}`}
+          className="mb-6 flex items-center justify-between gap-4 p-4 rounded-2xl bg-sun text-navy-900 shadow-card hover:shadow-card-hover transition-shadow"
+        >
+          <span className="min-w-0">
+            <span className="block text-xs font-bold uppercase tracking-[0.15em] text-navy-900/70">
+              Prochaine séance · {nextSession.session_number ?? '–'}/13
+            </span>
+            <span className="block font-semibold truncate">{nextSession.title}</span>
+          </span>
+          <span className="shrink-0 px-4 py-2 rounded-full bg-navy-900 text-white text-sm font-bold">
+            Conduire →
+          </span>
+        </Link>
+      )}
 
       <AthleteWorkspace
         childId={child.id}

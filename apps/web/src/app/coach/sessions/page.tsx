@@ -11,8 +11,6 @@ export default function CoachSessionsPage() {
   const [children, setChildren] = useState<AssignedChild[]>([]);
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
-  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
     if (!user?.id) return;
@@ -47,30 +45,8 @@ export default function CoachSessionsPage() {
     };
   }, [user?.id, load]);
 
-  // Le bouton unique : valider la séance -> visible "éclairée" chez le parent
-  const validate = async (s: CoachSession) => {
-    setBusyId(s.id);
-    setError('');
-    const { error: err } = await supabase
-      .from('sessions')
-      .update({ status: 'COMPLETED', completed_at: new Date().toISOString() })
-      .eq('id', s.id);
-    if (err) setError(err.message);
-    await load();
-    setBusyId(null);
-  };
-
-  const unvalidate = async (s: CoachSession) => {
-    setBusyId(s.id);
-    const { error: err } = await supabase
-      .from('sessions')
-      .update({ status: 'SCHEDULED', completed_at: null })
-      .eq('id', s.id);
-    if (err) setError(err.message);
-    await load();
-    setBusyId(null);
-  };
-
+  // Plus de validation directe ici : une séance se clôt uniquement depuis sa fiche,
+  // avec son bilan (T07 P0-2). Ce bouton ouvre la fiche.
   if (loading) {
     return (
       <div className="max-w-4xl space-y-3">
@@ -85,11 +61,9 @@ export default function CoachSessionsPage() {
     <div className="max-w-4xl">
       <h1 className="font-display text-3xl font-semibold text-navy-900 mb-2">Séances</h1>
       <p className="text-navy-600/80 mb-8">
-        Les 13 séances de chaque athlète. Validez une séance : elle s&apos;éclaire
-        instantanément chez le parent.
+        Les 13 séances de chaque athlète. Ouvrez une séance pour la conduire et envoyer
+        son bilan : elle s&apos;éclaire chez le parent à l&apos;envoi.
       </p>
-
-      {error && <p className="mb-4 p-3 rounded-xl bg-red-50 text-red-700 text-sm">{error}</p>}
 
       {children.length === 0 ? (
         <p className="text-sm text-navy-600/80 p-6 rounded-2xl bg-white shadow-card">
@@ -144,24 +118,16 @@ export default function CoachSessionsPage() {
                         </span>
                       </Link>
 
-                      {isDone ? (
-                        <button
-                          onClick={() => unvalidate(s)}
-                          disabled={busyId === s.id}
-                          title="Annuler la validation"
-                          className="px-4 py-2 rounded-full bg-sage text-navy-900 text-xs font-bold hover:bg-sage-dark disabled:opacity-50"
-                        >
-                          Validée ✓
-                        </button>
-                      ) : (
-                        <button
-                          onClick={() => validate(s)}
-                          disabled={busyId === s.id}
-                          className="px-4 py-2 rounded-full bg-navy-600 text-white text-xs font-bold hover:bg-navy-700 disabled:opacity-50"
-                        >
-                          {busyId === s.id ? '…' : 'Valider la séance'}
-                        </button>
-                      )}
+                      <Link
+                        href={`/coach/athletes/${child.id}/session/${s.id}`}
+                        className={`shrink-0 px-4 py-2 rounded-full text-xs font-bold ${
+                          isDone
+                            ? 'bg-sage text-navy-900 hover:bg-sage-dark'
+                            : 'bg-navy-600 text-white hover:bg-navy-700'
+                        }`}
+                      >
+                        {isDone ? 'Voir le bilan' : 'Conduire la séance'}
+                      </Link>
                     </div>
                   );
                 })}

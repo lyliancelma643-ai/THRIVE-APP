@@ -113,7 +113,7 @@ export default function CoachDashboardPage() {
             {upcoming.map((s) => (
               <Link
                 key={s.id}
-                href={`/coach/athletes/${s.child_id}`}
+                href={`/coach/athletes/${s.child_id}/session/${s.id}`}
                 className="flex items-center gap-4 p-4 rounded-2xl bg-white shadow-card hover:shadow-card-hover transition-shadow"
               >
                 <span className="w-10 h-10 rounded-full bg-navy-50 text-navy-700 flex items-center justify-center font-display font-semibold">
@@ -131,7 +131,7 @@ export default function CoachDashboardPage() {
                       })}
                   </span>
                 </span>
-                <span className="text-xs text-navy-500">Ouvrir <span aria-hidden>→</span></span>
+                <span className="text-xs font-semibold text-navy-700">Conduire <span aria-hidden>→</span></span>
               </Link>
             ))}
           </div>
