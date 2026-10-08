@@ -1,0 +1,1025 @@
+diff --git a/apps/web/package.json b/apps/web/package.json
+index aa8f6cc..2e1932f 100644
+--- a/apps/web/package.json
++++ b/apps/web/package.json
+@@ -9,7 +9,8 @@
+     "lint": "next lint",
+     "typecheck": "tsc --noEmit",
+     "test": "vitest run",
+-    "test:e2e": "playwright test"
++    "test:e2e": "playwright test",
++    "cards:build": "node --no-warnings scripts/build-home-cards.mjs"
+   },
+   "dependencies": {
+     "@hookform/resolvers": "^3.0.0",
+diff --git a/apps/web/src/app/admin/layout.tsx b/apps/web/src/app/admin/layout.tsx
+index ef6f49a..aa02674 100644
+--- a/apps/web/src/app/admin/layout.tsx
++++ b/apps/web/src/app/admin/layout.tsx
+@@ -8,6 +8,8 @@ import { getMfaStatus } from '@/lib/mfa';
+ import { BrandLogo } from '@/components/BrandLogo';
+ import { Icon, type IconName } from '@/components/ui';
+ import { useUnreadMessages } from '@/hooks/useUnreadMessages';
++import { useAdminNotifications } from '@/hooks/useAdminNotifications';
++import { AdminNotificationsBell } from '@/components/admin/AdminNotificationsBell';
+ 
+ type NavItem = { href: string; label: string; icon: IconName; superAdminOnly?: boolean };
+ 
+@@ -38,6 +40,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+   const router = useRouter();
+   const { user, isAuthenticated, isLoading, hydrate } = useAuthStore();
+   const unreadMessages = useUnreadMessages(isAuthenticated);
++  // Un seul abonnement temps réel pour toute la zone admin : la cloche du
++  // header (mobile et desktop) et la pastille du menu lisent la même source.
++  const notifications = useAdminNotifications(isAuthenticated ? user?.id : undefined);
+ 
+   useEffect(() => { hydrate(); }, [hydrate]);
+ 
+@@ -78,18 +83,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+ 
+   const navItems = NAV_ITEMS.filter((i) => !i.superAdminOnly || user.role === 'SUPER_ADMIN');
+ 
++  // Pastilles du menu : messages non lus et notifications non lues.
++  const navBadge = (href: string) =>
++    href === '/admin/messages' ? unreadMessages
++      : href === '/admin/notifications' ? notifications.unread
++      : 0;
++
+   return (
+     <div className="flex min-h-screen bg-cream">
+       {/* Barre mobile : logo + navigation horizontale défilante */}
+       <div className="lg:hidden fixed top-0 inset-x-0 z-20 bg-navy-900 text-white safe-top">
+         <div className="flex items-center justify-between px-4 pt-3 pb-1">
+           <p className="flex items-center gap-2"><BrandLogo className="w-7 h-7" /> <span className="text-navy-200/70 text-xs">Admin</span></p>
+-          <button
+-            onClick={() => logout()}
+-            className="text-xs text-navy-200/70 hover:text-white min-h-[44px] px-2 -mr-2 transition-colors"
+-          >
+-            Quitter
+-          </button>
++          <div className="flex items-center gap-1">
++            <AdminNotificationsBell notifications={notifications} placement="topbar" />
++            <button
++              onClick={() => logout()}
++              className="text-xs text-navy-200/70 hover:text-white min-h-[44px] px-2 -mr-2 transition-colors"
++            >
++              Quitter
++            </button>
++          </div>
+         </div>
+         <nav className="flex gap-1 px-3 pb-2 overflow-x-auto scrollbar-hide overscroll-x-contain">
+           {navItems.map((item) => {
+@@ -105,9 +119,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+               >
+                 <Icon name={item.icon} className="w-4 h-4 shrink-0" />
+                 {item.label}
+-                {item.href === '/admin/messages' && unreadMessages > 0 && (
++                {navBadge(item.href) > 0 && (
+                   <span className="ml-1 min-w-[16px] h-4 px-1 rounded-full bg-sun text-navy-900 text-[9px] font-bold flex items-center justify-center">
+-                    {unreadMessages > 9 ? '9+' : unreadMessages}
++                    {navBadge(item.href) > 9 ? '9+' : navBadge(item.href)}
+                   </span>
+                 )}
+               </Link>
+@@ -117,9 +131,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+       </div>
+ 
+       <aside className="hidden lg:flex w-64 bg-navy-900 text-white flex-col fixed h-full z-10">
+-        <div className="p-6 border-b border-navy-800">
+-          <BrandLogo className="w-10 h-10 shadow-card" />
+-          <p className="text-navy-200/70 text-xs mt-2">Espace Admin</p>
++        <div className="p-6 border-b border-navy-800 flex items-start justify-between gap-2">
++          <div>
++            <BrandLogo className="w-10 h-10 shadow-card" />
++            <p className="text-navy-200/70 text-xs mt-2">Espace Admin</p>
++          </div>
++          <AdminNotificationsBell notifications={notifications} placement="sidebar" className="-mr-2" />
+         </div>
+         <nav className="flex-1 p-4 overflow-y-auto">
+           {navItems.map((item) => {
+@@ -137,9 +154,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
+               >
+                 <Icon name={item.icon} className="w-5 h-5 shrink-0" />
+                 <span>{item.label}</span>
+-                {item.href === '/admin/messages' && unreadMessages > 0 && (
++                {navBadge(item.href) > 0 && (
+                   <span className="ml-auto min-w-[20px] h-5 px-1.5 rounded-full bg-sun text-navy-900 text-[10px] font-bold flex items-center justify-center">
+-                    {unreadMessages > 9 ? '9+' : unreadMessages}
++                    {navBadge(item.href) > 9 ? '9+' : navBadge(item.href)}
+                   </span>
+                 )}
+               </Link>
+diff --git a/apps/web/src/app/admin/notifications/page.tsx b/apps/web/src/app/admin/notifications/page.tsx
+index d29fa79..b071abe 100644
+--- a/apps/web/src/app/admin/notifications/page.tsx
++++ b/apps/web/src/app/admin/notifications/page.tsx
+@@ -1,168 +1,411 @@
+ 'use client';
+ 
+-import { useEffect, useState } from 'react';
+-import { supabase } from '@/lib/supabase';
++// ─────────────────────────────────────────────────────────────────────────────
++// Centre de notifications administrateur — trois onglets :
++//   · Mes alertes  : tout ce qui s'est passé dans l'app (tâche terminée,
++//     message, mention, inscription, abonnement…), cliquable jusqu'à la page
++//     concernée, avec filtres par famille et « tout marquer lu ».
++//   · Réglages     : interrupteur général, cases par famille d'évènements,
++//     push sur cet appareil, notification de test.
++//   · Envoyer      : message manuel à un utilisateur ou à toute l'équipe admin.
++//
++// La distribution est faite EN BASE (migration 060) : chaque admin/super admin
++// actif reçoit sa propre ligne, filtrée par ses préférences, et le Web Push
++// suit automatiquement (trigger de la migration 047).
++// ─────────────────────────────────────────────────────────────────────────────
+ 
+-interface NotifRow {
+-  id: string;
+-  user_id: string;
+-  type: string;
+-  title: string;
+-  body?: string;
+-  data?: Record<string, unknown>;
+-  is_read: boolean;
+-  created_at: string;
+-  profile?: { first_name: string; last_name: string; role: string };
+-}
++import { useCallback, useEffect, useState } from 'react';
++import { useRouter } from 'next/navigation';
++import { supabase } from '@/lib/supabase';
++import { useAuthStore } from '@/stores/auth.store';
++import { useAdminNotifications } from '@/hooks/useAdminNotifications';
++import { AdminPushToggle } from '@/components/admin/AdminPushToggle';
++import {
++  ALL_CATEGORIES,
++  DEFAULT_PREFS,
++  NOTIF_CATEGORIES,
++  adminNotifTarget,
++  deleteNotification,
++  fetchNotifPrefs,
++  notifCategory,
++  notifEmoji,
++  saveNotifPrefs,
++  sendManualNotification,
++  sendTestNotification,
++  timeAgo,
++  type Notif,
++  type NotifCategory,
++  type NotifPrefs,
++} from '@/lib/notifications';
+ 
+-const TYPE_ICONS: Record<string, string> = {
+-  MESSAGE: '💬',
+-  SESSION: '📅',
+-  BADGE: '🏅',
+-  PROGRAM: '🏆',
+-  SYSTEM: '🔔',
+-};
+-
+-const TYPE_COLORS: Record<string, string> = {
+-  MESSAGE: 'bg-blue-100 text-blue-700',
+-  SESSION: 'bg-green-100 text-green-700',
+-  BADGE: 'bg-yellow-100 text-yellow-700',
+-  PROGRAM: 'bg-purple-100 text-purple-700',
+-  SYSTEM: 'bg-gray-100 text-gray-700',
+-};
++type Tab = 'inbox' | 'settings' | 'send';
++type Filter = 'all' | 'unread' | NotifCategory;
+ 
+ export default function AdminNotificationsPage() {
+-  const [notifications, setNotifications] = useState<NotifRow[]>([]);
+-  const [isLoading, setIsLoading] = useState(true);
+-  const [filter, setFilter] = useState<'all' | 'unread' | 'MESSAGE' | 'SESSION' | 'BADGE'>('all');
+-  const [showSendForm, setShowSendForm] = useState(false);
+-  const [profiles, setProfiles] = useState<{ id: string; first_name: string; last_name: string }[]>([]);
+-  const [form, setForm] = useState({ user_id: '', title: '', body: '', type: 'SYSTEM', path: '' });
+-  const [sending, setSending] = useState(false);
+-  const [sendError, setSendError] = useState('');
++  const router = useRouter();
++  const { user } = useAuthStore();
++  const me = user?.id;
++  const notifications = useAdminNotifications(me, 100, 'page');
++  const { items, unread, loading, markRead, markAllRead, refresh } = notifications;
++
++  const [tab, setTab] = useState<Tab>('inbox');
++  const [filter, setFilter] = useState<Filter>('all');
++
++  // ── Réglages ───────────────────────────────────────────────────────────────
++  const [prefs, setPrefs] = useState<NotifPrefs>(DEFAULT_PREFS);
++  const [prefsLoaded, setPrefsLoaded] = useState(false);
++  const [prefsMsg, setPrefsMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
++  const [savingPrefs, setSavingPrefs] = useState(false);
+ 
+   useEffect(() => {
+-    fetchAll();
+-    supabase.from('profiles').select('id, first_name, last_name').then(({ data }: { data: any }) => setProfiles(data ?? []));
+-  }, []);
+-
+-  const fetchAll = async () => {
+-    const { data } = await supabase
+-      .from('notifications')
+-      .select('*, profile:profiles(first_name, last_name, role)')
+-      .order('created_at', { ascending: false })
+-      .limit(100);
+-    setNotifications(data ?? []);
+-    setIsLoading(false);
++    if (!me) return;
++    fetchNotifPrefs(me).then((p) => {
++      setPrefs(p);
++      setPrefsLoaded(true);
++    });
++  }, [me]);
++
++  const persist = useCallback(
++    async (next: NotifPrefs) => {
++      if (!me) return;
++      setPrefs(next);
++      setSavingPrefs(true);
++      const err = await saveNotifPrefs(me, next);
++      setSavingPrefs(false);
++      setPrefsMsg(err
++        ? { kind: 'error', text: `Enregistrement impossible : ${err}` }
++        : { kind: 'ok', text: 'Préférences enregistrées.' });
++    },
++    [me],
++  );
++
++  const toggleCategory = (key: NotifCategory) => {
++    const has = prefs.categories.includes(key);
++    persist({
++      ...prefs,
++      categories: has
++        ? prefs.categories.filter((c) => c !== key)
++        : ALL_CATEGORIES.filter((c) => c === key || prefs.categories.includes(c)),
++    });
+   };
+ 
++  const [testMsg, setTestMsg] = useState<string | null>(null);
++  const runTest = async () => {
++    const err = await sendTestNotification();
++    setTestMsg(err ? `Échec : ${err}` : 'Test envoyé — la cloche doit s’allumer tout de suite.');
++    if (!err) await refresh();
++  };
++
++  // ── Envoi manuel ───────────────────────────────────────────────────────────
++  const [profiles, setProfiles] = useState<{ id: string; first_name: string; last_name: string; role: string }[]>([]);
++  const [form, setForm] = useState({
++    audience: 'USER' as 'USER' | 'ADMINS' | 'SUPER_ADMINS',
++    user_id: '', title: '', body: '', path: '',
++  });
++  const [sending, setSending] = useState(false);
++  const [sendMsg, setSendMsg] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
++
++  useEffect(() => {
++    if (tab !== 'send' || profiles.length) return;
++    supabase
++      .from('profiles')
++      .select('id, first_name, last_name, role')
++      .order('first_name')
++      .then(({ data }) => setProfiles((data ?? []) as typeof profiles));
++  }, [tab, profiles.length]);
++
+   const handleSend = async (e: React.FormEvent) => {
+     e.preventDefault();
+-    if (!form.user_id || !form.title || sending) return;
++    if (sending || !form.title.trim()) return;
+     const path = form.path.trim();
+     if (path && !path.startsWith('/')) {
+-      setSendError('Le lien doit être un chemin interne commençant par « / » (ex. /parent/bilans).');
++      setSendMsg({ kind: 'error', text: 'Le lien doit être un chemin interne commençant par « / » (ex. /parent/bilans).' });
++      return;
++    }
++    if (form.audience === 'USER' && !form.user_id) {
++      setSendMsg({ kind: 'error', text: 'Choisissez un destinataire.' });
+       return;
+     }
+     setSending(true);
+-    setSendError('');
+-    const { error: insErr } = await supabase.from('notifications').insert({
+-      user_id: form.user_id,
+-      type: form.type,
+-      title: form.title,
+-      body: form.body || null,
+-      // Destination du clic ; sans lien, le trigger en base en dérive un
+-      ...(path ? { data: { path } } : {}),
++    const err = await sendManualNotification({
++      title: form.title.trim(),
++      body: form.body.trim() || undefined,
++      userId: form.audience === 'USER' ? form.user_id : undefined,
++      path: path || undefined,
++      audience: form.audience,
+     });
+-    if (insErr) {
+-      // Échec : on garde la saisie, le formulaire reste ouvert
+-      setSendError(insErr.message ?? "Envoi impossible");
+-      setSending(false);
++    setSending(false);
++    if (err) {
++      setSendMsg({ kind: 'error', text: `Envoi impossible : ${err}` });
+       return;
+     }
+-    setForm({ user_id: '', title: '', body: '', type: 'SYSTEM', path: '' });
+-    setShowSendForm(false);
+-    await fetchAll();
+-    setSending(false);
++    setForm({ audience: form.audience, user_id: '', title: '', body: '', path: '' });
++    setSendMsg({ kind: 'ok', text: 'Notification envoyée.' });
++    await refresh();
+   };
+ 
+-  const filtered = notifications.filter((n) => {
++  // ── Liste filtrée ──────────────────────────────────────────────────────────
++  const filtered = items.filter((n) => {
++    if (filter === 'all') return true;
+     if (filter === 'unread') return !n.is_read;
+-    if (filter !== 'all') return n.type === filter;
+-    return true;
++    return notifCategory(n) === filter;
+   });
+ 
+-  const stats = {
+-    total: notifications.length,
+-    unread: notifications.filter((n) => !n.is_read).length,
+-    today: notifications.filter((n) => new Date(n.created_at).toDateString() === new Date().toDateString()).length,
++  const openNotif = async (n: Notif) => {
++    if (!n.is_read) await markRead([n.id]);
++    router.push(adminNotifTarget(n));
+   };
+ 
++  const tabCls = (t: Tab) =>
++    `px-4 py-2.5 min-h-[44px] rounded-xl text-sm font-semibold transition-colors cursor-pointer ${
++      tab === t ? 'bg-navy-900 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
++    }`;
++
+   return (
+     <div>
+-      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
++      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+         <div>
+           <h1 className="text-3xl font-bold text-navy-900">🔔 Notifications</h1>
+-          <p className="text-gray-500 mt-1">Centre de notifications de l'application</p>
++          <p className="text-gray-500 mt-1">
++            Tout ce qui se passe dans THRIVE, pour vous et pour l’équipe d’administration.
++          </p>
+         </div>
+-        <button
+-          onClick={() => setShowSendForm(!showSendForm)}
+-          className="bg-navy-600 text-white rounded-xl px-5 py-3 min-h-[44px] font-semibold hover:bg-navy-700 transition-colors"
+-        >
+-          {showSendForm ? 'Annuler' : '✉️ Envoyer une notif'}
+-        </button>
++        {unread > 0 && (
++          <button
++            onClick={() => markAllRead()}
++            className="bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-5 py-3 min-h-[44px] font-semibold transition-colors cursor-pointer"
++          >
++            Tout marquer lu ({unread})
++          </button>
++        )}
+       </div>
+ 
+-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+-        {[
+-          { label: 'Total', value: stats.total, icon: '🔔' },
+-          { label: 'Non lues', value: stats.unread, icon: '🔴' },
+-          { label: "Aujourd'hui", value: stats.today, icon: '📅' },
+-        ].map((s) => (
+-          <div key={s.label} className="bg-white rounded-2xl p-5 shadow-sm">
+-            <div className="flex items-center gap-3">
+-              <span className="text-2xl">{s.icon}</span>
+-              <div>
+-                <p className="text-2xl font-bold">{s.value}</p>
+-                <p className="text-sm text-gray-500">{s.label}</p>
+-              </div>
+-            </div>
+-          </div>
+-        ))}
++      <div className="flex flex-wrap gap-2 mb-6">
++        <button className={tabCls('inbox')} onClick={() => setTab('inbox')}>Mes alertes</button>
++        <button className={tabCls('settings')} onClick={() => setTab('settings')}>Réglages</button>
++        <button className={tabCls('send')} onClick={() => setTab('send')}>Envoyer</button>
+       </div>
+ 
+-      {showSendForm && (
+-        <form onSubmit={handleSend} className="bg-white rounded-2xl p-6 shadow-sm mb-6">
+-          <h2 className="text-lg font-bold mb-4">Envoyer une notification manuelle</h2>
+-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+-            <div>
+-              <label className="text-sm text-gray-500 mb-1 block">Destinataire</label>
+-              <select
+-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+-                value={form.user_id}
+-                onChange={(e) => setForm({ ...form, user_id: e.target.value })}
++      {/* ── Mes alertes ─────────────────────────────────────────────────────── */}
++      {tab === 'inbox' && (
++        <>
++          <div className="flex flex-wrap gap-2 mb-4">
++            {([
++              { key: 'all' as Filter, label: 'Toutes' },
++              { key: 'unread' as Filter, label: `Non lues${unread ? ` (${unread})` : ''}` },
++              ...NOTIF_CATEGORIES.map((c) => ({ key: c.key as Filter, label: `${c.emoji} ${c.label}` })),
++            ]).map((f) => (
++              <button
++                key={f.key}
++                onClick={() => setFilter(f.key)}
++                className={`px-3.5 py-2 min-h-[40px] rounded-xl text-xs font-medium transition-colors cursor-pointer ${
++                  filter === f.key ? 'bg-black text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
++                }`}
+               >
+-                <option value="">Sélectionner un utilisateur</option>
+-                {profiles.map((p) => (
+-                  <option key={p.id} value={p.id}>{p.first_name} {p.last_name}</option>
++                {f.label}
++              </button>
++            ))}
++          </div>
++
++          <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
++            {loading ? (
++              <p className="text-gray-400 p-6">Chargement…</p>
++            ) : filtered.length === 0 ? (
++              <div className="p-12 text-center">
++                <p className="text-3xl mb-3">🔔</p>
++                <p className="text-gray-500">
++                  {filter === 'all'
++                    ? 'Aucune notification pour le moment.'
++                    : 'Rien dans ce filtre.'}
++                </p>
++              </div>
++            ) : (
++              <ul>
++                {filtered.map((n) => (
++                  <li key={n.id} className={`border-b border-gray-50 last:border-0 ${!n.is_read ? 'bg-yellow-50/40' : ''}`}>
++                    <div className="flex items-start gap-3 px-4 sm:px-6 py-4">
++                      <button
++                        onClick={() => openNotif(n)}
++                        className="flex items-start gap-3 flex-1 min-w-0 text-left cursor-pointer"
++                      >
++                        <span className="text-lg leading-6 shrink-0" aria-hidden>{notifEmoji(n)}</span>
++                        <span className="min-w-0">
++                          <span className="block text-sm font-semibold text-navy-900">{n.title}</span>
++                          {n.body && <span className="block text-xs text-gray-500 mt-0.5">{n.body}</span>}
++                          <span className="block text-[11px] text-gray-400 mt-1">
++                            {timeAgo(n.created_at)} · {NOTIF_CATEGORIES.find((c) => c.key === notifCategory(n))?.label}
++                          </span>
++                        </span>
++                      </button>
++                      <div className="flex items-center gap-2 shrink-0">
++                        {!n.is_read && (
++                          <button
++                            onClick={() => markRead([n.id])}
++                            className="text-[11px] font-semibold text-navy-600 hover:text-navy-800 cursor-pointer"
++                          >
++                            Marquer lu
++                          </button>
++                        )}
++                        <button
++                          onClick={async () => { await deleteNotification(n.id); await refresh(); }}
++                          aria-label="Supprimer la notification"
++                          className="text-gray-300 hover:text-red-500 text-lg leading-none px-1 cursor-pointer"
++                        >
++                          ×
++                        </button>
++                      </div>
++                    </div>
++                  </li>
+                 ))}
+-              </select>
++              </ul>
++            )}
++          </div>
++        </>
++      )}
++
++      {/* ── Réglages ────────────────────────────────────────────────────────── */}
++      {tab === 'settings' && (
++        <div className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 max-w-2xl">
++          <div className="flex items-start justify-between gap-4 pb-5 border-b border-gray-100">
++            <div>
++              <p className="text-sm font-semibold text-navy-900">Recevoir les notifications</p>
++              <p className="text-xs text-gray-500 mt-0.5">
++                Interrupteur général : coupé, plus aucune alerte administrateur ne vous est envoyée
++                (ni cloche, ni push).
++              </p>
+             </div>
++            <button
++              type="button"
++              role="switch"
++              aria-checked={prefs.enabled}
++              aria-label="Recevoir les notifications administrateur"
++              disabled={!prefsLoaded}
++              onClick={() => persist({ ...prefs, enabled: !prefs.enabled })}
++              className={`relative h-7 w-12 shrink-0 rounded-full transition-colors disabled:opacity-40 cursor-pointer ${
++                prefs.enabled ? 'bg-emerald-500' : 'bg-gray-300'
++              }`}
++            >
++              <span className={`absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-transform ${
++                prefs.enabled ? 'translate-x-[22px]' : 'translate-x-0.5'
++              }`} />
++            </button>
++          </div>
++
++          <fieldset disabled={!prefs.enabled || !prefsLoaded} className="py-5 border-b border-gray-100 disabled:opacity-50">
++            <legend className="text-xs font-bold uppercase tracking-wide text-gray-400 mb-3">
++              Ce que je veux recevoir
++            </legend>
++            <ul className="space-y-2.5">
++              {NOTIF_CATEGORIES.map((c) => (
++                <li key={c.key}>
++                  <label className="flex items-start gap-3 cursor-pointer">
++                    <input
++                      type="checkbox"
++                      className="mt-1 w-4 h-4 accent-navy-600 cursor-pointer"
++                      checked={prefs.categories.includes(c.key)}
++                      onChange={() => toggleCategory(c.key)}
++                    />
++                    <span className="min-w-0">
++                      <span className="block text-sm font-medium text-navy-900">{c.emoji} {c.label}</span>
++                      <span className="block text-xs text-gray-500">{c.hint}</span>
++                    </span>
++                  </label>
++                </li>
++              ))}
++            </ul>
++
++            <label className="flex items-start gap-3 mt-5 cursor-pointer">
++              <input
++                type="checkbox"
++                className="mt-1 w-4 h-4 accent-navy-600 cursor-pointer"
++                checked={prefs.includeSelf}
++                onChange={() => persist({ ...prefs, includeSelf: !prefs.includeSelf })}
++              />
++              <span>
++                <span className="block text-sm font-medium text-navy-900">M’avertir aussi de mes propres actions</span>
++                <span className="block text-xs text-gray-500">
++                  Par défaut, ce que vous faites vous-même ne vous notifie pas.
++                </span>
++              </span>
++            </label>
++          </fieldset>
++
++          <div className="py-5 border-b border-gray-100">
++            {me && <AdminPushToggle userId={me} />}
++          </div>
++
++          <div className="pt-5 flex flex-wrap items-center gap-3">
++            <button
++              onClick={runTest}
++              className="bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-5 py-3 min-h-[44px] text-sm font-semibold transition-colors cursor-pointer"
++            >
++              Envoyer un test
++            </button>
++            {savingPrefs && <span className="text-xs text-gray-400">Enregistrement…</span>}
++            {testMsg && <span className="text-xs text-gray-500">{testMsg}</span>}
++          </div>
++
++          {prefsMsg && (
++            <p
++              role="status"
++              className={`mt-4 rounded-xl px-4 py-3 text-sm ${
++                prefsMsg.kind === 'ok'
++                  ? 'bg-emerald-50 border border-emerald-100 text-emerald-800'
++                  : 'bg-red-50 border border-red-100 text-red-700'
++              }`}
++            >
++              {prefsMsg.text}
++            </p>
++          )}
++        </div>
++      )}
++
++      {/* ── Envoi manuel ────────────────────────────────────────────────────── */}
++      {tab === 'send' && (
++        <form onSubmit={handleSend} className="bg-white rounded-2xl shadow-sm p-5 sm:p-6 max-w-2xl">
++          <h2 className="text-lg font-bold text-navy-900 mb-1">Envoyer une notification</h2>
++          <p className="text-sm text-gray-500 mb-5">
++            Elle arrive dans la cloche du destinataire et, s’il a activé le push, sur son téléphone.
++          </p>
++
++          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+             <div>
+-              <label className="text-sm text-gray-500 mb-1 block">Type</label>
++              <label className="text-sm text-gray-500 mb-1 block" htmlFor="audience">Destinataires</label>
+               <select
++                id="audience"
+                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+-                value={form.type}
+-                onChange={(e) => setForm({ ...form, type: e.target.value })}
++                value={form.audience}
++                onChange={(e) => setForm({ ...form, audience: e.target.value as typeof form.audience })}
+               >
+-                {['MESSAGE', 'SESSION', 'BADGE', 'PROGRAM', 'SYSTEM'].map((t) => (
+-                  <option key={t} value={t}>{TYPE_ICONS[t]} {t}</option>
+-                ))}
++                <option value="USER">Un utilisateur</option>
++                <option value="ADMINS">Toute l’équipe admin</option>
++                <option value="SUPER_ADMINS">Les super admins</option>
+               </select>
+             </div>
++
++            {form.audience === 'USER' && (
++              <div>
++                <label className="text-sm text-gray-500 mb-1 block" htmlFor="recipient">Utilisateur</label>
++                <select
++                  id="recipient"
++                  className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
++                  value={form.user_id}
++                  onChange={(e) => setForm({ ...form, user_id: e.target.value })}
++                >
++                  <option value="">Sélectionner…</option>
++                  {profiles.map((p) => (
++                    <option key={p.id} value={p.id}>
++                      {p.first_name} {p.last_name} — {p.role}
++                    </option>
++                  ))}
++                </select>
++              </div>
++            )}
++
+             <div>
+-              <label className="text-sm text-gray-500 mb-1 block">Titre</label>
++              <label className="text-sm text-gray-500 mb-1 block" htmlFor="notif-title">Titre</label>
+               <input
++                id="notif-title"
+                 required
+                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                 value={form.title}
+@@ -171,112 +414,49 @@ export default function AdminNotificationsPage() {
+               />
+             </div>
+             <div>
+-              <label className="text-sm text-gray-500 mb-1 block">Message</label>
++              <label className="text-sm text-gray-500 mb-1 block" htmlFor="notif-body">Message</label>
+               <input
++                id="notif-body"
+                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                 value={form.body}
+                 onChange={(e) => setForm({ ...form, body: e.target.value })}
+                 placeholder="Contenu optionnel"
+               />
+             </div>
+-            <div>
+-              <label className="text-sm text-gray-500 mb-1 block">Lien au clic (optionnel)</label>
++            <div className="sm:col-span-2">
++              <label className="text-sm text-gray-500 mb-1 block" htmlFor="notif-path">Lien au clic (optionnel)</label>
+               <input
++                id="notif-path"
+                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm"
+                 value={form.path}
+                 onChange={(e) => setForm({ ...form, path: e.target.value })}
+-                placeholder="/parent/bilans, /parent/messages, …"
++                placeholder="/admin/roadmap, /parent/bilans, …"
+               />
+             </div>
+           </div>
+-          {sendError && (
+-            <p role="alert" className="mt-4 rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-sm text-red-700">
+-              {sendError}
++
++          {sendMsg && (
++            <p
++              role="alert"
++              className={`mt-4 rounded-xl px-4 py-3 text-sm ${
++                sendMsg.kind === 'ok'
++                  ? 'bg-emerald-50 border border-emerald-100 text-emerald-800'
++                  : 'bg-red-50 border border-red-100 text-red-700'
++              }`}
++            >
++              {sendMsg.text}
+             </p>
+           )}
++
+           <button
+             type="submit"
+-            disabled={sending || !form.user_id || !form.title}
+-            className="mt-4 bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-6 py-3 min-h-[44px] font-semibold disabled:opacity-50 transition-colors"
++            disabled={sending || !form.title.trim()}
++            className="mt-5 bg-navy-600 hover:bg-navy-700 text-white rounded-xl px-6 py-3 min-h-[44px] font-semibold disabled:opacity-50 transition-colors cursor-pointer"
+           >
+             {sending ? 'Envoi…' : 'Envoyer'}
+           </button>
+         </form>
+       )}
+-
+-      <div className="flex flex-wrap gap-2 mb-4">
+-        {(['all', 'unread', 'MESSAGE', 'SESSION', 'BADGE'] as const).map((f) => (
+-          <button
+-            key={f}
+-            onClick={() => setFilter(f)}
+-            className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+-              filter === f ? 'bg-black text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+-            }`}
+-          >
+-            {f === 'all' ? 'Toutes' : f === 'unread' ? 'Non lues' : `${TYPE_ICONS[f]} ${f}`}
+-          </button>
+-        ))}
+-      </div>
+-
+-      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+-        {isLoading ? (
+-          <p className="text-gray-400 p-6">Chargement...</p>
+-        ) : filtered.length === 0 ? (
+-          <div className="p-12 text-center">
+-            <p className="text-3xl mb-3">🔔</p>
+-            <p className="text-gray-500">Aucune notification</p>
+-          </div>
+-        ) : (
+-          <div className="overflow-x-auto">
+-          <table className="w-full min-w-[720px]">
+-            <thead className="bg-gray-50 border-b border-gray-100">
+-              <tr>
+-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Type</th>
+-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Destinataire</th>
+-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Contenu</th>
+-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Statut</th>
+-                <th className="text-left text-xs text-gray-500 font-semibold px-6 py-3">Date</th>
+-              </tr>
+-            </thead>
+-            <tbody>
+-              {filtered.map((n) => (
+-                <tr key={n.id} className={`border-b border-gray-50 ${
+-                  !n.is_read ? 'bg-yellow-50/30' : ''
+-                }`}>
+-                  <td className="px-6 py-4">
+-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+-                      TYPE_COLORS[n.type] ?? 'bg-gray-100 text-gray-700'
+-                    }`}>
+-                      {TYPE_ICONS[n.type]} {n.type}
+-                    </span>
+-                  </td>
+-                  <td className="px-6 py-4">
+-                    <p className="text-sm font-medium">
+-                      {n.profile ? `${n.profile.first_name} ${n.profile.last_name}` : n.user_id.slice(0, 8)}
+-                    </p>
+-                    {n.profile && <p className="text-xs text-gray-400">{n.profile.role}</p>}
+-                  </td>
+-                  <td className="px-6 py-4 max-w-xs">
+-                    <p className="text-sm font-medium">{n.title}</p>
+-                    {n.body && <p className="text-xs text-gray-500 truncate">{n.body}</p>}
+-                  </td>
+-                  <td className="px-6 py-4">
+-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${
+-                      n.is_read ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+-                    }`}>
+-                      {n.is_read ? '✓ Lue' : '● Non lue'}
+-                    </span>
+-                  </td>
+-                  <td className="px-6 py-4 text-xs text-gray-400">
+-                    {new Date(n.created_at).toLocaleString('fr-CA', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })}
+-                  </td>
+-                </tr>
+-              ))}
+-            </tbody>
+-          </table>
+-          </div>
+-        )}
+-      </div>
+     </div>
+   );
+ }
+diff --git a/apps/web/src/app/admin/roadmap/page.tsx b/apps/web/src/app/admin/roadmap/page.tsx
+index 88a72ff..679e3e1 100644
+--- a/apps/web/src/app/admin/roadmap/page.tsx
++++ b/apps/web/src/app/admin/roadmap/page.tsx
+@@ -1,6 +1,7 @@
+ 'use client';
+ 
+-import { useCallback, useEffect, useMemo, useState } from 'react';
++import { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
++import { useSearchParams } from 'next/navigation';
+ import { supabaseClient as supabase } from '@thrive/shared';
+ import { useAuthStore } from '@/stores/auth.store';
+ import {
+@@ -34,7 +35,10 @@ const selectCls =
+   'text-xs rounded-lg border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.06] ' +
+   'text-slate-600 dark:text-slate-200 px-2 py-2 focus:outline-none focus:ring-2 focus:ring-navy-300';
+ 
+-export default function AdminRoadmapPage() {
++function AdminRoadmapPageInner() {
++  // Deep-link des notifications : ?task=<id> ouvre la fiche, ?chat=<canal>
++  // ouvre le chat d'équipe sur le bon canal (cf. migration 060).
++  const params = useSearchParams();
+   const { user } = useAuthStore();
+   const me = user?.id ?? '';
+   const isSuperAdmin = user?.role === 'SUPER_ADMIN';
+@@ -49,6 +53,7 @@ export default function AdminRoadmapPage() {
+   const [dark, setDark] = useState(false);
+   const [chatOpen, setChatOpen] = useState(false);
+   const [openTaskId, setOpenTaskId] = useState<string | null>(null);
++  const [chatChannel, setChatChannel] = useState('GENERAL');
+   const [doneOpen, setDoneOpen] = useState(false);
+ 
+   // Bannière « changements récents » : curseur « vu jusqu'à » global
+@@ -78,6 +83,17 @@ export default function AdminRoadmapPage() {
+   useEffect(() => {
+     setDark(typeof window !== 'undefined' && window.localStorage.getItem('thrive-roadmap-dark') === '1');
+   }, []);
++
++  // Arrivée depuis une notification : on ouvre directement la bonne chose.
++  useEffect(() => {
++    const task = params.get('task');
++    const chat = params.get('chat');
++    if (task) setOpenTaskId(task);
++    if (chat) {
++      setChatChannel(chat.toUpperCase());
++      setChatOpen(true);
++    }
++  }, [params]);
+   const toggleDark = () => {
+     setDark((d) => {
+       try { window.localStorage.setItem('thrive-roadmap-dark', d ? '0' : '1'); } catch { /* ok */ }
+@@ -726,8 +742,18 @@ export default function AdminRoadmapPage() {
+         )}
+ 
+         {/* ── Chat d'équipe ── */}
+-        {chatOpen && <ChatPanel me={me} admins={admins} dark={dark} onClose={() => setChatOpen(false)} />}
++        {chatOpen && (
++          <ChatPanel me={me} admins={admins} dark={dark} initialChannel={chatChannel} onClose={() => setChatOpen(false)} />
++        )}
+       </div>
+     </div>
+   );
+ }
++
++export default function AdminRoadmapPage() {
++  return (
++    <Suspense fallback={<p className="text-sm text-slate-400 p-6">Chargement de la roadmap…</p>}>
++      <AdminRoadmapPageInner />
++    </Suspense>
++  );
++}
+diff --git a/apps/web/src/app/globals.css b/apps/web/src/app/globals.css
+index 1ad57b1..a4ca7fb 100644
+--- a/apps/web/src/app/globals.css
++++ b/apps/web/src/app/globals.css
+@@ -260,6 +260,75 @@
+   }
+ }
+ 
++/* ─── Cartes « À la maison » (onglet Fitness) ─────────────────────────────────
++   Mêmes principes que Nuit calme — pas de halo, un effet à la fois — avec les
++   gestes propres à un jeu de cartes : l'écran suivant glisse, une étape cochée
++   rebondit, une carte faite reçoit son tampon, le silence se compte en points. */
++.hc-slide {
++  animation: hc-slide 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) both;
++}
++.hc-pop {
++  animation: hc-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
++}
++.hc-stamp {
++  animation: hc-stamp 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both 0.25s;
++}
++.hc-expand {
++  animation: om-fade 0.35s ease both;
++}
++/* Carrousel : la carte au centre est pleine, ses voisines reculent */
++.hc-deck-card {
++  transition:
++    transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1),
++    opacity 0.35s ease;
++}
++.hc-deck-card[data-active='false'] {
++  transform: scale(0.94);
++  opacity: 0.55;
++}
++@keyframes hc-slide {
++  from {
++    opacity: 0;
++    transform: translateX(28px);
++  }
++  to {
++    opacity: 1;
++    transform: translateX(0);
++  }
++}
++@keyframes hc-pop {
++  0% {
++    transform: scale(0.6);
++  }
++  60% {
++    transform: scale(1.14);
++  }
++  100% {
++    transform: scale(1);
++  }
++}
++@keyframes hc-stamp {
++  from {
++    opacity: 0;
++    transform: rotate(-10deg) scale(1.6);
++  }
++  to {
++    opacity: 1;
++    transform: rotate(-10deg) scale(1);
++  }
++}
++@media (prefers-reduced-motion: reduce) {
++  .hc-slide,
++  .hc-pop,
++  .hc-stamp,
++  .hc-expand {
++    animation: none;
++  }
++  .hc-deck-card {
++    transition: none;
++  }
++}
++
+ /* ─── Messagerie (design Tour 3) ──────────────────────────────────────────────
+    Le panneau entre par la droite comme une pile de navigation iOS ; les bulles
+    se posent une à une ; les trois points de saisie respirent en décalé. */
+diff --git a/apps/web/src/app/parent/(hub)/fitness/videos/page.tsx b/apps/web/src/app/parent/(hub)/fitness/videos/page.tsx
+index f486688..9503560 100644
+--- a/apps/web/src/app/parent/(hub)/fitness/videos/page.tsx
++++ b/apps/web/src/app/parent/(hub)/fitness/videos/page.tsx
+@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
+ import Link from 'next/link';
+ import { supabaseClient as supabase } from '@thrive/shared';
+ import { useChildStore } from '@/stores/child.store';
+-import { useAccessStore } from '@/lib/access';
++import { isFitnessOpen, useAccessStore } from '@/lib/access';
+ import { FitnessConstructionNotice, LockedBanner, GreyedSection } from '@/components/parent/AccessGate';
+ import {
+   VideoSession,
+@@ -20,6 +20,9 @@ import { Icon } from '@/components/ui';
+ const AGE_GROUPS: AgeGroup[] = ['8-11', '12-14', '15-17'];
+ const PHASES: Phase[] = ['ANCRER', 'DEVELOPPER', 'INTEGRER'];
+ 
++// Ancien contenu de l'onglet Fitness (parcours vidéo 20 minutes). L'onglet est
++// désormais le système de cartes « À la maison » ; la bibliothèque vidéo reste
++// accessible ici, depuis le bas de l'écran Fitness.
+ function FitnessPageInner() {
+   const { children, selectedChildId } = useChildStore();
+   const selectedChild = children.find((c) => c.id === selectedChildId) ?? null;
+@@ -350,7 +353,7 @@ export default function FitnessPage() {
+   if (isLoading || !access) {
+     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
+   }
+-  if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
++  if (!isFitnessOpen(access)) return <FitnessConstructionNotice />;
+   if (!access.unlocked) return <LockedFitnessPreview />;
+   return <FitnessPageInner />;
+ }
+diff --git a/apps/web/src/components/admin/roadmap/ChatPanel.tsx b/apps/web/src/components/admin/roadmap/ChatPanel.tsx
+index a14ad09..96e0fb4 100644
+--- a/apps/web/src/components/admin/roadmap/ChatPanel.tsx
++++ b/apps/web/src/components/admin/roadmap/ChatPanel.tsx
+@@ -14,11 +14,13 @@ type Props = {
+   me: string;
+   admins: AdminProfile[];
+   dark: boolean;
++  /** Canal ouvert à l'arrivée (deep-link ?chat=… d'une notification). */
++  initialChannel?: string;
+   onClose: () => void;
+ };
+ 
+-export function ChatPanel({ me, admins, dark, onClose }: Props) {
+-  const [channel, setChannel] = useState('GENERAL');
++export function ChatPanel({ me, admins, dark, initialChannel, onClose }: Props) {
++  const [channel, setChannel] = useState(initialChannel ?? 'GENERAL');
+   const [messages, setMessages] = useState<ChatMessage[]>([]);
+   const [body, setBody] = useState('');
+   const [mentions, setMentions] = useState<string[]>([]);
+diff --git a/apps/web/src/hooks/useThumbNav.ts b/apps/web/src/hooks/useThumbNav.ts
+index 9a93f38..cf25ad0 100644
+--- a/apps/web/src/hooks/useThumbNav.ts
++++ b/apps/web/src/hooks/useThumbNav.ts
+@@ -9,7 +9,9 @@
+ //   • aux deux extrémités, la course est freinée à 25 % — la butée se sent ;
+ //   • le défilement vertical reste prioritaire : dès que le geste part vers le
+ //     haut ou le bas, on lâche la main (et `touch-action: pan-y` sur l'élément) ;
+-//   • l'écran entrant glisse de 30 px DANS LE SENS DU GESTE, jamais l'inverse.
++//   • l'écran entrant glisse de 30 px DANS LE SENS DU GESTE, jamais l'inverse ;
++//   • un élément qui défile lui-même à l'horizontale (carrousel de cartes,
++//     rangée de pastilles) porte `data-no-thumbnav` : le geste lui appartient.
+ 
+ import { useCallback, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+ 
+@@ -60,6 +62,7 @@ export function useThumbNav({
+       if (!enabled) return;
+       // Souris : on laisse la sélection de texte et les clics tranquilles.
+       if (e.pointerType === 'mouse') return;
++      if ((e.target as Element | null)?.closest?.('[data-no-thumbnav]')) return;
+       start.current = { x: e.clientX, y: e.clientY };
+       axis.current = 'none';
+     },
+diff --git a/apps/web/src/lib/access.ts b/apps/web/src/lib/access.ts
+index fd86735..06c7b2d 100644
+--- a/apps/web/src/lib/access.ts
++++ b/apps/web/src/lib/access.ts
+@@ -37,6 +37,16 @@ type AccessStore = {
+   refresh: () => Promise<void>;
+ };
+ 
++// Revue locale de la section Fitness alors que le flag serveur est OFF :
++// `NEXT_PUBLIC_FITNESS_PREVIEW=1` dans .env.local. Ignoré hors `next dev` —
++// un build de production ne peut jamais l'activer.
++export const FITNESS_DEV_PREVIEW =
++  process.env.NODE_ENV === 'development' && process.env.NEXT_PUBLIC_FITNESS_PREVIEW === '1';
++
++export function isFitnessOpen(access: AccessState): boolean {
++  return access.fitnessEnabled || FITNESS_DEV_PREVIEW;
++}
++
+ export const useAccessStore = create<AccessStore>((set) => ({
+   access: null,
+   isLoading: true,

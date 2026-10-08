@@ -1,0 +1,561 @@
+From 712640bcb8b87e40d7082a2987a836dd36d89239 Mon Sep 17 00:00:00 2001
+From: lylian <lyliancelma@MacBookAir-de-lylian.local>
+Date: Wed, 23 Sep 2026 08:53:14 -0400
+Subject: [PATCH] fix(auth): connexion rapide et fin du spinner infini (web +
+ PWA)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- Client Supabase : fetch borné (auth 10 s, REST 25 s, storage libre) —
+  plus de promesse pendante à vie au retour d'arrière-plan de la PWA.
+- auth.store : sessionVerified (non persisté) ; hydrate plafonné à 6 s.
+  L'état persisté périmé ne déclenche plus de redirection (cause du
+  ping-pong /login ↔ middleware puis spinner sans fin).
+- Middleware : getClaims() (vérification locale ES256 via JWKS) au lieu
+  de getUser() réseau à chaque navigation ; cookie expiré → /login?next=…
+  ; /dashboard redirigé côté serveur vers l'espace du rôle.
+- Login : redirection directe vers l'espace par rôle (ou `next` validé),
+  contrôle MFA local, bouton actif immédiatement, message réseau lent.
+
+Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+---
+ apps/web/src/app/dashboard/page.tsx           | 18 +---
+ apps/web/src/app/login/page.tsx               | 91 +++++++++++++++----
+ .../(hub)/fitness/{ => videos}/page.tsx       |  0
+ apps/web/src/lib/mfa.ts                       | 15 +++
+ apps/web/src/lib/role-home.ts                 | 18 ++++
+ apps/web/src/middleware.ts                    | 65 +++++++++----
+ apps/web/src/stores/auth.store.ts             | 64 ++++++++++---
+ packages/shared/src/lib/supabase.ts           | 35 +++++++
+ 8 files changed, 239 insertions(+), 67 deletions(-)
+ rename apps/web/src/app/parent/(hub)/fitness/{ => videos}/page.tsx (100%)
+ create mode 100644 apps/web/src/lib/role-home.ts
+
+diff --git a/apps/web/src/app/dashboard/page.tsx b/apps/web/src/app/dashboard/page.tsx
+index 434ae37..8be417a 100644
+--- a/apps/web/src/app/dashboard/page.tsx
++++ b/apps/web/src/app/dashboard/page.tsx
+@@ -3,6 +3,7 @@
+ import { useEffect } from 'react';
+ import { useRouter } from 'next/navigation';
+ import { useAuthStore } from '@/stores/auth.store';
++import { homeForRole } from '@/lib/role-home';
+ 
+ export default function DashboardPage() {
+   const router = useRouter();
+@@ -12,21 +13,10 @@ export default function DashboardPage() {
+ 
+   useEffect(() => {
+     if (isLoading) return;
+-    if (!isAuthenticated) { router.push('/login'); return; }
++    if (!isAuthenticated) { router.replace('/login'); return; }
+ 
+-    // Redirection selon le rôle
+-    switch (user?.role) {
+-      case 'ADMIN':
+-      case 'SUPER_ADMIN':
+-        router.replace('/admin');
+-        break;
+-      case 'COACH':
+-        router.replace('/coach/dashboard');
+-        break;
+-      default:
+-        router.replace('/parent');
+-        break;
+-    }
++    // Redirection selon le rôle, directement vers la page finale.
++    router.replace(homeForRole(user?.role));
+   }, [isLoading, isAuthenticated, user, router]);
+ 
+   // Page de transit uniquement : la redirection par rôle part dès que la
+diff --git a/apps/web/src/app/login/page.tsx b/apps/web/src/app/login/page.tsx
+index 5ab37a5..a83eb87 100644
+--- a/apps/web/src/app/login/page.tsx
++++ b/apps/web/src/app/login/page.tsx
+@@ -3,8 +3,8 @@
+ import { useEffect, useState } from 'react';
+ import { useRouter } from 'next/navigation';
+ import { supabaseClient as supabase } from '@thrive/shared';
+-import { useAuthStore } from '@/stores/auth.store';
+-import { getMfaStatus } from '@/lib/mfa';
++import { useAuthStore, homeForRole } from '@/stores/auth.store';
++import { needsMfaStepUp } from '@/lib/mfa';
+ import { BrandLogo } from '@/components/BrandLogo';
+ 
+ type Mode = 'signin' | 'signup' | 'forgot';
+@@ -30,6 +30,31 @@ const SITE_URL =
+     ? 'https://thrivesportpositive.com'
+     : 'http://localhost:5173');
+ 
++// Destination demandée avant la redirection vers /login (posée par le
++// middleware). N'accepte qu'un chemin interne vers un espace connu : jamais
++// d'URL absolue ni de « //domaine » (pas de redirection ouverte).
++function safeNext(): string | null {
++  if (typeof window === 'undefined') return null;
++  const next = new URLSearchParams(window.location.search).get('next');
++  if (!next || !next.startsWith('/') || next.startsWith('//')) return null;
++  if (!/^\/(parent|coach|admin|settings)(\/|$|\?)/.test(next)) return null;
++  return next;
++}
++
++// Un espace n'est accessible qu'à certains rôles : on ne suit `next` que s'il
++// correspond au rôle, sinon on irait droit sur un rebond du middleware.
++function destinationFor(role?: string | null): string {
++  const next = safeNext();
++  if (next) {
++    const isAdmin = role === 'ADMIN' || role === 'SUPER_ADMIN';
++    if (next.startsWith('/admin') && isAdmin) return next;
++    if (next.startsWith('/coach') && (role === 'COACH' || isAdmin)) return next;
++    if (next.startsWith('/parent') && (role === 'PARENT' || !role || isAdmin)) return next;
++    if (next.startsWith('/settings')) return next;
++  }
++  return homeForRole(role);
++}
++
+ const SPORT_OPTIONS = [
+   'Hockey', 'Soccer', 'Basketball', 'Natation', 'Tennis',
+   'Volleyball', 'Gymnastique', 'Arts martiaux', 'Baseball',
+@@ -38,7 +63,10 @@ const SPORT_OPTIONS = [
+ 
+ export default function LoginPage() {
+   const router = useRouter();
+-  const { signIn, isLoading, hydrate, isAuthenticated } = useAuthStore();
++  const { signIn, hydrate, isAuthenticated, sessionVerified, user } = useAuthStore();
++  // Session réellement confirmée pendant cette visite (et non simple état
++  // relu du localStorage, qui peut être périmé).
++  const confirmed = isAuthenticated && sessionVerified;
+ 
+   const [mode, setMode] = useState<Mode>('signin');
+   const [error, setError] = useState('');
+@@ -82,11 +110,21 @@ export default function LoginPage() {
+ 
+   // Un utilisateur déjà connecté ne reste pas sur /login. Utile aussi quand le
+   // middleware renvoie ici une session au cookie (access token) expiré : hydrate
+-  // revalide/rafraîchit la session, puis on repart vers l'espace par rôle.
++  // revalide/rafraîchit la session, puis on part DIRECTEMENT vers son espace.
++  // On attend la confirmation (sessionVerified) : se fier à l'état persisté
++  // provoquait un aller-retour /login ↔ middleware puis un spinner sans fin.
+   useEffect(() => { hydrate(); }, [hydrate]);
+   useEffect(() => {
+-    if (isAuthenticated) router.replace('/dashboard');
+-  }, [isAuthenticated, router]);
++    if (!confirmed || submitting) return;
++    const dest = destinationFor(user?.role);
++    router.replace(dest);
++    // Filet de sécurité : si la navigation client n'a pas abouti (réseau
++    // capricieux, rebond), on force un chargement complet une seule fois.
++    const t = setTimeout(() => {
++      if (window.location.pathname === '/login') window.location.replace(dest);
++    }, 4_000);
++    return () => clearTimeout(t);
++  }, [confirmed, submitting, user?.role, router]);
+ 
+   const handleForgot = async (e: React.FormEvent) => {
+     e.preventDefault();
+@@ -109,18 +147,29 @@ export default function LoginPage() {
+ 
+   const handleLogin = async (e: React.FormEvent) => {
+     e.preventDefault();
+-    if (isLoading || submitting) return; // anti double-submit
++    if (submitting) return; // anti double-submit
+     if (!email || !password) { setError('Tous les champs sont requis'); return; }
++    setError('');
++    setSubmitting(true);
+     try {
+-      setError('');
+-      await signIn(email, password);
++      await signIn(email.trim(), password);
+       // Si un second facteur est enrôlé, on passe par le step-up avant l'app.
+-      // Sinon (cas de tous les comptes sans MFA), redirection directe : dormant.
+-      const mfa = await getMfaStatus();
+-      router.push(mfa.needsStepUp ? '/mfa-verify?next=/dashboard' : '/dashboard');
++      // Vérification 100 % locale (lecture du JWT) : aucun appel réseau en plus.
++      const dest = destinationFor(useAuthStore.getState().user?.role);
++      router.replace(
++        (await needsMfaStepUp()) ? `/mfa-verify?next=${encodeURIComponent(dest)}` : dest
++      );
++      // `submitting` reste vrai : le bouton garde son état jusqu'au changement de page.
+     } catch (err: any) {
+       const msg = err?.message ?? 'Connexion impossible';
+-      setError(/invalid login|credentials/i.test(msg) ? 'Email ou mot de passe incorrect.' : humanAuthError(msg));
++      setError(
++        /invalid login|credentials/i.test(msg)
++          ? 'Email ou mot de passe incorrect.'
++          : /fetch|network|abort|timed? ?out/i.test(msg)
++            ? 'Connexion lente ou interrompue. Vérifie ton réseau et réessaie.'
++            : humanAuthError(msg)
++      );
++      setSubmitting(false);
+     }
+   };
+ 
+@@ -201,7 +250,7 @@ export default function LoginPage() {
+         const { error: childErr } = await supabase.from('children').insert(rows);
+         if (childErr) throw childErr;
+       }
+-      router.push('/parent');
++      router.push('/parent/bilans');
+     } catch {
+       // Compte créé + session active : on entre dans l'app (les enfants pourront
+       // être ajoutés ensuite) au lieu de bloquer sur un compte devenu orphelin.
+@@ -209,8 +258,10 @@ export default function LoginPage() {
+     }
+   };
+ 
+-  // Déjà connecté : on affiche un état de redirection plutôt qu'un flash du formulaire
+-  if (isAuthenticated) {
++  // Session confirmée : état de redirection plutôt qu'un flash du formulaire.
++  // Tant qu'une session persistée est en cours de vérification (quelques
++  // centaines de ms, 6 s au pire), on affiche aussi ce même état.
++  if (confirmed || (isAuthenticated && !sessionVerified)) {
+     return (
+       <main className="min-h-screen bg-cream flex items-center justify-center" aria-busy>
+         <div
+@@ -278,7 +329,7 @@ export default function LoginPage() {
+                 <button
+                   key={m}
+                   type="button"
+-                  disabled={isLoading || submitting}
++                  disabled={submitting}
+                   aria-pressed={mode === m}
+                   onClick={() => { setMode(m); setError(''); }}
+                   className={`flex-1 min-h-[44px] py-2.5 rounded-full text-sm font-bold transition-colors disabled:opacity-60 ${
+@@ -393,11 +444,11 @@ export default function LoginPage() {
+               {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
+               <button
+                 type="submit"
+-                disabled={isLoading}
+-                aria-busy={isLoading}
++                disabled={submitting}
++                aria-busy={submitting}
+                 className="w-full min-h-[48px] py-3.5 rounded-full bg-navy-600 hover:bg-navy-700 text-white font-bold disabled:opacity-50 transition-colors"
+               >
+-                {isLoading ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
++                {submitting ? (<><ButtonSpinner />Connexion…</>) : 'Se connecter'}
+               </button>
+             </form>
+           ) : (
+diff --git a/apps/web/src/app/parent/(hub)/fitness/page.tsx b/apps/web/src/app/parent/(hub)/fitness/videos/page.tsx
+similarity index 100%
+rename from apps/web/src/app/parent/(hub)/fitness/page.tsx
+rename to apps/web/src/app/parent/(hub)/fitness/videos/page.tsx
+diff --git a/apps/web/src/lib/mfa.ts b/apps/web/src/lib/mfa.ts
+index 5ffb094..807034d 100644
+--- a/apps/web/src/lib/mfa.ts
++++ b/apps/web/src/lib/mfa.ts
+@@ -52,6 +52,21 @@ export async function getMfaStatus(): Promise<MfaStatus> {
+   }
+ }
+ 
++/**
++ * Version allégée pour le chemin de connexion : le niveau d'assurance se lit
++ * dans la session locale (JWT + facteurs du user), SANS appel réseau — là où
++ * getMfaStatus() ajoute un listFactors() (aller-retour serveur). Ne lève pas.
++ */
++export async function needsMfaStepUp(): Promise<boolean> {
++  try {
++    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
++    if (error) return false;
++    return data?.currentLevel === 'aal1' && data?.nextLevel === 'aal2';
++  } catch {
++    return false;
++  }
++}
++
+ export type TotpEnrollment = {
+   factorId: string;
+   /** SVG du QR code à afficher (data-uri fournie par Supabase). */
+diff --git a/apps/web/src/lib/role-home.ts b/apps/web/src/lib/role-home.ts
+new file mode 100644
+index 0000000..50a93e8
+--- /dev/null
++++ b/apps/web/src/lib/role-home.ts
+@@ -0,0 +1,18 @@
++/**
++ * Espace d'arrivée selon le rôle. Utilisé partout où l'on redirige après
++ * connexion (page login, middleware, transit /dashboard) : on va DIRECTEMENT à
++ * la bonne page, sans transiter par /dashboard puis /parent — chaque étape
++ * coûtait un aller-retour serveur de plus. Sans dépendance : importable depuis
++ * le middleware (edge) comme depuis le client.
++ */
++export function homeForRole(role?: string | null): string {
++  switch (role) {
++    case 'ADMIN':
++    case 'SUPER_ADMIN':
++      return '/admin';
++    case 'COACH':
++      return '/coach/dashboard';
++    default:
++      return '/parent/bilans';
++  }
++}
+diff --git a/apps/web/src/middleware.ts b/apps/web/src/middleware.ts
+index 936b12c..54092e7 100644
+--- a/apps/web/src/middleware.ts
++++ b/apps/web/src/middleware.ts
+@@ -1,6 +1,7 @@
+ import { NextResponse } from 'next/server';
+ import type { NextRequest } from 'next/server';
+ import { createClient } from '@supabase/supabase-js';
++import { homeForRole } from '@/lib/role-home';
+ 
+ // Fallbacks alignés sur supabase-server.ts : les NEXT_PUBLIC_* peuvent être
+ // absents du build (ex. plus de .env.local committé) → sans repli, createClient
+@@ -19,6 +20,20 @@ const ROLE_PATHS: Record<string, string[]> = {
+   '/admin': ['ADMIN', 'SUPER_ADMIN'],
+ };
+ 
++// Client unique par isolat : la clé publique de signature (JWKS) est mise en
++// cache par supabase-js entre les requêtes (TTL 10 min).
++const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
++  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
++});
++
++function toLogin(request: NextRequest) {
++  const url = new URL('/login', request.url);
++  // Mémorise la page visée : après (re)connexion on y retourne directement.
++  const { pathname, search } = request.nextUrl;
++  if (pathname !== '/dashboard') url.searchParams.set('next', pathname + search);
++  return NextResponse.redirect(url);
++}
++
+ export async function middleware(request: NextRequest) {
+   const { pathname } = request.nextUrl;
+   const isProtected = PROTECTED_PATHS.some((p) => pathname.startsWith(p));
+@@ -27,36 +42,46 @@ export async function middleware(request: NextRequest) {
+   const accessToken = request.cookies.get('sb-access-token')?.value
+     || request.headers.get('authorization')?.replace('Bearer ', '');
+ 
+-  if (!accessToken) {
+-    return NextResponse.redirect(new URL('/login', request.url));
+-  }
++  if (!accessToken) return toLogin(request);
+ 
+-  // Fail-closed : toute erreur (réseau, init client, token illisible) redirige
+-  // vers /login au lieu de laisser le middleware crasher (500).
+-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+-  let userData: Awaited<ReturnType<typeof supabase.auth.getUser>>;
++  // Vérification LOCALE du JWT (signature asymétrique ES256 via la clé publique
++  // du projet + expiration) : plus d'aller-retour vers Supabase Auth à chaque
++  // navigation — c'était ~3 appels réseau en série pendant la connexion.
++  // Repli automatique de supabase-js sur getUser() si le token est en HS256.
++  // Fail-closed : toute erreur (réseau, token illisible, expiré) → /login.
++  let claims: Record<string, any> | undefined;
+   try {
+-    userData = await supabase.auth.getUser(accessToken);
++    const { data, error } = await supabase.auth.getClaims(accessToken);
++    if (error || !data?.claims?.sub) return toLogin(request);
++    claims = data.claims as Record<string, any>;
+   } catch {
+-    return NextResponse.redirect(new URL('/login', request.url));
+-  }
+-
+-  const { data, error } = userData;
+-  if (error || !data.user) {
+-    return NextResponse.redirect(new URL('/login', request.url));
++    return toLogin(request);
+   }
+ 
+   // Vérification du rôle selon le path.
+   // Source d'autorité UNIQUE : app_metadata.role (posé par les edge functions
+-  // via la clé service, NON modifiable par l'utilisateur).
+-  // On NE retombe PAS sur user_metadata.role : ce champ est modifiable par
+-  // l'utilisateur lui-même (auth.updateUser) → un repli dessus permettrait une
+-  // escalade de privilèges verticale (se déclarer ADMIN pour franchir ce gate).
++  // via la clé service, NON modifiable par l'utilisateur) — présent dans le JWT
++  // signé. On NE retombe PAS sur user_metadata.role : ce champ est modifiable
++  // par l'utilisateur lui-même (auth.updateUser) → un repli dessus permettrait
++  // une escalade de privilèges verticale (se déclarer ADMIN pour franchir ce gate).
++  const userRole = claims.app_metadata?.role as string | undefined;
++
++  // /dashboard n'est qu'une page de transit : on envoie tout de suite vers le
++  // bon espace, sans charger la page puis rediriger côté client.
++  // Seulement si l'espace cible accepte bien ce rôle (sinon boucle de rebonds).
++  const home = userRole ? homeForRole(userRole) : null;
++  const homeAllowed = (h: string | null): h is string =>
++    !!h && !!userRole && Object.entries(ROLE_PATHS).some(
++      ([p, roles]) => h.startsWith(p) && roles.includes(userRole)
++    );
++  if (pathname === '/dashboard' && homeAllowed(home)) {
++    return NextResponse.redirect(new URL(home, request.url));
++  }
++
+   const matchedPath = Object.keys(ROLE_PATHS).find((p) => pathname.startsWith(p));
+   if (matchedPath) {
+-    const userRole = data.user.app_metadata?.role as string | undefined;
+     if (!userRole || !ROLE_PATHS[matchedPath].includes(userRole)) {
+-      return NextResponse.redirect(new URL('/dashboard', request.url));
++      return NextResponse.redirect(new URL(homeAllowed(home) ? home : '/dashboard', request.url));
+     }
+   }
+ 
+diff --git a/apps/web/src/stores/auth.store.ts b/apps/web/src/stores/auth.store.ts
+index 395eb80..b4b8938 100644
+--- a/apps/web/src/stores/auth.store.ts
++++ b/apps/web/src/stores/auth.store.ts
+@@ -4,6 +4,13 @@ import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
+ import { supabaseClient as supabase } from '@thrive/shared';
+ 
+ type AuthStore = IAuthState & {
++  /**
++   * true dès que la session a été CONFIRMÉE auprès de Supabase pendant cette
++   * visite (hydrate, connexion ou évènement auth). Non persisté : l'état
++   * `isAuthenticated` relu du localStorage peut être périmé (token expiré,
++   * session révoquée) et ne doit jamais, seul, déclencher une redirection.
++   */
++  sessionVerified: boolean;
+   hydrate: () => Promise<void>;
+   signIn: (email: string, password: string) => Promise<void>;
+   signUp: (email: string, password: string, metadata?: Record<string, any>) => Promise<void>;
+@@ -14,7 +21,8 @@ type AuthStore = IAuthState & {
+ function syncAuthCookie(accessToken: string | null) {
+   if (typeof document === 'undefined') return;
+   if (accessToken) {
+-    document.cookie = `sb-access-token=${accessToken}; path=/; max-age=604800; SameSite=Lax`;
++    const secure = window.location.protocol === 'https:' ? '; Secure' : '';
++    document.cookie = `sb-access-token=${accessToken}; path=/; max-age=604800; SameSite=Lax${secure}`;
+   } else {
+     document.cookie = 'sb-access-token=; path=/; max-age=0';
+   }
+@@ -52,6 +60,14 @@ function mapSession(supabaseSession: any): { user: IAuthUser; session: IAuthToke
+   };
+ }
+ 
++export { homeForRole } from '@/lib/role-home';
++
++// Délai maximal accordé à la vérification de session avant de rendre la main
++// à l'UI. Au-delà (réseau qui traîne), on affiche le formulaire plutôt qu'un
++// spinner sans fin ; si la session finit par être confirmée, l'état est mis à
++// jour et l'utilisateur est redirigé automatiquement.
++const HYDRATE_TIMEOUT_MS = 6_000;
++
+ // Dédoublonnage des appels concurrents à hydrate(). La chaîne de connexion
+ // monte plusieurs gardes coup sur coup (/login → /dashboard → layout d'espace),
+ // chacune appelant hydrate() au montage. Sans cette garde, chaque appel relance
+@@ -70,6 +86,7 @@ export const useAuthStore = create<AuthStore>()(
+       // gardes de layout (admin/parent/coach) attendent au lieu de rediriger
+       // vers /login. Évite le rebond au rechargement / deep-link d'une sous-page.
+       isLoading: true,
++      sessionVerified: false,
+ 
+       hydrate: async () => {
+         if (hydrateInFlight) return hydrateInFlight;
+@@ -80,18 +97,39 @@ export const useAuthStore = create<AuthStore>()(
+           // rebasculer sur le spinner — c'était la cause des re-blocages.
+           if (!get().isAuthenticated) set({ isLoading: true });
+ 
+-          const { data, error } = await supabase.auth.getSession();
+-          if (error || !data.session) {
+-            set({ user: null, session: null, isAuthenticated: false, isLoading: false });
++          type SessionResult = Awaited<ReturnType<typeof supabase.auth.getSession>>;
++          const apply = ({ data, error }: SessionResult) => {
++            if (error || !data.session) {
++              set({
++                user: null, session: null, isAuthenticated: false,
++                isLoading: false, sessionVerified: true,
++              });
++              return null;
++            }
++            const mapped = mapSession(data.session);
++            // Session en main → on DÉBLOQUE l'UI immédiatement. Le rendu ne doit
++            // jamais attendre un aller-retour réseau supplémentaire.
++            syncAuthCookie(data.session.access_token);
++            set({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
++            return mapped;
++          };
++
++          // getSession() est local si le token est encore valide, mais déclenche
++          // un rafraîchissement réseau s'il a expiré (cas typique : on rouvre la
++          // PWA après plus d'une heure). On borne l'attente pour ne jamais rester
++          // bloqué sur le spinner ; le résultat tardif est quand même appliqué.
++          const sessionPromise = supabase.auth.getSession();
++          const first = await Promise.race([
++            sessionPromise,
++            new Promise<'timeout'>((r) => setTimeout(() => r('timeout'), HYDRATE_TIMEOUT_MS)),
++          ]);
++          if (first === 'timeout') {
++            set({ isAuthenticated: false, isLoading: false, sessionVerified: true });
++            sessionPromise.then(apply).catch(() => {});
+             return;
+           }
+-          const mapped = mapSession(data.session);
+-
+-          // Session en main → on DÉBLOQUE l'UI immédiatement. Le rendu ne doit
+-          // jamais attendre un aller-retour réseau supplémentaire (sinon un
+-          // appel lent laisse le spinner tourner « dans le vide » jusqu'au refresh).
+-          syncAuthCookie(data.session.access_token);
+-          set({ ...mapped, isAuthenticated: true, isLoading: false });
++          const mapped = apply(first);
++          if (!mapped) return;
+ 
+           // Backstop désactivation, HORS chemin critique (ne bloque plus le
+           // rendu) : un compte banni peut garder un JWT en cache valide jusqu'à
+@@ -123,7 +161,7 @@ export const useAuthStore = create<AuthStore>()(
+         if (error) { set({ isLoading: false }); throw error; }
+         const mapped = mapSession(data.session);
+         syncAuthCookie(data.session.access_token);
+-        set({ ...mapped, isAuthenticated: true, isLoading: false });
++        set({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
+       },
+ 
+       signUp: async (email, password, metadata) => {
+@@ -200,7 +238,7 @@ if (typeof window !== 'undefined') {
+       if (session) {
+         syncAuthCookie(session.access_token);
+         const mapped = mapSession(session);
+-        useAuthStore.setState({ ...mapped, isAuthenticated: true, isLoading: false });
++        useAuthStore.setState({ ...mapped, isAuthenticated: true, isLoading: false, sessionVerified: true });
+       }
+     }
+     if (event === 'SIGNED_OUT') {
+diff --git a/packages/shared/src/lib/supabase.ts b/packages/shared/src/lib/supabase.ts
+index 1aebdd9..8dde72e 100644
+--- a/packages/shared/src/lib/supabase.ts
++++ b/packages/shared/src/lib/supabase.ts
+@@ -20,7 +20,42 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+   );
+ }
+ 
++// ─────────────────────────────────────────────────────────────────────────────
++// fetch borné dans le temps. Sans ça, une requête réseau qui ne répond jamais
++// (typique d'une PWA iOS qui revient d'arrière-plan, ou d'un réseau mobile
++// instable) laisse la promesse pendante À VIE : le rafraîchissement du token
++// reste « en vol », getSession() ne rend jamais la main et l'app tourne sur
++// son spinner jusqu'à ce qu'on recharge la page. Avec un délai, l'appel échoue
++// proprement et l'UI peut réagir (réessayer, afficher le formulaire).
++//   • Auth (/auth/v1)      : 10 s — c'est le chemin critique de la connexion.
++//   • REST / RPC / fonctions : 25 s.
++//   • Storage (uploads)    : aucune limite (un gros fichier peut être long).
++// ─────────────────────────────────────────────────────────────────────────────
++function timeoutFor(url: string): number | null {
++  if (url.includes('/auth/v1/')) return 10_000;
++  if (url.includes('/storage/v1/')) return null;
++  return 25_000;
++}
++
++const fetchWithTimeout: typeof fetch = (input, init) => {
++  const url =
++    typeof input === 'string' ? input : input instanceof URL ? input.href : (input as Request).url;
++  const ms = timeoutFor(url);
++  if (ms === null || typeof AbortController === 'undefined') return fetch(input, init);
++
++  const controller = new AbortController();
++  const timer = setTimeout(() => controller.abort(), ms);
++  // Respecte un éventuel signal fourni par l'appelant (annulation manuelle).
++  const outer = init?.signal;
++  if (outer) {
++    if (outer.aborted) controller.abort();
++    else outer.addEventListener('abort', () => controller.abort(), { once: true });
++  }
++  return fetch(input, { ...init, signal: controller.signal }).finally(() => clearTimeout(timer));
++};
++
+ export const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
++  global: { fetch: fetchWithTimeout },
+   auth: {
+     autoRefreshToken: true,
+     persistSession: true,
+-- 
+2.54.0 (Apple Git-157)
+
