@@ -76,7 +76,7 @@ Les présentes sont régies par les lois du Québec et du Canada. Le consommateu
 
 ### 13. Contact
 
-Thrive Sport Positive · support@thrivesportpositive.com · https://app.thrivesportpositive.com/aide
+Thrive Sport Positive · support@thrivesportpositive.com · https://app.thrivesportpositive.com/support
 
 ### 14. Conditions des plateformes
 
@@ -100,5 +100,5 @@ Pour les applications mobiles, les conditions d'Apple (contrat de licence d'util
 10. **Termination.** Delete your account at any time (Profile › Delete my account). We may suspend an account for serious breach, with notice except in emergencies.
 11. **Changes.** Material changes are announced at least 30 days in advance; you may terminate at no cost if you refuse them.
 12. **Governing law.** Laws of Québec and Canada.
-13. **Contact.** Thrive Sport Positive · support@thrivesportpositive.com · https://app.thrivesportpositive.com/aide
+13. **Contact.** Thrive Sport Positive · support@thrivesportpositive.com · https://app.thrivesportpositive.com/support
 14. **Platform terms.** Apple's standard EULA and Google Play's terms also apply to the mobile apps. Apple and Google are not parties to these terms and have no support obligation for the Service.
