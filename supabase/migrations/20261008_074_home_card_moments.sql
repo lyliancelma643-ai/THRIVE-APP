@@ -41,9 +41,9 @@ drop policy if exists home_card_moments_read on public.home_card_moments;
 create policy home_card_moments_read on public.home_card_moments
   for select to authenticated
   using (
-    public.is_parent_of_child(child_id)
-    or public.is_assigned_coach(child_id)
-    or public.is_admin()
+    private.is_parent_of_child(child_id)
+    or private.is_assigned_coach(child_id)
+    or private.is_admin()
   );
 
 -- Écriture : uniquement le parent, pour son propre enfant, en son nom.
@@ -52,7 +52,7 @@ create policy home_card_moments_insert on public.home_card_moments
   for insert to authenticated
   with check (
     parent_id = (select auth.uid())
-    and public.is_parent_of_child(child_id)
+    and private.is_parent_of_child(child_id)
   );
 
 -- Même garde que le reste de la section Fitness : compte parent activé et
