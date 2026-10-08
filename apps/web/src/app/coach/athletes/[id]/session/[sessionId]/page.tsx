@@ -153,6 +153,8 @@ export default function CoachLiveSessionPage() {
     sessionId: params?.sessionId,
     ready: !!script && !!child,
     defaultParentMsg,
+    ageGroup,
+    sessionNumber: session?.session_number ?? null,
   });
 
   // Tic du chrono de séance (1 s)
