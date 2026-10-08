@@ -11,6 +11,29 @@ import { Icon, type IconName } from '@/components/ui';
 // l'enforcement des données est fait par la RLS (migration 035).
 // ─────────────────────────────────────────────────────────────────────────────
 
+/** Vérification d'accès impossible (réseau/base) : on ne devine pas, on propose de réessayer. */
+export function AccessErrorNotice() {
+  const error = useAccessStore((s) => s.error);
+  const isLoading = useAccessStore((s) => s.isLoading);
+  const refresh = useAccessStore((s) => s.refresh);
+  if (!error) return null;
+  return (
+    <div role="alert" className="nc-card ring-1 ring-sun/[0.22] mb-6 flex flex-wrap items-center gap-3">
+      <p className="text-[15px] text-ink flex-1 min-w-[200px]">
+        Impossible de vérifier ton accès pour le moment.
+      </p>
+      <button
+        type="button"
+        onClick={() => void refresh()}
+        disabled={isLoading}
+        className="inline-flex items-center justify-center min-h-[44px] px-5 rounded-full bg-accent text-accent-on text-[14px] font-bold disabled:opacity-60"
+      >
+        Réessayer
+      </button>
+    </div>
+  );
+}
+
 export function LockedBanner({ message }: { message?: string }) {
   return (
     <div className="nc-card ring-1 ring-sun/[0.22] mb-6 animate-om-up">

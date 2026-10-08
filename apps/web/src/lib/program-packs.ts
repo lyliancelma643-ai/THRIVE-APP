@@ -1,6 +1,6 @@
 // Les trois packs THRIVE vendus sur le site (Groupe, Individuel, Complet).
-// Chacun ouvre automatiquement « Maison » ; Bilan et Mes séances suivent le
-// cycle d'activation par le coach. L'Admin / Super Admin peut forcer chaque
+// Maison s'ouvre par l'abonnement Maison (ou forçage admin) ; Bilan et Mes séances
+// suivent le cycle d'activation par le coach. L'Admin / Super Admin peut forcer chaque
 // section parent par parent (table parent_access, migration 068).
 //
 // À ne pas confondre avec le niveau de détail des bilans (families.pack :

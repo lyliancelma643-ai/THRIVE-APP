@@ -28,6 +28,7 @@ import MaisonPage from './fitness/page';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
 import { sectionLockReason, useAccessStore } from '@/lib/access';
+import { AccessErrorNotice } from '@/components/parent/AccessGate';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useThumbNav } from '@/hooks/useThumbNav';
 
@@ -241,6 +242,7 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
             transition: dragging ? 'none' : 'transform var(--dur-slow) var(--ease-out)',
           }}
         >
+          <AccessErrorNotice />
           {rootTab < 0 && (
             <div
               key={pathname}

@@ -47,15 +47,9 @@ const ROWS: Row[] = [
       p === 'PERFORMANCE' ? 'Chaque séance' : p === 'AVANCE' ? 'Séances 3, 7 et 13' : false,
   },
   { label: 'Lettre personnalisée du coach', value: (p) => can(p, 'coachLetter') },
-  { label: 'Rapports de séance enrichis', value: (p) => can(p, 'premiumTemplates') },
   { label: 'Écrire directement au coach', value: (p) => can(p, 'coachMessaging') },
-  { label: 'Export du parcours', value: (p) => can(p, 'csvExport') },
   { label: 'Enfants accompagnés', value: (p) => fmtCount(limit(p, 'maxChildren')) },
   { label: 'Parents ou tuteurs', value: (p) => fmtCount(limit(p, 'maxParents')) },
-  {
-    label: 'Historique conservé',
-    value: (p) => (limit(p, 'historyMonths') === null ? 'Illimité' : `${limit(p, 'historyMonths')} mois`),
-  },
 ];
 
 function fmtCount(n: number | null): string {

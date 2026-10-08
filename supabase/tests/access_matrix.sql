@@ -22,7 +22,6 @@ declare
   pg uuid := gen_random_uuid(); ph uuid := gen_random_uuid(); pi uuid := gen_random_uuid();
   fam uuid; st jsonb; n int;
 
-  procedure_dummy int;
 begin
   -- ── Données ────────────────────────────────────────────────────────────────
   insert into public.profiles (id, email, first_name, last_name, role, coach_validated) values
@@ -39,7 +38,6 @@ begin
     (pi, 'i@example.test', 'i', 'i', 'PARENT', false);
 
   -- une famille + un enfant confirmé par parent (pack de bilan : b=AVANCE, h=PERFORMANCE)
-  for fam in select 1 loop null; end loop;
   insert into public.families (name, parent_id, pack)
     select 'F-' || left(p::text, 4), p,
            case when p = pb then 'AVANCE' when p = ph then 'PERFORMANCE' else 'ESSENTIEL' end
