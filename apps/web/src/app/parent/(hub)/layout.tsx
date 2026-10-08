@@ -27,7 +27,7 @@ import MySessionsPage from './my-sessions/page';
 import MaisonPage from './fitness/page';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
-import { useAccessStore } from '@/lib/access';
+import { sectionLockReason, useAccessStore } from '@/lib/access';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useThumbNav } from '@/hooks/useThumbNav';
 
@@ -81,10 +81,13 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     );
   }, [router]);
 
-  // Compte en préparation : onglets visibles mais non cliquables (aperçu).
-  const locked = !accessLoading && access ? !access.unlocked : false;
-  // Bilan et Maison restent toujours ouverts : Maison s'ouvre aux abonnés P3
-  // sans activation par un coach, et montre l'invitation à s'abonner sinon.
+  // Compte en préparation : « Mes séances » visible mais non cliquable (aperçu).
+  // Section hors de l'offre (abonné Maison seul, fermeture admin) : l'onglet reste
+  // cliquable et montre l'invitation à prendre un pack.
+  const locked =
+    !accessLoading && access ? !access.seancesAccess && sectionLockReason(access) === 'pending' : false;
+  // Bilan et Maison restent toujours ouverts : chacun montre son propre écran
+  // d'attente ou d'invitation quand la section est fermée.
   const tabOpen = (i: number) => !locked || i === BILAN_TAB || i === MAISON_TAB;
 
   // Sens de la dernière navigation : l'écran entrant glisse depuis ce côté.

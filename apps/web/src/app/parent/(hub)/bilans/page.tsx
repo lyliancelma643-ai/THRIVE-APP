@@ -6,9 +6,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
-import { useAccessStore } from '@/lib/access';
+import { sectionLockReason, useAccessStore } from '@/lib/access';
 import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
+import { PackRequired } from '@/components/parent/PackRequired';
 import { Icon } from '@/components/ui';
 import { DocMeta, programPct, signedDocUrl } from '@/lib/bilan';
 import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
@@ -397,7 +398,9 @@ export default function BilansPage() {
   if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
-  if (!access.unlocked) return <BilanLockedPreview />;
+  if (!access.bilanAccess) {
+    return sectionLockReason(access) === 'pending' ? <BilanLockedPreview /> : <PackRequired section="bilan" />;
+  }
   return (
     // Suspense requis par useSearchParams (deep-link des notifications)
     <Suspense fallback={<BilanSkeleton />}>

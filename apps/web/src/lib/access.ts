@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { asProgramPack, type ProgramPack } from './program-packs';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // État d'accès du compte (cycle : enfant créé → confirmé par l'admin →
@@ -22,8 +23,13 @@ export type AccessState = {
   fitnessEnabled: boolean;
   /** Abonnement P3 actif (le sien ou celui du titulaire de la famille). */
   p3Subscribed: boolean;
-  /** Accès à « Maison » : compte activé par le coach OU abonné P3 (migration 064). */
+  /** Accès à « Maison » : pack THRIVE, compte activé, abonné P3 ou forçage admin (migration 068). */
   p3Access: boolean;
+  /** Pack THRIVE acheté (Groupe / Individuel / Complet), null = aucun. */
+  programPack: ProgramPack | null;
+  /** Accès aux onglets Bilan et Mes séances (automatique ou forcé par l'admin, migration 068). */
+  bilanAccess: boolean;
+  seancesAccess: boolean;
 };
 
 const OPEN_FALLBACK: AccessState = {
@@ -35,6 +41,9 @@ const OPEN_FALLBACK: AccessState = {
   fitnessEnabled: true,
   p3Subscribed: false,
   p3Access: true,
+  programPack: null,
+  bilanAccess: true,
+  seancesAccess: true,
 };
 
 type AccessStore = {
@@ -57,22 +66,39 @@ export const useAccessStore = create<AccessStore>((set) => ({
       return;
     }
     const d = data as Record<string, unknown>;
+    const unlocked = d.unlocked === true;
     set({
       access: {
         role: String(d.role ?? 'PARENT'),
-        unlocked: d.unlocked === true,
+        unlocked,
         hasChild: d.has_child === true,
         hasConfirmedChild: d.has_confirmed_child === true,
         coachValidated: d.coach_validated === true,
         fitnessEnabled: d.fitness_enabled === true,
         p3Subscribed: d.p3_subscribed === true,
         // Avant la migration 064 la clé n'existe pas : on retombe sur `unlocked`.
-        p3Access: typeof d.p3_access === 'boolean' ? d.p3_access : d.unlocked === true,
+        p3Access: typeof d.p3_access === 'boolean' ? d.p3_access : unlocked,
+        // Avant la migration 068 : pas de pack ni de forçage, on retombe sur `unlocked`.
+        programPack: asProgramPack(d.program_pack),
+        bilanAccess: typeof d.bilan_access === 'boolean' ? d.bilan_access : unlocked,
+        seancesAccess: typeof d.seances_access === 'boolean' ? d.seances_access : unlocked,
       },
       isLoading: false,
     });
   },
 }));
+
+/**
+ * Pourquoi Bilan / Mes séances est fermé :
+ *   • 'pending'      → parcours coaché en cours d'activation (aperçu « ton espace se prépare ») ;
+ *   • 'not_included' → abonné Maison seul (sans pack THRIVE), ou section fermée
+ *                      manuellement par l'admin alors que le compte est activé :
+ *                      on l'invite à prendre un des trois packs.
+ */
+export function sectionLockReason(access: AccessState): 'pending' | 'not_included' {
+  if (access.unlocked) return 'not_included';
+  return access.p3Subscribed && !access.programPack ? 'not_included' : 'pending';
+}
 
 // Messages in-app — ton cordial, premium, orienté accompagnement humain.
 export const ACCESS_MESSAGES = {

@@ -3,6 +3,13 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { type Pack, PACK_LABELS, PACK_ORDER, asPack } from '@/lib/packs';
+import {
+  AccessBadges,
+  ParentAccessEditor,
+  fetchParentAccess,
+  type ParentAccessRow,
+} from '@/components/admin/ParentAccessEditor';
+import { PROGRAM_PACK_LABELS } from '@/lib/program-packs';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface ParentRow {
@@ -40,6 +47,9 @@ export default function AdminFamiliesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch]       = useState('');
   const [filter, setFilter]       = useState<'all' | 'with_family' | 'without_family'>('all');
+  // Accès par section (Maison / Bilan / Mes séances) — migration 068
+  const [accessMap, setAccessMap] = useState<Map<string, ParentAccessRow>>(new Map());
+  const [editing, setEditing]     = useState<ParentRow | null>(null);
 
   // ── Chargement ──────────────────────────────────────────────────────────────
   const fetchParents = useCallback(async () => {
@@ -86,6 +96,7 @@ export default function AdminFamiliesPage() {
     });
 
     setParents(rows);
+    setAccessMap(await fetchParentAccess());
     setIsLoading(false);
   }, []);
 
@@ -112,6 +123,7 @@ export default function AdminFamiliesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchParents)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, fetchParents)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, fetchParents)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_access' }, fetchParents)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -189,6 +201,7 @@ export default function AdminFamiliesPage() {
               <th className="px-6 py-4 hidden lg:table-cell">Ville</th>
               <th className="px-6 py-4 hidden sm:table-cell">Enfants</th>
               <th className="px-6 py-4">Pack</th>
+              <th className="px-6 py-4">Accès</th>
               <th className="px-6 py-4">Statut</th>
               <th className="px-6 py-4 hidden lg:table-cell">Inscription</th>
             </tr>
@@ -197,7 +210,7 @@ export default function AdminFamiliesPage() {
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <tr key={i} className="border-t">
-                  {Array.from({ length: 8 }).map((__, j) => (
+                  {Array.from({ length: 9 }).map((__, j) => (
                     <td key={j} className="px-6 py-4">
                       <div className="h-4 bg-gray-100 rounded animate-pulse" style={{ width: j === 0 ? '60%' : '80%' }} />
                     </td>
@@ -206,7 +219,7 @@ export default function AdminFamiliesPage() {
               ))
             ) : filtered.length === 0 ? (
               <tr>
-                <td colSpan={8} className="px-6 py-14 text-center">
+                <td colSpan={9} className="px-6 py-14 text-center">
                   <div className="text-4xl mb-3">👨‍👩‍👧‍👦</div>
                   <p className="text-gray-600 font-medium">
                     {search || filter !== 'all'
@@ -286,6 +299,21 @@ export default function AdminFamiliesPage() {
                       )}
                     </td>
 
+                    {/* Accès par section — modifiable à la main (Admin / Super Admin) */}
+                    <td className="px-6 py-4">
+                      <div className="flex flex-col items-start gap-1.5">
+                        <AccessBadges row={accessMap.get(parent.id)} />
+                        <button
+                          onClick={() => setEditing(parent)}
+                          className="text-xs font-semibold text-navy-700 underline underline-offset-2 hover:text-navy-900"
+                        >
+                          {accessMap.get(parent.id)?.program_pack
+                            ? `Pack ${PROGRAM_PACK_LABELS[accessMap.get(parent.id)!.program_pack!]} · Gérer`
+                            : 'Gérer les accès'}
+                        </button>
+                      </div>
+                    </td>
+
                     {/* Statut */}
                     <td className="px-6 py-4">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${color}`}>
@@ -304,6 +332,19 @@ export default function AdminFamiliesPage() {
           </tbody>
         </table>
       </div>
+
+      {editing && (
+        <ParentAccessEditor
+          parentId={editing.id}
+          parentName={`${editing.first_name ?? ''} ${editing.last_name ?? ''}`.trim() || editing.email}
+          row={accessMap.get(editing.id)}
+          onClose={() => setEditing(null)}
+          onSaved={() => {
+            setEditing(null);
+            fetchParents();
+          }}
+        />
+      )}
     </div>
   );
 }
