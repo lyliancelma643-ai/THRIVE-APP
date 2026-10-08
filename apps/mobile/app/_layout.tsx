@@ -1,3 +1,6 @@
+// Racine non routée tant que src/app existe (Expo Router préfère src/app) :
+// l'import garde Sentry actif si ce dossier redevient la racine.
+import '../src/lib/sentry';
 import { useEffect, useRef } from 'react';
 import { Stack } from 'expo-router';
 import * as Notifications from 'expo-notifications';

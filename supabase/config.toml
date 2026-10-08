@@ -1,0 +1,169 @@
+# Configuration Supabase versionnée — THRIVE.
+#
+# Sert à deux choses :
+#   1. le développement local (`supabase start`) ;
+#   2. la configuration des projets distants via `supabase config push`
+#      (script : scripts/ops/supabase-config-push.sh — affiche le diff, demande
+#      confirmation ; à lancer sur STAGING d'abord, puis sur la prod).
+#
+# ⚠️ Tout ce fichier est poussé : chaque valeur doit refléter la prod voulue.
+# Les valeurs marquées « = prod » reprennent le comportement actuel constaté
+# (2026-10-02) ; les valeurs marquées « durcissement » sont les nouveautés.
+#
+# Retour arrière : `git revert` du commit fautif puis relancer le script de push
+# (la config précédente est réappliquée telle quelle).
+
+project_id = "thrive"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[realtime]
+enabled = true
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+
+[local_smtp]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+# Plafond global ; chaque bucket garde sa propre limite (avatars 5 MiB, pièces jointes 10 MiB).
+file_size_limit = "50MiB"
+
+[auth]
+enabled = true
+site_url = "https://app.thrivesportpositive.com"
+# Retours après e-mail (réinitialisation : /reset-password) : prod, local, deep link mobile.
+additional_redirect_urls = [
+  "https://app.thrivesportpositive.com/**",
+  "http://localhost:3001/**",
+  "thrive://**",
+]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# = prod : les parents créent leur compte eux-mêmes (web et mobile).
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+
+# ── Mots de passe — durcissement ────────────────────────────────────────────
+# Miroir côté client : packages/shared/src/validation/password.ts.
+# Les comptes existants gardent leur mot de passe ; la règle s'applique à la
+# création et au changement de mot de passe.
+minimum_password_length = 12
+password_requirements = "lower_upper_letters_digits"
+# NB : la protection « mots de passe compromis » (HaveIBeenPwned) n'est pas
+# pilotable ici ; elle exige le plan Pro et s'active via la Management API
+# (`password_hibp_enabled`) — voir scripts/ops/supabase-config-push.sh.
+
+[auth.rate_limit]
+# Valeurs par défaut hébergées (requêtes / 5 min / IP), explicites pour être revues.
+email_sent = 30
+sign_in_sign_ups = 30
+token_refresh = 150
+token_verifications = 30
+anonymous_users = 30
+
+[auth.email]
+enable_signup = true
+# = prod : « Compte actif immédiatement — aucun email de validation requis »
+# (apps/web/src/app/login/page.tsx). Passer à true imposera de revoir le
+# parcours d'inscription, qui attend une session immédiate.
+enable_confirmations = false
+# Durcissement : un changement d'adresse doit être confirmé sur l'ancienne ET la nouvelle.
+double_confirm_changes = true
+# Durcissement : changer de mot de passe exige une connexion récente (< 24 h) ou un code.
+secure_password_change = true
+max_frequency = "60s"
+otp_length = 6
+otp_expiry = 3600
+
+[auth.sms]
+enable_signup = false
+
+# ── Double authentification ─────────────────────────────────────────────────
+# = prod : TOTP actif, exigé pour la zone admin (garde aal2, /mfa-verify).
+[auth.mfa]
+max_enrolled_factors = 10
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+
+# ── Edge functions — = prod (verify_jwt lu le 2026-10-01) ───────────────────
+# Les webhooks et l'envoi web push sont appelés par des tiers ou par la base :
+# ils vérifient eux-mêmes leur signature / secret. NE PAS passer à true.
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+[functions.send-web-push]
+verify_jwt = false
+
+[functions.send-push-notification]
+verify_jwt = true
+
+[functions.export-my-data]
+verify_jwt = true
+
+[functions.request-account-deletion]
+verify_jwt = true
+
+[functions.generate-parent-report]
+verify_jwt = true
+
+[functions.billing-plans]
+verify_jwt = true
+
+[functions.billing-sync]
+verify_jwt = true
+
+[functions.create-checkout-session]
+verify_jwt = true
+
+[functions.create-portal-session]
+verify_jwt = true
+
+[functions.admin-create-coach]
+verify_jwt = true
+
+[functions.admin-create-user]
+verify_jwt = true
+
+[functions.admin-update-user]
+verify_jwt = true
+
+[functions.admin-delete-user]
+verify_jwt = true
+
+[edge_runtime]
+enabled = true
+policy = "per_worker"
+deno_version = 2
+
+[analytics]
+enabled = false
