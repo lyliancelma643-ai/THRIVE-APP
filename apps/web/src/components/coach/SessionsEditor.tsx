@@ -6,6 +6,8 @@
 // Crée le programme si l'automatisation ne l'a pas fait.
 
 import { useCallback, useEffect, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '@/stores/auth.store';
 import { CoachSession, THRIVE_SESSIONS } from '@/lib/coach';
@@ -29,6 +31,7 @@ export function SessionsEditor({
   onChange?: () => void;
 }) {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
@@ -113,6 +116,12 @@ export function SessionsEditor({
   };
 
   const setStatus = async (s: CoachSession, status: SessionStatus) => {
+    // Clôturer une séance passe toujours par sa fiche, pour envoyer le bilan avec
+    // (T07 P0-2) : aucune écriture « terminée » sans bilan.
+    if (status === 'COMPLETED' && s.status !== 'COMPLETED') {
+      router.push(`/coach/athletes/${childId}/session/${s.id}`);
+      return;
+    }
     setSessions((xs) => xs.map((x) => (x.id === s.id ? { ...x, status } : x)));
     const patch: Record<string, unknown> = { status };
     if (status === 'COMPLETED') patch.completed_at = new Date().toISOString();
@@ -242,6 +251,13 @@ export function SessionsEditor({
                   </option>
                 ))}
               </select>
+
+              <Link
+                href={`/coach/athletes/${childId}/session/${s.id}`}
+                className="text-xs font-semibold text-navy-700 hover:text-navy-900 underline-offset-2 hover:underline"
+              >
+                {s.status === 'COMPLETED' ? 'Voir le bilan' : 'Conduire'}
+              </Link>
 
               {s.session_number != null &&
                 (() => {

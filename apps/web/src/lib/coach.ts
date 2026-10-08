@@ -58,6 +58,74 @@ export async function fetchAssignedChildren(coachId: string): Promise<AssignedCh
   return (children ?? []) as AssignedChild[];
 }
 
+// ─── Clôture de séance + envoi du bilan (migration 071) ───────────────────────
+
+export type CloseSessionPayload = {
+  message: string;
+  observations?: Record<string, number>;
+  fields?: Record<string, string>;
+  age_group?: string | null;
+  life_skill_target?: string | null;
+  performance_summary?: string | null;
+  success_count?: number | null;
+};
+
+export type CloseSessionResult = {
+  session_id: string;
+  child_id: string;
+  report_id: string;
+  coach_report_id: string;
+  status: 'COMPLETED';
+  resent: boolean;
+};
+
+type RpcError = { code?: string; message?: string } | null | undefined;
+
+// Erreurs levées par complete_session_with_report (SQLSTATE P0001) → français, tutoiement.
+const CLOSE_ERROR_MESSAGES: Record<string, string> = {
+  not_authenticated: 'Ta session a expiré. Reconnecte-toi pour envoyer le bilan.',
+  forbidden: "Tu n'as pas le droit de clore cette séance. Seul le coach assigné ou un administrateur peut l'envoyer.",
+  session_not_found: "Cette séance n'existe plus. Retourne à la liste des séances.",
+  session_cancelled: 'Cette séance est annulée : elle ne peut plus recevoir de bilan.',
+  message_required: "Écris un message pour le parent avant d'envoyer le bilan.",
+};
+
+export const CLOSE_SESSION_FALLBACK_MESSAGE =
+  "Le bilan n'a pas pu être envoyé. Vérifie ta connexion et réessaie : le renvoi ne crée pas de doublon.";
+
+/** Vrai si la RPC n'est pas encore déployée (migration 071 non appliquée). */
+export function isCloseRpcMissing(err: RpcError): boolean {
+  if (!err) return false;
+  if (err.code === 'PGRST202') return true;
+  return /could not find the function.*complete_session_with_report/i.test(err.message ?? '');
+}
+
+/** Message français affichable pour une erreur de clôture. Rien n'est écrit si la RPC échoue. */
+export function closeSessionErrorMessage(err: RpcError): string {
+  const raw = (err?.message ?? '').trim();
+  return CLOSE_ERROR_MESSAGES[raw] ?? CLOSE_SESSION_FALLBACK_MESSAGE;
+}
+
+/**
+ * Clôture la séance et envoie le bilan en une seule transaction côté base.
+ * Retourne { missing: true } si la RPC n'est pas encore en base, pour que l'appelant
+ * bascule sur le repli documenté.
+ */
+export async function completeSessionWithReport(
+  sessionId: string,
+  payload: CloseSessionPayload
+): Promise<{ result: CloseSessionResult } | { missing: true }> {
+  const { data, error } = await supabase.rpc('complete_session_with_report', {
+    p_session: sessionId,
+    p_payload: payload,
+  });
+  if (error) {
+    if (isCloseRpcMissing(error)) return { missing: true };
+    throw new Error(closeSessionErrorMessage(error));
+  }
+  return { result: data as CloseSessionResult };
+}
+
 export function childAge(dateOfBirth: string | null): number | null {
   if (!dateOfBirth) return null;
   const birth = new Date(dateOfBirth);
