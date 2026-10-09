@@ -7,8 +7,10 @@ import { asPack, type Pack } from './packs';
 // État d'accès du compte (cycle : enfant créé → confirmé par l'admin →
 // validé par le coach → accès complet) + feature flags serveur.
 //
-// Source de vérité : RPC `access_state()` (SECURITY DEFINER, migration 035).
-// L'UI ne fait que REFLÉTER cet état — l'enforcement réel est en RLS.
+// Source de vérité : RPC `access_state()` (SECURITY DEFINER), calculée par
+// private.access_compute (migration 080) — override Super Admin > pack >
+// abonnement Maison > rien. L'UI ne fait que REFLÉTER cet état, sans aucun
+// calcul de droit ; l'enforcement réel est en RLS (même fonction).
 //
 // Erreur ≠ accès ouvert : si la RPC échoue (réseau, base), on GARDE le dernier
 // état connu ; sans état connu, `error` passe à vrai et l'UI affiche
@@ -35,16 +37,31 @@ export type AccessState = {
   bilanLevel: Pack;
   /** Coach / Admin / Super Admin : jamais de paywall (migration 070). */
   isStaff: boolean;
-  /** Forçages admin par section : null = automatique, true = ouvert, false = fermé (migration 070). */
+  /** Overrides Super Admin actifs par section : null = automatique, true = ouvert, false = fermé (migration 080). */
   forced: Record<ParentSection, boolean | null>;
+  /** Mode d'affichage de Bilan / Mes séances : complet, lecture seule (pack terminé) ou verrouillé (migration 080). */
+  modes: Record<'bilan' | 'seances', SectionMode>;
+  /** D'où vient l'ouverture de chaque section (migration 080). */
+  sources: Record<ParentSection, SectionSource>;
+  /** Pack en cours (dates incluses), null = aucun. */
+  packStart: string | null;
+  packEnd: string | null;
+  /** Date de fermeture prévue de Maison (null = pas de fin connue, ou fermée). */
+  maisonEndsOn: string | null;
+  /** L'essai gratuit de Maison a déjà été consommé sur ce compte. */
+  trialUsed: boolean;
 };
+
+export type SectionMode = 'complet' | 'lecture' | 'verrouille';
+export type SectionSource = 'override' | 'pack' | 'abonnement' | 'historique' | 'staff' | 'aucune';
 
 type AccessStore = {
   access: AccessState | null;
   isLoading: boolean;
   /** La dernière vérification a échoué et aucun état n'est connu. */
   error: boolean;
-  refresh: () => Promise<void>;
+  /** `silent` : relecture en arrière-plan (retour au premier plan, temps réel) sans écran de chargement. */
+  refresh: (opts?: { silent?: boolean }) => Promise<void>;
 };
 
 // Revue locale de la section Fitness alors que le flag serveur est OFF :
@@ -69,8 +86,11 @@ export function parseAccessState(data: unknown): AccessState | null {
   const unlocked = d.unlocked === true;
   const sections = (d.sections ?? {}) as Record<string, unknown>;
   const forced = (d.forced ?? {}) as Record<string, unknown>;
-  const pick = (key: ParentSection, legacy: unknown, fallback: boolean) =>
-    typeof sections[key] === 'boolean' ? (sections[key] as boolean) : typeof legacy === 'boolean' ? legacy : fallback;
+  // Jamais d'ouverture par défaut : une clé absente = section fermée.
+  const pick = (key: ParentSection, legacy: unknown) =>
+    typeof sections[key] === 'boolean' ? (sections[key] as boolean) : legacy === true;
+  const bilanAccess = pick('bilan', d.bilan_access);
+  const seancesAccess = pick('seances', d.seances_access);
   return {
     role: d.role,
     unlocked,
@@ -79,23 +99,43 @@ export function parseAccessState(data: unknown): AccessState | null {
     coachValidated: d.coach_validated === true,
     fitnessEnabled: d.fitness_enabled === true,
     p3Subscribed: d.p3_subscribed === true,
-    p3Access: pick('maison', d.p3_access, unlocked),
+    p3Access: pick('maison', d.p3_access),
     programPack: asProgramPack(d.program_pack),
-    bilanAccess: pick('bilan', d.bilan_access, unlocked),
-    seancesAccess: pick('seances', d.seances_access, unlocked),
+    bilanAccess,
+    seancesAccess,
     bilanLevel: asPack(d.bilan_level),
     isStaff: d.is_staff === true,
     forced: { maison: asForced(forced.maison), bilan: asForced(forced.bilan), seances: asForced(forced.seances) },
+    modes: {
+      bilan: asMode(d.bilan_mode, bilanAccess),
+      seances: asMode(d.seances_mode, seancesAccess),
+    },
+    sources: {
+      maison: asSource(d.source_maison),
+      bilan: asSource(d.source_bilan),
+      seances: asSource(d.source_seances),
+    },
+    packStart: asDate(d.pack_debut),
+    packEnd: asDate(d.pack_fin),
+    maisonEndsOn: asDate(d.fin_acces_maison),
+    trialUsed: d.trial_used === true,
   };
 }
+
+const SOURCES: SectionSource[] = ['override', 'pack', 'abonnement', 'historique', 'staff', 'aucune'];
+const asSource = (v: unknown): SectionSource => (SOURCES.includes(v as SectionSource) ? (v as SectionSource) : 'aucune');
+const asDate = (v: unknown): string | null => (typeof v === 'string' && v ? v : null);
+// Sans mode explicite (serveur antérieur à 080) : ouvert = complet, sinon verrouillé.
+const asMode = (v: unknown, open: boolean): SectionMode =>
+  v === 'complet' || v === 'lecture' || v === 'verrouille' ? v : open ? 'complet' : 'verrouille';
 
 export const useAccessStore = create<AccessStore>((set, get) => ({
   access: null,
   isLoading: true,
   error: false,
 
-  refresh: async () => {
-    set({ isLoading: true });
+  refresh: async (opts) => {
+    if (!opts?.silent) set({ isLoading: true });
     try {
       const { data, error } = await supabase.rpc('access_state');
       const parsed = error ? null : parseAccessState(data);
@@ -112,15 +152,55 @@ export const useAccessStore = create<AccessStore>((set, get) => ({
 }));
 
 /**
- * Pourquoi Bilan / Mes séances est fermé :
- *   • 'pending'      → parcours coaché en cours d'activation (aperçu « ton espace se prépare ») ;
- *   • 'not_included' → abonné Maison seul (sans pack THRIVE), ou section fermée
- *                      manuellement par l'admin alors que le compte est activé :
- *                      on l'invite à prendre un des trois packs.
+ * Garde l'état d'accès à jour SANS recharger l'app : après un achat, une
+ * restauration, un webhook, un override ou un changement de pack.
+ *   • temps réel : la ligne access_versions du compte est incrémentée en base
+ *     à chaque changement (migration 080) ;
+ *   • retour au premier plan (onglet / PWA) ;
+ *   • filet toutes les 5 min (échéances : fin d'essai, d'override, de pack).
+ * Retourne la fonction d'arrêt.
  */
-export function sectionLockReason(access: AccessState): 'pending' | 'not_included' {
-  if (access.unlocked) return 'not_included';
-  return access.p3Subscribed && !access.programPack ? 'not_included' : 'pending';
+export function startAccessAutoRefresh(userId: string): () => void {
+  const refresh = () => void useAccessStore.getState().refresh({ silent: true });
+  const channel = supabase
+    .channel(`access-version-${userId}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'access_versions', filter: `user_id=eq.${userId}` },
+      refresh
+    )
+    .subscribe();
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') refresh();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('focus', onVisible);
+  const timer = window.setInterval(refresh, 5 * 60 * 1000);
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible);
+    window.removeEventListener('focus', onVisible);
+    window.clearInterval(timer);
+    void supabase.removeChannel(channel);
+  };
+}
+
+/**
+ * Ce que montre l'onglet Bilan / Mes séances — dérivé de access_state(), aucun
+ * calcul de droit ici :
+ *   • 'locked'    → aperçu factice flouté + cadenas (aucune donnée réelle chargée) ;
+ *   • 'readonly'  → pack terminé : historique consultable, rien de nouveau ;
+ *   • 'preparing' → section ouverte, mais le parcours n'a pas encore démarré
+ *                   (enfant à confirmer, activation coach) : étapes d'activation ;
+ *   • 'open'      → contenu complet.
+ */
+export type SectionView = 'locked' | 'readonly' | 'preparing' | 'open';
+
+export function sectionView(access: AccessState, section: 'bilan' | 'seances'): SectionView {
+  const mode = access.modes[section];
+  if (mode === 'verrouille') return 'locked';
+  if (mode === 'lecture') return 'readonly';
+  if (!access.isStaff && !access.unlocked) return 'preparing';
+  return 'open';
 }
 
 // Messages in-app — ton cordial, premium, orienté accompagnement humain.
