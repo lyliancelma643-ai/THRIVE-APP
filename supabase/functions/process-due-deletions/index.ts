@@ -8,12 +8,21 @@
 // Secrets : DELETIONS_CRON_SECRET (= valeur Vault deletions_cron_secret),
 //           STRIPE_SECRET_KEY, REVENUECAT_SECRET_API_KEY (optionnels).
 // Déploiement : verify_jwt = false (auth par secret partagé).
+//
+// Cycle d'une demande : PENDING (processed_at null) → prise (processed_at posé,
+// statut toujours PENDING, donc encore visible par l'app et l'alerte S1) →
+// suppression réussie → statut DONE_STATUS (la ligne disparaît le plus souvent
+// avec le profil, par cascade). Échec → processed_at remis à null. Une prise
+// restée en plan (crash, timeout) est reprise après STALE_CLAIM_MS.
+// SUPER_ADMIN et ADMIN : jamais supprimés ici (échec explicite → alerte S1).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { captureError, withSentry } from "../_shared/sentry.ts";
 import { cleanupBilling, type BillingRow } from "../admin-delete-user/billing_cleanup.ts";
-import { isAuthorized, processDue, type Deps } from "./core.ts";
+import {
+  DONE_STATUS, isAuthorized, isProtectedRole, processDue, STALE_CLAIM_MS, type Deps,
+} from "./core.ts";
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
@@ -32,11 +41,12 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
     const deps: Deps = {
       log: (m) => console.log(`[process-due-deletions] ${m}`),
       listDue: async () => {
+        const stale = new Date(Date.now() - STALE_CLAIM_MS).toISOString();
         const { data, error } = await admin
           .from("deletion_requests")
           .select("id, target_profile_id")
           .eq("status", "PENDING")
-          .is("processed_at", null)
+          .or(`processed_at.is.null,processed_at.lt.${stale}`)
           .lte("due_at", new Date().toISOString())
           .order("due_at")
           .limit(50);
@@ -44,18 +54,24 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
         return data ?? [];
       },
       claim: async (id) => {
+        // Update conditionnel = verrou atomique : une seule exécution gagne la ligne.
+        const stale = new Date(Date.now() - STALE_CLAIM_MS).toISOString();
         const { data, error } = await admin
           .from("deletion_requests")
-          .update({ status: "COMPLETED", processed_at: new Date().toISOString() })
+          .update({ processed_at: new Date().toISOString() })
           .eq("id", id)
           .eq("status", "PENDING")
-          .is("processed_at", null)
+          .or(`processed_at.is.null,processed_at.lt.${stale}`)
           .select("id");
         if (error) throw new Error(error.message);
         return (data?.length ?? 0) > 0;
       },
+      finalize: async (id) => {
+        await admin.from("deletion_requests").update({ status: DONE_STATUS }).eq("id", id)
+          .then(() => {}, () => {});
+      },
       release: async (id) => {
-        await admin.from("deletion_requests").update({ status: "PENDING", processed_at: null }).eq("id", id)
+        await admin.from("deletion_requests").update({ processed_at: null }).eq("id", id).eq("status", "PENDING")
           .then(() => {}, () => {});
       },
       deleteAccount: async (userId) => {
@@ -66,16 +82,10 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
           return notFound ? { ok: true } : { ok: false, error: `lecture compte: ${tErr.message}` };
         }
         if (!target?.user) return { ok: true }; // compte déjà supprimé : rien à faire
-        if (target.user.app_metadata?.role === "SUPER_ADMIN") {
-          return { ok: false, error: "Super Admin : suppression manuelle requise" };
+        const role = target.user.app_metadata?.role;
+        if (isProtectedRole(role)) {
+          return { ok: false, error: `${role} : suppression manuelle requise` };
         }
-        await admin.from("audit_logs").insert({
-          user_id: null,
-          action: "DELETE_ACCOUNT",
-          table_name: "auth.users",
-          record_id: userId,
-          new_data: { source: "process-due-deletions", deleted_role: target.user.app_metadata?.role },
-        }).then(() => {}, () => {});
 
         const { data: billing, error: bErr } = await admin
           .from("billing_subscriptions")
@@ -90,7 +100,18 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
         if (!cleanup.ok) return { ok: false, error: cleanup.error };
 
         const { error: delErr } = await admin.auth.admin.deleteUser(userId);
-        return delErr ? { ok: false, error: delErr.message } : { ok: true };
+        if (delErr) return { ok: false, error: delErr.message };
+
+        // Trace d'audit après suppression effective (colonnes : user_id, action,
+        // table_name, record_id, new_data). user_id null = action système.
+        await admin.from("audit_logs").insert({
+          user_id: null,
+          action: "DELETE_ACCOUNT",
+          table_name: "auth.users",
+          record_id: userId,
+          new_data: { source: "process-due-deletions", deleted_role: role ?? null },
+        }).then(() => {}, () => {});
+        return { ok: true };
       },
     };
 

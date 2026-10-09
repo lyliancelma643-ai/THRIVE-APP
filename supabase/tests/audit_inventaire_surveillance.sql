@@ -48,7 +48,7 @@ select id as bucket_public from storage.buckets where public;
 -- S1. Demandes de suppression en retard sur le délai annoncé (30 jours) — attendu : 0
 select id, target_profile_id, requested_at, due_at, status
 from public.deletion_requests
-where processed_at is null and coalesce(due_at, requested_at + interval '30 days') < now() + interval '5 days'
+where status = 'PENDING' and coalesce(due_at, requested_at + interval '30 days') < now() + interval '5 days'
 order by requested_at;
 
 -- S2. Miroir d'abonnement incohérent : marqué actif mais expiré — attendu : 0

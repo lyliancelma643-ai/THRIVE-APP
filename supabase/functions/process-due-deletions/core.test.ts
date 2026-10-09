@@ -1,6 +1,6 @@
 // deno test --no-config supabase/functions/process-due-deletions/core.test.ts
 import { assertEquals } from "jsr:@std/assert@1";
-import { type Deps, isAuthorized, processDue, safeEqual } from "./core.ts";
+import { type Deps, isAuthorized, isProtectedRole, processDue, safeEqual } from "./core.ts";
 
 const SECRET = "s".repeat(32);
 const env = { cronSecret: SECRET, serviceRoleKey: "service-role-key" };
@@ -24,6 +24,7 @@ Deno.test("auth : secret partagé ou service_role, jamais vide", () => {
 Deno.test("processDue : supprime, ignore les déjà prises, libère en cas d'échec", async () => {
   const released: string[] = [];
   const deleted: string[] = [];
+  const finalized: string[] = [];
   const deps: Deps = {
     log: () => {},
     listDue: () => Promise.resolve([
@@ -33,6 +34,7 @@ Deno.test("processDue : supprime, ignore les déjà prises, libère en cas d'éc
     ]),
     claim: (id) => Promise.resolve(id !== "r2"),
     release: (id) => { released.push(id); return Promise.resolve(); },
+    finalize: (id) => { finalized.push(id); return Promise.resolve(); },
     deleteAccount: (u) => {
       if (u === "u3") return Promise.resolve({ ok: false as const, error: "boom" });
       deleted.push(u);
@@ -43,4 +45,12 @@ Deno.test("processDue : supprime, ignore les déjà prises, libère en cas d'éc
   assertEquals(s, { due: 3, deleted: 1, skipped: 1, failed: [{ id: "r3", error: "boom" }] });
   assertEquals(deleted, ["u1"]);
   assertEquals(released, ["r3"]);
+  assertEquals(finalized, ["r1"]);
+});
+
+Deno.test("rôles protégés : SUPER_ADMIN et ADMIN jamais supprimés automatiquement", () => {
+  assertEquals(isProtectedRole("SUPER_ADMIN"), true);
+  assertEquals(isProtectedRole("ADMIN"), true);
+  assertEquals(isProtectedRole("PARENT"), false);
+  assertEquals(isProtectedRole(undefined), false);
 });

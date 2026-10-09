@@ -25,11 +25,38 @@ export function isAuthorized(
 
 export type DueRequest = { id: string; target_profile_id: string };
 
+/**
+ * Statut écrit APRÈS une suppression réussie. Aucune valeur « traitée » n'est
+ * prouvée dans le dépôt (pas de CHECK sur deletion_requests.status, aucun écran
+ * admin n'écrit ce statut ; seul 'PENDING' est lu par request-account-deletion,
+ * DeleteAccountSection et overdue_deletion_requests). En pratique la ligne
+ * disparaît avec le compte (FK target_profile_id → profiles ON DELETE CASCADE) :
+ * ce statut ne subsiste que si le profil survit. Choix aligné sur la convention
+ * du produit (sessions/questionnaires : 'COMPLETED').
+ */
+export const DONE_STATUS = "COMPLETED";
+
+/** Une prise (processed_at posé, statut encore PENDING) plus vieille que ce délai est reprise. */
+export const STALE_CLAIM_MS = 6 * 60 * 60 * 1000;
+
+/** Rôles jamais supprimés automatiquement (suppression manuelle par un Super Admin). */
+export const PROTECTED_ROLES = ["SUPER_ADMIN", "ADMIN"];
+
+export function isProtectedRole(role: unknown): boolean {
+  return typeof role === "string" && PROTECTED_ROLES.includes(role);
+}
+
 export type Deps = {
   /** Demandes non traitées dont l'échéance est passée. */
   listDue: () => Promise<DueRequest[]>;
-  /** Pose processed_at si encore null ; false = déjà prise par un autre passage. */
+  /**
+   * Prise atomique : pose processed_at si la ligne est encore PENDING et non prise
+   * (ou prise périmée) ; le statut reste PENDING jusqu'à la suppression effective.
+   * false = déjà prise par un autre passage.
+   */
   claim: (id: string) => Promise<boolean>;
+  /** Suppression réussie : statut DONE_STATUS (no-op si la ligne a disparu par cascade). */
+  finalize: (id: string) => Promise<void>;
   /** Remet processed_at à null (suppression échouée → nouvel essai demain). */
   release: (id: string) => Promise<void>;
   /** Suppression complète du compte (facturation + Auth + cascade). */
@@ -49,6 +76,7 @@ export async function processDue(deps: Deps): Promise<Summary> {
     }
     const res = await deps.deleteAccount(r.target_profile_id);
     if (res.ok) {
+      await deps.finalize(r.id);
       out.deleted++;
       deps.log(`deletion ok request=${r.id}`);
     } else {
