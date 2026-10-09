@@ -15,6 +15,11 @@ alter table public.deletion_requests add column if not exists processed_at times
 create index if not exists deletion_requests_due_idx
   on public.deletion_requests (due_at) where processed_at is null;
 
+-- Backfill : demandes déjà traitées à la main (statut ≠ PENDING) → marquées traitées.
+update public.deletion_requests
+set processed_at = now()
+where status <> 'PENDING' and processed_at is null;
+
 -- Exécutée par pg_cron : alerte S1 puis appel de l'edge function.
 create or replace function private.run_due_deletions()
 returns void language plpgsql security definer set search_path = '' as $$
@@ -26,7 +31,7 @@ begin
   -- Alerte S1 : demandes échues ou à moins de 5 jours de l'échéance, non traitées.
   select count(*) into v_late
   from public.deletion_requests
-  where processed_at is null
+  where processed_at is null and status = 'PENDING'
     and coalesce(due_at, requested_at + interval '30 days') < now() + interval '5 days';
   if v_late > 0 then
     perform private.notify_admins('deletion_due', 'accounts',

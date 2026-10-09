@@ -35,6 +35,7 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
         const { data, error } = await admin
           .from("deletion_requests")
           .select("id, target_profile_id")
+          .eq("status", "PENDING")
           .is("processed_at", null)
           .lte("due_at", new Date().toISOString())
           .order("due_at")
@@ -45,20 +46,26 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
       claim: async (id) => {
         const { data, error } = await admin
           .from("deletion_requests")
-          .update({ processed_at: new Date().toISOString() })
+          .update({ status: "COMPLETED", processed_at: new Date().toISOString() })
           .eq("id", id)
+          .eq("status", "PENDING")
           .is("processed_at", null)
           .select("id");
         if (error) throw new Error(error.message);
         return (data?.length ?? 0) > 0;
       },
       release: async (id) => {
-        await admin.from("deletion_requests").update({ processed_at: null }).eq("id", id)
+        await admin.from("deletion_requests").update({ status: "PENDING", processed_at: null }).eq("id", id)
           .then(() => {}, () => {});
       },
       deleteAccount: async (userId) => {
         const { data: target, error: tErr } = await admin.auth.admin.getUserById(userId);
-        if (tErr || !target?.user) return { ok: true }; // compte déjà supprimé : rien à faire
+        if (tErr) {
+          const notFound = (tErr as { status?: number }).status === 404 ||
+            /user not found/i.test(tErr.message) || (tErr as { code?: string }).code === "user_not_found";
+          return notFound ? { ok: true } : { ok: false, error: `lecture compte: ${tErr.message}` };
+        }
+        if (!target?.user) return { ok: true }; // compte déjà supprimé : rien à faire
         if (target.user.app_metadata?.role === "SUPER_ADMIN") {
           return { ok: false, error: "Super Admin : suppression manuelle requise" };
         }
