@@ -6,6 +6,7 @@
 // Le corps doit être les octets EXACTS reçus (jamais du JSON re-sérialisé).
 // RevenueCat recalcule t/v1 à chaque tentative (retries compris) : la fenêtre
 // anti-rejeu de 5 minutes s'applique donc à chaque livraison.
+// Doc vérifiée le 2026-10-09 (2e passe) : en-tête, format, hex, secondes, 5 min.
 // Hypothèse documentée : t est en secondes ; une valeur > 1e12 est traitée
 // comme des millisecondes par tolérance. Plusieurs v1 (rotation) acceptés.
 import { constantTimeEqual } from "../_shared/billing_core.ts";
@@ -33,8 +34,9 @@ export function parseSignatureHeader(header: string): { t: number; v1: string[] 
   return { t, v1 };
 }
 
-export async function hmacSha256Hex(secret: string, message: string): Promise<string> {
+export async function hmacSha256Hex(secret: string, message: string | Uint8Array): Promise<string> {
   const enc = new TextEncoder();
+  const data = typeof message === "string" ? enc.encode(message) : message;
   const key = await crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
@@ -42,13 +44,13 @@ export async function hmacSha256Hex(secret: string, message: string): Promise<st
     false,
     ["sign"],
   );
-  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, enc.encode(message)));
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, data));
   return Array.from(sig, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 export async function verifyRevenueCatSignature(
   header: string | null,
-  rawBody: string,
+  rawBody: string | Uint8Array,
   secret: string,
   nowSeconds: number = Math.floor(Date.now() / 1000),
   toleranceSeconds: number = SIGNATURE_TOLERANCE_SECONDS,
@@ -57,7 +59,14 @@ export async function verifyRevenueCatSignature(
   const parsed = parseSignatureHeader(header);
   if (!parsed) return { ok: false, reason: "malformed" };
   if (Math.abs(nowSeconds - parsed.t) > toleranceSeconds) return { ok: false, reason: "expired" };
-  const expected = await hmacSha256Hex(secret, `${parsed.t}.${rawBody}`);
+  // Message signé = `${t}.` suivi des octets bruts du corps (aucun ré-encodage
+  // si le corps est fourni en Uint8Array, cas de index.ts).
+  const prefix = new TextEncoder().encode(`${parsed.t}.`);
+  const body = typeof rawBody === "string" ? new TextEncoder().encode(rawBody) : rawBody;
+  const message = new Uint8Array(prefix.length + body.length);
+  message.set(prefix, 0);
+  message.set(body, prefix.length);
+  const expected = await hmacSha256Hex(secret, message);
   // Pas de sortie anticipée : chaque candidat est comparé à temps constant.
   let match = false;
   for (const candidate of parsed.v1) {

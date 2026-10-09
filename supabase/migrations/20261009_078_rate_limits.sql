@@ -7,7 +7,14 @@
 -- exécutable uniquement par service_role) lit et écrit la table ; elle est
 -- appelée par supabase/functions/_shared/rate-limit.ts.
 --
--- Rollback : drop function public.consume_rate_limit(uuid, text, integer, integer);
+-- Atomicité : un seul INSERT … ON CONFLICT DO UPDATE (verrou de ligne) → pas
+-- de course entre deux appels simultanés (pas de lecture puis écriture).
+-- Purge : pg_cron horaire (purge_rate_limits) supprime les fenêtres échues
+-- depuis plus de 24 h (la plus longue fenêtre utilisée est 1 h).
+--
+-- Rollback : select cron.unschedule('purge-rate-limits');
+--            drop function public.purge_rate_limits();
+--            drop function public.consume_rate_limit(uuid, text, integer, integer);
 --            drop table public.rate_limits;
 -- ─────────────────────────────────────────────────────────────────────────────
 set lock_timeout = '5s';
@@ -63,3 +70,26 @@ $$;
 
 revoke execute on function public.consume_rate_limit(uuid, text, integer, integer) from public, anon, authenticated;
 grant execute on function public.consume_rate_limit(uuid, text, integer, integer) to service_role;
+
+-- Purge des compteurs échus (fenêtres terminées depuis plus de 24 h).
+create or replace function public.purge_rate_limits()
+returns integer
+language sql
+security definer
+set search_path = ''
+as $$
+  with d as (
+    delete from public.rate_limits where window_start < now() - interval '24 hours' returning 1
+  )
+  select count(*)::integer from d;
+$$;
+
+revoke execute on function public.purge_rate_limits() from public, anon, authenticated;
+grant execute on function public.purge_rate_limits() to service_role;
+
+create extension if not exists pg_cron;
+
+select cron.unschedule('purge-rate-limits')
+where exists (select 1 from cron.job where jobname = 'purge-rate-limits');
+
+select cron.schedule('purge-rate-limits', '17 * * * *', 'select public.purge_rate_limits();');

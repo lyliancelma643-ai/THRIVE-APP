@@ -33,18 +33,19 @@ Deno.serve(withSentry("revenuecat-webhook", async (req: Request) => {
     return json({ error: "Non autorisé" }, 401);
   }
 
-  // Corps brut lu une seule fois : la signature porte sur les octets exacts.
-  const rawBody = await req.text();
+  // Corps brut lu une seule fois, en OCTETS : la signature porte sur les octets
+  // exacts reçus (pas de décodage/ré-encodage UTF-8 avant la vérification).
+  const rawBytes = new Uint8Array(await req.arrayBuffer());
   const hmacSecret = env("REVENUECAT_WEBHOOK_HMAC_SECRET");
   if (hmacSecret) {
-    const verdict = await verifyRevenueCatSignature(req.headers.get(SIGNATURE_HEADER), rawBody, hmacSecret);
+    const verdict = await verifyRevenueCatSignature(req.headers.get(SIGNATURE_HEADER), rawBytes, hmacSecret);
     if (!verdict.ok) return json({ error: "Signature invalide", reason: verdict.reason }, 401);
   }
 
   try {
     let body: { event?: Record<string, unknown> } = {};
     try {
-      body = JSON.parse(rawBody);
+      body = JSON.parse(new TextDecoder().decode(rawBytes));
     } catch {
       body = {};
     }

@@ -53,3 +53,13 @@ Deno.test("HMAC RevenueCat : parsing de l'en-tête", () => {
   assertEquals(parseSignatureHeader(`t=${NOW * 1000},v1=${v}`), { t: NOW, v1: [v] });
   assertEquals(parseSignatureHeader(`t=abc,v1=${v}`), null);
 });
+
+Deno.test("HMAC RevenueCat : corps en octets bruts (même verdict qu'en texte)", async () => {
+  const bytes = new TextEncoder().encode('{"event":{"type":"RENEWAL","note":"élève – ✓"}}');
+  const text = new TextDecoder().decode(bytes);
+  const h = await header(NOW, text);
+  assertEquals(await verifyRevenueCatSignature(h, bytes, SECRET, NOW), { ok: true });
+  const tampered = bytes.slice();
+  tampered[tampered.length - 3] ^= 1;
+  assertEquals(await verifyRevenueCatSignature(h, tampered, SECRET, NOW), { ok: false, reason: "mismatch" });
+});
