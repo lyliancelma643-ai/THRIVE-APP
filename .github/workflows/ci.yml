@@ -154,9 +154,10 @@ jobs:
       - name: Tests de sécurité RLS (avant / après migration 066)
         run: ./supabase/tests/local/run.sh
 
-  # Validation de la syntaxe des flux Maestro. Non bloquant : l'exécution réelle
-  # exige un simulateur/émulateur avec un build de développement (absent de la CI
-  # actuelle) ; seule la syntaxe YAML est vérifiée ici.
+  # Validation de la syntaxe des flux Maestro. Non bloquant (continue-on-error) :
+  # l'exécution réelle exige un simulateur/émulateur avec un build de développement
+  # (absent de la CI actuelle) ; seuls la syntaxe YAML et l'en-tête des flux sont
+  # vérifiés ici. Aucune dépendance Python : js-yaml est installé à la volée.
   maestro-flows:
     name: Maestro (syntaxe des flux E2E mobile)
     runs-on: ubuntu-latest
@@ -164,14 +165,21 @@ jobs:
     continue-on-error: true
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - name: Valider le YAML des flux
         run: |
-          python3 - <<'PY'
-          import glob, yaml
-          files = glob.glob('.maestro/*.yaml')
-          assert files, 'aucun flux Maestro'
-          for f in files:
-              docs = list(yaml.safe_load_all(open(f)))
-              assert len(docs) == 2 and docs[0].get('appId') == 'app.thrive.mobile', f
-              print('OK', f)
-          PY
+          mkdir -p "$RUNNER_TEMP/yamlcheck"
+          npm install --prefix "$RUNNER_TEMP/yamlcheck" --no-save --silent js-yaml@4.1.0
+          NODE_PATH="$RUNNER_TEMP/yamlcheck/node_modules" node -e '
+            const fs = require("fs"), yaml = require("js-yaml");
+            const files = fs.readdirSync(".maestro").filter((f) => f.endsWith(".yaml"));
+            if (!files.length) throw new Error("aucun flux Maestro");
+            for (const f of files) {
+              const docs = yaml.loadAll(fs.readFileSync(".maestro/" + f, "utf8"));
+              if (docs.length !== 2 || docs[0]?.appId !== "app.thrive.mobile" || !Array.isArray(docs[1]))
+                throw new Error("flux invalide : " + f);
+              console.log("OK", f, "-", docs[1].length, "étapes");
+            }
+          '

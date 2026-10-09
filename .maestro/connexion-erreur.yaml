@@ -1,0 +1,35 @@
+# Flux court : mauvais mot de passe -> message d'erreur affiché sur l'écran de connexion.
+# Aucun secret requis (mot de passe volontairement faux).
+#   maestro test .maestro/connexion-erreur.yaml
+appId: app.thrive.mobile
+env:
+  EMAIL: parent-abonnement@thrivesportpositive.com
+  WRONG_PASSWORD: mauvais-mot-de-passe-e2e
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible:
+      id: "login-email"
+    timeout: 20000
+- tapOn:
+    id: "login-email"
+- inputText: ${EMAIL}
+- tapOn:
+    id: "login-password"
+- inputText: ${WRONG_PASSWORD}
+- hideKeyboard
+- tapOn:
+    id: "login-submit"
+# login.tsx affiche err.message (Supabase : « Invalid login credentials ») dans testID login-error.
+- extendedWaitUntil:
+    visible:
+      id: "login-error"
+    timeout: 20000
+- assertVisible:
+    id: "login-error"
+# On reste sur l'écran de connexion (pas de redirection).
+- assertVisible:
+    id: "login-submit"
+- assertNotVisible:
+    id: "tab-maison"

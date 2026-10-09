@@ -27,6 +27,7 @@ export default function ParentLayout() {
         name="maison"
         options={{
           title: 'Maison',
+          tabBarButtonTestID: 'tab-maison',
           tabBarIcon: ({ color, size }) => <Ionicons name="moon" size={size} color={color} />,
         }}
       />
@@ -48,6 +49,7 @@ export default function ParentLayout() {
         name="profile"
         options={{
           title: 'Profil',
+          tabBarButtonTestID: 'tab-profil',
           tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
         }}
       />

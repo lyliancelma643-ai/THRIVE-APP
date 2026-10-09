@@ -92,7 +92,7 @@ export function SubscriptionSettings() {
       {!ent.isLoading && !ent.hasAccess && (
         <>
           <View style={styles.divider} />
-          <TouchableOpacity style={styles.action} onPress={() => router.push('/(parent)/abonnement')} accessibilityRole="button">
+          <TouchableOpacity testID="subscription-discover" style={styles.action} onPress={() => router.push('/(parent)/abonnement')} accessibilityRole="button">
             <Text style={styles.actionText}>Découvrir l’abonnement</Text>
             <Text style={styles.chevron}>›</Text>
           </TouchableOpacity>
@@ -100,7 +100,7 @@ export function SubscriptionSettings() {
       )}
 
       <View style={styles.divider} />
-      <TouchableOpacity style={styles.action} onPress={restore} disabled={restoring} accessibilityRole="button">
+      <TouchableOpacity testID="subscription-restore" style={styles.action} onPress={restore} disabled={restoring} accessibilityRole="button">
         {restoring ? <ActivityIndicator color={C.accentText} /> : <Text style={styles.actionText}>Restaurer les achats</Text>}
         <Text style={styles.chevron}>›</Text>
       </TouchableOpacity>

@@ -32,6 +32,7 @@ export default function LoginScreen() {
 
         <TextInput
           className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
+          testID="login-email"
           placeholder="Email"
           value={email}
           onChangeText={setEmail}
@@ -41,6 +42,7 @@ export default function LoginScreen() {
         />
         <TextInput
           className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
+          testID="login-password"
           placeholder="Mot de passe"
           value={password}
           onChangeText={setPassword}
@@ -48,9 +50,10 @@ export default function LoginScreen() {
           autoComplete="current-password"
         />
 
-        {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
+        {!!error && <Text testID="login-error" className="text-red-500 mb-4 text-sm">{error}</Text>}
 
         <Pressable
+          testID="login-submit"
           className="bg-black rounded-2xl py-4 items-center mb-4"
           onPress={handleLogin}
           disabled={isLoading}

@@ -1,34 +1,87 @@
-# Flux : connexion -> Maison -> paywall -> Restaurer les achats.
+# Flux : connexion -> Maison -> Profil -> paywall -> Restaurer les achats.
+# Sélecteurs : testID (id:) en priorité, repli sur le libellé FR si l'id est absent.
 # Variables : EMAIL (défaut ci-dessous) et PASSWORD (obligatoire, jamais en dur).
 #   maestro test -e PASSWORD=*** .maestro/parent-paywall-restore.yaml
+# Prérequis : compte parent SANS abonnement actif (sinon « Découvrir l'abonnement » est masqué).
 appId: app.thrive.mobile
 env:
   EMAIL: parent-abonnement@thrivesportpositive.com
 ---
 - launchApp:
     clearState: true
-# Connexion (apps/mobile/src/app/(auth)/login.tsx)
-- tapOn: "Email"
+
+# --- Connexion (apps/mobile/src/app/(auth)/login.tsx) ---
+- extendedWaitUntil:
+    visible:
+      id: "login-email"
+    timeout: 20000
+- tapOn:
+    id: "login-email"
 - inputText: ${EMAIL}
-- tapOn: "Mot de passe"
+- tapOn:
+    id: "login-password"
 - inputText: ${PASSWORD}
 - hideKeyboard
-- tapOn: "Se connecter"
-# Onglet Maison
+- tapOn:
+    id: "login-submit"
+
+# --- Onglet Maison ((parent)/_layout.tsx : tabBarButtonTestID « tab-maison ») ---
 - extendedWaitUntil:
     visible: "Maison"
     timeout: 30000
-- tapOn: "Maison"
-- assertVisible: "Ce soir, dix minutes ensemble"
-# Paywall : Profil -> « Découvrir l'abonnement » (ouvre /(parent)/abonnement)
-- tapOn: "Profil"
+- runFlow:
+    when:
+      visible:
+        id: "tab-maison"
+    commands:
+      - tapOn:
+          id: "tab-maison"
+- runFlow:
+    when:
+      notVisible:
+        id: "tab-maison"
+    commands:
+      - tapOn: "Maison"
+- extendedWaitUntil:
+    visible: "Ce soir, dix minutes ensemble"
+    timeout: 15000
+
+# --- Profil -> « Découvrir l'abonnement » (SubscriptionSettings) ---
+- runFlow:
+    when:
+      visible:
+        id: "tab-profil"
+    commands:
+      - tapOn:
+          id: "tab-profil"
+- runFlow:
+    when:
+      notVisible:
+        id: "tab-profil"
+    commands:
+      - tapOn: "Profil"
 - scrollUntilVisible:
-    element: "Découvrir l’abonnement"
-- tapOn: "Découvrir l’abonnement"
-# Restaurer (bouton obligatoire du Paywall)
+    element:
+      id: "subscription-discover"
+    timeout: 20000
+- tapOn:
+    id: "subscription-discover"
+
+# --- Paywall (components/subscription/Paywall.tsx) ---
+- extendedWaitUntil:
+    visible:
+      id: "paywall"
+    timeout: 20000
 - scrollUntilVisible:
-    element: "Restaurer les achats"
-- tapOn: "Restaurer les achats"
-# Une alerte (Restauration impossible / aucun achat / succès) doit apparaître.
-- assertVisible:
-    text: ".*(Restaur|achat|abonnement).*"
+    element:
+      id: "paywall-restore"
+    timeout: 20000
+- tapOn:
+    id: "paywall-restore"
+
+# --- Alerte de restauration : un des 3 titres exacts de Paywall.onRestore ---
+#   « Achats restaurés » | « Aucun achat trouvé » | « Restauration impossible »
+- extendedWaitUntil:
+    visible: "(Achats restaurés|Aucun achat trouvé|Restauration impossible)"
+    timeout: 20000
+- tapOn: "OK"
