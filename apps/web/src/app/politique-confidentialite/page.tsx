@@ -42,14 +42,14 @@ export default function PolitiqueConfidentialitePage() {
     >
       <Section id="responsable" title="1. Qui est responsable de vos renseignements ?">
         <p>
-          <strong>{LEGAL.company}</strong>, {LEGAL.city}, exploite l’application THRIVE.
+          <strong>{LEGAL.company}</strong> exploite l’application THRIVE.
           NEQ : {LEGAL.neq}. Adresse du siège : {LEGAL.address}.
         </p>
         <p>
           Conformément à l’article 3.1 de la Loi 25, la personne responsable de la protection des
-          renseignements personnels est <strong>{LEGAL.privacyOfficerName}</strong>
-          ({LEGAL.privacyOfficerTitle.toLowerCase()}, qui exerce la plus haute autorité au sein de
-          l’entreprise). Pour toute question, demande ou plainte :{' '}
+          renseignements personnels est <strong>{LEGAL.privacyOfficerName}</strong>.
+          Titre : {LEGAL.privacyOfficerTitle}. Cette personne exerce la plus haute autorité au sein
+          de l’entreprise. Pour toute question, demande ou plainte :{' '}
           <a href={`mailto:${LEGAL.privacyEmail}`}>{LEGAL.privacyEmail}</a>.
         </p>
       </Section>

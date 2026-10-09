@@ -25,7 +25,7 @@ export default function ConditionsPage() {
       <Section id="objet" title="1. Objet">
         <p>
           Les présentes conditions encadrent l’utilisation de l’application THRIVE (web et mobile), le
-          « Service », exploitée par <strong>{LEGAL.company}</strong>, {LEGAL.city}. NEQ : {LEGAL.neq}.
+          « Service », exploitée par <strong>{LEGAL.company}</strong>. NEQ : {LEGAL.neq}.
           Adresse du siège : {LEGAL.address}.
         </p>
       </Section>
@@ -142,7 +142,7 @@ export default function ConditionsPage() {
 
       <Section id="resiliation" title="10. Suspension et résiliation">
         <p>
-          Vous pouvez supprimer votre compte à tout moment : Compte › « Supprimer mon compte et mes données »
+          Vous pouvez supprimer votre compte à tout moment : dans l’app, Profil › Confidentialité et compte › « Supprimer mon compte et mes données » ; sur le web, Compte › « Supprimer mon compte et mes données »
           (détails dans la <a href={`${PRIVACY_PATH}#suppression`}>politique de confidentialité</a>). Nous pouvons
           suspendre un compte en cas de manquement grave, après avis sauf urgence.
         </p>
