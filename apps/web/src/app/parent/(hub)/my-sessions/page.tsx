@@ -4,9 +4,9 @@ import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
-import { sectionLockReason, useAccessStore } from '@/lib/access';
+import { sectionView, useAccessStore } from '@/lib/access';
 import { SessionsLockedNotice } from '@/components/parent/AccessGate';
-import { PackRequired } from '@/components/parent/PackRequired';
+import { LockedSection, ReadOnlyBanner } from '@/components/parent/LockedSection';
 import { BilanCard, LockedText, ScoreGauge, UpgradeHintBar } from '@/components/parent/PackGate';
 import { PHASE_LABELS, Phase } from '@/lib/catalog';
 import { THRIVE_SESSIONS } from '@/lib/coach';
@@ -611,7 +611,7 @@ function BilanReaderEmpty() {
 }
 
 
-// ── Garde d'accès : message d'attente tant que le coach n'a pas validé ───────
+// ── Garde d'accès : vue dérivée de access_state() — enforcement réel via RLS (080)
 export default function MySessionsPage() {
   const { access, refresh } = useAccessStore();
 
@@ -624,8 +624,14 @@ export default function MySessionsPage() {
   if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
-  if (!access.seancesAccess) {
-    return sectionLockReason(access) === 'pending' ? <SessionsLockedNotice /> : <PackRequired section="seances" />;
-  }
-  return <MySessionsPageInner />;
+  const view = sectionView(access, 'seances');
+  // Verrouillé : squelette factice flouté, aucune requête de données.
+  if (view === 'locked') return <LockedSection section="seances" />;
+  if (view === 'preparing') return <SessionsLockedNotice />;
+  return (
+    <>
+      {view === 'readonly' && <ReadOnlyBanner endedOn={access.packEnd} />}
+      <MySessionsPageInner />
+    </>
+  );
 }

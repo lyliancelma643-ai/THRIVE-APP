@@ -2,6 +2,11 @@
 -- Matrice d'accès parents (migrations 068 + 070) — pack programme × niveau de
 -- bilan × abonnement (réel / sandbox / QA) × forçage × co-parent × staff.
 --
+-- ÉTAT ANTÉRIEUR À 080 : ne vaut plus qu'après le rollback de 080 (vérifie que
+-- le retour arrière rend bien l'ancien calcul). Règles en vigueur :
+-- supabase/tests/access_rights_080.sql. Les deux sont rejoués par
+-- supabase/tests/local/run-pglite.mjs.
+--
 -- Bloc PL/pgSQL qui se termine TOUJOURS par une exception (tout est annulé) :
 --   ACCESS_MATRIX_PASSED {…}   ou   ACCESS_MATRIX_FAILED [échecs] {…}
 -- Exécution (base jetable avec les migrations, cf. supabase/tests/local/run.sh) :

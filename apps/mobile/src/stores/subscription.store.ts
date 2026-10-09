@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { CustomerInfo } from 'react-native-purchases';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { activeEntitlement, getCustomerInfo, isPurchasesAvailable } from '../services/purchases';
+import { parseParentAccess, type ParentAccess } from '../services/access';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // État d'abonnement du compte connecté (source : RevenueCat CustomerInfo),
@@ -32,6 +33,8 @@ type SubscriptionStore = {
    * null = pas encore lu.
    */
   serverAccess: boolean | null;
+  /** État complet access_state() (Maison / Bilan / Séances, migration 080). null = pas encore lu. */
+  access: ParentAccess | null;
   loadServerAccess: () => Promise<void>;
   refresh: () => Promise<void>;
   reset: () => void;
@@ -59,11 +62,17 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   status: 'loading',
   customerInfo: null,
   serverAccess: null,
+  access: null,
 
   loadServerAccess: async () => {
     const { data, error } = await supabase.rpc('access_state');
-    const state = data as { p3_access?: boolean } | null;
-    set({ serverAccess: !error && Boolean(state?.p3_access) });
+    const access = error ? null : parseParentAccess(data);
+    // Erreur réseau : on garde le dernier état connu (jamais « tout ouvert »).
+    if (!access) {
+      set((s) => ({ serverAccess: s.access ? s.serverAccess : false }));
+      return;
+    }
+    set({ serverAccess: access.maison, access });
   },
 
   setCustomerInfo: (info) => {
@@ -89,7 +98,7 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
     }
   },
 
-  reset: () => set({ status: 'loading', customerInfo: null, serverAccess: null }),
+  reset: () => set({ status: 'loading', customerInfo: null, serverAccess: null, access: null }),
 }));
 
 export function selectIsActive(s: Pick<SubscriptionStore, 'customerInfo'>): boolean {

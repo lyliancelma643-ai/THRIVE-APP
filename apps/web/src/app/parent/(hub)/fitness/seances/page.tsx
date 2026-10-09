@@ -6,6 +6,7 @@ import { supabaseClient as supabase } from '@thrive/shared';
 import { useChildStore } from '@/stores/child.store';
 import { useAccessStore } from '@/lib/access';
 import { FitnessConstructionNotice, LockedBanner, GreyedSection } from '@/components/parent/AccessGate';
+import { LockedSection } from '@/components/parent/LockedSection';
 import {
   VideoSession,
   AgeGroup,
@@ -372,6 +373,8 @@ export default function FitnessPage() {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
-  if (!access.unlocked) return <LockedFitnessPreview />;
+  // Séances vidéo du programme = contenu des packs (section Mes séances, RLS 080).
+  if (!access.seancesAccess) return <LockedSection section="seances" />;
+  if (!access.isStaff && !access.unlocked) return <LockedFitnessPreview />;
   return <FitnessPageInner />;
 }

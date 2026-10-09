@@ -2,11 +2,13 @@
 
 import { useEffect, type ReactNode } from 'react';
 import { isFitnessOpen, useAccessStore } from '@/lib/access';
-import { FitnessConstructionNotice, LockedBanner } from '@/components/parent/AccessGate';
+import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
+import { P3Paywall } from '@/components/parent/p3/P3Paywall';
 
-// Même garde que l'onglet Fitness (flag serveur + activation du compte), pour
-// toutes les pages de cartes. `whenLocked` : ce qui reste offert pendant que le
-// compte se prépare — la carte joker est disponible dès l'inscription (§0.5).
+// Garde des cartes « À la maison » : flag serveur + section Maison
+// (access_state, même règle que la RLS de home_card_moments — migration 080).
+// `whenLocked` : ce qui reste offert sans Maison — la carte joker est
+// disponible dès l'inscription (§0.5).
 export function FitnessGate({ children, whenLocked }: { children: ReactNode; whenLocked?: ReactNode }) {
   const { access, isLoading, refresh } = useAccessStore();
 
@@ -18,8 +20,8 @@ export function FitnessGate({ children, whenLocked }: { children: ReactNode; whe
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
   if (!isFitnessOpen(access)) return <FitnessConstructionNotice />;
-  if (!access.unlocked) {
-    return whenLocked === undefined ? <LockedBanner /> : <>{whenLocked}</>;
+  if (!access.p3Access) {
+    return whenLocked === undefined ? <P3Paywall /> : <>{whenLocked}</>;
   }
   return <>{children}</>;
 }

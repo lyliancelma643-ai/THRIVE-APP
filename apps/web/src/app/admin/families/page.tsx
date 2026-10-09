@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { type Pack, PACK_LABELS, PACK_ORDER, asPack } from '@/lib/packs';
+import { type Pack, asPack } from '@/lib/packs';
 import {
   AccessBadges,
   ParentAccessEditor,
@@ -102,20 +102,6 @@ export default function AdminFamiliesPage() {
 
   useEffect(() => { fetchParents(); }, [fetchParents]);
 
-  // ── Attribution du pack (ADMIN/SUPER_ADMIN — verrou base, migration 023) ──────
-  const [savingId, setSavingId] = useState<string | null>(null);
-  const updatePack = useCallback(async (familyId: string, pack: Pack) => {
-    setSavingId(familyId);
-    // Optimiste : on reflète tout de suite ; le realtime confirmera (ou on revert)
-    setParents((prev) => prev.map((p) => (p.family_id === familyId ? { ...p, pack } : p)));
-    const { error } = await supabase.from('families').update({ pack }).eq('id', familyId);
-    setSavingId(null);
-    if (error) {
-      alert('Impossible de modifier le pack : ' + error.message);
-      fetchParents();
-    }
-  }, [fetchParents]);
-
   // ── Realtime — écoute profiles + families ───────────────────────────────────
   useEffect(() => {
     const channel = supabase
@@ -123,7 +109,8 @@ export default function AdminFamiliesPage() {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, fetchParents)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'families' }, fetchParents)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'children' }, fetchParents)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'parent_access' }, fetchParents)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pack_enrollments' }, fetchParents)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'access_overrides' }, fetchParents)
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
@@ -278,25 +265,22 @@ export default function AdminFamiliesPage() {
                       </span>
                     </td>
 
-                    {/* Pack — modifiable par l'admin (upgrade / downgrade) */}
+                    {/* Pack en cours (daté) — se gère dans « Gérer les accès » (migration 080) */}
                     <td className="px-6 py-4">
-                      {parent.family_id ? (
-                        <select
-                          value={parent.pack ?? 'ESSENTIEL'}
-                          disabled={savingId === parent.family_id}
-                          onChange={(e) => updatePack(parent.family_id!, e.target.value as Pack)}
-                          aria-label={`Pack de la famille ${parent.family_name ?? ''}`}
-                          className="border border-gray-200 rounded-lg px-2.5 py-1.5 text-sm font-medium bg-white focus:outline-none focus:ring-2 focus:ring-black/10 disabled:opacity-50 cursor-pointer"
-                        >
-                          {PACK_ORDER.map((p) => (
-                            <option key={p} value={p}>
-                              {PACK_LABELS[p]}
-                            </option>
-                          ))}
-                        </select>
-                      ) : (
-                        <span className="text-xs text-gray-600">—</span>
-                      )}
+                      {(() => {
+                        const a = accessMap.get(parent.id);
+                        if (!a?.program_pack) return <span className="text-xs text-gray-600">Aucun pack</span>;
+                        return (
+                          <span className="text-sm font-medium">
+                            {PROGRAM_PACK_LABELS[a.program_pack]}
+                            {a.pack_fin && (
+                              <span className="block text-[11px] text-gray-500">
+                                jusqu’au {new Date(`${a.pack_fin}T12:00:00`).toLocaleDateString('fr-CA')}
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })()}
                     </td>
 
                     {/* Accès par section — modifiable à la main (Admin / Super Admin) */}
@@ -307,9 +291,7 @@ export default function AdminFamiliesPage() {
                           onClick={() => setEditing(parent)}
                           className="text-xs font-semibold text-navy-700 underline underline-offset-2 hover:text-navy-900"
                         >
-                          {accessMap.get(parent.id)?.program_pack
-                            ? `Pack ${PROGRAM_PACK_LABELS[accessMap.get(parent.id)!.program_pack!]} · Gérer`
-                            : 'Gérer les accès'}
+                          Gérer les accès
                         </button>
                       </div>
                     </td>
@@ -337,10 +319,8 @@ export default function AdminFamiliesPage() {
         <ParentAccessEditor
           parentId={editing.id}
           parentName={`${editing.first_name ?? ''} ${editing.last_name ?? ''}`.trim() || editing.email}
-          row={accessMap.get(editing.id)}
           onClose={() => setEditing(null)}
           onSaved={() => {
-            setEditing(null);
             fetchParents();
           }}
         />

@@ -12,6 +12,8 @@ import {
   resolveReturnOrigin,
   RC_ENTITLEMENT,
   stripeHistoryVerdict,
+  hasActivePack,
+  torontoToday,
 } from "./billing_core.ts";
 
 const UID = "3f2b6a1e-8c4d-4e5f-9a0b-1c2d3e4f5a6b";
@@ -130,4 +132,19 @@ Deno.test("stripeHistoryVerdict : essai unique et refus du double abonnement", (
   for (const status of ["trialing", "active", "past_due", "unpaid", "paused"]) {
     assertEquals(stripeHistoryVerdict([{ status }]), { billable: true, everSubscribed: true });
   }
+});
+
+Deno.test("pack en cours : inclut Maison (pas d'abonnement par-dessus)", () => {
+  const today = "2026-10-10";
+  assertEquals(hasActivePack([], today), false);
+  assertEquals(hasActivePack(null, today), false);
+  assertEquals(hasActivePack([{ starts_on: "2026-10-01", ends_on: null }], today), true);
+  assertEquals(hasActivePack([{ starts_on: "2026-10-01", ends_on: "2026-10-10" }], today), true);
+  assertEquals(hasActivePack([{ starts_on: "2026-09-01", ends_on: "2026-10-09" }], today), false); // terminé
+  assertEquals(hasActivePack([{ starts_on: "2026-10-11", ends_on: null }], today), false); // à venir
+});
+
+Deno.test("date du jour à Montréal (pas UTC)", () => {
+  // 2 h UTC le 10 = 22 h le 9 à Montréal
+  assertEquals(torontoToday(new Date("2026-10-10T02:00:00Z")), "2026-10-09");
 });

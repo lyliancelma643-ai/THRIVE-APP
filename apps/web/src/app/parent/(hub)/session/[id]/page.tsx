@@ -16,6 +16,7 @@ import { InteractivePlayer } from '@/components/player/InteractivePlayer';
 import { Icon } from '@/components/ui';
 import { useAccessStore } from '@/lib/access';
 import { FitnessConstructionNotice } from '@/components/parent/AccessGate';
+import { LockedSection } from '@/components/parent/LockedSection';
 import { useEffect as useEffectGate } from 'react';
 
 function SessionDetailPageInner() {
@@ -199,6 +200,8 @@ export default function SessionDetailPage() {
   if (isLoading || !access) {
     return <div className="h-40 rounded-2xl bg-surface-sub animate-pulse" aria-hidden />;
   }
-  if (!access.fitnessEnabled || !access.unlocked) return <FitnessConstructionNotice />;
+  if (!access.fitnessEnabled) return <FitnessConstructionNotice />;
+  // Séance vidéo du programme : section Mes séances (même règle que la RLS, 080).
+  if (!access.seancesAccess) return <LockedSection section="seances" />;
   return <SessionDetailPageInner />;
 }

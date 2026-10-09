@@ -201,3 +201,23 @@ export function stripeHistoryVerdict(subs: { status?: string | null }[] | null |
     everSubscribed: list.some((s) => !STRIPE_NEVER_STARTED.has(String(s.status))),
   };
 }
+
+// ── Pack THRIVE en cours (migration 080) ─────────────────────────────────────
+/** Date du jour à Montréal (AAAA-MM-JJ), comme private.access_compute. */
+export function torontoToday(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Toronto" }).format(now);
+}
+
+/**
+ * Un pack (Groupe / Individuel / Complet) en cours inclut déjà Maison : on ne
+ * vend pas d'abonnement Maison par-dessus (pas de double facturation). Même
+ * règle de dates que la base : début ≤ aujourd'hui ≤ fin (fin nulle = ouverte).
+ */
+export function hasActivePack(
+  rows: { starts_on?: string | null; ends_on?: string | null }[] | null | undefined,
+  today: string = torontoToday(),
+): boolean {
+  return (rows ?? []).some((r) =>
+    typeof r.starts_on === "string" && r.starts_on <= today && (r.ends_on == null || r.ends_on >= today)
+  );
+}

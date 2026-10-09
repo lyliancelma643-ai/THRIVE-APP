@@ -27,7 +27,8 @@ import MySessionsPage from './my-sessions/page';
 import MaisonPage from './fitness/page';
 import { BrandLogo } from '@/components/BrandLogo';
 import { Icon, type IconName } from '@/components/ui';
-import { sectionLockReason, useAccessStore } from '@/lib/access';
+import { startAccessAutoRefresh, useAccessStore } from '@/lib/access';
+import { useAuthStore } from '@/stores/auth.store';
 import { AccessErrorNotice } from '@/components/parent/AccessGate';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { useThumbNav } from '@/hooks/useThumbNav';
@@ -67,12 +68,16 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
   const rootTab = TABS.findIndex((t) => pathname === t.href || pathname === `${t.href}/`);
   // Direction « Soir de famille » : l'onglet Maison (hors séances vidéo) a sa propre matière.
   const maison = pathname.startsWith('/parent/fitness') && !pathname.startsWith('/parent/fitness/seances');
-  const { access, isLoading: accessLoading, refresh } = useAccessStore();
+  const refresh = useAccessStore((st) => st.refresh);
+  const userId = useAuthStore((st) => st.user?.id ?? null);
   const unreadMessages = useUnreadMessages();
 
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Droits à jour sans recharger : temps réel, retour au premier plan, filet périodique.
+  useEffect(() => (userId ? startAccessAutoRefresh(userId) : undefined), [userId]);
 
   // Les écrans les plus ouverts depuis les onglets sont préchargés dès le lancement :
   // ils s'ouvrent sans attente (le code et le rendu serveur sont déjà là).
@@ -82,14 +87,10 @@ export default function ParentHubLayout({ children }: { children: React.ReactNod
     );
   }, [router]);
 
-  // Compte en préparation : « Mes séances » visible mais non cliquable (aperçu).
-  // Section hors de l'offre (abonné Maison seul, fermeture admin) : l'onglet reste
-  // cliquable et montre l'invitation à prendre un pack.
-  const locked =
-    !accessLoading && access ? !access.seancesAccess && sectionLockReason(access) === 'pending' : false;
-  // Bilan et Maison restent toujours ouverts : chacun montre son propre écran
-  // d'attente ou d'invitation quand la section est fermée.
-  const tabOpen = (i: number) => !locked || i === BILAN_TAB || i === MAISON_TAB;
+  // Les trois onglets restent toujours visibles et cliquables : une section
+  // fermée montre son propre aperçu flouté + cadenas (matrice d'accès 080).
+  const locked = false;
+  const tabOpen = (_i: number) => true;
 
   // Sens de la dernière navigation : l'écran entrant glisse depuis ce côté.
   const [enterFrom, setEnterFrom] = useState(44);

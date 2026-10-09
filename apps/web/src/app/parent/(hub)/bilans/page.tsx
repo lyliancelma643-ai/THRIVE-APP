@@ -7,10 +7,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/auth.store';
 import { useChildStore } from '@/stores/child.store';
-import { sectionLockReason, useAccessStore } from '@/lib/access';
+import { sectionView, useAccessStore } from '@/lib/access';
 import { usePlan } from '@/lib/entitlements';
 import { BilanLockedPreview } from '@/components/parent/AccessGate';
-import { PackRequired } from '@/components/parent/PackRequired';
+import { LockedSection, ReadOnlyBanner } from '@/components/parent/LockedSection';
 import { Icon } from '@/components/ui';
 import { DocMeta, openSignedDoc, programPct } from '@/lib/bilan';
 import { accentHex, resolveAvatarUrl } from '@/lib/avatar';
@@ -404,8 +404,8 @@ function AthleteIdentityPageInner() {
   );
 }
 
-// ── Garde d'accès : aperçu grisé tant que le compte n'est pas activé ─────────
-// (titres visibles, contenu non cliquable — enforcement réel via RLS)
+// ── Garde d'accès : vue dérivée de access_state() (verrouillé / lecture seule /
+// parcours en préparation / complet) — enforcement réel via RLS (080)
 export default function BilansPage() {
   const { access, refresh } = useAccessStore();
 
@@ -418,13 +418,17 @@ export default function BilansPage() {
   if (!access) {
     return <div className="h-40 rounded-[22px] bg-night-surface animate-pulse" aria-hidden />;
   }
-  if (!access.bilanAccess) {
-    return sectionLockReason(access) === 'pending' ? <BilanLockedPreview /> : <PackRequired section="bilan" />;
-  }
+  const view = sectionView(access, 'bilan');
+  // Verrouillé : squelette factice flouté, aucune requête de données.
+  if (view === 'locked') return <LockedSection section="bilan" />;
+  if (view === 'preparing') return <BilanLockedPreview />;
   return (
-    // Suspense requis par useSearchParams (deep-link des notifications)
-    <Suspense fallback={<BilanSkeleton />}>
-      <AthleteIdentityPageInner />
-    </Suspense>
+    <>
+      {view === 'readonly' && <ReadOnlyBanner endedOn={access.packEnd} />}
+      {/* Suspense requis par useSearchParams (deep-link des notifications) */}
+      <Suspense fallback={<BilanSkeleton />}>
+        <AthleteIdentityPageInner />
+      </Suspense>
+    </>
   );
 }

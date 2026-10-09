@@ -72,7 +72,10 @@ function Abonnement() {
   const role = useAuthStore((s) => s.user?.role ?? null);
   const { row, isLoading, refresh, sync } = useSubscriptionStore();
   const refreshAccess = useAccessStore((s) => s.refresh);
-  const coached = useAccessStore((s) => s.access?.unlocked === true);
+  // Maison déjà ouverte par un pack ou par le Super Admin : rien à payer (pas de double facturation).
+  const coached = useAccessStore(
+    (s) => s.access?.p3Access === true && (s.access.sources.maison === 'pack' || s.access.sources.maison === 'override')
+  );
   const params = useSearchParams();
   const router = useRouter();
 
@@ -166,8 +169,8 @@ function Abonnement() {
       {active && row ? (
         <ActiveSubscription native={native} />
       ) : coached ? (
-        // Compte activé par le coach : Maison est déjà inclus (access_state.p3_access).
-        // Ne jamais lui proposer de payer pour ce qu'il a.
+        // Pack actif (ou ouverture Super Admin) : Maison est déjà incluse
+        // (access_state.source_maison). Ne jamais lui proposer de payer pour ce qu'il a.
         <IncludedWithCoach />
       ) : (
         native ? <NativeOffer /> : <Offer onNotice={setNotice} />
@@ -201,12 +204,12 @@ function IncludedWithCoach() {
           <Icon name="check" className="w-5 h-5" />
         </span>
         <div>
-          <p className="font-display text-[20px] font-semibold text-night-ink">Inclus dans ton accompagnement</p>
+          <p className="font-display text-[20px] font-semibold text-night-ink">Inclus dans ton pack THRIVE</p>
           <p className="text-[14px] text-soft">Le moment qui compte · Maison</p>
         </div>
       </div>
       <p className="text-[15px] leading-[1.55] text-body mt-4">
-        Ton parcours avec ton coach comprend toutes les activités Maison. Tu n&apos;as aucun abonnement à prendre.
+        Ton pack comprend toutes les activités Maison pendant tout le programme. Tu n&apos;as aucun abonnement à prendre.
       </p>
       <Link
         href="/parent/fitness"
