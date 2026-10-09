@@ -87,7 +87,9 @@ Projet Supabase de prod : THRIVE-CA (`kkdcgzvdmipmrgkawnky`). Ne colle jamais un
 
 - [ ] **16. P0-6 et P1-10 : EAS et identifiants (avant le merge).** (30 min)
   Lancer `eas init` dans `apps/mobile` ; noter `projectId`, `ascAppId`, `appleTeamId` (Apple Developer › Membership) et `ANDROID_SHA256_PLAY_SIGNING` (Play Console › Intégrité de l'appli › Signature d'applications).
-  Les remplacer : `extra.eas.projectId` dans `apps/mobile/app.json`, `ascAppId` et `appleTeamId` dans `apps/mobile/eas.json`, et les `[À COMPLÉTER]` de `apps/web/public/.well-known/`.
+  La config mobile est dynamique (`apps/mobile/app.config.ts`) : `eas init` ne peut pas écrire le `projectId` lui-même. Pose-le comme variable `EAS_PROJECT_ID` (environnement EAS « production » + `.env` local, modèle dans `apps/mobile/.env.example`).
+  Remplacer ensuite `ascAppId` et `appleTeamId` dans `apps/mobile/eas.json`, et les `[À COMPLÉTER]` de `apps/web/public/.well-known/`.
+  Le profil `development` a `developmentClient: true` mais `expo-dev-client` n'est pas installé : `npx expo install expo-dev-client` avant un build de dev (nécessaire pour lancer les flux Maestro).
   Console : expo.dev ; developer.apple.com ; Play Console.
 
 - [ ] **17. Relire et merger `release/go2b` dans `main`.** (30 à 60 min)
