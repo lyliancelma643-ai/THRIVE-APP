@@ -39,6 +39,14 @@ export default function ParentLayout() {
         }}
       />
       <Tabs.Screen
+        name="seances"
+        options={{
+          title: 'Séances',
+          tabBarButtonTestID: 'tab-seances',
+          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="messages"
         options={{
           title: 'Messages',

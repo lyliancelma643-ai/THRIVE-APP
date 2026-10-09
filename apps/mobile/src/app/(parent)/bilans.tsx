@@ -5,9 +5,14 @@ import { useFocusEffect } from 'expo-router';
 import { supabaseClient as supabase, useFamily, useChildren } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
 import { OfflineState } from '../../components/OfflineState';
+import { LockedSection, ReadOnlyNotice } from '../../components/access/LockedSection';
+import { useSubscriptionStore } from '../../stores/subscription.store';
+import { sectionView } from '../../services/access';
 
 // Bilans de l'enfant : progression dans les 13 séances, coach, questionnaires
 // à remplir et bilans envoyés par le coach (table parent_reports, RLS famille).
+// Accès : section Bilan de access_state() (migration 080) ; verrouillé →
+// squelette factice flouté, AUCUNE requête de données.
 
 const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
 const TOTAL_SESSIONS = 13;
@@ -86,8 +91,11 @@ export default function BilansScreen() {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
+  const access = useSubscriptionStore((st) => st.access);
+  const view = access ? sectionView(access, 'bilan') : null;
+
   const reload = useCallback(async () => {
-    if (!child?.id) return;
+    if (!child?.id || !view || view === 'locked') return;
     setLoading(true);
     setLoadError(false);
     try {
@@ -97,7 +105,7 @@ export default function BilansScreen() {
     } finally {
       setLoading(false);
     }
-  }, [child?.id]);
+  }, [child?.id, view]);
 
   useFocusEffect(
     useCallback(() => {
@@ -105,7 +113,8 @@ export default function BilansScreen() {
     }, [reload]),
   );
 
-  if (childrenLoading) return <ActivityIndicator className="mt-24" />;
+  if (childrenLoading || !view) return <ActivityIndicator className="mt-24" />;
+  if (view === 'locked') return <LockedSection section="bilan" />;
   if (loadError && !data) return <OfflineState onRetry={reload} />;
 
   return (
@@ -129,6 +138,7 @@ export default function BilansScreen() {
       </View>
 
       <View className="px-6 pb-12">
+        {view === 'readonly' && <ReadOnlyNotice />}
         {!child ? (
           <Text className="text-gray-500">Ajoutez votre enfant pour suivre ses bilans.</Text>
         ) : !data ? (
