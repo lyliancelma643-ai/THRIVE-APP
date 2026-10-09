@@ -8,7 +8,7 @@
 | Champ | FR (Canada) | EN (Canada) | Limite |
 |---|---|---|---|
 | Nom | `THRIVE Sport Positive` | `THRIVE Sport Positive` | 30 |
-| Sous-titre (App Store) | `Le sport qui fait grandir` | `Sport that helps kids grow` | 30 |
+| Sous-titre (App Store) | `Le sport qui fait grandir` | `Sport that helps youth grow` | 30 |
 | Description courte (Play) | `Accompagnez votre jeune sportif avec son coach et 10 min en famille chaque jour.` | `Support your young athlete with their coach and 10 family minutes a day.` | 80 |
 
 ## Mots-clés
@@ -17,6 +17,8 @@
 |---|---|---|
 | App Store (≤ 100 car.) | `sport,parent,coach,ado,motivation,confiance,famille,émotions,bien-être,habiletés,programme,bilan` | `parent,coach,teen,motivation,confidence,family,emotions,wellbeing,skills,program,assessment,youth` |
 | Play (mots-clés dans la description longue) | Intégrés à la description FR (`fiche-google-play.md`) | Intégrés à la description EN, sans bourrage |
+
+Comptage (relecture 2) : nom 21 ; sous-titre FR 25, EN 27 ; description courte Play FR 80, EN 72 ; mots-clés App Store FR 96, EN 97 (virgules incluses, sans espaces). Tous dans les limites.
 
 Ne pas répéter le nom ni le sous-titre dans les mots-clés App Store : Apple les indexe déjà.
 

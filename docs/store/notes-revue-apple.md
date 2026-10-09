@@ -16,13 +16,13 @@ DEMO ACCOUNTS (passwords in the Sign-In Information fields)
 No 2FA or SMS code is required. All data is fictional.
 
 HOW TO TEST THE SUBSCRIPTION (account 1)
-Sign in > tab "Maison". The paywall shows the auto-renewable subscription "THRIVE - Le moment qui compte" (monthly and annual, 1-month free trial for new subscribers), price and renewal terms, "Restaurer les achats" (Restore Purchases), Terms of Use (EULA) and Privacy Policy. After purchase the "Maison" content unlocks within seconds. Add a child in "Mes enfants" to receive the daily activities. Subscription status and "Gérer mon abonnement" are in tab "Profil".
+Sign in > tab "Maison" (opens the paywall directly for an account without access; also reachable from tab "Profil" > "Découvrir l'abonnement"). The paywall shows the auto-renewable subscription "THRIVE - Le moment qui compte" (monthly and annual, 1-month free trial for new subscribers), price and renewal terms, "Restaurer les achats" (Restore Purchases), Terms of Use (EULA) and Privacy Policy. After purchase the "Maison" content unlocks within seconds. Add a child via "Mes enfants" (tab "Accueil") to receive the daily activities. Subscription status, "Restaurer les achats" and (once subscribed, on this device) "Gérer mon abonnement" are in tab "Profil".
 
 PAYMENTS
 Digital content ("Maison" activities) is sold only through In-App Purchase. Families enrolled in our in-person coaching sessions with a real coach (a person-to-person service delivered outside the app, guideline 3.1.3(e)) get the same content included, as does a subscription bought on our website (3.1.3(b)); both remain available as In-App Purchase. The app contains no link, button or text pointing to any other payment method.
 
 MESSAGING
-Private messaging only between a parent and the coach assigned by THRIVE; no public or anonymous content. Long-press any message > "Signaler" to report it or block the conversation. Reports are reviewed within 24 hours (support@thrivesportpositive.com).
+Private messaging only between a parent and the coach assigned by THRIVE; no public or anonymous content. Tab "Messages" > open the conversation > long-press any message > "Signaler" to report it or block the conversation. Reports are reviewed within 24 hours (support@thrivesportpositive.com).
 
 ACCOUNT DELETION
 Tab "Profil" > "Confidentialité et compte" > "Supprimer mon compte et mes données". Data is deleted within 30 days; the app reminds users to cancel their App Store subscription in Settings.

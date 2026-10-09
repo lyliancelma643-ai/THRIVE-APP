@@ -5,9 +5,9 @@
 Prérequis : « Signaler » / « Bloquer la conversation » (appui long sur un message) sont livrés dans le code (GO 2, migration 077) ; vérifier que la 077 est appliquée en prod avant soumission.
 
 ```text
-Account 1 - Subscription test: parent-abonnement@thrivesportpositive.com. Sign in > tab "Maison" shows the Google Play Billing paywall (monthly / annual, 1-month free trial). After purchase, Maison unlocks. Add a child in "Mes enfants" to see activities.
+Account 1 - Subscription test: parent-abonnement@thrivesportpositive.com. Sign in > tab "Maison" shows the Google Play Billing paywall (monthly / annual, 1-month free trial). After purchase, Maison unlocks. Add a child via "Mes enfants" (tab "Accueil") to see activities.
 
-Account 2 - Full parent experience: parent-test@thrivesportpositive.com. Sample children, session reports (tab "Bilans"), coach messages (tab "Messages", long-press > "Signaler" to report/block).
+Account 2 - Full parent experience: parent-test@thrivesportpositive.com. Sample children, session reports (tab "Bilans"), coach messages (tab "Messages" > open the conversation > long-press a message > "Signaler" to report, or "Bloquer la conversation").
 
 Account 3 - Coach: coach-test@thrivesportpositive.com.
 
