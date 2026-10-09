@@ -31,6 +31,7 @@
       "android": {
         "buildType": "app-bundle"
       },
+      "environment": "production",
       "env": {
         "APP_ENV": "production"
       }
@@ -39,8 +40,8 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "A_COMPLETER",
-        "appleTeamId": "A_COMPLETER"
+        "ascAppId": "[À COMPLÉTER : ASC_APP_ID]",
+        "appleTeamId": "[À COMPLÉTER : APPLE_TEAM_ID]"
       },
       "android": {
         "track": "internal",

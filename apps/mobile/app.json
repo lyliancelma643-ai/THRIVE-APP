@@ -121,7 +121,8 @@
           "url": "https://sentry.io/",
           "project": "thrive-mobile"
         }
-      ]
+      ],
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": false,
@@ -130,6 +131,11 @@
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "appVersion"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "[À COMPLÉTER : EAS_PROJECT_ID]"
+      }
     }
   }
 }

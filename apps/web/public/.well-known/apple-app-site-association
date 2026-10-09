@@ -2,7 +2,7 @@
   "applinks": {
     "details": [
       {
-        "appIDs": ["TEAM_ID_A_COMPLETER.app.thrive.mobile"],
+        "appIDs": ["[À COMPLÉTER : APPLE_TEAM_ID].app.thrive.mobile"],
         "components": [{ "/": "/parent/*" }, { "/": "/coach/*" }]
       }
     ]
