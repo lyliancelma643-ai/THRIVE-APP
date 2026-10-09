@@ -124,6 +124,10 @@ verify_jwt = false
 [functions.send-web-push]
 verify_jwt = false
 
+# Appelée par pg_cron (migration 079) avec x-cron-secret, sans JWT utilisateur.
+[functions.process-due-deletions]
+verify_jwt = false
+
 [functions.send-push-notification]
 verify_jwt = true
 
