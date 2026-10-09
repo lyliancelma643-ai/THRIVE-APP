@@ -20,7 +20,7 @@ test.describe('Compte parent — mes données', () => {
   });
 
   test('demande de suppression du compte avec confirmation', async ({ page }) => {
-    await page.getByRole('button', { name: 'Supprimer mon compte…' }).click();
+    await page.getByRole('button', { name: 'Supprimer mon compte et mes données' }).click();
     await expect(page.getByText('Cette action est')).toBeVisible();
     await page.getByRole('button', { name: 'Confirmer la suppression' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'est enregistrée' })).toBeVisible();
