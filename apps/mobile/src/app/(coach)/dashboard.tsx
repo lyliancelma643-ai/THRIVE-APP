@@ -3,12 +3,13 @@ import { View, Text, ScrollView, ActivityIndicator, Pressable } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { usePrograms, useSessions } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 export default function CoachDashboard() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const { programs, isLoading: programsLoading } = usePrograms({ coachId: user?.id });
-  const { sessions, isLoading: sessionsLoading } = useSessions();
+  const { programs, isLoading: programsLoading, error: programsError } = usePrograms({ coachId: user?.id });
+  const { sessions, isLoading: sessionsLoading, error: sessionsError, refetch: refetchSessions } = useSessions();
 
   const activePrograms = programs.filter((p) => p.status === 'ACTIVE');
   const todaySessions = sessions.filter((s) => {
@@ -16,6 +17,10 @@ export default function CoachDashboard() {
     const today = new Date().toDateString();
     return new Date(s.scheduled_at).toDateString() === today;
   });
+
+  if ((programsError || sessionsError) && programs.length === 0 && sessions.length === 0) {
+    return <OfflineState onRetry={() => refetchSessions()} />;
+  }
 
   return (
     <ScrollView className="flex-1 bg-gray-50">

@@ -3,17 +3,23 @@ import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-nati
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren, useSessions } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
+import { BillingIssueBanner } from '../../components/BillingIssueBanner';
 
 export default function ParentDashboard() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const { family } = useFamily(user?.id);
-  const { children, isLoading: childrenLoading } = useChildren(family?.id);
+  const { family, error: familyError, refetch: refetchFamily } = useFamily(user?.id);
+  const { children, isLoading: childrenLoading, error: childrenError, refetch: refetchChildren } = useChildren(family?.id);
 
   const upcomingSessions = useSessions({ childId: children[0]?.id });
   const nextSessions = upcomingSessions.sessions
     .filter((s) => s.status === 'SCHEDULED')
     .slice(0, 3);
+
+  if ((familyError || childrenError) && !family && children.length === 0) {
+    return <OfflineState onRetry={() => { refetchFamily(); refetchChildren(); }} />;
+  }
 
   return (
     <ScrollView className="flex-1 bg-gray-50">
@@ -25,6 +31,7 @@ export default function ParentDashboard() {
       </View>
 
       <View className="px-6 py-6">
+        <BillingIssueBanner />
         {/* Mes enfants */}
         <View className="flex-row justify-between items-center mb-3">
           <Text className="text-xl font-bold">Mes enfants</Text>

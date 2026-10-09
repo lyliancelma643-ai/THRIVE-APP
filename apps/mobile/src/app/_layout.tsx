@@ -110,3 +110,5 @@ function RootLayout() {
 
 // Sentry.wrap : capte les erreurs de rendu et les crashs de démarrage.
 export default Sentry.wrap(RootLayout);
+
+export { ErrorBoundary } from '../components/ErrorBoundary';

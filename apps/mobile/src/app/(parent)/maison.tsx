@@ -18,6 +18,7 @@ import {
   unlockedWeeks,
   weeklyProgress,
 } from '../../lib/p3';
+import { OfflineState } from '../../components/OfflineState';
 
 // « Le moment qui compte » : une activité de 10 minutes par soir avec son enfant.
 // Semaine N+1 ouverte quand les 3 fiches de la semaine N ont été vécues.
@@ -48,6 +49,7 @@ function MaisonContent() {
   const phrase = child ? momentsPhrase(momentsCount(moments), child.first_name) : null;
 
   if (childrenLoading) return <ActivityIndicator className="mt-24" />;
+  if (error && moments.length === 0) return <OfflineState message={error} onRetry={reload} />;
 
   return (
     <ScrollView

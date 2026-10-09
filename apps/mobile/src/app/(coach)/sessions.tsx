@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Modal, TextInput, Alert } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
 import { usePrograms, useSessions } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 const STATUS_LABELS: Record<string, string> = {
   SCHEDULED: '📅 Planifiée',
@@ -15,7 +16,7 @@ export default function CoachSessionsScreen() {
   const { user } = useAuthStore();
   const { programs } = usePrograms({ coachId: user?.id });
   const [selectedProgramId, setSelectedProgramId] = useState<string | undefined>();
-  const { sessions, isLoading, updateSession } = useSessions({ programId: selectedProgramId });
+  const { sessions, isLoading, error, refetch, updateSession } = useSessions({ programId: selectedProgramId });
 
   const [editSession, setEditSession] = useState<any>(null);
   const [notes, setNotes] = useState('');
@@ -67,6 +68,8 @@ export default function CoachSessionsScreen() {
 
         {isLoading ? (
           <ActivityIndicator size="large" />
+        ) : error && sessions.length === 0 ? (
+          <OfflineState onRetry={() => refetch()} />
         ) : sessions.length === 0 ? (
           <View className="items-center mt-8">
             <Text className="text-gray-500">Aucune séance trouvée.</Text>

@@ -57,3 +57,5 @@ export default function ParentLayout() {
     </Tabs>
   );
 }
+
+export { ErrorBoundary } from '../../components/ErrorBoundary';

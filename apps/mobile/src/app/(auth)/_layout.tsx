@@ -9,3 +9,5 @@ export default function AuthLayout() {
     </Stack>
   );
 }
+
+export { ErrorBoundary } from '../../components/ErrorBoundary';

@@ -6,6 +6,7 @@ import {
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 function calculateAge(dob: string): number {
   const diff = Date.now() - new Date(dob).getTime();
@@ -15,8 +16,8 @@ function calculateAge(dob: string): number {
 export default function ChildrenScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const { family, isLoading: familyLoading, createFamily } = useFamily(user?.id);
-  const { children, isLoading, createChild } = useChildren(family?.id);
+  const { family, isLoading: familyLoading, error: familyError, refetch: refetchFamily, createFamily } = useFamily(user?.id);
+  const { children, isLoading, error: childrenError, refetch: refetchChildren, createChild } = useChildren(family?.id);
 
   const [showModal, setShowModal] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -49,6 +50,10 @@ export default function ChildrenScreen() {
         <ActivityIndicator size="large" />
       </View>
     );
+  }
+
+  if ((familyError || childrenError) && !family && children.length === 0) {
+    return <OfflineState onRetry={() => { refetchFamily(); refetchChildren(); }} />;
   }
 
   return (

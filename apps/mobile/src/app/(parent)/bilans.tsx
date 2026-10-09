@@ -1,8 +1,10 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl, Linking } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { supabaseClient as supabase, useFamily, useChildren } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
+import { OfflineState } from '../../components/OfflineState';
 
 // Bilans de l'enfant : progression dans les 13 séances, coach, questionnaires
 // à remplir et bilans envoyés par le coach (table parent_reports, RLS famille).
@@ -82,12 +84,16 @@ export default function BilansScreen() {
   const child = children.find((c) => c.id === selectedId) ?? children[0];
   const [data, setData] = useState<BilanState | null>(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   const reload = useCallback(async () => {
     if (!child?.id) return;
     setLoading(true);
+    setLoadError(false);
     try {
       setData(await loadBilans(child.id));
+    } catch {
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -100,6 +106,7 @@ export default function BilansScreen() {
   );
 
   if (childrenLoading) return <ActivityIndicator className="mt-24" />;
+  if (loadError && !data) return <OfflineState onRetry={reload} />;
 
   return (
     <ScrollView className="flex-1 bg-gray-50" refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} />}>
@@ -144,7 +151,7 @@ export default function BilansScreen() {
               <Pressable
                 key={q.token}
                 className="bg-black rounded-2xl p-5 mb-4"
-                onPress={() => Linking.openURL(`${WEB_ORIGIN}/q/${q.token}`)}
+                onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${q.token}`)}
                 accessibilityRole="link"
               >
                 <Text className="text-white font-bold">Questionnaire à remplir avec {child.first_name}</Text>

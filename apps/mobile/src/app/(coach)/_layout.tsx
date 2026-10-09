@@ -41,3 +41,5 @@ export default function CoachLayout() {
     </Tabs>
   );
 }
+
+export { ErrorBoundary } from '../../components/ErrorBoundary';
