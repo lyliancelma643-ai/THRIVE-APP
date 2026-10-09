@@ -44,7 +44,7 @@ Référence des identifiants (P0-x, P1-x, P2-x) : `docs/release/AUDIT_360.md`.
 
 - [ ] **9. P1-14 Signature HMAC du webhook RevenueCat.**
   Activer la signature sur l'intégration webhook, puis poser le secret correspondant dans les secrets Supabase Edge Functions.
-  Le nom de variable est dans `docs/release/GO2_RAPPORT.md` (fichier pas encore généré à ce stade). L'en-tête secret existant reste `REVENUECAT_WEBHOOK_AUTH` et ne doit pas être retiré.
+  Nom du secret : `REVENUECAT_WEBHOOK_HMAC_SECRET` (affiché une seule fois par RevenueCat). Tant qu'il est absent, la vérification HMAC est sautée (fail-open volontaire). L'en-tête secret existant reste `REVENUECAT_WEBHOOK_AUTH` et ne doit pas être retiré.
   Console : RevenueCat › Integrations › Webhooks ; Supabase › Edge Functions › Secrets (projet THRIVE-CA, kkdcgzvdmipmrgkawnky).
 
 - [ ] **10. P1-3 Fiscalité.**
@@ -64,11 +64,14 @@ Référence des identifiants (P0-x, P1-x, P2-x) : `docs/release/AUDIT_360.md`.
 
 - [ ] **13. Migrations prod 076, 077, 078, 079** (fichiers `supabase/migrations/20261009_07*.sql`).
   Décider l'interrupteur `accept_sandbox_purchases` de la migration 076 (P0-4) : `false` par défaut.
-  Poser les secrets Vault demandés par la migration 079.
-  Note : au moment de cette checklist, ces fichiers ne sont pas tous présents dans `supabase/migrations/` ; vérifier avant d'appliquer.
+  **Avant la 079** : vérifier quelle valeur de `deletion_requests.status` signifie « traitée » en prod (`select status, count(*) from deletion_requests group by status;`). Le code de `process-due-deletions` écrit `'COMPLETED'` (constante dans `claim`, non vérifiée) : l'ajuster si ta valeur diffère.
+  Secrets de la 079 : Vault `deletions_cron_secret` (≥ 16 caractères ; `edge_functions_url` existe déjà depuis la 047) et secret Edge Function `DELETIONS_CRON_SECRET` avec **la même valeur**.
+  Interrupteur 076 : le passer à `true` seulement pendant les revues stores, puis le remettre à `false` (sinon tout testeur TestFlight débloque Maison).
+  Après chaque migration RLS : exécuter `supabase/tests/audit_rls_simulation.sql`.
   Console : Supabase › SQL Editor (ou `supabase db push` après contrôle).
 
 - [ ] **14. Redéployer les Edge Functions modifiées** : `revenuecat-webhook`, `billing-sync`, `request-account-deletion`, `export-my-data`, `send-push-notification`, `process-due-deletions`.
+  `process-due-deletions` se déploie avec `--no-verify-jwt` (déjà déclaré dans `supabase/config.toml`).
   Console : Supabase › Edge Functions, ou CLI `supabase functions deploy <nom>`.
 
 - [ ] **15. P0-5 Comptes de revue.**
@@ -81,7 +84,8 @@ Référence des identifiants (P0-x, P1-x, P2-x) : `docs/release/AUDIT_360.md`.
 
 - [ ] **16. P0-6 EAS.**
   Lancer `eas init` dans `apps/mobile`, puis compléter `projectId`, `ascAppId`, `appleTeamId` dans la configuration.
-  Poser dans l'environnement EAS « production » : URL et clé publique Supabase, clés publiques RevenueCat iOS et Android, URL légales, DSN Sentry.
+  Poser dans l'environnement EAS « production » : `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_REVENUECAT_API_KEY_IOS`, `EXPO_PUBLIC_REVENUECAT_API_KEY_ANDROID`, `EXPO_PUBLIC_TERMS_URL`, `EXPO_PUBLIC_PRIVACY_URL`, `EXPO_PUBLIC_SUPPORT_URL`, `EXPO_PUBLIC_WEB_URL`, `EXPO_PUBLIC_SENTRY_DSN` (et `EXPO_PUBLIC_APP_ENV`, optionnelle).
+  Placeholders à remplacer : `extra.eas.projectId` (`apps/mobile/app.json`), `ascAppId` et `appleTeamId` (`apps/mobile/eas.json`).
   Console : expo.dev › projet › Environment variables.
 
 - [ ] **17. P1-10 et valeurs du §0 manquantes.**
