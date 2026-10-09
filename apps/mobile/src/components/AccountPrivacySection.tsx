@@ -62,11 +62,11 @@ export function AccountPrivacySection() {
   const confirmDeletion = () => {
     const warning = ent.isSubscribed ? deletionSubscriptionWarning(ent.store, ent.willRenew, Platform.OS) : null;
     Alert.alert(
-      'Supprimer mon compte ?',
+      'Supprimer mon compte et mes données ?',
       `Votre compte et toutes les données associées (profil, famille, enfants, bilans, messages) seront définitivement supprimés dans un délai de ${DELETION_DELAY}. Cette action est irréversible.${warning ? `\n\n${warning}` : ''}`,
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Supprimer mon compte', style: 'destructive', onPress: submitDeletion },
+        { text: 'Supprimer mon compte et mes données', style: 'destructive', onPress: submitDeletion },
       ],
     );
   };
@@ -86,7 +86,7 @@ export function AccountPrivacySection() {
         {deleting ? (
           <ActivityIndicator />
         ) : (
-          <Text className="text-base font-semibold text-red-600">Supprimer mon compte</Text>
+          <Text className="text-base font-semibold text-red-600">Supprimer mon compte et mes données</Text>
         )}
       </Pressable>
     </View>

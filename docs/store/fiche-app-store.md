@@ -27,7 +27,7 @@
 | URL marketing | `https://thrivesportpositive.com` (à confirmer : le site existe-t-il en ligne ? [À COMPLÉTER]) |
 | URL de confidentialité | `https://app.thrivesportpositive.com/politique-confidentialite` (alias `/confidentialite`) |
 | Contrat de licence | Contrat standard d'Apple, complété par `https://app.thrivesportpositive.com/conditions` (à mettre dans « Contrat de licence d'utilisateur final » ou dans la description) |
-| Suppression de compte | Dans l'app : Compte › « Supprimer mon compte et mes données » (guideline 5.1.1(v)). Lien web : `https://app.thrivesportpositive.com/politique-confidentialite#suppression` |
+| Suppression de compte | Dans l'app : Profil › Confidentialité et compte › « Supprimer mon compte et mes données » (guideline 5.1.1(v)). Lien web : `https://app.thrivesportpositive.com/politique-confidentialite#suppression` |
 
 ## Texte promotionnel (≤ 170, modifiable sans nouvelle revue)
 
