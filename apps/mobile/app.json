@@ -131,6 +131,13 @@
     "icon": "./assets/icon.png",
     "runtimeVersion": {
       "policy": "appVersion"
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "75ba1d1f-728a-4310-968d-80cced29bd67"
+      }
+    },
+    "owner": "clma3006"
   }
 }
