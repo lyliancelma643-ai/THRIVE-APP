@@ -130,6 +130,12 @@ begin
   if tg_op = 'DELETE' and not exists (select 1 from profiles p where p.id = old.user_id) then
     return old;
   end if;
+  -- Suppression du compte d'un Super Admin auteur (FK « on delete set null »).
+  if tg_op = 'UPDATE'
+     and (new.cree_par is null or new.revoque_par is null)
+     and (to_jsonb(new) - 'cree_par' - 'revoque_par') = (to_jsonb(old) - 'cree_par' - 'revoque_par') then
+    return new;
+  end if;
   if auth.uid() is not null and not (private.jwt_role() = 'SUPER_ADMIN' and private.is_super_admin()) then
     raise exception 'Réservé au Super Admin' using errcode = 'insufficient_privilege';
   end if;

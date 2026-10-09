@@ -363,6 +363,22 @@ begin
     fails := fails || 'staff access_state'::text;
   end if;
 
+  -- ── Effacement d'un compte Super Admin auteur d'overrides (Loi 25) ────────
+  perform set_config('request.jwt.claims', json_build_object('sub', adm, 'role', 'authenticated',
+    'app_metadata', json_build_object('role', 'ADMIN'))::text, true);
+  begin
+    update public.access_overrides set cree_par = null where cree_par = sa;   -- = effet de la FK
+    update public.access_overrides set revoque_par = null where revoque_par = sa;
+  exception when others then
+    fails := fails || ('effacement du compte auteur bloqué : ' || sqlerrm);
+  end;
+  -- … mais un Admin ne peut pas modifier le fond d'un override
+  ok := false;
+  begin
+    update public.access_overrides set etat = 'ouvert' where user_id = p_cl;
+  exception when others then ok := true; end;
+  if not ok then fails := fails || 'override modifié par un Admin'::text; end if;
+
   if array_length(fails, 1) > 0 then
     raise exception 'ACCESS_080_FAILED % %', fails, res;
   end if;
