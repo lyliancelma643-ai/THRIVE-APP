@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
-  Linking,
   Platform,
   ScrollView,
   StyleSheet,
@@ -10,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import {
   activeEntitlement,
@@ -131,7 +131,7 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
   if (loading) return <SubscriptionLoader />;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView testID="paywall" style={styles.container} contentContainerStyle={styles.content}>
       {onClose ? (
         <TouchableOpacity
           onPress={onClose}
@@ -232,6 +232,7 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
       )}
 
       <TouchableOpacity
+        testID="paywall-restore"
         style={[styles.secondaryBtn, busy !== null && styles.disabled]}
         onPress={onRestore}
         disabled={busy !== null}
@@ -242,13 +243,13 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
 
       <View style={styles.legal}>
         {LEGAL.terms ? (
-          <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.terms)} accessibilityRole="link">
+          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)} accessibilityRole="link">
             Conditions d’utilisation (EULA)
           </Text>
         ) : null}
         {LEGAL.terms && LEGAL.privacy ? <Text style={styles.legalSep}>·</Text> : null}
         {LEGAL.privacy ? (
-          <Text style={styles.link} onPress={() => Linking.openURL(LEGAL.privacy)} accessibilityRole="link">
+          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)} accessibilityRole="link">
             Politique de confidentialité
           </Text>
         ) : null}

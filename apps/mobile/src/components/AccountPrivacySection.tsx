@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { LEGAL } from '../services/legal';
 import { useEntitlement } from '../hooks/useEntitlement';
@@ -24,7 +25,8 @@ function LinkRow({ label, url }: { label: string; url: string }) {
   return (
     <Pressable
       className="flex-row justify-between items-center py-4 border-b border-gray-100"
-      onPress={() => Linking.openURL(url)}
+      // Pages web : navigateur in-app ; mailto:/tel: restent sur Linking.
+      onPress={() => (/^https?:\/\//i.test(url) ? WebBrowser.openBrowserAsync(url) : Linking.openURL(url))}
       accessibilityRole="link"
     >
       <Text className="text-base">{label}</Text>

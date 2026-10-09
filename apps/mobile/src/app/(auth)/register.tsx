@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView, Linking } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
@@ -83,11 +84,11 @@ export default function RegisterScreen() {
           </View>
           <Text className="flex-1 text-sm text-gray-600">
             J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
-            <Text className="underline text-black" onPress={() => Linking.openURL(LEGAL.terms)}>conditions d’utilisation</Text>
+            <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}>conditions d’utilisation</Text>
             {LEGAL.privacy ? (
               <>
                 {' '}et la{' '}
-                <Text className="underline text-black" onPress={() => Linking.openURL(LEGAL.privacy)}>politique de confidentialité</Text>
+                <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}>politique de confidentialité</Text>
               </>
             ) : null}
             .
