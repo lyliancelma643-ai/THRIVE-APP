@@ -1,0 +1,34 @@
+# Flux : connexion -> Maison -> paywall -> Restaurer les achats.
+# Variables : EMAIL (défaut ci-dessous) et PASSWORD (obligatoire, jamais en dur).
+#   maestro test -e PASSWORD=*** .maestro/parent-paywall-restore.yaml
+appId: app.thrive.mobile
+env:
+  EMAIL: parent-abonnement@thrivesportpositive.com
+---
+- launchApp:
+    clearState: true
+# Connexion (apps/mobile/src/app/(auth)/login.tsx)
+- tapOn: "Email"
+- inputText: ${EMAIL}
+- tapOn: "Mot de passe"
+- inputText: ${PASSWORD}
+- hideKeyboard
+- tapOn: "Se connecter"
+# Onglet Maison
+- extendedWaitUntil:
+    visible: "Maison"
+    timeout: 30000
+- tapOn: "Maison"
+- assertVisible: "Ce soir, dix minutes ensemble"
+# Paywall : Profil -> « Découvrir l'abonnement » (ouvre /(parent)/abonnement)
+- tapOn: "Profil"
+- scrollUntilVisible:
+    element: "Découvrir l’abonnement"
+- tapOn: "Découvrir l’abonnement"
+# Restaurer (bouton obligatoire du Paywall)
+- scrollUntilVisible:
+    element: "Restaurer les achats"
+- tapOn: "Restaurer les achats"
+# Une alerte (Restauration impossible / aucun achat / succès) doit apparaître.
+- assertVisible:
+    text: ".*(Restaur|achat|abonnement).*"
