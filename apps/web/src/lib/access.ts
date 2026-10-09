@@ -31,7 +31,7 @@ export type AccessState = {
   /** Accès aux onglets Bilan et Mes séances (automatique ou forcé par l'admin, migration 068). */
   bilanAccess: boolean;
   seancesAccess: boolean;
-  /** Niveau de détail des bilans (families.pack) : Essentiel / Avancé / Performance (migration 070). */
+  /** Niveau de détail des bilans (families.pack) : codes ESSENTIEL / AVANCE / PERFORMANCE = Groupe / Individuel / Complet (migrations 070, 075). */
   bilanLevel: Pack;
   /** Coach / Admin / Super Admin : jamais de paywall (migration 070). */
   isStaff: boolean;

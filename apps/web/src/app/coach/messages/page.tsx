@@ -1,7 +1,7 @@
 'use client';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Boîte de réception du coach : un fil par famille suivie (forfait Performance).
+// Boîte de réception du coach : un fil par famille suivie (pack Complet).
 // Liste à gauche, conversation à droite ; sur mobile, la liste laisse la place
 // au fil dès qu'on en ouvre un (retour ← ou Échap pour revenir).
 //
@@ -100,7 +100,7 @@ function CoachMessagesInner() {
               emptyLabel={
                 search
                   ? 'Aucune conversation ne correspond à cette recherche.'
-                  : 'Aucune conversation pour l’instant. Les parents au forfait Performance peuvent t’écrire depuis leur espace.'
+                  : 'Aucune conversation pour l’instant. Les parents au pack Complet peuvent t’écrire depuis leur espace.'
               }
             />
           </div>

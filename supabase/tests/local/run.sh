@@ -3,7 +3,7 @@
 #
 #   1. base « avant » : réplique du schéma de prod + seed synthétique
 #      → les tests DOIVENT échouer (preuve qu'ils détectent les failles) ;
-#   2. base « après » : même chose + migrations 066, 067, puis 068 et 070 si
+#   2. base « après » : même chose + migrations 066, 067, puis 068, 070 et 075 si
 #      elles existent dans supabase/migrations
 #      → les tests DOIVENT passer ;
 #   3. si supabase/tests/access_matrix.sql existe, il est rejoué sur la base
@@ -31,7 +31,7 @@ optional_migration() {
 }
 
 extras=("$migration" "$migration_067")
-for num in 068 070; do
+for num in 068 070 075; do
   if f="$(optional_migration "$num")"; then
     echo "migration $num présente : $(basename "$f")"
     extras+=("$f")
@@ -56,7 +56,7 @@ dropdb --if-exists thrive_sec_before >/dev/null
 echo "$before"
 echo
 
-echo "── APRÈS migrations 066 + 067 (+ 068/070 si présentes) (succès attendu) ──"
+echo "── APRÈS migrations 066 + 067 (+ 068/070/075 si présentes) (succès attendu) ──"
 after="$(run_case thrive_sec_after "${extras[@]}")"
 echo "$after"
 echo

@@ -1,10 +1,10 @@
 // Les trois packs THRIVE vendus sur le site (Groupe, Individuel, Complet).
-// Maison s'ouvre par l'abonnement Maison (ou forçage admin) ; Bilan et Mes séances
+// Maison s'ouvre par l'un des trois packs, l'abonnement Maison ou un forçage admin (migration 075) ; Bilan et Mes séances
 // suivent le cycle d'activation par le coach. L'Admin / Super Admin peut forcer chaque
 // section parent par parent (table parent_access, migration 068).
 //
 // À ne pas confondre avec le niveau de détail des bilans (families.pack :
-// Essentiel / Avancé / Performance, cf. packs.ts).
+// codes internes ESSENTIEL / AVANCE / PERFORMANCE, libellés Groupe / Individuel / Complet, cf. packs.ts).
 
 export type ProgramPack = 'GROUPE' | 'INDIVIDUEL' | 'COMPLET';
 

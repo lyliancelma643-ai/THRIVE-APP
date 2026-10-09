@@ -301,7 +301,7 @@ export function buildHtml(d: {
     .map((h) => `<div style="flex:1;height:${h}%;border-radius:4px 4px 0 0;background:rgba(167,196,188,.35);"></div>`)
     .join('')}</div>`;
 
-  // ── Jauge par compétence + delta (skillBreakdown, Avancé+) ──
+  // ── Jauge par compétence + delta (skillBreakdown, Individuel+) ──
   // Débloqué : moyennes réelles par famille de compétence (gauge_summary.by_skill).
   // Verrouillé : lignes décoratives floutées + note d'upgrade. Sans donnée : rien.
   const skillLabel = (k: string) => {
@@ -326,7 +326,7 @@ export function buildHtml(d: {
         <div aria-hidden="true" style="display:flex;flex-direction:column;gap:14px;filter:blur(5px);pointer-events:none;user-select:none;">${[68, 44, 81]
           .map((v) => skillRow('Compétence', v))
           .join('')}</div>
-        <div style="margin-top:16px;">${lockNote('Le détail par compétence et son évolution sont inclus dès le pack Avancé.')}</div>
+        <div style="margin-top:16px;">${lockNote('Le détail par compétence et son évolution sont inclus dès le pack Individuel.')}</div>
       </div>`;
 
   // ── Parcours : 13 nœuds — pilotés par le statut réel de chaque séance ──
@@ -498,7 +498,7 @@ export function buildHtml(d: {
         <span style="font-size:13px;font-weight:600;color:var(--text3);white-space:nowrap;flex-shrink:0;">EPOCH · ${
           ent.lsssCurve
             ? permaPoints.length ? `${permaPoints.length} séance${permaPoints.length > 1 ? 's' : ''}` : 'à venir'
-            : 'pack Avancé'
+            : 'pack Individuel'
         }</span>
       </div>
       ${
@@ -513,7 +513,7 @@ export function buildHtml(d: {
       ${permaPoints.length ? permaPillarsHtml(permaPoints[permaPoints.length - 1].pillars) : ''}
       <p style="margin:16px 0 0;font-size:13px;line-height:1.5;color:var(--text3);">Bien-être mesuré après chaque séance — échelle EPOCH (engagement, persévérance, optimisme, connexion aux autres, bonheur).</p>`
           : `${lockedBars}
-      <div style="margin-top:12px;">${lockNote('La courbe de bien-être EPOCH (mesurée après chaque séance : 5 dimensions scientifiques) est incluse dès le pack Avancé.')}</div>`
+      <div style="margin-top:12px;">${lockNote('La courbe de bien-être EPOCH (mesurée après chaque séance : 5 dimensions scientifiques) est incluse dès le pack Individuel.')}</div>`
       }
     </div>
   </div>
@@ -646,7 +646,7 @@ export function buildHtml(d: {
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:rgba(167,196,188,.12);font-size:13px;font-weight:500;color:var(--sage-ink);"><span style="width:6px;height:6px;border-radius:50%;background:#A7C4BC;"></span>Confiance</span>
         <span style="display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:11px;background:var(--surface-sub);font-size:13px;font-weight:500;color:var(--text3);"><span style="width:6px;height:6px;border-radius:50%;background:var(--text3);"></span>Détermination</span>
       </div>`
-          : lockNote('La roue des émotions et le suivi de séance en séance sont inclus dès le pack Avancé.')
+          : lockNote('La roue des émotions et le suivi de séance en séance sont inclus dès le pack Individuel.')
       }
     </div>
 

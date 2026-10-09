@@ -4,32 +4,35 @@
 // copie conforme du seed SQL de la table `plans` — toute évolution se fait aux
 // deux endroits (docs/segmentation-forfaits.md §2 est la référence).
 
+// Codes internes (base de données) → packs vendus : ESSENTIEL = Groupe,
+// AVANCE = Individuel, PERFORMANCE = Complet (migration 075). Seuls les
+// libellés ci-dessous sont affichés.
 export type Pack = 'ESSENTIEL' | 'AVANCE' | 'PERFORMANCE';
 
 export const PACK_ORDER: Pack[] = ['ESSENTIEL', 'AVANCE', 'PERFORMANCE'];
 
 export const PACK_LABELS: Record<Pack, string> = {
-  ESSENTIEL: 'Essentiel',
-  AVANCE: 'Avancé',
-  PERFORMANCE: 'Performance',
+  ESSENTIEL: 'Groupe',
+  AVANCE: 'Individuel',
+  PERFORMANCE: 'Complet',
 };
 
 export const PACK_PRICES: Record<Pack, string> = {
-  ESSENTIEL: '1 700 $',
-  AVANCE: '2 000 $',
-  PERFORMANCE: '2 500 $',
+  ESSENTIEL: '600 $',
+  AVANCE: '1 500 $',
+  PERFORMANCE: '2 000 $',
 };
 
 export const PACK_PRICE_CENTS: Record<Pack, number> = {
-  ESSENTIEL: 170000,
-  AVANCE: 200000,
-  PERFORMANCE: 250000,
+  ESSENTIEL: 60000,
+  AVANCE: 150000,
+  PERFORMANCE: 200000,
 };
 
 export const PACK_TAGLINES: Record<Pack, string> = {
-  ESSENTIEL: 'Le parcours THRIVE complet avec ton coach.',
-  AVANCE: 'Comprenez la progression, aux moments clés.',
-  PERFORMANCE: "L'accompagnement le plus profond et le plus personnalisé.",
+  ESSENTIEL: '13 ateliers sportifs en petit groupe, de 4 à 6 jeunes.',
+  AVANCE: '13 séances en individuel avec ton coach.',
+  PERFORMANCE: "Le parcours complet : en individuel d'abord, puis avec le groupe.",
 };
 
 // ── Matrice de droits ────────────────────────────────────────────────────────
@@ -126,7 +129,7 @@ export function quotaReached(pack: Pack, key: PlanLimitKey, current: number): bo
 
 // ── Rétrocompatibilité (mêmes signatures qu'avant la matrice) ────────────────
 
-// Le pack Avancé débloque bilan détaillé + observations uniquement aux bilans d'étape.
+// Le pack Individuel débloque bilan détaillé + observations uniquement aux bilans d'étape.
 export const AVANCE_UNLOCK_SESSIONS = DETAILED_BILAN_SESSIONS.AVANCE as number[];
 
 export function isPack(v: unknown): v is Pack {
@@ -143,7 +146,7 @@ export function canSeeMessage(_pack: Pack): boolean {
 }
 
 // Bilan détaillé + observations :
-//   Performance → toutes les séances ; Avancé → séances 3/7/13 ; Essentiel → jamais.
+//   Complet → toutes les séances ; Individuel → séances 3/7/13 ; Groupe → jamais.
 export function canSeePremium(pack: Pack, sessionNumber: number | null): boolean {
   if (!can(pack, 'detailedBilan')) return false;
   const sessions = DETAILED_BILAN_SESSIONS[pack];
@@ -154,9 +157,9 @@ export function canSeePremium(pack: Pack, sessionNumber: number | null): boolean
 // Phrase d'incitation à l'upgrade, adaptée au pack courant.
 export function upgradeHint(pack: Pack): string {
   if (pack === 'AVANCE') {
-    return `Ton pack Avancé donne accès aux bilans des séances 3, 7 et 13. Passe au pack Performance (${PACK_PRICES.PERFORMANCE}) pour débloquer toutes les séances.`;
+    return `Ton pack Individuel donne accès aux bilans des séances 3, 7 et 13. Passe au pack Complet (${PACK_PRICES.PERFORMANCE}) pour débloquer toutes les séances.`;
   }
-  return `Inclus dès le pack Avancé (${PACK_PRICES.AVANCE} — bilans des séances 3, 7 et 13) et Performance (${PACK_PRICES.PERFORMANCE} — toutes les séances).`;
+  return `Inclus dès le pack Individuel (${PACK_PRICES.AVANCE} — bilans des séances 3, 7 et 13) et Complet (${PACK_PRICES.PERFORMANCE} — toutes les séances).`;
 }
 
 // Incitation générique pour une fonctionnalité verrouillée (jauge fine, LSSS,

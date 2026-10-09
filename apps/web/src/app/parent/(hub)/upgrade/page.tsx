@@ -2,8 +2,8 @@
 
 import Link from 'next/link';
 import { Icon } from '@/components/ui';
-import { useChildStore } from '@/stores/child.store';
-import { usePlan } from '@/lib/entitlements';
+import { useAccessStore } from '@/lib/access';
+import type { ProgramPack } from '@/lib/program-packs';
 import {
   PACK_LABELS,
   PACK_ORDER,
@@ -74,21 +74,28 @@ function RowValueCell({ v, soon }: { v: RowValue; soon?: boolean }) {
   return <span className={soon ? 'text-faint italic' : 'text-body'}>{v}</span>;
 }
 
+const PROGRAM_TO_PACK: Record<ProgramPack, Pack> = {
+  GROUPE: 'ESSENTIEL',
+  INDIVIDUEL: 'AVANCE',
+  COMPLET: 'PERFORMANCE',
+};
+
 export default function UpgradePage() {
-  const { selectedChildId } = useChildStore();
-  const { pack: currentPack, isLoading } = usePlan(selectedChildId);
-  const currentIdx = PACK_ORDER.indexOf(currentPack);
+  // Pack auquel le parent est réellement inscrit (aucun tant que l'admin ne l'a pas posé).
+  const { access, isLoading } = useAccessStore();
+  const currentPack: Pack | null = access?.programPack ? PROGRAM_TO_PACK[access.programPack] : null;
+  const currentIdx = currentPack ? PACK_ORDER.indexOf(currentPack) : -1;
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="font-display text-3xl font-semibold text-ink mb-2">Les forfaits THRIVE</h1>
+      <h1 className="font-display text-3xl font-semibold text-ink mb-2">Les packs THRIVE</h1>
       <p className="text-soft mb-6 max-w-2xl">
-        Le forfait choisi avec ton coach pour le parcours de 13 séances. Chaque forfait reprend
-        tout le précédent et va plus loin. Paiement unique, réglé avec ton coach.
+        Le pack choisi avec ton coach pour le parcours de 13 séances. Chaque pack inclut
+        l&apos;abonnement Maison. Paiement réglé avec ton coach.
       </p>
 
       <section className="nc-card mb-6 max-w-3xl">
-        <h2 className="nc-eyebrow mb-3">Dans tous les forfaits</h2>
+        <h2 className="nc-eyebrow mb-3">Dans tous les packs</h2>
         <ul className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
           {COMMON.map((c) => (
             <li key={c} className="flex items-start gap-2.5 text-[14px] leading-snug text-body">
@@ -103,7 +110,7 @@ export default function UpgradePage() {
         {PACK_ORDER.map((p) => {
           const idx = PACK_ORDER.indexOf(p);
           const isCurrent = !isLoading && p === currentPack;
-          const isUpgrade = !isLoading && idx > currentIdx;
+          const isUpgrade = !isLoading && (currentPack === null || idx > currentIdx);
           return (
             <section
               key={p}
@@ -118,7 +125,7 @@ export default function UpgradePage() {
                   </h2>
                   {isCurrent && (
                     <span className="px-3 py-1 rounded-full bg-sage text-navy-900 text-xs font-bold">
-                      Ton forfait
+                      Ton pack
                     </span>
                   )}
                 </div>
@@ -151,18 +158,18 @@ export default function UpgradePage() {
               <div className="mt-6 pt-5 border-t border-line">
                 {isCurrent ? (
                   <span className="block w-full text-center px-6 py-3 rounded-full bg-chip border border-line text-sm font-bold text-soft select-none">
-                    Forfait actuel
+                    Pack actuel
                   </span>
                 ) : isUpgrade ? (
                   <Link
                     href="/parent/messages"
                     className="block w-full text-center px-6 py-3 rounded-full bg-accent text-navy-900 text-sm font-bold hover:bg-sun-dark active:scale-95 transition-all"
                   >
-                    {`Passer à ${PACK_LABELS[p]} — écrire à mon coach`}
+                    {currentPack ? `Passer au pack ${PACK_LABELS[p]} — écrire à mon coach` : `Choisir le pack ${PACK_LABELS[p]} — écrire à mon coach`}
                   </Link>
                 ) : (
                   <span className="block w-full text-center px-6 py-3 text-sm font-medium text-faint select-none">
-                    Compris dans ton forfait actuel
+                    Compris dans ton pack actuel
                   </span>
                 )}
               </div>
@@ -175,9 +182,8 @@ export default function UpgradePage() {
         <div className="flex-1 min-w-0">
           <p className="text-[15px] font-semibold text-ink">Et l&apos;abonnement Maison ?</p>
           <p className="text-[14px] text-soft mt-1 leading-relaxed">
-            Les activités « Maison » à vivre en famille entre les séances sont incluses pendant ton
-            accompagnement, quel que soit ton forfait. Sans accompagnement, elles existent aussi en
-            abonnement seul.
+            Les activités « Maison » à vivre en famille entre les séances sont incluses dans les trois
+            packs (Groupe, Individuel, Complet). Sans pack, elles existent aussi en abonnement seul.
           </p>
         </div>
         <Link
@@ -189,8 +195,8 @@ export default function UpgradePage() {
       </section>
 
       <p className="text-xs text-faint mt-6 max-w-2xl leading-relaxed">
-        Le changement de forfait s&apos;applique immédiatement après le paiement, pour toute la
-        famille. Les bilans déjà reçus sont régénérés à la profondeur de ton nouveau forfait par
+        Le changement de pack s&apos;applique immédiatement après le paiement, pour toute la
+        famille. Les bilans déjà reçus sont régénérés à la profondeur de ton nouveau pack par
         ton coach. Prix en dollars canadiens, taxes en sus le cas échéant.
       </p>
     </div>

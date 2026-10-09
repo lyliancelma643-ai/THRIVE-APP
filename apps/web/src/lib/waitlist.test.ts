@@ -101,7 +101,7 @@ describe('export CSV', () => {
 
   it('exporte les libellés lisibles plutôt que les clés stockées', () => {
     const csv = waitlistToCsv([row({ status: 'sans réponse' })]);
-    expect(csv).toContain('"Avancé"');
+    expect(csv).toContain('"Individuel"');
     expect(csv).toContain('"Sans réponse"');
     expect(csv).toContain('"QR code"');
     expect(csv).toContain('"En soirée"');

@@ -10,7 +10,7 @@
 //     coche en accent quand c'est lu, indicateur de saisie, champ d'écriture ;
 //   • retour par le chevron OU en glissant vers la droite.
 //
-// Droits : le fil coach est l'exclusivité du forfait Performance (feature
+// Droits : le fil coach est l'exclusivité du pack Complet (feature
 // coachMessaging) ; le SUPPORT est ouvert à tous, y compris compte en cours
 // d'activation — c'est justement là qu'on a besoin de nous écrire. L'UI ne fait
 // que refléter ces droits, l'enforcement est en RLS (migrations 041 + 056).
@@ -284,7 +284,7 @@ function ConversationRowItem({ row, onOpen }: { row: Row; onOpen: (id: string) =
   const preview =
     row.summary?.last_message_preview ||
     (row.error === 'FEATURE_LOCKED'
-      ? 'Inclus au forfait Performance'
+      ? 'Inclus au pack Complet'
       : row.error === 'NO_COACH'
         ? 'Coach bientôt attribué'
         : row.key === 'support'

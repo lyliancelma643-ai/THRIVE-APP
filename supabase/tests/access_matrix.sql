@@ -70,8 +70,8 @@ begin
         (pc, true,  false, false, 'ESSENTIEL'),   -- Maison seul : que Maison
         (pd, false, false, false, 'ESSENTIEL'),   -- sandbox ignoré
         (pe, true,  false, false, 'ESSENTIEL'),   -- sandbox accepté pour @thrivesportpositive.com
-        (pf, true,  false, false, 'ESSENTIEL'),   -- forçage Maison ouvert
-        (pg, false, false, true,  'ESSENTIEL'),   -- forçage bilan fermé, séances suit l'activation
+        (pf, true,  false, false, 'PERFORMANCE'), -- pack Complet (+ forçage Maison) ; niveau suit le pack (075)
+        (pg, true,  false, true,  'AVANCE'),      -- pack Individuel ⇒ Maison (075) ; forçage bilan fermé
         (ph, true,  true,  true,  'PERFORMANCE'), -- titulaire activé + abonné
         (pi, true,  true,  true,  'PERFORMANCE')  -- co-parent : hérite activation + abonnement
       ) as t(uid, maison, bilan, seances, lvl)

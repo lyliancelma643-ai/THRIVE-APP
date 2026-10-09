@@ -458,8 +458,8 @@ function fieldLabel(key: string): string {
 
 /* Corps du bilan — 3 sections servies par le RPC filtré `session_report` ;
    partagé entre la lecture inline (mobile) et le panneau latéral (desktop).
-   Message → tous les packs · Bilan détaillé + Observations → Performance (toutes
-   les séances) / Avancé (séances 3, 7, 13) / Essentiel (verrouillé).
+   Message → tous les packs · Bilan détaillé + Observations → Complet (toutes
+   les séances) / Individuel (séances 3, 7, 13) / Groupe (verrouillé).
    Verrouillé : le serveur n'envoie que les libellés — les notes n'atteignent
    jamais le client (le flou n'est plus un simple voile cosmétique). */
 function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack }) {
