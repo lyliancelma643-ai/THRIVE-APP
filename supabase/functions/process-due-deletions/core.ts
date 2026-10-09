@@ -42,6 +42,18 @@ export const STALE_CLAIM_MS = 6 * 60 * 60 * 1000;
 /** Rôles jamais supprimés automatiquement (suppression manuelle par un Super Admin). */
 export const PROTECTED_ROLES = ["SUPER_ADMIN", "ADMIN"];
 
+/**
+ * Vrai « compte Auth introuvable » renvoyé par auth.admin.getUserById
+ * (AuthApiError de @supabase/auth-js : status 404 + code GoTrue 'user_not_found',
+ * message « User not found »). Un 404 quelconque (route, proxy, passerelle) NE
+ * suffit PAS : il serait pris à tort pour un compte déjà supprimé.
+ */
+export function isUserNotFound(err: { status?: number; code?: string; message?: string } | null): boolean {
+  if (!err || err.status !== 404) return false;
+  if (err.code !== undefined) return err.code === "user_not_found";
+  return (err.message ?? "").trim() === "User not found";
+}
+
 export function isProtectedRole(role: unknown): boolean {
   return typeof role === "string" && PROTECTED_ROLES.includes(role);
 }

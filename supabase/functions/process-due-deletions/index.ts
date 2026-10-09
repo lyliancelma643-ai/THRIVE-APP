@@ -21,7 +21,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { captureError, withSentry } from "../_shared/sentry.ts";
 import { cleanupBilling, type BillingRow } from "../admin-delete-user/billing_cleanup.ts";
 import {
-  DONE_STATUS, isAuthorized, isProtectedRole, processDue, STALE_CLAIM_MS, type Deps,
+  DONE_STATUS, isAuthorized, isProtectedRole, isUserNotFound, processDue, STALE_CLAIM_MS, type Deps,
 } from "./core.ts";
 
 function json(body: unknown, status = 200) {
@@ -76,12 +76,21 @@ Deno.serve(withSentry("process-due-deletions", async (req: Request) => {
       },
       deleteAccount: async (userId) => {
         const { data: target, error: tErr } = await admin.auth.admin.getUserById(userId);
-        if (tErr) {
-          const notFound = (tErr as { status?: number }).status === 404 ||
-            /user not found/i.test(tErr.message) || (tErr as { code?: string }).code === "user_not_found";
-          return notFound ? { ok: true } : { ok: false, error: `lecture compte: ${tErr.message}` };
+        const authGone = tErr ? isUserNotFound(tErr as { status?: number; code?: string; message?: string })
+          : !target?.user;
+        if (tErr && !authGone) return { ok: false, error: `lecture compte: ${tErr.message}` };
+        if (authGone) {
+          // Compte Auth absent : succès seulement si aucune donnée ne subsiste.
+          // Profil orphelin = anomalie (cascade non jouée) : on NE le supprime PAS
+          // ici (pas de nettoyage facturation possible sans le compte, risque de
+          // prélèvement résiduel) ; échec explicite → demande reste PENDING,
+          // visible dans l'alerte S1 quotidienne, traitement manuel sous 30 j (Loi 25).
+          const { data: prof, error: pErr } = await admin.from("profiles").select("id").eq("id", userId).maybeSingle();
+          if (pErr) return { ok: false, error: `lecture profil: ${pErr.message}` };
+          if (prof) return { ok: false, error: "compte Auth absent mais profil orphelin : traitement manuel requis" };
+          return { ok: true };
         }
-        if (!target?.user) return { ok: true }; // compte déjà supprimé : rien à faire
+        if (!target?.user) return { ok: false, error: "lecture compte: réponse vide" };
         const role = target.user.app_metadata?.role;
         if (isProtectedRole(role)) {
           return { ok: false, error: `${role} : suppression manuelle requise` };

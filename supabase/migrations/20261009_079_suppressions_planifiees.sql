@@ -19,6 +19,8 @@
 -- Idempotence : processed_at = marqueur de prise (update conditionnel atomique
 -- côté edge function) ; une prise vieille de plus de 6 h est reprise.
 
+set lock_timeout = '5s';
+
 -- Supabase : pg_net dans le schéma extensions (déjà installé par 047), pg_cron dans pg_catalog.
 create extension if not exists pg_net with schema extensions;
 create extension if not exists pg_cron with schema pg_catalog;

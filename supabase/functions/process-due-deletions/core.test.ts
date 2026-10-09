@@ -1,6 +1,6 @@
 // deno test --no-config supabase/functions/process-due-deletions/core.test.ts
 import { assertEquals } from "jsr:@std/assert@1";
-import { type Deps, isAuthorized, isProtectedRole, processDue, safeEqual } from "./core.ts";
+import { type Deps, isAuthorized, isProtectedRole, isUserNotFound, processDue, safeEqual } from "./core.ts";
 
 const SECRET = "s".repeat(32);
 const env = { cronSecret: SECRET, serviceRoleKey: "service-role-key" };
@@ -53,4 +53,13 @@ Deno.test("rôles protégés : SUPER_ADMIN et ADMIN jamais supprimés automatiqu
   assertEquals(isProtectedRole("ADMIN"), true);
   assertEquals(isProtectedRole("PARENT"), false);
   assertEquals(isProtectedRole(undefined), false);
+});
+
+Deno.test("404 : seul le vrai user_not_found compte comme compte absent", () => {
+  assertEquals(isUserNotFound({ status: 404, code: "user_not_found", message: "User not found" }), true);
+  assertEquals(isUserNotFound({ status: 404, message: "User not found" }), true);
+  assertEquals(isUserNotFound({ status: 404, message: "Not Found" }), false);
+  assertEquals(isUserNotFound({ status: 404, code: "not_found", message: "User not found" }), false);
+  assertEquals(isUserNotFound({ status: 500, code: "user_not_found" }), false);
+  assertEquals(isUserNotFound(null), false);
 });
