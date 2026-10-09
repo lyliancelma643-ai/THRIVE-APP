@@ -32,13 +32,21 @@ serve(withSentry("send-push-notification", async (req) => {
     // Récupérer le token Expo
     const { data: profile } = await supabase
       .from('profiles')
-      .select('expo_push_token, notifications_enabled')
+      .select('expo_push_token, notifications_enabled, role')
       .eq('id', user_id)
       .single()
 
     if (!profile?.expo_push_token || !profile.notifications_enabled) {
       return new Response(JSON.stringify({ skipped: true }), { status: 200 })
     }
+
+    // Loi 25 : titre générique selon le destinataire et le fil, sans extrait.
+    const isMessage = Boolean(data?.conversation_id)
+    const messageTitle = ['COACH', 'ADMIN', 'SUPER_ADMIN'].includes(String(profile.role ?? ''))
+      ? 'Nouveau message'
+      : data?.kind === 'SUPPORT'
+        ? "Nouveau message de l'équipe THRIVE"
+        : 'Nouveau message de votre coach'
 
     // Envoyer via Expo
     const res = await fetch(EXPO_PUSH_URL, {
@@ -47,8 +55,8 @@ serve(withSentry("send-push-notification", async (req) => {
       body: JSON.stringify({
         to: profile.expo_push_token,
         // Loi 25 : aucun extrait de message ne transite par Expo/APNs/FCM.
-        title: data?.conversation_id ? 'Nouveau message de votre coach' : title,
-        body: data?.conversation_id ? undefined : body,
+        title: isMessage ? messageTitle : title,
+        body: isMessage ? undefined : body,
         data: data || {},
         sound: 'default',
         priority: 'high',

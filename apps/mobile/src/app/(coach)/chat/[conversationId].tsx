@@ -33,12 +33,62 @@ export default function ChatScreen() {
       await sendMessage(input.trim(), { replyToId: replyTo?.id });
       setInput('');
       setReplyTo(null);
-    } catch {}
+    } catch (e: any) {
+      if (String(e?.message ?? '').includes('Conversation bloquée')) setBlockedByOther(true);
+    }
     setSending(false);
   };
 
   // Signalement / blocage (Apple 1.2) — tables message_reports et conversation_blocks (mig. 077).
+  // `blocked` = j'ai bloqué ce fil (ligne visible par moi seul, RLS) ;
+  // `blockedByOther` = l'envoi a été refusé par le serveur (fil bloqué par l'autre).
   const [blocked, setBlocked] = useState(false);
+  const [blockedByOther, setBlockedByOther] = useState(false);
+  const [unblocking, setUnblocking] = useState(false);
+
+  useEffect(() => {
+    if (!conversationId || !currentUserId) return;
+    let cancelled = false;
+    supabase
+      .from('conversation_blocks')
+      .select('id')
+      .eq('conversation_id', conversationId)
+      .eq('blocker_id', currentUserId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setBlocked(Boolean(data));
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId, currentUserId]);
+
+  const unblockConversation = () =>
+    Alert.alert(
+      'Débloquer la conversation',
+      'Les messages pourront de nouveau être envoyés dans cette conversation.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Débloquer',
+          onPress: async () => {
+            setUnblocking(true);
+            const { error } = await supabase
+              .from('conversation_blocks')
+              .delete()
+              .eq('conversation_id', conversationId)
+              .eq('blocker_id', currentUserId);
+            setUnblocking(false);
+            if (error) {
+              Alert.alert('Erreur', "Le déblocage n'a pas pu être appliqué. Réessayez.");
+              return;
+            }
+            setBlocked(false);
+            setBlockedByOther(false);
+          },
+        },
+      ],
+    );
 
   const reportMessage = async (messageId: string, reason: string) => {
     const { error } = await supabase.from('message_reports').insert({
@@ -61,6 +111,7 @@ export default function ChatScreen() {
     Alert.alert('Signaler ce message', 'Pour quelle raison ?', [
       { text: 'Harcèlement ou menaces', onPress: () => reportMessage(messageId, 'HARCELEMENT') },
       { text: 'Contenu inapproprié', onPress: () => reportMessage(messageId, 'INAPPROPRIE') },
+      { text: 'Spam', onPress: () => reportMessage(messageId, 'SPAM') },
       { text: 'Autre', onPress: () => reportMessage(messageId, 'AUTRE') },
       { text: 'Annuler', style: 'cancel' },
     ]);
@@ -84,7 +135,6 @@ export default function ChatScreen() {
               return;
             }
             setBlocked(true);
-            router.back();
           },
         },
       ],
@@ -97,7 +147,11 @@ export default function ChatScreen() {
     if (msg.sender_id !== currentUserId) {
       options.push({ text: 'Signaler', style: 'destructive', onPress: () => askReportReason(msg.id) });
     }
-    options.push({ text: 'Bloquer la conversation', style: 'destructive', onPress: blockConversation });
+    if (blocked) {
+      options.push({ text: 'Débloquer la conversation', onPress: unblockConversation });
+    } else {
+      options.push({ text: 'Bloquer la conversation', style: 'destructive', onPress: blockConversation });
+    }
     options.push({ text: 'Annuler', style: 'cancel' });
     Alert.alert('Message', undefined, options);
   };
@@ -185,7 +239,30 @@ export default function ChatScreen() {
         </View>
       )}
 
-      {/* Input */}
+      {/* Fil bloqué : bandeau à la place de la saisie */}
+      {blocked || blockedByOther ? (
+        <View style={styles.blockedBar}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.blockedTitle}>Conversation bloquée</Text>
+            <Text style={styles.blockedText}>
+              {blocked
+                ? 'Vous avez bloqué cette conversation. Aucun message ne peut y être envoyé.'
+                : "Cette conversation n'accepte plus de messages."}
+            </Text>
+          </View>
+          {blocked && (
+            <TouchableOpacity
+              style={[styles.unblockBtn, unblocking && styles.sendBtnDisabled]}
+              onPress={unblockConversation}
+              disabled={unblocking}
+              accessibilityRole="button"
+              accessibilityLabel="Débloquer la conversation"
+            >
+              <Text style={styles.unblockBtnText}>{unblocking ? '...' : 'Débloquer'}</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : (
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
@@ -204,6 +281,7 @@ export default function ChatScreen() {
           <Text style={styles.sendBtnText}>{sending ? '...' : '↑'}</Text>
         </TouchableOpacity>
       </View>
+      )}
     </KeyboardAvoidingView>
   );
 }
@@ -239,4 +317,9 @@ const styles = StyleSheet.create({
   sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' },
   sendBtnDisabled: { backgroundColor: '#D1D5DB' },
   sendBtnText: { color: '#fff', fontSize: 18, fontWeight: '700' },
+  blockedBar: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FEF2F2', paddingHorizontal: 16, paddingVertical: 12, paddingBottom: Platform.OS === 'ios' ? 28 : 12, borderTopWidth: 1, borderTopColor: '#FECACA', gap: 12 },
+  blockedTitle: { fontSize: 14, fontWeight: '700', color: '#991B1B' },
+  blockedText: { fontSize: 12, color: '#7F1D1D', marginTop: 2 },
+  unblockBtn: { backgroundColor: '#000', borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 },
+  unblockBtnText: { color: '#fff', fontSize: 14, fontWeight: '600' },
 });

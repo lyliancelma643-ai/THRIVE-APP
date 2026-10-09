@@ -15,7 +15,13 @@ create table if not exists public.message_reports (
   unique (message_id, reporter_id)
 );
 create index if not exists message_reports_status_idx on public.message_reports (status, created_at desc);
+create index if not exists message_reports_conversation_idx on public.message_reports (conversation_id);
+create index if not exists message_reports_reporter_idx on public.message_reports (reporter_id);
 alter table public.message_reports enable row level security;
+-- Droits minimaux : jamais anon ; pas de suppression côté client (preuve).
+revoke all on public.message_reports from anon, authenticated;
+grant select, insert on public.message_reports to authenticated;
+grant update (status) on public.message_reports to authenticated;
 
 drop policy if exists message_reports_insert on public.message_reports;
 drop policy if exists message_reports_select on public.message_reports;
@@ -80,7 +86,11 @@ create table if not exists public.conversation_blocks (
   created_at      timestamptz not null default now(),
   unique (conversation_id, blocker_id)
 );
+create index if not exists conversation_blocks_blocker_idx on public.conversation_blocks (blocker_id);
+create index if not exists conversation_blocks_blocked_user_idx on public.conversation_blocks (blocked_user_id);
 alter table public.conversation_blocks enable row level security;
+revoke all on public.conversation_blocks from anon, authenticated;
+grant select, insert, delete on public.conversation_blocks to authenticated;
 
 drop policy if exists conversation_blocks_insert on public.conversation_blocks;
 drop policy if exists conversation_blocks_select on public.conversation_blocks;
@@ -106,6 +116,12 @@ begin
   select * into c from public.conversations where id = new.conversation_id;
   if not found or c.kind <> 'COACH' then
     raise exception 'Seules les conversations avec un coach peuvent être bloquées' using errcode = '22023';
+  end if;
+  -- Seul un participant bloque (le coach, le parent du fil ou un parent de la
+  -- famille) : la supervision admin, en lecture seule, ne bloque pas un fil.
+  if not (new.blocker_id = c.coach_id or new.blocker_id = c.parent_id
+          or private.is_family_parent(c.family_id)) then
+    raise exception 'Seuls les participants peuvent bloquer cette conversation' using errcode = '42501';
   end if;
   new.blocked_user_id := case when new.blocker_id = c.coach_id then c.parent_id else c.coach_id end;
   return new;
@@ -143,6 +159,7 @@ declare
   v_secret text;
   v_title  text := new.title;
   v_body   text := new.body;
+  v_role   text;
 begin
   select decrypted_secret into v_url
   from vault.decrypted_secrets where name = 'edge_functions_url';
@@ -152,9 +169,16 @@ begin
     return new;
   end if;
 
+  -- Titre selon le destinataire et le fil ; corps vide (et non null : le
+  -- service worker passerait null à showNotification, affiché « null »).
   if new.type::text in ('MESSAGE', 'MESSAGE_RECEIVED') then
-    v_title := 'Nouveau message de votre coach';
-    v_body  := null;
+    select p.role::text into v_role from public.profiles p where p.id = new.user_id;
+    v_title := case
+      when v_role in ('COACH', 'ADMIN', 'SUPER_ADMIN') then 'Nouveau message'
+      when new.data ->> 'kind' = 'SUPPORT' then 'Nouveau message de l''équipe THRIVE'
+      else 'Nouveau message de votre coach'
+    end;
+    v_body := '';
   end if;
 
   perform net.http_post(
@@ -165,7 +189,7 @@ begin
     body := jsonb_build_object(
       'user_id', new.user_id,
       'title', v_title,
-      'body', v_body,
+      'body', coalesce(v_body, ''),
       'data', jsonb_build_object('url', coalesce(new.data ->> 'path', '/'))),
     timeout_milliseconds := 5000);
   return new;

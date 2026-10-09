@@ -25,6 +25,7 @@ export function MessageList({
   onDiscard,
   onEdit,
   onDelete,
+  onReport,
   className = '',
 }: {
   messages: ThreadItem[];
@@ -41,6 +42,8 @@ export function MessageList({
   onDiscard?: (id: string) => void;
   onEdit?: (id: string, content: string) => void;
   onDelete?: (id: string) => void;
+  /** Signaler un message reçu (mig. 077). */
+  onReport?: (id: string) => void;
   className?: string;
 }) {
   const t = TONES[tone];
@@ -131,6 +134,7 @@ export function MessageList({
               onDiscard={() => onDiscard?.(m.id)}
               onEdit={onEdit ? (content) => onEdit(m.id, content) : undefined}
               onDelete={onDelete ? () => onDelete(m.id) : undefined}
+              onReport={onReport && !mine ? () => onReport(m.id) : undefined}
             />
           </div>
         );

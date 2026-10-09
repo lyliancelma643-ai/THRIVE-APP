@@ -87,6 +87,7 @@ export function MessageBubble({
   onDiscard,
   onEdit,
   onDelete,
+  onReport,
 }: {
   message: ThreadItem;
   mine: boolean;
@@ -97,6 +98,8 @@ export function MessageBubble({
   onDiscard?: () => void;
   onEdit?: (content: string) => void;
   onDelete?: () => void;
+  /** Signaler un message reçu (mig. 077) — absent = pas d'option. */
+  onReport?: () => void;
 }) {
   const t = TONES[tone];
   const failed = message.pending === 'failed';
@@ -109,6 +112,8 @@ export function MessageBubble({
     !message.pending &&
     !message.deleted_at &&
     Date.now() - new Date(message.created_at).getTime() < EDIT_WINDOW_MS;
+  const canEdit = editable && Boolean(onEdit || onDelete);
+  const reportable = !mine && !message.pending && Boolean(onReport);
 
   if (message.deleted_at) {
     return (
@@ -176,7 +181,7 @@ export function MessageBubble({
   return (
     <div className={`group flex flex-col ${mine ? 'items-end' : 'items-start'}`}>
       <div className={`flex items-center gap-1 max-w-[85%] md:max-w-[75%] ${mine ? 'flex-row' : 'flex-row-reverse'}`}>
-        {editable && (onEdit || onDelete) && (
+        {(canEdit || reportable) && (
           <span className="relative shrink-0">
             <button
               type="button"
@@ -195,27 +200,43 @@ export function MessageBubble({
                   tone === 'night' ? 'bg-night-nav' : 'bg-white ring-1 ring-slate-200'
                 }`}
               >
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    setDraft(message.content);
-                    setEditing(true);
-                  }}
-                  className={`px-4 py-2 text-xs font-semibold whitespace-nowrap cursor-pointer ${t.title}`}
-                >
-                  Modifier
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMenuOpen(false);
-                    onDelete?.();
-                  }}
-                  className="px-4 py-2 text-xs font-semibold whitespace-nowrap text-red-500 cursor-pointer"
-                >
-                  Supprimer
-                </button>
+                {canEdit && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setDraft(message.content);
+                        setEditing(true);
+                      }}
+                      className={`px-4 py-2 text-xs font-semibold whitespace-nowrap cursor-pointer ${t.title}`}
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onDelete?.();
+                      }}
+                      className="px-4 py-2 text-xs font-semibold whitespace-nowrap text-red-500 cursor-pointer"
+                    >
+                      Supprimer
+                    </button>
+                  </>
+                )}
+                {reportable && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onReport?.();
+                    }}
+                    className="px-4 py-2 text-xs font-semibold whitespace-nowrap text-red-500 cursor-pointer"
+                  >
+                    Signaler
+                  </button>
+                )}
               </span>
             )}
           </span>

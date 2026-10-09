@@ -31,6 +31,7 @@ import { MessageList } from '@/components/messaging/MessageList';
 import { Composer } from '@/components/messaging/Composer';
 import { useConversation } from '@/hooks/useConversation';
 import { useModalDismiss } from '@/lib/useModalDismiss';
+import { supabaseClient as supabase } from '@thrive/shared';
 import {
   initials,
   listConversations,
@@ -52,6 +53,14 @@ type Row = {
   error: MessagingErrorCode | null;
   summary: ConversationSummary | null;
 };
+
+// Signalement / blocage (Apple 1.2, mig. 077) — mêmes tables que l'app mobile.
+const REPORT_REASONS: { value: 'HARCELEMENT' | 'INAPPROPRIE' | 'SPAM' | 'AUTRE'; label: string }[] = [
+  { value: 'HARCELEMENT', label: 'Harcèlement ou menaces' },
+  { value: 'INAPPROPRIE', label: 'Contenu inapproprié' },
+  { value: 'SPAM', label: 'Spam' },
+  { value: 'AUTRE', label: 'Autre' },
+];
 
 const CHEVRON = (
   <svg
@@ -356,9 +365,74 @@ function ThreadView({
 
   const firstName = row.name.split(' ')[0];
 
+  // Blocage : seul le fil coach se bloque (le support reste le canal d'aide).
+  const canBlock = row.key === 'coach' && !!row.id && !!myId;
+  const [blocked, setBlocked] = useState(false);
+  const [blockBusy, setBlockBusy] = useState(false);
+  const [confirmBlock, setConfirmBlock] = useState(false);
+  const [reportingId, setReportingId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!canBlock) return;
+    let alive = true;
+    supabase
+      .from('conversation_blocks')
+      .select('id')
+      .eq('conversation_id', row.id!)
+      .eq('blocker_id', myId!)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (alive) setBlocked(Boolean(data));
+      });
+    return () => {
+      alive = false;
+    };
+  }, [canBlock, row.id, myId]);
+
+  const toggleBlock = async () => {
+    if (!canBlock) return;
+    setBlockBusy(true);
+    const { error } = blocked
+      ? await supabase
+          .from('conversation_blocks')
+          .delete()
+          .eq('conversation_id', row.id!)
+          .eq('blocker_id', myId!)
+      : await supabase
+          .from('conversation_blocks')
+          .insert({ conversation_id: row.id!, blocker_id: myId! });
+    setBlockBusy(false);
+    setConfirmBlock(false);
+    if (error && error.code !== '23505') {
+      setNotice(blocked ? "Le déblocage n'a pas pu être appliqué. Réessaie." : "Le blocage n'a pas pu être appliqué. Réessaie.");
+      return;
+    }
+    setBlocked(!blocked);
+    setNotice(null);
+  };
+
+  const report = async (reason: (typeof REPORT_REASONS)[number]['value']) => {
+    if (!reportingId || !row.id || !myId) return;
+    const { error } = await supabase.from('message_reports').insert({
+      message_id: reportingId,
+      conversation_id: row.id,
+      reporter_id: myId,
+      reason,
+    });
+    setReportingId(null);
+    setNotice(
+      error?.code === '23505'
+        ? 'Tu as déjà signalé ce message.'
+        : error
+          ? "Le signalement n'a pas pu être envoyé. Réessaie."
+          : "Merci. Notre équipe examinera ce message sous 24 h.",
+    );
+  };
+
   return (
     <div
-      className="flex-1 min-h-0 flex flex-col"
+      className="relative flex-1 min-h-0 flex flex-col"
       style={{
         transform: dragX ? `translateX(${dragX}px)` : undefined,
         transition: axis === 'x' ? 'none' : 'transform .3s cubic-bezier(.22,.61,.36,1)',
@@ -424,7 +498,26 @@ function ThreadView({
             {thread.typing ? 'écrit…' : row.subtitle}
           </span>
         </span>
+        {canBlock && (
+          <button
+            type="button"
+            onClick={() => (blocked ? toggleBlock() : setConfirmBlock(true))}
+            disabled={blockBusy}
+            className="shrink-0 px-3 h-9 rounded-full text-[12.5px] font-semibold text-soft hover:bg-surface-sub active:bg-surface-sub cursor-pointer disabled:opacity-50"
+          >
+            {blocked ? 'Débloquer' : 'Bloquer'}
+          </button>
+        )}
       </header>
+
+      {notice && (
+        <p role="status" className="shrink-0 flex items-center justify-between gap-2 px-4 py-2 text-[12.5px] text-ink border-b border-line">
+          {notice}
+          <button type="button" onClick={() => setNotice(null)} aria-label="Masquer" className="font-bold cursor-pointer">
+            ×
+          </button>
+        </p>
+      )}
 
       <MessageList
         messages={thread.messages}
@@ -440,6 +533,7 @@ function ThreadView({
         onDiscard={thread.discard}
         onEdit={thread.edit}
         onDelete={thread.remove}
+        onReport={row.id ? setReportingId : undefined}
         className="px-0"
         emptyState={
           <p className="mx-6 my-10 text-[12.5px] leading-[1.5] text-soft text-center text-pretty">
@@ -451,14 +545,93 @@ function ThreadView({
       />
 
       <div style={{ background: 'var(--chat-bar)' }} className="shrink-0">
-        <Composer
-          conversationId={row.id!}
-          tone="night"
-          placeholder={`Écrire ${row.writeTo.startsWith('au') ? '' : 'à '}${row.writeTo}`}
-          onSend={thread.send}
-          onTyping={thread.notifyTyping}
-        />
+        {blocked ? (
+          <div className="flex items-center gap-3 px-4 py-3" style={{ paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+            <p className="flex-1 min-w-0 text-[12.5px] leading-[1.4] text-soft">
+              <span className="block font-semibold text-ink">Conversation bloquée</span>
+              Aucun message ne peut être envoyé dans cette conversation.
+            </p>
+            <button
+              type="button"
+              onClick={toggleBlock}
+              disabled={blockBusy}
+              className="shrink-0 px-4 h-10 rounded-full text-[13px] font-semibold bg-accent text-black cursor-pointer disabled:opacity-50"
+            >
+              Débloquer
+            </button>
+          </div>
+        ) : (
+          <Composer
+            conversationId={row.id!}
+            tone="night"
+            placeholder={`Écrire ${row.writeTo.startsWith('au') ? '' : 'à '}${row.writeTo}`}
+            onSend={thread.send}
+            onTyping={thread.notifyTyping}
+          />
+        )}
       </div>
+
+      {(confirmBlock || reportingId) && (
+        <div
+          className="absolute inset-0 z-30 flex items-end sm:items-center justify-center bg-black/50 p-4"
+          onClick={() => {
+            setConfirmBlock(false);
+            setReportingId(null);
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={confirmBlock ? 'Bloquer la conversation' : 'Signaler ce message'}
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-sm rounded-2xl p-4 flex flex-col gap-2 border border-line"
+            style={{ background: 'var(--chat-bar)' }}
+          >
+            {confirmBlock ? (
+              <>
+                <p className="text-[15px] font-semibold text-ink">Bloquer la conversation ?</p>
+                <p className="text-[12.5px] leading-[1.45] text-soft">
+                  Plus aucun message ne pourra être envoyé dans cette conversation, ni par toi ni par
+                  {' '}{firstName}. Tu pourras la débloquer à tout moment.
+                </p>
+                <button
+                  type="button"
+                  onClick={toggleBlock}
+                  disabled={blockBusy}
+                  className="mt-1 h-11 rounded-full text-[13.5px] font-semibold bg-red-500 text-white cursor-pointer disabled:opacity-50"
+                >
+                  Bloquer
+                </button>
+              </>
+            ) : (
+              <>
+                <p className="text-[15px] font-semibold text-ink">Signaler ce message</p>
+                <p className="text-[12.5px] text-soft">Pour quelle raison ?</p>
+                {REPORT_REASONS.map((r) => (
+                  <button
+                    key={r.value}
+                    type="button"
+                    onClick={() => report(r.value)}
+                    className="h-11 rounded-full text-[13.5px] font-semibold text-ink border border-line hover:bg-surface-sub cursor-pointer"
+                  >
+                    {r.label}
+                  </button>
+                ))}
+              </>
+            )}
+            <button
+              type="button"
+              onClick={() => {
+                setConfirmBlock(false);
+                setReportingId(null);
+              }}
+              className="h-11 rounded-full text-[13.5px] font-semibold text-soft cursor-pointer"
+            >
+              Annuler
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
