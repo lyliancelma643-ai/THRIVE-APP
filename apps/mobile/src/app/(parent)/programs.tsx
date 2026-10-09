@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
 import { usePrograms } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 const AGE_GROUPS = ['Tous', '8-11', '12-14', '15-17'];
 const STATUS_COLORS: Record<string, string> = {
@@ -18,7 +19,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export default function ProgramsScreen() {
   const [selectedAge, setSelectedAge] = useState('Tous');
-  const { programs, isLoading } = usePrograms({
+  const { programs, isLoading, error, refetch } = usePrograms({
     ageGroup: selectedAge === 'Tous' ? undefined : selectedAge,
     status: 'ACTIVE',
   });
@@ -35,6 +36,9 @@ export default function ProgramsScreen() {
               <Pressable
                 key={age}
                 onPress={() => setSelectedAge(age)}
+                accessibilityRole="button"
+                accessibilityLabel={age === 'Tous' ? 'Tous les âges' : `${age} ans`}
+                accessibilityState={{ selected: selectedAge === age }}
                 className={`rounded-full px-4 py-2 mr-2 ${
                   selectedAge === age ? 'bg-black' : 'bg-white border border-gray-200'
                 }`}
@@ -48,7 +52,9 @@ export default function ProgramsScreen() {
         </ScrollView>
 
         {isLoading ? (
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" accessibilityLabel="Chargement des programmes" />
+        ) : error && programs.length === 0 ? (
+          <OfflineState onRetry={refetch} />
         ) : programs.length === 0 ? (
           <View className="items-center mt-8">
             <Text className="text-4xl mb-4">🎯</Text>

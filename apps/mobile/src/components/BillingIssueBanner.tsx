@@ -43,7 +43,14 @@ export function BillingIssueBanner() {
       <Text className="text-amber-900 text-sm mb-3">
         Le dernier paiement de votre abonnement a échoué. Mettez à jour votre moyen de paiement pour conserver votre accès.
       </Text>
-      <Pressable onPress={manage} accessibilityRole="button" className="bg-black rounded-xl px-4 py-2 self-start">
+      <Pressable
+        onPress={manage}
+        accessibilityRole="button"
+        accessibilityLabel="Gérer mon abonnement"
+        accessibilityHint="Ouvre la gestion de l’abonnement pour mettre à jour le moyen de paiement"
+        hitSlop={8}
+        className="bg-black rounded-xl px-4 py-2 self-start"
+      >
         <Text className="text-white font-semibold">Gérer mon abonnement</Text>
       </Pressable>
     </View>

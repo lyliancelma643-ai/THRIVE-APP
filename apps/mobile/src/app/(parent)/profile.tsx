@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { AccountPrivacySection } from '../../components/AccountPrivacySection';
 import { HealthNotice } from '../../components/HealthNotice';
 import { SubscriptionSettings } from '../../components/subscription/SubscriptionSettings';
+import { BillingIssueBanner } from '../../components/BillingIssueBanner';
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuthStore();
@@ -36,6 +37,7 @@ export default function ProfileScreen() {
           <Text className="text-gray-500 text-sm">Rôle</Text>
           <Text className="font-semibold text-base">{ROLE_LABELS[user?.role ?? ''] ?? '—'}</Text>
         </View>
+        <BillingIssueBanner />
         <View className="-mx-4">
           <SubscriptionSettings />
         </View>
@@ -49,7 +51,7 @@ export default function ProfileScreen() {
         </Pressable>
         <HealthNotice />
         <AccountPrivacySection />
-        <Pressable className="bg-black rounded-2xl py-4 items-center mb-12" onPress={handleSignOut}>
+        <Pressable className="bg-black rounded-2xl py-4 items-center mb-12" onPress={handleSignOut} accessibilityRole="button">
           <Text className="text-white font-semibold">Se déconnecter</Text>
         </Pressable>
       </View>

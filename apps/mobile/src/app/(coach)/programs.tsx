@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, ActivityIndicator, Modal, TextInput, Alert } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
 import { usePrograms, supabaseClient } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 const AGE_GROUPS = ['8-11', '12-14', '15-17'];
 
 export default function CoachProgramsScreen() {
   const { user } = useAuthStore();
-  const { programs, isLoading } = usePrograms({ coachId: user?.id });
+  const { programs, isLoading, error, refetch } = usePrograms({ coachId: user?.id });
 
   const [showModal, setShowModal] = useState(false);
   const [title, setTitle] = useState('');
@@ -19,12 +20,14 @@ export default function CoachProgramsScreen() {
     if (!title) { Alert.alert('Erreur', 'Le titre est requis'); return; }
     setSaving(true);
     try {
-      await supabaseClient.from('programs').insert({
+      const { error: insertError } = await supabaseClient.from('programs').insert({
         title, description, age_group: ageGroup,
         coach_id: user!.id, status: 'ACTIVE',
       });
+      if (insertError) throw new Error('Le programme n’a pas pu être créé. Vérifiez votre connexion puis réessayez.');
       setShowModal(false);
       setTitle(''); setDescription('');
+      refetch();
     } catch (e: any) {
       Alert.alert('Erreur', e.message);
     }
@@ -36,13 +39,20 @@ export default function CoachProgramsScreen() {
       <View className="px-6 pt-16">
         <View className="flex-row justify-between items-center mb-6">
           <Text className="text-2xl font-bold">Mes programmes</Text>
-          <Pressable className="bg-black rounded-xl px-4 py-2" onPress={() => setShowModal(true)}>
+          <Pressable
+            className="bg-black rounded-xl px-4 py-2"
+            onPress={() => setShowModal(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Créer un programme"
+          >
             <Text className="text-white font-semibold">+ Créer</Text>
           </Pressable>
         </View>
 
         {isLoading ? (
-          <ActivityIndicator size="large" />
+          <ActivityIndicator size="large" accessibilityLabel="Chargement des programmes" />
+        ) : error && programs.length === 0 ? (
+          <OfflineState onRetry={refetch} />
         ) : programs.length === 0 ? (
           <View className="items-center mt-8">
             <Text className="text-4xl mb-4">🏋️</Text>
@@ -89,6 +99,9 @@ export default function CoachProgramsScreen() {
                 <Pressable
                   key={ag}
                   onPress={() => setAgeGroup(ag)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${ag} ans`}
+                  accessibilityState={{ selected: ageGroup === ag }}
                   className={`rounded-full px-4 py-2 mr-2 ${ ageGroup === ag ? 'bg-black' : 'bg-gray-100'}`}
                 >
                   <Text className={ageGroup === ag ? 'text-white font-semibold' : 'text-gray-700'}>{ag}</Text>
@@ -99,10 +112,12 @@ export default function CoachProgramsScreen() {
               className="bg-black rounded-2xl py-4 items-center mb-3"
               onPress={handleCreate}
               disabled={saving}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: saving, busy: saving }}
             >
               <Text className="text-white font-semibold">{saving ? 'Création...' : 'Créer le programme'}</Text>
             </Pressable>
-            <Pressable onPress={() => setShowModal(false)}>
+            <Pressable onPress={() => setShowModal(false)} accessibilityRole="button">
               <Text className="text-center text-gray-500">Annuler</Text>
             </Pressable>
           </View>

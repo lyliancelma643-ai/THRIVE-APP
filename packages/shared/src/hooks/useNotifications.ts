@@ -21,19 +21,30 @@ export function useNotifications() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<RealtimeChannel | null>(null);
   const listenerRef = useRef<{ remove: () => void } | null>(null);
 
   const fetch = useCallback(async () => {
-    const { data } = await supabase
-      .from('notifications')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(50);
-    const notifs = data ?? [];
-    setNotifications(notifs);
-    setUnreadCount(notifs.filter((n) => !n.is_read).length);
-    setIsLoading(false);
+    try {
+      const { data, error: queryError } = await supabase
+        .from('notifications')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (queryError) {
+        setError(queryError.message);
+        return;
+      }
+      const notifs = data ?? [];
+      setNotifications(notifs);
+      setUnreadCount(notifs.filter((n) => !n.is_read).length);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -109,6 +120,7 @@ export function useNotifications() {
     notifications,
     unreadCount,
     isLoading,
+    error,
     markAsRead,
     markAllAsRead,
     deleteNotification,

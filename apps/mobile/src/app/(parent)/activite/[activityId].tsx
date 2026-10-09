@@ -22,11 +22,12 @@ function ActivityContent() {
 
   const view = activity && band ? resolveActivity(activity, duration, band) : null;
 
-  if (!activity || !view || activity.week === null) {
+  // childId absent (lien profond incomplet) : on ne peut rien enregistrer → écran « indisponible ».
+  if (!activity || !view || activity.week === null || !childId) {
     return (
-      <View className="flex-1 items-center justify-center px-6">
+      <View className="flex-1 items-center justify-center px-6" accessibilityRole="alert">
         <Text className="text-gray-500 text-center">Cette activité n’est pas disponible.</Text>
-        <Pressable className="mt-4" onPress={() => router.back()}>
+        <Pressable className="mt-4" onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
           <Text className="underline">Retour</Text>
         </Pressable>
       </View>
@@ -37,7 +38,7 @@ function ActivityContent() {
     setSaving(true);
     try {
       await recordMoment({
-        childId: childId!,
+        childId,
         activityId: activity.id,
         week: activity.week!,
         duration: view.duration,
@@ -57,7 +58,7 @@ function ActivityContent() {
   return (
     <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ paddingBottom: 48 }}>
       <View className="px-6 pt-16 pb-6 bg-black">
-        <Pressable onPress={() => router.back()} accessibilityRole="button" className="mb-4">
+        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Retour" hitSlop={8} className="mb-4">
           <Text className="text-gray-300">‹ Retour</Text>
         </Pressable>
         <Text className="text-gray-400 text-xs mb-1">{view.subtitle}</Text>
@@ -124,11 +125,12 @@ function ActivityContent() {
           onChangeText={setKeptPhrase}
           maxLength={500}
           multiline
+          accessibilityLabel="Une phrase à garder, facultatif"
         />
 
         <Text className="text-gray-500 text-xs font-semibold mb-2">C’EST FAIT ? COMMENT ÇA S’EST PASSÉ</Text>
         {saving ? (
-          <ActivityIndicator />
+          <ActivityIndicator accessibilityLabel="Enregistrement en cours" />
         ) : (
           OUTCOMES.map((o) => (
             <Pressable

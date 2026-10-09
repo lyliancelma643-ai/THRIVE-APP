@@ -5,10 +5,11 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useConversations } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 export default function CoachInboxScreen() {
   const router = useRouter();
-  const { conversations, isLoading, refetch } = useConversations();
+  const { conversations, isLoading, error, refetch } = useConversations();
   const [search, setSearch] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -51,12 +52,15 @@ export default function CoachInboxScreen() {
             onChangeText={setSearch}
             placeholder="Rechercher une conversation..."
             placeholderTextColor="#9CA3AF"
+            accessibilityLabel="Rechercher une conversation"
           />
         </View>
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} />
+        <ActivityIndicator style={{ marginTop: 40 }} accessibilityLabel="Chargement des messages" />
+      ) : error && conversations.length === 0 ? (
+        <OfflineState onRetry={refetch} />
       ) : filtered.length === 0 ? (
         <View style={styles.empty}>
           <Text style={{ fontSize: 48 }}>💬</Text>
@@ -75,6 +79,8 @@ export default function CoachInboxScreen() {
             <TouchableOpacity
               key={conv.id}
               style={styles.row}
+              accessibilityRole="button"
+              accessibilityLabel={`Conversation avec ${conv.counterpart_name ?? 'un parent'}${conv.child_name ? ` (${conv.child_name})` : ''}`}
               onPress={() => router.push(`/(coach)/chat/${conv.id}?name=${conv.counterpart_name ?? 'Parent'}`)}
             >
               <View style={styles.avatar}>

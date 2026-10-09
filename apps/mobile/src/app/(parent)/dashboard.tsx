@@ -18,7 +18,7 @@ export default function ParentDashboard() {
     .slice(0, 3);
 
   if ((familyError || childrenError) && !family && children.length === 0) {
-    return <OfflineState onRetry={() => { refetchFamily(); refetchChildren(); }} />;
+    return <OfflineState onRetry={() => Promise.all([refetchFamily(), refetchChildren()])} />;
   }
 
   return (

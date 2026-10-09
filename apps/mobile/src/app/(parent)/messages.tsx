@@ -5,10 +5,11 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useConversations } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 export default function ParentMessagesScreen() {
   const router = useRouter();
-  const { conversations, isLoading, refetch } = useConversations();
+  const { conversations, isLoading, error, refetch } = useConversations();
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
@@ -47,7 +48,9 @@ export default function ParentMessagesScreen() {
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} />
+        <ActivityIndicator style={{ marginTop: 40 }} accessibilityLabel="Chargement des messages" />
+      ) : error && conversations.length === 0 ? (
+        <OfflineState onRetry={refetch} />
       ) : conversations.length === 0 ? (
         <View style={styles.empty}>
           <Text style={{ fontSize: 48 }}>💬</Text>
@@ -62,6 +65,8 @@ export default function ParentMessagesScreen() {
             <TouchableOpacity
               key={conv.id}
               style={[styles.row, conv.unread_count > 0 && styles.rowUnread]}
+              accessibilityRole="button"
+              accessibilityLabel={`Conversation avec ${conv.counterpart_name ?? 'le support THRIVE'}${conv.unread_count > 0 ? `, ${conv.unread_count} non lu${conv.unread_count > 1 ? 's' : ''}` : ''}`}
               onPress={() => router.push(
                 `/(parent)/chat/${conv.id}?name=${conv.counterpart_name ?? 'THRIVE'}`
               )}

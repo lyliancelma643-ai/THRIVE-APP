@@ -2,16 +2,20 @@ import React, { useState } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useChildBadges, useBadges } from '@thrive/shared';
+import { OfflineState } from '../../components/OfflineState';
 
 export default function ChildBadgesScreen() {
   const { childId } = useLocalSearchParams<{ childId: string }>();
-  const { childBadges, isLoading } = useChildBadges(childId);
-  const { badges: allBadges, isLoading: badgesLoading } = useBadges();
+  const { childBadges, isLoading, error: childBadgesError, refetch: refetchChildBadges } = useChildBadges(childId);
+  const { badges: allBadges, isLoading: badgesLoading, error: badgesError, refetch: refetchBadges } = useBadges();
   const [tab, setTab] = useState<'earned' | 'all'>('earned');
 
   const earnedIds = new Set(childBadges.map((cb) => cb.badge_id));
 
-  if (isLoading || badgesLoading) return <ActivityIndicator style={{ flex: 1 }} />;
+  if (isLoading || badgesLoading) return <ActivityIndicator style={{ flex: 1 }} accessibilityLabel="Chargement des badges" />;
+  if ((childBadgesError || badgesError) && childBadges.length === 0 && allBadges.length === 0) {
+    return <OfflineState onRetry={() => Promise.all([refetchChildBadges(), refetchBadges()])} />;
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -25,12 +29,16 @@ export default function ChildBadgesScreen() {
         <TouchableOpacity
           style={[styles.tab, tab === 'earned' && styles.tabActive]}
           onPress={() => setTab('earned')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: tab === 'earned' }}
         >
           <Text style={[styles.tabText, tab === 'earned' && styles.tabTextActive]}>Obtenus</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.tab, tab === 'all' && styles.tabActive]}
           onPress={() => setTab('all')}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: tab === 'all' }}
         >
           <Text style={[styles.tabText, tab === 'all' && styles.tabTextActive]}>Tous les badges</Text>
         </TouchableOpacity>

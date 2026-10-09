@@ -26,35 +26,57 @@ export interface ChildBadge {
 export function useBadges() {
   const [badges, setBadges] = useState<Badge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    supabase
-      .from('badges')
-      .select('*')
-      .eq('is_active', true)
-      .order('category')
-      .then(({ data }: any) => {
-        setBadges(data ?? []);
-        setIsLoading(false);
-      });
+  const fetch = useCallback(async () => {
+    try {
+      const { data, error: queryError } = await supabase
+        .from('badges')
+        .select('*')
+        .eq('is_active', true)
+        .order('category');
+      if (queryError) {
+        setError(queryError.message);
+        return;
+      }
+      setBadges((data ?? []) as Badge[]);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  return { badges, isLoading };
+  useEffect(() => { fetch(); }, [fetch]);
+
+  return { badges, isLoading, error, refetch: fetch };
 }
 
 export function useChildBadges(childId?: string) {
   const [childBadges, setChildBadges] = useState<ChildBadge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
     if (!childId) { setIsLoading(false); return; }
-    const { data } = await supabase
-      .from('child_badges')
-      .select('*, badge:badges(*)')
-      .eq('child_id', childId)
-      .order('earned_at', { ascending: false });
-    setChildBadges(data ?? []);
-    setIsLoading(false);
+    try {
+      const { data, error: queryError } = await supabase
+        .from('child_badges')
+        .select('*, badge:badges(*)')
+        .eq('child_id', childId)
+        .order('earned_at', { ascending: false });
+      if (queryError) {
+        setError(queryError.message);
+        return;
+      }
+      setChildBadges(data ?? []);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau');
+    } finally {
+      setIsLoading(false);
+    }
   }, [childId]);
 
   useEffect(() => { fetch(); }, [fetch]);
@@ -101,5 +123,5 @@ export function useChildBadges(childId?: string) {
     }
   };
 
-  return { childBadges, isLoading, awardBadge, checkAndAwardBadges, refetch: fetch };
+  return { childBadges, isLoading, error, awardBadge, checkAndAwardBadges, refetch: fetch };
 }

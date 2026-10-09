@@ -35,20 +35,29 @@ export function useConversations(scope: 'mine' | 'support' | 'supervision' = 'mi
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const fetch = useCallback(async () => {
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      setIsLoading(false);
-      return;
-    }
-    setCurrentUserId(user.id);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return;
+      setCurrentUserId(user.id);
 
-    const { data } = await supabase.rpc('list_my_conversations', { p_scope: scope });
-    setConversations((data ?? []) as Conversation[]);
-    setIsLoading(false);
+      const { data, error: rpcError } = await supabase.rpc('list_my_conversations', { p_scope: scope });
+      if (rpcError) {
+        // On garde la liste déjà affichée : seule l'erreur est signalée.
+        setError(rpcError.message);
+        return;
+      }
+      setConversations((data ?? []) as Conversation[]);
+      setError(null);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau');
+    } finally {
+      setIsLoading(false);
+    }
   }, [scope]);
 
   useEffect(() => {
@@ -76,6 +85,7 @@ export function useConversations(scope: 'mine' | 'support' | 'supervision' = 'mi
   return {
     conversations,
     isLoading,
+    error,
     currentUserId,
     openCoachConversation,
     openSupportConversation,

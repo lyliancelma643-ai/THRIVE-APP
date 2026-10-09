@@ -4,7 +4,8 @@ import { Paywall } from '../../components/subscription/Paywall';
 import { SubscriptionLoader } from '../../components/subscription/SubscriptionLoader';
 import { SubscriptionSettings } from '../../components/subscription/SubscriptionSettings';
 import { useEntitlement } from '../../hooks/useEntitlement';
-import { ScrollView, StyleSheet } from 'react-native';
+import { BillingIssueBanner } from '../../components/BillingIssueBanner';
+import { ScrollView, StyleSheet, View } from 'react-native';
 
 /** Écran d'abonnement : paywall si pas d'accès, sinon état + gestion. */
 export default function AbonnementScreen() {
@@ -16,6 +17,9 @@ export default function AbonnementScreen() {
   }
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <View style={styles.banner}>
+        <BillingIssueBanner />
+      </View>
       <SubscriptionSettings />
     </ScrollView>
   );
@@ -24,4 +28,5 @@ export default function AbonnementScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f172a' },
   content: { paddingTop: 60 },
+  banner: { paddingHorizontal: 16 },
 });

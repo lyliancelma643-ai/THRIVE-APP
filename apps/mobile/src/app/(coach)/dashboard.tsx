@@ -8,7 +8,7 @@ import { OfflineState } from '../../components/OfflineState';
 export default function CoachDashboard() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const { programs, isLoading: programsLoading, error: programsError } = usePrograms({ coachId: user?.id });
+  const { programs, isLoading: programsLoading, error: programsError, refetch: refetchPrograms } = usePrograms({ coachId: user?.id });
   const { sessions, isLoading: sessionsLoading, error: sessionsError, refetch: refetchSessions } = useSessions();
 
   const activePrograms = programs.filter((p) => p.status === 'ACTIVE');
@@ -19,7 +19,7 @@ export default function CoachDashboard() {
   });
 
   if ((programsError || sessionsError) && programs.length === 0 && sessions.length === 0) {
-    return <OfflineState onRetry={() => refetchSessions()} />;
+    return <OfflineState onRetry={() => Promise.all([refetchPrograms(), refetchSessions()])} />;
   }
 
   return (

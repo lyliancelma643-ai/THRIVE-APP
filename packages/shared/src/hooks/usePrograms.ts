@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { supabaseClient } from '../lib/supabase';
 
 export interface Program {
@@ -18,9 +18,9 @@ export function usePrograms(filters?: { coachId?: string; ageGroup?: string; sta
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchPrograms = async () => {
-      setIsLoading(true);
+  const fetchPrograms = useCallback(async () => {
+    setIsLoading(true);
+    try {
       let query = supabaseClient
         .from('programs')
         .select('*, profiles(first_name, last_name), program_enrollments(child_id)');
@@ -31,11 +31,20 @@ export function usePrograms(filters?: { coachId?: string; ageGroup?: string; sta
 
       const { data, error } = await query.order('created_at', { ascending: false });
       if (error) setError(error.message);
-      else setPrograms(data ?? []);
+      else {
+        setPrograms(data ?? []);
+        setError(null);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur réseau');
+    } finally {
       setIsLoading(false);
-    };
-    fetchPrograms();
+    }
   }, [filters?.coachId, filters?.ageGroup, filters?.status]);
 
-  return { programs, isLoading, error };
+  useEffect(() => {
+    fetchPrograms();
+  }, [fetchPrograms]);
+
+  return { programs, isLoading, error, refetch: fetchPrograms };
 }

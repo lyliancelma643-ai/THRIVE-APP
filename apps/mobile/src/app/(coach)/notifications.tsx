@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 // Import par sous-chemin : useNotifications dépend d'Expo, exclu de l'index partagé
 import { useNotifications, type AppNotification } from '@thrive/shared/hooks/useNotifications';
+import { OfflineState } from '../../components/OfflineState';
 
 const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
   MESSAGE: { icon: '💬', color: '#3B82F6' },
@@ -15,7 +16,7 @@ const TYPE_CONFIG: Record<string, { icon: string; color: string }> = {
 };
 
 export default function NotificationsScreen() {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+  const { notifications, unreadCount, isLoading, error, refetch, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
 
   const formatTime = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -35,6 +36,9 @@ export default function NotificationsScreen() {
         style={[styles.row, !notif.is_read && styles.rowUnread]}
         onPress={() => markAsRead(notif.id)}
         onLongPress={() => deleteNotification(notif.id)}
+        accessibilityRole="button"
+        accessibilityLabel={`${notif.is_read ? '' : 'Non lue : '}${notif.title}`}
+        accessibilityHint="Appuyez pour marquer comme lue, appui long pour supprimer"
       >
         <View style={[styles.iconWrap, { backgroundColor: config.color + '20' }]}>
           <Text style={styles.icon}>{config.icon}</Text>
@@ -65,14 +69,16 @@ export default function NotificationsScreen() {
           )}
         </View>
         {unreadCount > 0 && (
-          <TouchableOpacity style={styles.readAllBtn} onPress={markAllAsRead}>
+          <TouchableOpacity style={styles.readAllBtn} onPress={markAllAsRead} accessibilityRole="button" accessibilityLabel="Tout marquer comme lu">
             <Text style={styles.readAllText}>Tout lire</Text>
           </TouchableOpacity>
         )}
       </View>
 
       {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} />
+        <ActivityIndicator style={{ marginTop: 40 }} accessibilityLabel="Chargement des notifications" />
+      ) : error && notifications.length === 0 ? (
+        <OfflineState onRetry={refetch} />
       ) : notifications.length === 0 ? (
         <View style={styles.empty}>
           <Text style={{ fontSize: 48 }}>🔔</Text>
