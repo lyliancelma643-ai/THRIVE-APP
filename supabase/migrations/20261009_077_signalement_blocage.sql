@@ -41,6 +41,8 @@ begin
   if v_conv is null or v_conv <> new.conversation_id then
     raise exception 'Message introuvable dans cette conversation' using errcode = '22023';
   end if;
+  -- Un signalement naît toujours ouvert : seul un admin change le statut ensuite.
+  new.status := 'OPEN';
   return new;
 end $$;
 
