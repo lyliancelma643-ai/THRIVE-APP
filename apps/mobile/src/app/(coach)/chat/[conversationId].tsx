@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, FlatList,
-  KeyboardAvoidingView, Platform, StyleSheet, ActivityIndicator,
+  KeyboardAvoidingView, Platform, StyleSheet, ActivityIndicator, Alert,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMessages } from '@thrive/shared';
+import { useMessages, supabaseClient as supabase } from '@thrive/shared';
 
 export default function ChatScreen() {
   // Le destinataire n'est plus passé par l'URL : il se déduit de la
@@ -37,6 +37,71 @@ export default function ChatScreen() {
     setSending(false);
   };
 
+  // Signalement / blocage (Apple 1.2) — tables message_reports et conversation_blocks (mig. 077).
+  const [blocked, setBlocked] = useState(false);
+
+  const reportMessage = async (messageId: string, reason: string) => {
+    const { error } = await supabase.from('message_reports').insert({
+      message_id: messageId,
+      conversation_id: conversationId,
+      reporter_id: currentUserId,
+      reason,
+    });
+    Alert.alert(
+      error?.code === '23505' ? 'Déjà signalé' : error ? 'Erreur' : 'Message signalé',
+      error?.code === '23505'
+        ? 'Vous avez déjà signalé ce message.'
+        : error
+          ? "Le signalement n'a pas pu être envoyé. Réessayez."
+          : "Merci. Notre équipe l'examinera sous 24 h.",
+    );
+  };
+
+  const askReportReason = (messageId: string) =>
+    Alert.alert('Signaler ce message', 'Pour quelle raison ?', [
+      { text: 'Harcèlement ou menaces', onPress: () => reportMessage(messageId, 'HARCELEMENT') },
+      { text: 'Contenu inapproprié', onPress: () => reportMessage(messageId, 'INAPPROPRIE') },
+      { text: 'Autre', onPress: () => reportMessage(messageId, 'AUTRE') },
+      { text: 'Annuler', style: 'cancel' },
+    ]);
+
+  const blockConversation = () =>
+    Alert.alert(
+      'Bloquer la conversation',
+      "Plus aucun message ne pourra être envoyé dans cette conversation, ni par vous ni par l'autre personne.",
+      [
+        { text: 'Annuler', style: 'cancel' },
+        {
+          text: 'Bloquer',
+          style: 'destructive',
+          onPress: async () => {
+            const { error } = await supabase.from('conversation_blocks').insert({
+              conversation_id: conversationId,
+              blocker_id: currentUserId,
+            });
+            if (error && error.code !== '23505') {
+              Alert.alert('Erreur', "Le blocage n'a pas pu être appliqué. Réessayez.");
+              return;
+            }
+            setBlocked(true);
+            router.back();
+          },
+        },
+      ],
+    );
+
+  const openMessageMenu = (msg: { id: string; content: string; sender_id: string }) => {
+    const options: any[] = [
+      { text: 'Répondre', onPress: () => setReplyTo({ id: msg.id, content: msg.content }) },
+    ];
+    if (msg.sender_id !== currentUserId) {
+      options.push({ text: 'Signaler', style: 'destructive', onPress: () => askReportReason(msg.id) });
+    }
+    options.push({ text: 'Bloquer la conversation', style: 'destructive', onPress: blockConversation });
+    options.push({ text: 'Annuler', style: 'cancel' });
+    Alert.alert('Message', undefined, options);
+  };
+
   const formatTime = (dateStr: string) =>
     new Date(dateStr).toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' });
 
@@ -55,7 +120,7 @@ export default function ChatScreen() {
           </View>
         )}
         <TouchableOpacity
-          onLongPress={() => setReplyTo({ id: msg.id, content: msg.content })}
+          onLongPress={() => openMessageMenu(msg)}
           style={[styles.msgRow, isMine && styles.msgRowMine]}
         >
           {msg.reply_to && (
@@ -134,7 +199,7 @@ export default function ChatScreen() {
         <TouchableOpacity
           style={[styles.sendBtn, (!input.trim() || sending) && styles.sendBtnDisabled]}
           onPress={handleSend}
-          disabled={!input.trim() || sending}
+          disabled={!input.trim() || sending || blocked}
         >
           <Text style={styles.sendBtnText}>{sending ? '...' : '↑'}</Text>
         </TouchableOpacity>

@@ -1,6 +1,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { withSentry, captureError } from "../_shared/sentry.ts";
+import { constantTimeEqual } from "../_shared/billing_core.ts";
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send'
 
@@ -15,7 +16,10 @@ serve(withSentry("send-push-notification", async (req) => {
     // verify_jwt seul ne suffit pas : n'importe quel parent connecté pouvait
     // envoyer une notification au texte libre à n'importe quel utilisateur.
     const token = req.headers.get('authorization')?.replace('Bearer ', '') ?? ''
-    if (token !== Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')) {
+    // Comparaison à temps constant (audit P2-6) ; clé absente → jamais égale.
+    const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    const isServiceRole = serviceKey.length > 0 && constantTimeEqual(token, serviceKey)
+    if (!isServiceRole) {
       const { data: caller, error } = await supabase.auth.getUser(token)
       const role = caller?.user?.app_metadata?.role
       if (error || !['ADMIN', 'SUPER_ADMIN'].includes(role)) {
@@ -42,8 +46,9 @@ serve(withSentry("send-push-notification", async (req) => {
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
       body: JSON.stringify({
         to: profile.expo_push_token,
-        title,
-        body,
+        // Loi 25 : aucun extrait de message ne transite par Expo/APNs/FCM.
+        title: data?.conversation_id ? 'Nouveau message de votre coach' : title,
+        body: data?.conversation_id ? undefined : body,
         data: data || {},
         sound: 'default',
         priority: 'high',

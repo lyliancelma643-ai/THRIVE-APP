@@ -91,7 +91,7 @@ export default function ConditionsPage() {
         <p>
           Il est interdit d’utiliser la messagerie pour harceler, menacer ou tenir des propos haineux ou
           inappropriés, de partager un contenu illicite, d’usurper une identité, de tenter d’accéder aux données
-          d’une autre famille, ou de copier ou revendre les contenus. Vous pouvez signaler un message à{' '}
+          d’une autre famille, ou de copier ou revendre les contenus. Dans l’application, un appui long sur un message permet de le signaler ou de bloquer la conversation. Vous pouvez aussi signaler un message à{' '}
           <a href={`mailto:${LEGAL.supportEmail}`}>{LEGAL.supportEmail}</a>. Les signalements sont traités dans
           un délai de 24 heures ouvrables ; un compte peut être suspendu.
         </p>
