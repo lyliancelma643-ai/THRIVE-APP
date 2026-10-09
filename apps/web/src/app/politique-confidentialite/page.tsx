@@ -239,7 +239,7 @@ export default function PolitiqueConfidentialitePage() {
 
       <Section id="suppression" title="10. Supprimer votre compte et vos renseignements">
         <p>
-          <strong>Depuis l’app :</strong> Compte › « Supprimer mon compte et mes données ». Vos
+          <strong>Depuis l’app :</strong> Profil › Confidentialité et compte › « Supprimer mon compte et mes données ». Vos
           renseignements sont effacés dans un délai de{' '}
           {LEGAL.rightsDelayDays} jours ; les copies de sauvegarde sont écrasées automatiquement dans
           les 30 jours suivants.

@@ -7,15 +7,15 @@ export const LEGAL = {
   company: 'Thrive Sport Positive',
   city: 'Montréal (Québec), Canada',
   supportEmail: 'support@thrivesportpositive.com',
-  privacyEmail: 'confidentialite@thrivesportpositive.com',
+  privacyEmail: 'support@thrivesportpositive.com',
   // Loi 25 (LPRPSP, art. 3.1) : par défaut, la personne ayant la plus haute
   // autorité dans l'entreprise. Une délégation écrite permet d'en nommer une autre.
-  privacyOfficerTitle: 'La direction de Thrive Sport Positive',
+  privacyOfficerTitle: 'Fondateur, responsable de la protection des renseignements personnels',
   // Champs que seul le propriétaire connaît : marqués visiblement tant qu'ils
   // ne sont pas saisis. Ne jamais remplacer par une valeur inventée.
-  privacyOfficerName: '[À COMPLÉTER : nom du responsable de la protection des renseignements personnels]',
-  neq: '[À COMPLÉTER : NEQ]',
-  address: '[À COMPLÉTER : adresse du siège]',
+  privacyOfficerName: 'Lylian Celma',
+  neq: '2281953960',
+  address: '5006 rue Fabre, Montréal (Québec) H2J 3W4, Canada',
   responseDelay: '48 heures ouvrables',
   // Délai légal de réponse à une demande d'accès ou de rectification (art. 32).
   rightsDelayDays: 30,
