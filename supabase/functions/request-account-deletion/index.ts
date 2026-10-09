@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { withSentry, captureError } from "../_shared/sentry.ts";
+import { consumeRateLimit, RATE_LIMITS, tooManyRequests } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,8 @@ Deno.serve(withSentry("request-account-deletion", async (req: Request) => {
     );
     const { data: { user }, error } = await supa.auth.getUser();
     if (error || !user) return json({ error: "Utilisateur introuvable" }, 401);
+    const rl = await consumeRateLimit(user.id, RATE_LIMITS.accountDeletion);
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter, corsHeaders);
     const body = await req.json().catch(() => ({}));
     const reason: string | null = body?.reason ?? null;
     const { data: existing } = await supa

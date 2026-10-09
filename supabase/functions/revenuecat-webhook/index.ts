@@ -8,12 +8,20 @@
 //
 // Authentification : en-tête Authorization = REVENUECAT_WEBHOOK_AUTH (valeur
 // posée dans RevenueCat > Integrations > Webhooks), comparée à temps constant.
-// verify_jwt: FALSE. Secrets : REVENUECAT_WEBHOOK_AUTH, REVENUECAT_SECRET_API_KEY.
+// En plus (audit P1-14) : signature HMAC-SHA256 X-RevenueCat-Webhook-Signature
+// (t=<unix>,v1=<hex> sur `${t}.${corps brut}`, fenêtre de 5 min), cf. signature.ts.
+// REVENUECAT_WEBHOOK_HMAC_SECRET (secret de signature RevenueCat) :
+//   • posé   → signature OBLIGATOIRE, rejet 401 si absente/invalide/expirée ;
+//   • absent → HMAC non exigé (compat. tant que la signature n'est pas activée
+//              côté RevenueCat) ; seul l'en-tête Authorization protège alors.
+// verify_jwt: FALSE. Secrets : REVENUECAT_WEBHOOK_AUTH, REVENUECAT_SECRET_API_KEY,
+// REVENUECAT_WEBHOOK_HMAC_SECRET (optionnel, recommandé).
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
 import { adminClient, env, json, syncFromRevenueCat } from "../_shared/billing.ts";
 import { appUserIdsFromRcEvent, constantTimeEqual } from "../_shared/billing_core.ts";
+import { SIGNATURE_HEADER, verifyRevenueCatSignature } from "./signature.ts";
 
 Deno.serve(withSentry("revenuecat-webhook", async (req: Request) => {
   if (req.method !== "POST") return json({ error: "Méthode non autorisée" }, 405);
@@ -25,8 +33,21 @@ Deno.serve(withSentry("revenuecat-webhook", async (req: Request) => {
     return json({ error: "Non autorisé" }, 401);
   }
 
+  // Corps brut lu une seule fois : la signature porte sur les octets exacts.
+  const rawBody = await req.text();
+  const hmacSecret = env("REVENUECAT_WEBHOOK_HMAC_SECRET");
+  if (hmacSecret) {
+    const verdict = await verifyRevenueCatSignature(req.headers.get(SIGNATURE_HEADER), rawBody, hmacSecret);
+    if (!verdict.ok) return json({ error: "Signature invalide", reason: verdict.reason }, 401);
+  }
+
   try {
-    const body = await req.json().catch(() => ({}));
+    let body: { event?: Record<string, unknown> } = {};
+    try {
+      body = JSON.parse(rawBody);
+    } catch {
+      body = {};
+    }
     const event = body?.event ?? {};
     if (event.type === "TEST") return json({ received: true, test: true });
 

@@ -21,6 +21,7 @@ import {
   syncFromRevenueCat,
 } from "../_shared/billing.ts";
 import { appUserIdFromCheckoutSession } from "../_shared/billing_core.ts";
+import { consumeRateLimit, RATE_LIMITS, tooManyRequests } from "../_shared/rate-limit.ts";
 
 Deno.serve(withSentry("billing-sync", async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -29,6 +30,9 @@ Deno.serve(withSentry("billing-sync", async (req: Request) => {
   try {
     const user = await authUser(req);
     if (!user) return fail("unauthorized", "Authentification requise", 401);
+
+    const rl = await consumeRateLimit(user.id, RATE_LIMITS.billingSync);
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter, corsHeaders);
 
     const body = await req.json().catch(() => ({}));
     const sessionId = typeof body?.session_id === "string" ? body.session_id : null;

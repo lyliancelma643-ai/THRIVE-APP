@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { withSentry, captureError } from "../_shared/sentry.ts";
+import { consumeRateLimit, RATE_LIMITS, tooManyRequests } from "../_shared/rate-limit.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -27,6 +28,8 @@ Deno.serve(withSentry("export-my-data", async (req: Request) => {
     );
     const { data: { user }, error } = await supa.auth.getUser();
     if (error || !user) return json({ error: "Utilisateur introuvable" }, 401);
+    const rl = await consumeRateLimit(user.id, RATE_LIMITS.exportMyData);
+    if (!rl.allowed) return tooManyRequests(rl.retryAfter, corsHeaders);
     const tables = [
       "profiles", "families", "children", "reports", "video_session_runs",
       "questionnaires", "notifications", "consents", "entitlements",
