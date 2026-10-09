@@ -6,6 +6,8 @@
 //     RevenueCat et notre webhook retrouvent le compte quoi qu'il arrive.
 //   • Essai gratuit de TRIAL_DAYS jours, une seule fois par compte ; la carte est
 //     toujours demandée (payment_method_collection=always).
+//   • Refus si un pack THRIVE est en cours (le sien ou celui du titulaire de sa
+//     famille) : Maison y est déjà incluse (migration 080, pas de double facturation).
 //   • Refus si un abonnement est déjà actif, quelle que soit la plateforme
 //     (évite le double prélèvement web + App Store) : l'état est d'abord relu
 //     chez RevenueCat (source de vérité), puis, filet indépendant du
@@ -37,6 +39,7 @@ import {
   parseOrigins,
   PLAN_LOOKUP_KEYS,
   resolveReturnOrigin,
+  hasActivePack,
   stripeHistoryVerdict,
   TRIAL_DAYS,
 } from "../_shared/billing_core.ts";
@@ -57,6 +60,25 @@ Deno.serve(withSentry("create-checkout-session", async (req: Request) => {
     if (!isPlanCode(plan)) return fail("validation", "Plan invalide (mensuel | annuel)", 422);
 
     const admin = adminClient();
+
+    // Pack en cours (le sien, ou celui du titulaire d'une famille dont il est membre).
+    const { data: memberships } = await admin
+      .from("family_members")
+      .select("families(parent_id)")
+      .eq("profile_id", user.id);
+    const holders = [
+      user.id,
+      ...((memberships ?? []) as { families: { parent_id: string } | { parent_id: string }[] | null }[])
+        .flatMap((m) => (Array.isArray(m.families) ? m.families : m.families ? [m.families] : []))
+        .map((f) => f.parent_id),
+    ];
+    const { data: packs } = await admin
+      .from("pack_enrollments")
+      .select("starts_on, ends_on")
+      .in("parent_id", holders);
+    if (hasActivePack(packs)) {
+      return fail("included_in_pack", "Maison est déjà incluse dans votre pack THRIVE", 409);
+    }
 
     // Source de vérité d'abord : un abonnement App Store / Google Play dont le
     // webhook RevenueCat n'est pas encore arrivé (ou a été perdu) doit bloquer
