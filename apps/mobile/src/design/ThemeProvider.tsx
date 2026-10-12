@@ -1,6 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AccessibilityInfo, Platform } from 'react-native';
+import { supabaseClient } from '@thrive/shared';
+import { useAuthStore } from '../stores/auth.store';
+import { fetchServerStyle, mergeStyle, pushServerStyle, type StyleSyncClient } from './styleSync';
 import { DEFAULT_STYLE, getTokens, isStyleKey, type StyleKey, type Tokens } from './tokens';
 
 export const UI_STYLE_STORAGE_KEY = 'thrive.uiStyle';
@@ -37,6 +40,28 @@ export function ThemeProvider({ children, fontsLoaded = false, initialStyle = DE
     return () => { alive = false; };
   }, []);
 
+  // Synchro serveur (083) : au démarrage connecté, le style serveur l'emporte
+  // sur le local et est réécrit ; échec silencieux (colonne/RPC absente, réseau).
+  const userId = useAuthStore((st) => (st.isAuthenticated ? st.user?.id ?? null : null));
+  useEffect(() => {
+    if (!userId) return;
+    let alive = true;
+    (async () => {
+      try {
+        const client = supabaseClient as unknown as StyleSyncClient;
+        const server = await fetchServerStyle(client, userId);
+        const local = await AsyncStorage.getItem(UI_STYLE_STORAGE_KEY).catch(() => null);
+        const m = mergeStyle(local, server);
+        if (m.style && alive) setStyleState(m.style);
+        if (m.style && m.writeLocal) AsyncStorage.setItem(UI_STYLE_STORAGE_KEY, m.style).catch(() => {});
+        if (m.style && m.pushServer) void pushServerStyle(client, m.style);
+      } catch {
+        /* le style local reste la référence */
+      }
+    })();
+    return () => { alive = false; };
+  }, [userId]);
+
   // Préférences d'accessibilité système.
   useEffect(() => {
     let alive = true;
@@ -54,6 +79,9 @@ export function ThemeProvider({ children, fontsLoaded = false, initialStyle = DE
   const setStyle = useCallback((s: StyleKey) => {
     setStyleState(s);
     AsyncStorage.setItem(UI_STYLE_STORAGE_KEY, s).catch(() => {});
+    if (useAuthStore.getState().isAuthenticated) {
+      void pushServerStyle(supabaseClient as unknown as StyleSyncClient, s);
+    }
   }, []);
 
   const value = useMemo<ThemeContextValue>(
