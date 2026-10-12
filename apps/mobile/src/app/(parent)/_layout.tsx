@@ -7,6 +7,7 @@ import {
   useTheme,
   type ParentRoute,
 } from '../../design';
+import { useTrialReminder } from '../../hooks/useTrialReminder';
 
 // Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
 // déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
@@ -21,6 +22,14 @@ const HIDDEN = [
   'abonnement',
   'chat/[conversationId]',
   'activite/[activityId]',
+  'moment/[activityId]',
+  'parcours',
+  'carnet',
+  'videos',
+  'fin-de-parcours',
+  'offres',
+  'offres/[pack]',
+  'appel',
 ];
 
 type BarProps = {
@@ -49,6 +58,8 @@ function ParentTabBar({ state, navigation }: BarProps) {
 }
 
 export default function ParentLayout() {
+  // Rappel local à J-3 de la fin du mois gratuit (Maison), sans lien ni prix.
+  useTrialReminder();
   return (
     <Tabs
       screenOptions={{ headerShown: false }}

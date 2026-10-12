@@ -175,7 +175,7 @@ export const FONT_FAMILIES = {
     700: 'Inter_700Bold',
   },
   display: {
-    400: 'Fraunces_500Medium',
+    400: 'Fraunces_400Regular',
     500: 'Fraunces_500Medium',
     600: 'Fraunces_600SemiBold',
     700: 'Fraunces_600SemiBold',

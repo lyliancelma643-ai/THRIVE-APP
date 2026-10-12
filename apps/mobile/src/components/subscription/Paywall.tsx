@@ -130,7 +130,7 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
   if (loading) return <SubscriptionLoader />;
 
   const canSell = packages.length > 0 && LEGAL.complete;
-  const serif = fontsLoaded ? 'Fraunces_500Medium' : Platform.select({ ios: 'Times New Roman', default: 'serif' });
+  const serif = fontsLoaded ? 'Fraunces_400Regular' : Platform.select({ ios: 'Times New Roman', default: 'serif' });
   const trialLabel = trial ? isoPeriodFr(trial) : null;
   const period = selected ? perPeriodFr(selected.product.subscriptionPeriod) : '';
   const firstPaymentDay = timeline ? formatDayMonthFr(timeline.firstPayment) : null;

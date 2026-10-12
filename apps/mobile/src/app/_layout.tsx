@@ -52,9 +52,11 @@ function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
     const inAuthGroup = segments[0] === '(auth)';
+    const inWelcome = segments[0] === 'welcome';
 
     if (!isAuthenticated) {
-      if (!inAuthGroup) router.replace('/(auth)/login');
+      // Arrivée non connectée : écran Bienvenue (slogans), puis connexion / inscription.
+      if (!inAuthGroup && !inWelcome) router.replace('/welcome');
       return;
     }
 
@@ -81,7 +83,7 @@ function RootLayout() {
     const inCoachGroup = segments[0] === '(coach)';
     const inParentGroup = segments[0] === '(parent)';
     const isCoach = user?.role === 'COACH';
-    if (inAuthGroup || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
+    if (inAuthGroup || inWelcome || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
       router.replace(homeFor(user?.role));
     }
   }, [isAuthenticated, isLoading, segments, user?.role]);
