@@ -1,0 +1,43 @@
+{
+  "v": 3,
+  "assetGroups": {
+    "Logos": {
+      "files": {
+        "thrive-logo.png": {
+          "blob": "bd4b627f6dbc3122ff7d1b7ac738c189",
+          "name": "thrive-logo.png",
+          "size": 39192,
+          "type": "image/png"
+        }
+      },
+      "name": "Logos",
+      "order": [
+        "thrive-logo.png"
+      ],
+      "tile": "l"
+    }
+  },
+  "blobs": {},
+  "createdOnFiles": {
+    "at": "2026-10-10T21:56:12Z",
+    "v": 1
+  },
+  "docs": {
+    "readme": "project/README.md",
+    "sections": []
+  },
+  "groups": [
+    "Logos"
+  ],
+  "lastChange": {
+    "at": "2026-10-10T21:56:12Z",
+    "by": "Lylian",
+    "note": "Système THRIVE × iOS 27 : 3 thèmes, styles SF Pro, 4 composants, couverture.",
+    "via": "Claude (Cowork)"
+  },
+  "layout": "files",
+  "libraries": [],
+  "namespace": "ThriveIOS27",
+  "sections": {},
+  "title": "THRIVE iOS 27"
+}
