@@ -9,6 +9,8 @@ import {
   fetchParentAccess,
   type ParentAccessRow,
 } from '@/components/admin/ParentAccessEditor';
+import { ProgramPaymentLinkModal } from '@/components/admin/ProgramPaymentLinkModal';
+import { useAuthStore } from '@/stores/auth.store';
 import { PROGRAM_PACK_LABELS } from '@/lib/program-packs';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -50,6 +52,9 @@ export default function AdminFamiliesPage() {
   // Accès par section (Maison / Bilan / Mes séances) — migration 068
   const [accessMap, setAccessMap] = useState<Map<string, ParentAccessRow>>(new Map());
   const [editing, setEditing]     = useState<ParentRow | null>(null);
+  const [linkFor, setLinkFor]     = useState<ParentRow | null>(null);
+  const adminRole = useAuthStore((st) => st.user?.role);
+  const canSendLink = adminRole === 'ADMIN' || adminRole === 'SUPER_ADMIN';
 
   // ── Chargement ──────────────────────────────────────────────────────────────
   const fetchParents = useCallback(async () => {
@@ -293,6 +298,14 @@ export default function AdminFamiliesPage() {
                         >
                           Gérer les accès
                         </button>
+                        {canSendLink && (
+                          <button
+                            onClick={() => setLinkFor(parent)}
+                            className="text-xs font-semibold text-navy-700 underline underline-offset-2 hover:text-navy-900"
+                          >
+                            Envoyer le lien de paiement
+                          </button>
+                        )}
                       </div>
                     </td>
 
@@ -314,6 +327,14 @@ export default function AdminFamiliesPage() {
           </tbody>
         </table>
       </div>
+
+      {linkFor && (
+        <ProgramPaymentLinkModal
+          parentId={linkFor.id}
+          parentName={`${linkFor.first_name ?? ''} ${linkFor.last_name ?? ''}`.trim() || linkFor.email}
+          onClose={() => setLinkFor(null)}
+        />
+      )}
 
       {editing && (
         <ParentAccessEditor
