@@ -1,43 +1,42 @@
 import React from 'react';
-import { View, Text, Pressable } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import { useRouter } from 'expo-router';
-import { COACH_CALL_URL, PROGRAM_VIDEO_URL } from '../../services/access';
+import { BlurView } from 'expo-blur';
+import { GlassSurface, RADIUS, SPACING, ThemedText, useGlassMode, useTheme } from '../../design';
 
-// Onglet Bilan / Séances verrouillé (abonné Maison seul, aucun droit, fermeture
+// Onglet Bilan / Mes séances verrouillé (abonné Maison seul, aucun droit, fermeture
 // Super Admin). Le contenu est un SQUELETTE FACTICE flouté : aucune donnée
 // réelle n'est chargée (la RLS les refuse de toute façon, migration 080).
 //
-// Anti-steering Apple 3.1.1 / Google Play : aucun paiement, aucun prix, aucun
-// lien vers le site des packs. « Découvrir le programme » n'apparaît que si une
-// page vidéo dédiée est configurée ; « Rencontrer un coach » ouvre la page de
-// rendez-vous configurée, sinon la messagerie de l'app.
+// Anti-steering Apple 3.1.1 / Google Play (GO 3 §1 règle 3) : AUCUN bouton, AUCUN
+// lien, AUCUN prix, AUCUNE mention de paiement ou d'offre. Texte neutre seulement ;
+// l'état d'accès vient d'access_state(), jamais recalculé ici.
 
 const COPY = {
   bilan: {
     title: 'Le Bilan de votre enfant',
-    body: 'Le suivi avant / après du programme, avec votre coach.',
+    body: 'Cette section s’ouvre avec le suivi d’un coach.',
   },
   seances: {
     title: 'Mes séances',
-    body: 'Les séances avec un coach, en groupe ou en individuel.',
+    body: 'Cette section s’ouvre avec le suivi d’un coach.',
   },
 } as const;
 
 function Skeleton() {
+  const { colors, radius } = useTheme();
+  const block = { backgroundColor: colors.bgGrouped2, borderRadius: radius.card } as const;
   return (
-    <View className="px-6 pt-4" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <View className="h-36 rounded-2xl bg-white border border-gray-100 mb-4" />
-      <View className="flex-row mb-4">
-        <View className="flex-1 h-24 rounded-2xl bg-white border border-gray-100 mr-2" />
-        <View className="flex-1 h-24 rounded-2xl bg-white border border-gray-100 ml-2" />
+    <View style={{ paddingHorizontal: SPACING.space4 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[block, { height: 144, marginBottom: SPACING.space3 }]} />
+      <View style={{ flexDirection: 'row', marginBottom: SPACING.space3 }}>
+        <View style={[block, { flex: 1, height: 96, marginRight: SPACING.space2 }]} />
+        <View style={[block, { flex: 1, height: 96, marginLeft: SPACING.space2 }]} />
       </View>
       {[0, 1, 2].map((i) => (
-        <View key={i} className="h-16 rounded-2xl bg-white border border-gray-100 mb-3 flex-row items-center px-4">
-          <View className="w-9 h-9 rounded-full bg-gray-200" />
-          <View className="h-3 w-1/2 rounded bg-gray-200 ml-3" />
+        <View key={i} style={[block, { height: 64, marginBottom: SPACING.space3, flexDirection: 'row', alignItems: 'center', paddingHorizontal: SPACING.space4 }]}>
+          <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.fill }} />
+          <View style={{ height: 12, width: '50%', borderRadius: 6, backgroundColor: colors.fill, marginLeft: SPACING.space3 }} />
         </View>
       ))}
     </View>
@@ -45,46 +44,34 @@ function Skeleton() {
 }
 
 export function LockedSection({ section }: { section: 'bilan' | 'seances' }) {
-  const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const mode = useGlassMode();
   const copy = COPY[section];
+  const fill = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as const;
   return (
-    <View className="flex-1 bg-gray-50" testID={`locked-${section}`}>
-      <View className="pt-16">
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} testID={`locked-${section}`}>
+      <View style={{ paddingTop: 72 }}>
         <Skeleton />
       </View>
-      <BlurView intensity={30} tint="light" className="absolute inset-0" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      <View className="absolute inset-0 justify-center px-6" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-        <View className="bg-white rounded-3xl p-6 border border-gray-100 items-center">
-          <View className="w-12 h-12 rounded-full bg-yellow-100 items-center justify-center">
-            <Ionicons name="lock-closed" size={22} color="#92400e" />
+      {mode === 'opaque' ? (
+        <View style={[fill, { backgroundColor: colors.bgGrouped, opacity: 0.88 }]} />
+      ) : (
+        <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={fill} />
+      )}
+      <View style={[fill, { justifyContent: 'center', paddingHorizontal: SPACING.space4 }]}>
+        <GlassSurface strong radius={RADIUS.card}>
+          <View style={{ padding: SPACING.space6, alignItems: 'center' }}>
+            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name="lock-closed" size={22} color={colors.accentInk} />
+            </View>
+            <ThemedText variant="title3" accessibilityRole="header" style={{ marginTop: SPACING.space4, textAlign: 'center' }}>
+              {copy.title}
+            </ThemedText>
+            <ThemedText variant="subheadline" color="label2" style={{ marginTop: SPACING.space2, textAlign: 'center' }}>
+              {copy.body}
+            </ThemedText>
           </View>
-          <Text className="text-xl font-bold mt-4 text-center" accessibilityRole="header">
-            {copy.title}
-          </Text>
-          <Text className="text-gray-600 mt-2 text-center">{copy.body}</Text>
-
-          {PROGRAM_VIDEO_URL && (
-            <Pressable
-              onPress={() => WebBrowser.openBrowserAsync(PROGRAM_VIDEO_URL as string)}
-              className="mt-6 w-full rounded-full bg-black py-4 items-center"
-              accessibilityRole="button"
-              accessibilityLabel="Découvrir le programme, vidéo de 5 minutes"
-            >
-              <Text className="text-white font-semibold">Découvrir le programme</Text>
-            </Pressable>
-          )}
-          <Pressable
-            onPress={() =>
-              COACH_CALL_URL ? WebBrowser.openBrowserAsync(COACH_CALL_URL) : router.push('/(parent)/messages')
-            }
-            className={`${PROGRAM_VIDEO_URL ? 'mt-3' : 'mt-6'} w-full rounded-full border border-gray-300 py-4 items-center`}
-            accessibilityRole="button"
-            accessibilityLabel="Rencontrer un coach, appel de 15 minutes"
-          >
-            <Text className="font-semibold">Rencontrer un coach</Text>
-          </Pressable>
-          <Text className="text-xs text-gray-500 mt-3 text-center">Appel de 15 minutes, sans engagement.</Text>
-        </View>
+        </GlassSurface>
       </View>
     </View>
   );
@@ -92,12 +79,13 @@ export function LockedSection({ section }: { section: 'bilan' | 'seances' }) {
 
 /** Pack terminé : historique consultable, rien de nouveau. */
 export function ReadOnlyNotice() {
+  const { colors, radius } = useTheme();
   return (
-    <View className="bg-yellow-50 rounded-2xl p-4 border border-yellow-100 mb-4 flex-row">
-      <Ionicons name="lock-closed" size={18} color="#92400e" />
-      <Text className="text-gray-700 ml-3 flex-1">
+    <View style={{ backgroundColor: colors.bgGrouped2, borderRadius: radius.card, padding: SPACING.space4, marginBottom: SPACING.space3, flexDirection: 'row', alignItems: 'center' }}>
+      <Ionicons name="lock-closed" size={18} color={colors.label2} />
+      <ThemedText variant="subheadline" color="label2" style={{ marginLeft: SPACING.space3, flex: 1 }}>
         Votre programme est terminé. L’historique reste consultable ; rien de nouveau ne s’y ajoute.
-      </Text>
+      </ThemedText>
     </View>
   );
 }

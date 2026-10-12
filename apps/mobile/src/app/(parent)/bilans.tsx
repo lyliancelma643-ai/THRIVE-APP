@@ -1,13 +1,19 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { View, Pressable, ActivityIndicator } from 'react-native';
+import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { supabaseClient as supabase, useFamily, useChildren } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
 import { OfflineState } from '../../components/OfflineState';
 import { LockedSection, ReadOnlyNotice } from '../../components/access/LockedSection';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 import { sectionView } from '../../services/access';
+import { ListGroup, ListRow, Pill, SPACING, ThemedText, useTheme } from '../../design';
+import { Card, ChildChips, ScreenScaffold } from '../../components/bilan/ScreenScaffold';
+import { ValueCurve, CurveCaption } from '../../components/bilan/PermaCurve';
+import { LifeSkillsSheet, PersonalizeSheet, UnderstandSheet } from '../../components/bilan/BilanSheets';
+import { fetchIdentity, fetchInsights, saveIdentity } from '../../components/bilan/bilanApi';
+import { ACCENT_TOKEN, REPORT_SECTION_LABELS, asText, type Gauge, type Identity, type LsssPoint, type PermaPoint } from '../../components/bilan/bilanData';
 
 // Bilans de l'enfant : progression dans les 13 séances, coach, questionnaires
 // à remplir et bilans envoyés par le coach (table parent_reports, RLS famille).
@@ -16,15 +22,6 @@ import { sectionView } from '../../services/access';
 
 const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
 const TOTAL_SESSIONS = 13;
-
-const SECTION_LABELS: Record<string, string> = {
-  message_coach: 'Le mot du coach',
-  forces: 'Ses forces',
-  resume: 'Résumé de la séance',
-  objectif: 'Habileté travaillée',
-  recommandations_maison: 'À la maison',
-  transfert: 'Dans la vie de tous les jours',
-};
 
 type Report = {
   id: string;
@@ -38,13 +35,6 @@ type BilanState = {
   pending: { kind: string; token: string }[];
   reports: Report[];
 };
-
-function asText(v: unknown): string | null {
-  if (v === null || v === undefined) return null;
-  if (Array.isArray(v)) return v.map(String).join(' · ');
-  if (typeof v === 'object') return null;
-  return String(v);
-}
 
 async function loadBilans(childId: string): Promise<BilanState> {
   const [sessions, assignment, pending, reports] = await Promise.all([
@@ -82,14 +72,22 @@ async function loadBilans(childId: string): Promise<BilanState> {
 }
 
 export default function BilansScreen() {
+  const { colors, radius } = useTheme();
   const { user } = useAuthStore();
   const { family } = useFamily(user?.id);
   const { children, isLoading: childrenLoading } = useChildren(family?.id);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const params = useLocalSearchParams<{ child?: string; focus?: string }>();
+  const [selectedId, setSelectedId] = useState<string | null>(typeof params.child === 'string' ? params.child : null);
   const child = children.find((c) => c.id === selectedId) ?? children[0];
   const [data, setData] = useState<BilanState | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
+  const [lsss, setLsss] = useState<LsssPoint[]>([]);
+  const [perma, setPerma] = useState<PermaPoint[]>([]);
+  const [gauge, setGauge] = useState<Gauge | null>(null);
+  const [identity, setIdentity] = useState<Identity>({ nickname: null, jersey_number: null, accent_color: null });
+  const [sheet, setSheet] = useState<'skills' | 'understand' | 'perso' | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const access = useSubscriptionStore((st) => st.access);
   const view = access ? sectionView(access, 'bilan') : null;
@@ -100,6 +98,11 @@ export default function BilansScreen() {
     setLoadError(false);
     try {
       setData(await loadBilans(child.id));
+      const [ins, idt] = await Promise.all([fetchInsights(child.id), fetchIdentity(child.id)]);
+      setLsss(ins.lsss);
+      setPerma(ins.perma);
+      setGauge(ins.gauge);
+      setIdentity(idt);
     } catch {
       setLoadError(true);
     } finally {
@@ -107,104 +110,170 @@ export default function BilansScreen() {
     }
   }, [child?.id, view]);
 
+  // Arrivée depuis une notification (?child=…&focus=competences) : ouvre la carte visée.
+  useEffect(() => {
+    if (typeof params.child === 'string') setSelectedId(params.child);
+    if (params.focus === 'competences') setSheet('skills');
+  }, [params.child, params.focus]);
+
   useFocusEffect(
     useCallback(() => {
       reload();
     }, [reload]),
   );
 
-  if (childrenLoading || !view) return <ActivityIndicator className="mt-24" />;
+  if (childrenLoading || !view) return <ActivityIndicator style={{ marginTop: 96 }} />;
   if (view === 'locked') return <LockedSection section="bilan" />;
   if (loadError && !data) return <OfflineState onRetry={reload} />;
 
+  const accentBg = identity.accent_color ? colors[ACCENT_TOKEN[identity.accent_color]] : colors.tint;
+  const displayName = identity.nickname || child?.first_name || '';
+
+  const onSave = async (v: Identity) => {
+    if (!child) return;
+    setSaving(true);
+    const ok = await saveIdentity(child.id, v);
+    setSaving(false);
+    if (ok) {
+      setIdentity(v);
+      setSheet(null);
+    }
+  };
+
   return (
-    <ScrollView className="flex-1 bg-gray-50" refreshControl={<RefreshControl refreshing={loading} onRefresh={reload} />}>
-      <View className="px-6 pt-16 pb-4">
-        <Text className="text-2xl font-bold">Bilans</Text>
-        {children.length > 1 && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-4">
-            {children.map((c) => (
-              <Pressable
-                key={c.id}
-                onPress={() => setSelectedId(c.id)}
-                className={`rounded-full px-4 py-2 mr-2 ${c.id === child?.id ? 'bg-black' : 'bg-white border border-gray-200'}`}
-                accessibilityRole="button"
-              >
-                <Text className={c.id === child?.id ? 'text-white font-semibold' : 'text-gray-700'}>{c.first_name}</Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        )}
-      </View>
-
-      <View className="px-6 pb-12">
-        {view === 'readonly' && <ReadOnlyNotice />}
-        {!child ? (
-          <Text className="text-gray-500">Ajoutez votre enfant pour suivre ses bilans.</Text>
-        ) : !data ? (
-          <ActivityIndicator />
-        ) : (
-          <>
-            <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-              <Text className="text-gray-500 text-sm">Programme THRIVE de {child.first_name}</Text>
-              <Text className="text-3xl font-bold mt-1">
-                {data.done}/{TOTAL_SESSIONS}
-              </Text>
-              <Text className="text-gray-500 text-sm">séances réalisées</Text>
-              <View className="h-2 bg-gray-100 rounded-full mt-3 overflow-hidden">
-                <View className="h-2 bg-black" style={{ width: `${Math.round((data.done / TOTAL_SESSIONS) * 100)}%` }} />
+    <ScreenScaffold
+      title={child ? `Bilan de ${displayName}` : 'Bilan'}
+      refreshing={loading}
+      onRefresh={reload}
+      header={<ChildChips items={children.map((c) => ({ id: c.id, label: c.first_name }))} activeId={child?.id} onSelect={setSelectedId} />}
+    >
+      {view === 'readonly' && <ReadOnlyNotice />}
+      {!child ? (
+        <ThemedText variant="subheadline" color="label2">Ajoutez votre enfant pour suivre ses bilans.</ThemedText>
+      ) : !data ? (
+        <ActivityIndicator />
+      ) : (
+        <>
+          {/* G — passeport */}
+          <View style={{ backgroundColor: accentBg, borderRadius: radius.card, padding: SPACING.space4, marginBottom: SPACING.space3 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+              <View style={{ flex: 1 }}>
+                <ThemedText variant="footnote" style={{ color: colors.tintInk }}>Programme THRIVE</ThemedText>
+                <ThemedText variant="title1" style={{ color: colors.tintInk }}>{displayName}</ThemedText>
+                {data.coach ? <ThemedText variant="footnote" style={{ color: colors.tintInk, marginTop: 2 }}>Coach : {data.coach}</ThemedText> : null}
               </View>
-              {data.coach && <Text className="text-gray-500 text-sm mt-3">Coach : {data.coach}</Text>}
+              {identity.jersey_number != null ? (
+                <ThemedText variant="numeralHero" style={{ color: colors.tintInk }}>{identity.jersey_number}</ThemedText>
+              ) : null}
             </View>
+            <View
+              style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: SPACING.space3 }}
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel={`${data.done} séances réalisées sur ${TOTAL_SESSIONS}`}
+            >
+              {Array.from({ length: TOTAL_SESSIONS }, (_, i) => (
+                <View
+                  key={i}
+                  style={{
+                    width: 16, height: 16, borderRadius: 8, marginRight: 6, marginBottom: 6,
+                    backgroundColor: i < data.done ? colors.tintInk : 'transparent',
+                    borderWidth: 1.5, borderColor: colors.tintInk, opacity: i < data.done ? 1 : 0.5,
+                  }}
+                />
+              ))}
+            </View>
+            <ThemedText variant="footnote" style={{ color: colors.tintInk }}>
+              {data.done} séance{data.done > 1 ? 's' : ''} sur {TOTAL_SESSIONS}
+            </ThemedText>
+          </View>
 
-            {data.pending.map((q) => (
-              <Pressable
-                key={q.token}
-                className="bg-black rounded-2xl p-5 mb-4"
-                onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${q.token}`)}
-                accessibilityRole="link"
-              >
-                <Text className="text-white font-bold">Questionnaire à remplir avec {child.first_name}</Text>
-                <Text className="text-gray-300 text-sm mt-1">
-                  Quelques minutes, sur votre téléphone. Ses réponses sont partagées avec son coach.
-                </Text>
-              </Pressable>
-            ))}
+          {data.pending.map((q) => (
+            <Pressable
+              key={q.token}
+              onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${q.token}`)}
+              accessibilityRole="link"
+              accessibilityLabel={`Questionnaire à remplir avec ${child.first_name}`}
+              style={{ backgroundColor: colors.accent, borderRadius: radius.card, padding: SPACING.space4, marginBottom: SPACING.space3, minHeight: SPACING.touchMin }}
+            >
+              <ThemedText variant="headline" style={{ color: colors.accentInk }}>Questionnaire à remplir avec {child.first_name}</ThemedText>
+              <ThemedText variant="footnote" style={{ color: colors.accentInk, marginTop: 2 }}>
+                Quelques minutes, sur votre téléphone. Ses réponses sont partagées avec son coach.
+              </ThemedText>
+            </Pressable>
+          ))}
 
-            <Text className="text-xl font-bold mb-3 mt-2">Bilans du coach</Text>
-            {data.reports.length === 0 ? (
-              <View className="bg-white rounded-2xl p-5 border border-gray-100">
-                <Text className="text-gray-500 text-sm">Les bilans de séance apparaîtront ici après chaque séance.</Text>
+          {/* Jauge = LSSS (gauge_summary) */}
+          <Card>
+            <ThemedText variant="headline">Compétences de vie</ThemedText>
+            {gauge ? (
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: SPACING.space2 }}>
+                <ThemedText variant="numeralHero" style={{ fontVariant: ['tabular-nums'] }}>{gauge.global}</ThemedText>
+                <ThemedText variant="footnote" color="label2" style={{ marginLeft: SPACING.space2 }}>sur 100</ThemedText>
               </View>
             ) : (
-              data.reports.map((r) => {
-                const body = r.parent_visible_body ?? {};
-                const sections = body.sections ?? {};
-                return (
-                  <View key={r.id} className="bg-white rounded-2xl p-5 border border-gray-100 mb-3">
-                    <Text className="font-bold text-base">
-                      {body.session_number ? `Séance ${body.session_number}` : 'Bilan'}
-                    </Text>
-                    <Text className="text-gray-400 text-xs mb-2">
-                      {new Date(r.created_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </Text>
-                    {Object.keys(SECTION_LABELS).map((k) => {
-                      const t = asText(sections[k]);
-                      if (!t) return null;
-                      return (
-                        <View key={k} className="mt-2">
-                          <Text className="text-gray-500 text-xs font-semibold">{SECTION_LABELS[k].toUpperCase()}</Text>
-                          <Text className="text-base mt-1">{t}</Text>
-                        </View>
-                      );
-                    })}
-                  </View>
-                );
-              })
+              <ThemedText variant="subheadline" color="label2" style={{ marginTop: SPACING.space1 }}>
+                Le repère apparaîtra après le premier questionnaire.
+              </ThemedText>
             )}
-          </>
-        )}
-      </View>
-    </ScrollView>
+          </Card>
+          <ListGroup>
+            <ListRow icon="trending-up" iconColor="sysTeal" title="Voir les compétences de vie" onPress={() => setSheet('skills')} />
+            <ListRow icon="information-circle" iconColor="sysBlue" title="Comprendre l’outil" onPress={() => setSheet('understand')} />
+            <ListRow icon="color-palette" iconColor="sysIndigo" title="Personnaliser le passeport" onPress={() => setSheet('perso')} last />
+          </ListGroup>
+
+          {/* Courbe = PERMA / bien-être par séance */}
+          {perma.length > 0 && (
+            <Card style={{ marginTop: SPACING.space3 }}>
+              <ThemedText variant="headline" style={{ marginBottom: SPACING.space2 }}>Bien-être au fil des séances</ThemedText>
+              <ValueCurve
+                values={perma.map((p) => p.value)}
+                labels={perma.map((p) => `S${p.session_number}`)}
+                accessibilityLabel={`Courbe de bien-être : ${perma.map((p) => `séance ${p.session_number}, ${p.value}`).join(' ; ')}`}
+              />
+              <CurveCaption>Une mesure par séance, remplie avec votre enfant.</CurveCaption>
+            </Card>
+          )}
+
+          {/* Travail du coach */}
+          <ThemedText variant="title3" style={{ marginTop: SPACING.space4, marginBottom: SPACING.space3 }} accessibilityRole="header">
+            Bilans du coach
+          </ThemedText>
+          {data.reports.length === 0 ? (
+            <Card>
+              <ThemedText variant="subheadline" color="label2">Les bilans de séance apparaîtront ici après chaque séance.</ThemedText>
+            </Card>
+          ) : (
+            data.reports.map((r) => {
+              const body = r.parent_visible_body ?? {};
+              const sections = body.sections ?? {};
+              return (
+                <Card key={r.id}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <ThemedText variant="headline">{body.session_number ? `Séance ${body.session_number}` : 'Bilan'}</ThemedText>
+                    <Pill label={new Date(r.created_at).toLocaleDateString('fr-CA', { day: 'numeric', month: 'long' })} />
+                  </View>
+                  {Object.keys(REPORT_SECTION_LABELS).map((k) => {
+                    const t = asText(sections[k]);
+                    if (!t) return null;
+                    return (
+                      <View key={k} style={{ marginTop: SPACING.space3 }}>
+                        <ThemedText variant="footnote" color="label2" style={{ fontWeight: '600' }}>{REPORT_SECTION_LABELS[k]}</ThemedText>
+                        <ThemedText variant="body" style={{ marginTop: 2 }}>{t}</ThemedText>
+                      </View>
+                    );
+                  })}
+                </Card>
+              );
+            })
+          )}
+        </>
+      )}
+
+      <LifeSkillsSheet visible={sheet === 'skills'} onClose={() => setSheet(null)} lsss={lsss} gauge={gauge} />
+      <UnderstandSheet visible={sheet === 'understand'} onClose={() => setSheet(null)} />
+      <PersonalizeSheet visible={sheet === 'perso'} onClose={() => setSheet(null)} value={identity} onSave={onSave} saving={saving} />
+    </ScreenScaffold>
   );
 }
