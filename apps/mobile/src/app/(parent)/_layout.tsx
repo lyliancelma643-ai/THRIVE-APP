@@ -1,9 +1,19 @@
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import {
+  FloatingTabBar,
+  HIDDEN_FROM_BAR,
+  tabLayoutFor,
+  useTheme,
+  type ParentRoute,
+} from '../../design';
 
-// Onglets de l'espace parent. Tout fichier de ce dossier devient un onglet :
-// les écrans secondaires sont masqués de la barre avec `href: null`.
+// Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
+// déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
+// selon le style (Natif / Nuit calme / Carnet — cf. design/tabConfig.ts).
+// Les écrans secondaires sont masqués de la barre avec `href: null`.
 const HIDDEN = [
+  ...HIDDEN_FROM_BAR,
   'children',
   'programs',
   'badges',
@@ -13,54 +23,40 @@ const HIDDEN = [
   'activite/[activityId]',
 ];
 
+type BarProps = {
+  state: { index: number; routes: { name: string }[] };
+  navigation: { navigate: (name: string) => void };
+};
+
+function ParentTabBar({ state, navigation }: BarProps) {
+  const { style } = useTheme();
+  const { tabs, prominent } = tabLayoutFor(style);
+  const activeRoute = state.routes[state.index]?.name as ParentRoute | undefined;
+  const go = (route: string) => navigation.navigate(route);
+  return (
+    <FloatingTabBar
+      tabs={tabs.map((t) => ({ key: t.route, label: t.label, icon: t.icon as keyof typeof Ionicons.glyphMap }))}
+      activeKey={activeRoute ?? ''}
+      onSelect={go}
+      prominent={{
+        key: 'prominent',
+        label: prominent.label,
+        icon: prominent.icon as keyof typeof Ionicons.glyphMap,
+        onPress: () => go(prominent.route),
+      }}
+    />
+  );
+}
+
 export default function ParentLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: '#000' }}>
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          title: 'Accueil',
-          tabBarIcon: ({ color, size }) => <Ionicons name="home" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="maison"
-        options={{
-          title: 'Maison',
-          tabBarButtonTestID: 'tab-maison',
-          tabBarIcon: ({ color, size }) => <Ionicons name="moon" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="bilans"
-        options={{
-          title: 'Bilans',
-          tabBarIcon: ({ color, size }) => <Ionicons name="stats-chart" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="seances"
-        options={{
-          title: 'Séances',
-          tabBarButtonTestID: 'tab-seances',
-          tabBarIcon: ({ color, size }) => <Ionicons name="calendar" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="messages"
-        options={{
-          title: 'Messages',
-          tabBarIcon: ({ color, size }) => <Ionicons name="chatbubbles" size={size} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profil',
-          tabBarButtonTestID: 'tab-profil',
-          tabBarIcon: ({ color, size }) => <Ionicons name="person" size={size} color={color} />,
-        }}
-      />
+    <Tabs
+      screenOptions={{ headerShown: false }}
+      tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}
+    >
+      <Tabs.Screen name="maison" options={{ title: 'Maison' }} />
+      <Tabs.Screen name="bilans" options={{ title: 'Bilan' }} />
+      <Tabs.Screen name="seances" options={{ title: 'Mes séances' }} />
       {HIDDEN.map((name) => (
         <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}

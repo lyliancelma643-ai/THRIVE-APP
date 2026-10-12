@@ -7,15 +7,19 @@ import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../stores/auth.store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useRevenueCatIdentity } from '../hooks/useRevenueCatIdentity';
+import { useFonts } from 'expo-font';
+import { FONT_ASSETS, ThemeProvider } from '../design';
 
 // Racine unique de l'app mobile. Expo Router prend `src/app/` dès que ce
 // dossier existe : tout écran doit vivre ici (l'ancien `app/` n'est pas embarqué).
 
 function homeFor(role: string | undefined) {
-  return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/dashboard';
+  return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/maison';
 }
 
 function RootLayout() {
+  // Polices Inter / Fraunces : non bloquant, repli police système tant qu'elles ne sont pas prêtes.
+  const [fontsLoaded] = useFonts(FONT_ASSETS);
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
@@ -100,11 +104,13 @@ function RootLayout() {
   }, [isAuthenticated, user?.role]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(parent)" />
-      <Stack.Screen name="(coach)" />
-    </Stack>
+    <ThemeProvider fontsLoaded={fontsLoaded}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(parent)" />
+        <Stack.Screen name="(coach)" />
+      </Stack>
+    </ThemeProvider>
   );
 }
 
