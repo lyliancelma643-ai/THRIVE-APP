@@ -82,7 +82,7 @@ function CarnetContent() {
             </View>
           ) : (
             <ListGroup>
-              {kept.slice(0, 30).map((m, i) => {
+              {kept.slice(0, 30).map((m) => {
                 const a = getActivity(m.activity_id);
                 return (
                   <View

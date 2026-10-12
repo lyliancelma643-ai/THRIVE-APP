@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 import { RADIUS, SPACING, ThemedText, VignetteImage, useTheme } from '../../design';
-import { vignetteIdFor, vignetteLabel } from '../../lib/vignettes';
+import { vignetteIdFor } from '../../lib/vignettes';
 import type { P3Activity } from '../../lib/p3';
 
 type Props = {
