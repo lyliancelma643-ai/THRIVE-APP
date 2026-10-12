@@ -22,6 +22,7 @@ export type { Database, Json } from './types/database';
 // Validation (Zod)
 export * from './validation/family.schema';
 export * from './validation/program.schema';
+export * from './validation/program-payment.schema';
 export * from './validation/user.schema';
 export * from './validation/password';
 
