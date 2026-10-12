@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { View } from 'react-native';
-import { Redirect, useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { SPACING, ThemedText, VignetteImage, useTheme } from '../../../design';
 import { Card } from '../../../components/offres/Card';
@@ -26,6 +26,7 @@ const MODES = [
 export default function ProgrammePaiementScreen() {
   const { pack } = useLocalSearchParams<{ pack: string }>();
   const { colors } = useTheme();
+  const router = useRouter();
   const [mode, setMode] = useState<ProgramPaymentMode>('deux_versements');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -42,10 +43,14 @@ export default function ProgrammePaiementScreen() {
     setNotice(null);
     try {
       const r = await startProgramCheckout(program.pack, mode);
-      if (r.status === 'not_implemented') {
-        setNotice('Le paiement dans l’app arrive bientôt : ton coach peut t’envoyer le lien par courriel.');
+      if (r.status === 'paid') {
+        router.replace('/(parent)/maison');
       } else if (r.status === 'error') {
         setNotice(r.message);
+      } else if (r.status === 'opened') {
+        setNotice('Une fois le paiement terminé, ton accès s’ouvre automatiquement.');
+      } else if (r.status === 'disabled') {
+        setNotice('Le paiement n’est pas disponible pour le moment.');
       }
     } finally {
       setBusy(false);
