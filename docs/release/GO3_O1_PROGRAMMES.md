@@ -51,3 +51,8 @@ Groupe 600 $ + tx · Individuel 1 500 $ + tx · Complet 2 000 $ + tx, en 2 verse
 - Taxes du versement 2 hors session si `STRIPE_TAX_ENABLED=true` : montant TPS/TVQ calculé par le serveur ; brancher Stripe Tax Calculations.
 - Appel planifié de `program-installment-charge` (pg_cron + pg_net, comme 079) : non créé.
 - Visio Individuel hors Montréal : prix inconnu, non modélisé.
+
+## Correctifs après revue G1 (2026-10-12)
+- **Versement 2, anti double prélèvement** : la tentative est réservée de façon atomique (`charge_attempts` comparé à la valeur lue), le PaymentIntent est mémorisé dès sa création, et un versement `due` qui en porte déjà un attend le webhook (`pending_payment_intent`). Seule une relance explicite d'un admin sur un versement `echouee` repart. Clé d'idempotence Stripe stable par tentative.
+- **Lien admin** : rôle lu dans `app_metadata` et courriel du compte d'authentification (plus `profiles.email`, modifiable par le parent).
+- **Demandes d'appel (082)** : un coach ne voit et ne modifie que les demandes des familles qu'il suit ; les admins voient tout.

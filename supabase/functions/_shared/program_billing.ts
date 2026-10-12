@@ -205,6 +205,25 @@ export function decideChargeOutcome(input: { piStatus?: string | null; errorCode
   return "failed";
 }
 
+/**
+ * Anti double prélèvement (revue G1) : un versement « due » qui porte déjà un
+ * PaymentIntent attend le webhook — on n'en crée JAMAIS un second. Seule une
+ * relance explicite d'un admin sur un versement « echouee » repart.
+ */
+export function canStartCharge(inst: { status: string; stripe_payment_intent_id: string | null }, explicitRetry: boolean):
+  { ok: true } | { ok: false; reason: "pending_payment_intent" | "not_retryable" } {
+  if (inst.status === "due") {
+    return inst.stripe_payment_intent_id ? { ok: false, reason: "pending_payment_intent" } : { ok: true };
+  }
+  if (inst.status === "echouee" && explicitRetry) return { ok: true };
+  return { ok: false, reason: "not_retryable" };
+}
+
+/** Clé d'idempotence Stripe : stable pour une tentative réservée en base. */
+export function chargeIdempotencyKey(installmentId: string, attempt: number): string {
+  return `program-inst-${installmentId}-${attempt}`;
+}
+
 /** Drapeau booléen d'environnement : seule la valeur exacte « true » active. */
 export function envFlag(value: string | undefined | null): boolean {
   return String(value ?? "").trim().toLowerCase() === "true";

@@ -5,6 +5,8 @@ import {
   allProgramLookupKeys,
   buildProgramCheckoutParams,
   catalogPriceMatches,
+  canStartCharge,
+  chargeIdempotencyKey,
   decideChargeOutcome,
   decideRefund,
   envFlag,
@@ -220,4 +222,14 @@ Deno.test("remboursement : montant ≤ payé − déjà remboursé, motif obliga
 Deno.test("remboursement : clé d'idempotence stable (double clic = un seul remboursement)", () => {
   assertEquals(refundIdempotencyKey(INST, 100, 0), refundIdempotencyKey(INST, 100, 0));
   assertEquals(refundIdempotencyKey(INST, 100, 0) === refundIdempotencyKey(INST, 100, 100), false);
+});
+
+Deno.test("versement 2 : jamais de second PaymentIntent tant que le premier attend le webhook", () => {
+  assertEquals(canStartCharge({ status: "due", stripe_payment_intent_id: null }, false), { ok: true });
+  assertEquals(canStartCharge({ status: "due", stripe_payment_intent_id: "pi_1" }, false), { ok: false, reason: "pending_payment_intent" });
+  assertEquals(canStartCharge({ status: "due", stripe_payment_intent_id: "pi_1" }, true), { ok: false, reason: "pending_payment_intent" });
+  assertEquals(canStartCharge({ status: "echouee", stripe_payment_intent_id: "pi_1" }, false), { ok: false, reason: "not_retryable" });
+  assertEquals(canStartCharge({ status: "echouee", stripe_payment_intent_id: "pi_1" }, true), { ok: true });
+  assertEquals(canStartCharge({ status: "payee", stripe_payment_intent_id: "pi_1" }, true), { ok: false, reason: "not_retryable" });
+  assertEquals(chargeIdempotencyKey("i1", 2), chargeIdempotencyKey("i1", 2));
 });

@@ -52,9 +52,13 @@ Deno.serve(withSentry("admin-create-program-link", async (req: Request) => {
 
     const admin = adminClient();
 
-    const { data: parent } = await admin
-      .from("profiles").select("id, email, role").eq("id", parentId).maybeSingle();
-    if (!parent || String(parent.role) !== "PARENT") return fail("not_found", "Parent introuvable", 404);
+    // Identité d'authentification (revue G1) : rôle lu dans app_metadata (non falsifiable)
+    // et courriel du compte, pas profiles.email que le parent peut modifier.
+    const { data: authData } = await admin.auth.admin.getUserById(parentId);
+    const parentUser = authData?.user ?? null;
+    if (!parentUser || String(parentUser.app_metadata?.role ?? "") !== "PARENT") {
+      return fail("not_found", "Parent introuvable", 404);
+    }
 
     // Pack en cours (le sien ou celui du titulaire de sa famille) → pas de second pack.
     const { data: memberships } = await admin
@@ -82,7 +86,7 @@ Deno.serve(withSentry("admin-create-program-link", async (req: Request) => {
     let customerId: string | null = billing?.stripe_customer_id ?? null;
     if (!customerId) {
       const customer = await stripe<{ id: string }>("POST", "/customers", {
-        email: parent.email ?? undefined,
+        email: parentUser.email ?? undefined,
         preferred_locales: ["fr-CA", "fr"],
         metadata: { app_user_id: parentId },
       }, `customer-${parentId}`);

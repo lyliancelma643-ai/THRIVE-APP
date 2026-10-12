@@ -29,6 +29,8 @@ import { adminClient, authUser, corsHeaders, env, fail, json, stripe, StripeErro
 import { constantTimeEqual, parseOrigins } from "../_shared/billing_core.ts";
 import {
   buildProgramCheckoutParams,
+  canStartCharge,
+  chargeIdempotencyKey,
   decideChargeOutcome,
   envFlag,
   InstallmentChargeRequest,
@@ -46,6 +48,7 @@ type Row = {
   amount_ht_cents: number;
   tax_cents: number;
   charge_attempts: number;
+  stripe_payment_intent_id: string | null;
   checkout_url: string | null;
   checkout_expires_at: string | null;
   program_orders: {
@@ -79,7 +82,7 @@ Deno.serve(withSentry("program-installment-charge", async (req: Request) => {
     const admin = adminClient();
     let query = admin
       .from("program_installments")
-      .select("id, order_id, rank, status, amount_ht_cents, tax_cents, charge_attempts, checkout_url, checkout_expires_at, program_orders!inner(id, parent_id, pack, mode, status, stripe_customer_id, stripe_payment_method_id)")
+      .select("id, order_id, rank, status, amount_ht_cents, tax_cents, charge_attempts, stripe_payment_intent_id, checkout_url, checkout_expires_at, program_orders!inner(id, parent_id, pack, mode, status, stripe_customer_id, stripe_payment_method_id)")
       .eq("rank", 2)
       .eq("program_orders.status", "active");
     query = parsed.data.installment_id
@@ -139,10 +142,27 @@ Deno.serve(withSentry("program-installment-charge", async (req: Request) => {
           continue;
         }
 
+        // Anti double prélèvement : un PaymentIntent déjà créé attend le webhook.
+        const gate = canStartCharge(row, !!parsed.data.installment_id);
+        if (!gate.ok) {
+          results.push({ installment_id: row.id, outcome: gate.reason });
+          continue;
+        }
+        // Réservation atomique de la tentative : un passage concurrent ne trouve plus la ligne.
+        const attempt = row.charge_attempts + 1;
+        const { data: claimed, error: claimErr } = await admin.from("program_installments")
+          .update({ charge_attempts: attempt, updated_at: new Date().toISOString() })
+          .eq("id", row.id)
+          .eq("status", row.status)
+          .eq("charge_attempts", row.charge_attempts)
+          .select("id");
+        if (claimErr) throw new Error(`program_installments claim: ${claimErr.message}`);
+        if (!claimed || claimed.length === 0) {
+          results.push({ installment_id: row.id, outcome: "concurrent_run" });
+          continue;
+        }
+
         const tax = taxEnabled ? row.tax_cents : 0; // [À COMPLÉTER] Stripe Tax Calculations si activé.
-        await admin.from("program_installments")
-          .update({ charge_attempts: row.charge_attempts + 1, updated_at: new Date().toISOString() })
-          .eq("id", row.id);
         let piStatus: string | null = null;
         let errorCode: string | null = null;
         try {
@@ -158,8 +178,13 @@ Deno.serve(withSentry("program-installment-charge", async (req: Request) => {
               app_user_id: order.parent_id, kind: "program", pack: order.pack, mode: order.mode,
               installment: "2", order_id: order.id, installment_id: row.id, tax_cents: String(tax),
             },
-          }, `program-inst-${row.id}-${row.charge_attempts + 1}`);
+          }, chargeIdempotencyKey(row.id, attempt));
           piStatus = pi.status;
+          // Mémorisé tout de suite : le prochain passage attendra le webhook au lieu de recréer.
+          const { error: piErr } = await admin.from("program_installments")
+            .update({ stripe_payment_intent_id: pi.id, updated_at: new Date().toISOString() })
+            .eq("id", row.id);
+          if (piErr) await captureError(new Error(`program_installments pi: ${piErr.message}`));
         } catch (e) {
           if (!(e instanceof StripeError) || e.status >= 500) throw e;
           errorCode = e.code ?? "card_error";
