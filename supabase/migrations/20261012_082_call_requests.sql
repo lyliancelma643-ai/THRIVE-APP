@@ -13,8 +13,11 @@
 -- La fonction edge `request-intro-call` appelle cette RPC avec le JWT du parent
 -- (et ajoute la limite de débit 078 par-dessus).
 --
--- Lecture : le parent voit ses demandes ; le staff (COACH / ADMIN / SUPER_ADMIN)
--- voit tout. Mise à jour : staff seulement, colonne `statut` seulement.
+-- Lecture : le parent voit ses demandes ; ADMIN / SUPER_ADMIN voient tout ; un
+-- COACH ne voit que les demandes des familles qu'il suit (Loi 25, minimisation) :
+-- coach assigné à l'enfant visé, ou — demande sans enfant — à un enfant du parent
+-- (coach_assignments actif). Mise à jour : mêmes personnes (hors parent),
+-- colonne `statut` seulement.
 -- Aucun DELETE pour authenticated (la ligne part avec le compte : ON DELETE CASCADE).
 --
 -- Rollback : supabase/rollbacks/20261012_082_call_requests_rollback.sql
@@ -50,18 +53,42 @@ grant update (statut) on table public.call_requests to authenticated;
 grant select, insert, update, delete on table public.call_requests to service_role;
 
 -- ── 2) Policies ──────────────────────────────────────────────────────────────
+-- Coach lié à la demande : assigné (actif) à l'enfant visé ; sans enfant visé,
+-- assigné à au moins un enfant d'une famille dont le demandeur est titulaire.
+create or replace function private.is_coach_of_call_request(p_parent uuid, p_child uuid)
+returns boolean language sql stable security definer
+set search_path = ''
+as $$
+  select private.jwt_role() = 'COACH'
+     and case
+           when p_child is not null then private.is_assigned_coach(p_child)
+           else exists (select 1
+                          from public.coach_assignments ca
+                          join public.children c on c.id = ca.child_id
+                          join public.families f on f.id = c.family_id
+                         where f.parent_id = p_parent
+                           and ca.coach_id = (select auth.uid())
+                           and ca.is_active)
+         end;
+$$;
+revoke all on function private.is_coach_of_call_request(uuid, uuid) from public, anon;
+grant execute on function private.is_coach_of_call_request(uuid, uuid) to authenticated;
+
 drop policy if exists call_requests_select on public.call_requests;
 drop policy if exists call_requests_staff_update on public.call_requests;
 
 create policy call_requests_select on public.call_requests
   for select to authenticated
   using (parent_id = (select auth.uid())
-         or (select private.jwt_role()) in ('COACH', 'ADMIN', 'SUPER_ADMIN'));
+         or (select private.jwt_role()) in ('ADMIN', 'SUPER_ADMIN')
+         or private.is_coach_of_call_request(parent_id, child_id));
 
 create policy call_requests_staff_update on public.call_requests
   for update to authenticated
-  using ((select private.jwt_role()) in ('COACH', 'ADMIN', 'SUPER_ADMIN'))
-  with check ((select private.jwt_role()) in ('COACH', 'ADMIN', 'SUPER_ADMIN'));
+  using ((select private.jwt_role()) in ('ADMIN', 'SUPER_ADMIN')
+         or private.is_coach_of_call_request(parent_id, child_id))
+  with check ((select private.jwt_role()) in ('ADMIN', 'SUPER_ADMIN')
+              or private.is_coach_of_call_request(parent_id, child_id));
 
 -- ── 3) Horodatage de mise à jour ─────────────────────────────────────────────
 create or replace function private.call_requests_touch()

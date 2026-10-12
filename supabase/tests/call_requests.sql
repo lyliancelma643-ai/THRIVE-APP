@@ -14,7 +14,8 @@ declare
   res jsonb := '{}'::jsonb;
   pa uuid := gen_random_uuid();   -- parent A
   pb uuid := gen_random_uuid();   -- parent B
-  co uuid := gen_random_uuid();   -- coach
+  co uuid := gen_random_uuid();   -- coach assigné à l'enfant de A
+  co2 uuid := gen_random_uuid();  -- coach sans lien avec A ni B
   adm uuid := gen_random_uuid();  -- admin
   ka uuid; kb uuid; ra uuid; rb uuid; r uuid;
   n int; s text; ok boolean; stubbed boolean := false;
@@ -42,6 +43,7 @@ begin
   insert into public.children (family_id, first_name, last_name, date_of_birth, validation_status)
     select f.id, 'k', 'k', date '2015-01-01', 'CONFIRMED' from public.families f where f.parent_id = pb
     returning id into kb;
+  insert into public.coach_assignments (coach_id, child_id) values (co, ka);
 
   -- ── Parent A : création valide ─────────────────────────────────────────────
   perform set_config('request.jwt.claims', json_build_object('sub', pa, 'role', 'authenticated',
@@ -113,9 +115,12 @@ begin
     if sqlerrm <> 'not_parent' then fails := fails || ('coach → ' || sqlerrm); end if;
   end;
 
-  -- ── Staff : lit tout, change le statut, rien d'autre ───────────────────────
+  -- ── Coach lié : ne voit que la famille qu'il suit (Loi 25), change le statut ─
   select count(*) into n from public.call_requests where id in (ra, rb);
-  if n <> 2 then fails := fails || ('coach voit ' || n || '/2'); end if;
+  if n <> 1 then fails := fails || ('coach lié voit ' || n || '/1'); end if;
+  update public.call_requests set statut = 'confirme' where id = rb;
+  get diagnostics n = row_count;
+  if n <> 0 then fails := fails || 'coach a changé une demande hors de ses familles'::text; end if;
   update public.call_requests set statut = 'confirme' where id = ra;
   get diagnostics n = row_count;
   if n <> 1 then fails := fails || 'coach ne peut pas confirmer'::text; end if;
@@ -131,6 +136,17 @@ begin
   begin delete from public.call_requests where id = ra;
   exception when insufficient_privilege then ok := true; end;
   if not ok then fails := fails || 'coach a supprimé'::text; end if;
+  reset role;
+
+  -- ── Coach sans lien : ne voit rien, ne change rien ─────────────────────────
+  perform set_config('request.jwt.claims', json_build_object('sub', co2, 'role', 'authenticated',
+    'app_metadata', json_build_object('role', 'COACH'))::text, true);
+  set local role authenticated;
+  select count(*) into n from public.call_requests;
+  if n <> 0 then fails := fails || ('coach non lié voit ' || n); end if;
+  update public.call_requests set statut = 'annule' where id in (ra, rb);
+  get diagnostics n = row_count;
+  if n <> 0 then fails := fails || 'coach non lié a changé une demande'::text; end if;
   reset role;
 
   perform set_config('request.jwt.claims', json_build_object('sub', adm, 'role', 'authenticated',
