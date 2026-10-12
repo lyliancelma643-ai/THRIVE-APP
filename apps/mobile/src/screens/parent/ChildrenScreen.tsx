@@ -1,10 +1,12 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { ThemedText, useTheme } from '../../design';
 
 export default function ChildrenScreen() {
+  const { colors } = useTheme();
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-2xl font-bold">Mes Enfants</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgGrouped }}>
+      <ThemedText variant="title1">Mes enfants</ThemedText>
     </View>
   );
 }

@@ -1,14 +1,25 @@
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, ScrollView } from 'react-native';
 import { useAuthStore } from '../../stores/auth.store';
 import { useRouter } from 'expo-router';
 import { AccountPrivacySection } from '../../components/AccountPrivacySection';
 import { HealthNotice } from '../../components/HealthNotice';
 import { SubscriptionSettings } from '../../components/subscription/SubscriptionSettings';
 import { BillingIssueBanner } from '../../components/BillingIssueBanner';
+import { StylePicker } from '../../components/account/StylePicker';
+import { ListGroup, ListRow, SPACING, ThemedText, useTheme } from '../../design';
+
+function SectionTitle({ children }: { children: string }) {
+  return (
+    <ThemedText variant="footnote" color="label2" accessibilityRole="header" style={{ paddingHorizontal: SPACING.space4, paddingBottom: SPACING.space1 }}>
+      {children}
+    </ThemedText>
+  );
+}
 
 export default function ProfileScreen() {
   const { user, signOut } = useAuthStore();
   const router = useRouter();
+  const { colors } = useTheme();
 
   const handleSignOut = async () => {
     await signOut();
@@ -18,43 +29,42 @@ export default function ProfileScreen() {
   const ROLE_LABELS: Record<string, string> = { PARENT: 'Parent', COACH: 'Coach' };
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="px-6 pt-16">
-        <Text className="text-2xl font-bold mb-6">Mon profil</Text>
-        <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-sm">Prénom</Text>
-          <Text className="font-semibold text-base">{user?.firstName ?? '—'}</Text>
-        </View>
-        <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-sm">Nom</Text>
-          <Text className="font-semibold text-base">{user?.lastName ?? '—'}</Text>
-        </View>
-        <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-sm">Email</Text>
-          <Text className="font-semibold text-base">{user?.email ?? '—'}</Text>
-        </View>
-        <View className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-8">
-          <Text className="text-gray-500 text-sm">Rôle</Text>
-          <Text className="font-semibold text-base">{ROLE_LABELS[user?.role ?? ''] ?? '—'}</Text>
-        </View>
-        <BillingIssueBanner />
-        <View className="-mx-4">
-          <SubscriptionSettings />
-        </View>
-        <Pressable
-          className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100 mb-4 flex-row justify-between"
-          onPress={() => router.push('/(parent)/notifications')}
-          accessibilityRole="button"
-        >
-          <Text className="text-base">Notifications</Text>
-          <Text className="text-gray-400 text-lg">›</Text>
-        </Pressable>
-        <HealthNotice />
-        <AccountPrivacySection />
-        <Pressable className="bg-black rounded-2xl py-4 items-center mb-12" onPress={handleSignOut} accessibilityRole="button">
-          <Text className="text-white font-semibold">Se déconnecter</Text>
-        </Pressable>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bgGrouped }} contentContainerStyle={{ paddingHorizontal: SPACING.space4, paddingTop: SPACING.space8 * 2, paddingBottom: SPACING.space8 * 2 }}>
+      <ThemedText variant="largeTitle" accessibilityRole="header" style={{ marginBottom: SPACING.space5 }}>Compte & famille</ThemedText>
+
+      <View style={{ marginBottom: SPACING.space5 }}>
+        <SectionTitle>Mon profil</SectionTitle>
+        <ListGroup>
+          <ListRow title="Prénom" value={user?.firstName ?? '—'} />
+          <ListRow title="Nom" value={user?.lastName ?? '—'} />
+          <ListRow title="Email" value={user?.email ?? '—'} />
+          <ListRow title="Rôle" value={ROLE_LABELS[user?.role ?? ''] ?? '—'} last />
+        </ListGroup>
       </View>
+
+      <View style={{ marginBottom: SPACING.space5 }}>
+        <SectionTitle>Style de l’app</SectionTitle>
+        <StylePicker />
+      </View>
+
+      <BillingIssueBanner />
+      <View style={{ marginHorizontal: -SPACING.space4 }}>
+        <SubscriptionSettings />
+      </View>
+
+      <View style={{ marginBottom: SPACING.space4 }}>
+        <ListGroup>
+          <ListRow icon="people" iconColor="sysTeal" title="Mes enfants" onPress={() => router.push('/(parent)/children')} />
+          <ListRow icon="notifications" iconColor="sysOrange" title="Notifications" onPress={() => router.push('/(parent)/notifications')} last />
+        </ListGroup>
+      </View>
+
+      <HealthNotice />
+      <AccountPrivacySection />
+
+      <ListGroup>
+        <ListRow title="Se déconnecter" destructive last onPress={handleSignOut} />
+      </ListGroup>
     </ScrollView>
   );
 }

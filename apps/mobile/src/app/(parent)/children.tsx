@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, Pressable,
-  ActivityIndicator, Modal, TextInput, Alert,
-} from 'react-native';
+import { View, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren } from '@thrive/shared';
 import { OfflineState } from '../../components/OfflineState';
+import { GlassButton, ListGroup, ListRow, Pill, Sheet, SPACING, ThemedText, useTheme } from '../../design';
+import { AuthButton, AuthField } from '../../components/account/AuthScaffold';
 
 function calculateAge(dob: string): number {
   const diff = Date.now() - new Date(dob).getTime();
@@ -16,6 +15,7 @@ function calculateAge(dob: string): number {
 export default function ChildrenScreen() {
   const { user } = useAuthStore();
   const router = useRouter();
+  const { colors } = useTheme();
   const { family, isLoading: familyLoading, error: familyError, refetch: refetchFamily, createFamily } = useFamily(user?.id);
   const { children, isLoading, error: childrenError, refetch: refetchChildren, createChild } = useChildren(family?.id);
 
@@ -46,7 +46,7 @@ export default function ChildrenScreen() {
 
   if (isLoading || familyLoading) {
     return (
-      <View className="flex-1 items-center justify-center">
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgGrouped }}>
         <ActivityIndicator size="large" />
       </View>
     );
@@ -57,98 +57,52 @@ export default function ChildrenScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      <View className="px-6 pt-16 pb-4 flex-row justify-between items-center">
-        <Text className="text-2xl font-bold">Mes enfants</Text>
-        <Pressable
-          className="bg-black rounded-xl px-4 py-2"
-          onPress={() => setShowModal(true)}
-        >
-          <Text className="text-white font-semibold">+ Ajouter</Text>
-        </Pressable>
+    <ScrollView style={{ flex: 1, backgroundColor: colors.bgGrouped }} contentContainerStyle={{ paddingHorizontal: SPACING.space4, paddingTop: SPACING.space8 * 2, paddingBottom: SPACING.space8 * 2 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.space5 }}>
+        <ThemedText variant="largeTitle" accessibilityRole="header">Mes enfants</ThemedText>
+        <GlassButton icon="add" label="Ajouter" tinted accessibilityLabel="Ajouter un enfant" onPress={() => setShowModal(true)} />
       </View>
 
       {children.length === 0 ? (
-        <View className="px-6 mt-8 items-center">
-          <Text className="text-4xl mb-4">👶</Text>
-          <Text className="text-gray-500 text-center">
-            Aucun enfant ajouté.{`\n`}Appuie sur + Ajouter pour commencer.
-          </Text>
+        <View style={{ alignItems: 'center', marginTop: SPACING.space8 }}>
+          <ThemedText variant="body" color="label2" style={{ textAlign: 'center' }}>
+            Aucun enfant ajouté.{`\n`}Appuie sur Ajouter pour commencer.
+          </ThemedText>
         </View>
       ) : (
-        <View className="px-6">
-          {children.map((child) => (
-            <Pressable
-              key={child.id}
-              className="bg-white rounded-2xl p-5 mb-4 shadow-sm border border-gray-100"
-              onPress={() => router.push({ pathname: '/(parent)/badges', params: { childId: child.id } })}
-              accessibilityRole="button"
-            >
-              <Text className="text-lg font-bold">
-                {child.first_name} {child.last_name}
-              </Text>
-              <Text className="text-gray-500 text-sm mt-1">
-                {calculateAge(child.date_of_birth)} ans
-              </Text>
-              {(child.child_badges ?? []).length > 0 && (
-                <View className="flex-row flex-wrap mt-3 gap-2">
-                  {child.child_badges!.map((cb, i) => (
-                    <View key={i} className="bg-yellow-100 rounded-full px-3 py-1">
-                      <Text className="text-xs font-medium text-yellow-800">
-                        🏅 {cb.badges.name}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </Pressable>
-          ))}
-        </View>
+        <ListGroup>
+          {children.map((child, i) => {
+            const badges = (child.child_badges ?? []).map((cb) => cb.badges.name);
+            return (
+              <View key={child.id}>
+                <ListRow
+                  title={`${child.first_name} ${child.last_name}`}
+                  subtitle={`${calculateAge(child.date_of_birth)} ans`}
+                  last={i === children.length - 1 && badges.length === 0}
+                  onPress={() => router.push({ pathname: '/(parent)/badges', params: { childId: child.id } })}
+                />
+                {badges.length > 0 ? (
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.space2, paddingHorizontal: SPACING.space4, paddingBottom: SPACING.space3 }}>
+                    {badges.map((name, j) => <Pill key={j} label={name} tone="accent" />)}
+                  </View>
+                ) : null}
+              </View>
+            );
+          })}
+        </ListGroup>
       )}
 
-      {/* Modal Ajout */}
-      <Modal visible={showModal} animationType="slide" transparent>
-        <View className="flex-1 justify-end bg-black/40">
-          <View className="bg-white rounded-t-3xl p-6">
-            <Text className="text-xl font-bold mb-6">Nouvel enfant</Text>
-            <TextInput
-              className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-              placeholder="Prénom"
-              value={firstName}
-              onChangeText={setFirstName}
-            />
-            <TextInput
-              className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-              placeholder="Nom"
-              value={lastName}
-              onChangeText={setLastName}
-            />
-            <TextInput
-              className="border border-gray-200 rounded-2xl px-4 py-4 mb-6 text-base"
-              placeholder="Date de naissance (AAAA-MM-JJ)"
-              value={dob}
-              onChangeText={setDob}
-            />
-            <Text className="text-xs text-gray-500 mb-6 -mt-3">
-              En ajoutant votre enfant, vous confirmez être titulaire de l’autorité parentale et consentez,
-              en son nom, au traitement de ces renseignements pour le suivi de son programme THRIVE.
-              Ils ne sont accessibles qu’à son coach et à l’équipe THRIVE.
-            </Text>
-            <Pressable
-              className="bg-black rounded-2xl py-4 items-center mb-3"
-              onPress={handleAdd}
-              disabled={saving}
-            >
-              <Text className="text-white font-semibold">
-                {saving ? 'Enregistrement...' : 'Ajouter'}
-              </Text>
-            </Pressable>
-            <Pressable onPress={() => setShowModal(false)}>
-              <Text className="text-center text-gray-500">Annuler</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
+      <Sheet visible={showModal} onClose={() => setShowModal(false)} title="Nouvel enfant" detent="large">
+        <AuthField label="Prénom" value={firstName} onChangeText={setFirstName} />
+        <AuthField label="Nom" value={lastName} onChangeText={setLastName} />
+        <AuthField label="Date de naissance (AAAA-MM-JJ)" value={dob} onChangeText={setDob} />
+        <ThemedText variant="footnote" color="label2" style={{ marginBottom: SPACING.space4 }}>
+          En ajoutant votre enfant, vous confirmez être titulaire de l’autorité parentale et consentez,
+          en son nom, au traitement de ces renseignements pour le suivi de son programme THRIVE.
+          Ils ne sont accessibles qu’à son coach et à l’équipe THRIVE.
+        </ThemedText>
+        <AuthButton label={saving ? 'Enregistrement...' : 'Ajouter'} onPress={handleAdd} disabled={saving} />
+      </Sheet>
     </ScrollView>
   );
 }

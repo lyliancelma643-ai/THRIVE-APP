@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { SPACING, ThemedText } from '../../design';
+import { AuthButton, AuthError, AuthField, AuthLink, AuthScaffold } from '../../components/account/AuthScaffold';
 
 // Mot de passe oublié : le lien reçu par courriel ouvre la page web
 // /reset-password (universal link si l'app est installée), où le nouveau mot de
@@ -31,35 +32,32 @@ export default function ForgotPasswordScreen() {
   };
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-3xl font-bold mb-2">Mot de passe oublié</Text>
-        {sent ? (
-          <Text className="text-gray-600 mb-8" accessibilityRole="alert">
-            Si un compte existe pour cette adresse, un courriel vient de partir avec un lien pour choisir un nouveau mot de passe.
-          </Text>
-        ) : (
-          <>
-            <Text className="text-gray-500 mb-8">Entre ton courriel : on t’envoie un lien pour en choisir un nouveau.</Text>
-            <TextInput
-              className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-            />
-            {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
-            <Pressable className="bg-black rounded-2xl py-4 items-center mb-4" onPress={submit} disabled={busy}>
-              <Text className="text-white font-semibold text-base">{busy ? 'Envoi…' : 'Envoyer le lien'}</Text>
-            </Pressable>
-          </>
-        )}
-        <Pressable className="items-center py-3" onPress={() => router.replace('/(auth)/login')}>
-          <Text className="text-gray-500">Retour à la connexion</Text>
-        </Pressable>
-      </View>
-    </KeyboardAvoidingView>
+    <AuthScaffold>
+      <ThemedText variant="title1" accessibilityRole="header" style={{ marginBottom: SPACING.space2 }}>Mot de passe oublié</ThemedText>
+      {sent ? (
+        <ThemedText variant="body" color="label2" accessibilityRole="alert" style={{ marginBottom: SPACING.space8 }}>
+          Si un compte existe pour cette adresse, un courriel vient de partir avec un lien pour choisir un nouveau mot de passe.
+        </ThemedText>
+      ) : (
+        <>
+          <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space6 }}>
+            Entre ton courriel : on t’envoie un lien pour en choisir un nouveau.
+          </ThemedText>
+          <AuthField
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+            autoComplete="email"
+          />
+          <AuthError message={error} />
+          <AuthButton label={busy ? 'Envoi…' : 'Envoyer le lien'} onPress={submit} disabled={busy} />
+        </>
+      )}
+      <AuthLink label="Retour à la connexion" onPress={() => router.replace('/(auth)/login')}>
+        <ThemedText variant="subheadline" color="label2">Retour à la connexion</ThemedText>
+      </AuthLink>
+    </AuthScaffold>
   );
 }

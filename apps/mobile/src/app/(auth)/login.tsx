@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
+import { MascotHero, SPACING, ThemedText } from '../../design';
+import { AuthButton, AuthError, AuthField, AuthLink, AuthScaffold } from '../../components/account/AuthScaffold';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -22,57 +24,49 @@ export default function LoginScreen() {
   };
 
   return (
-    <KeyboardAvoidingView
-      className="flex-1 bg-white"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-4xl font-bold mb-2">THRIVE 🏆</Text>
-        <Text className="text-gray-500 mb-8">Connecte-toi à ton espace</Text>
-
-        <TextInput
-          className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-          testID="login-email"
-          placeholder="Email"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-          keyboardType="email-address"
-          autoComplete="email"
-        />
-        <TextInput
-          className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-          testID="login-password"
-          placeholder="Mot de passe"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
-          autoComplete="current-password"
-        />
-
-        {!!error && <Text testID="login-error" className="text-red-500 mb-4 text-sm">{error}</Text>}
-
-        <Pressable
-          testID="login-submit"
-          className="bg-black rounded-2xl py-4 items-center mb-4"
-          onPress={handleLogin}
-          disabled={isLoading}
-        >
-          <Text className="text-white font-semibold text-base">
-            {isLoading ? 'Connexion...' : 'Se connecter'}
-          </Text>
-        </Pressable>
-
-        <Pressable className="items-center py-3 mb-2" onPress={() => router.push('/(auth)/forgot-password')}>
-          <Text className="text-gray-500 underline">Mot de passe oublié ?</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.push('/(auth)/register')}>
-          <Text className="text-center text-gray-500">
-            Pas encore de compte ? <Text className="text-black font-semibold">Créer un compte</Text>
-          </Text>
-        </Pressable>
+    <AuthScaffold>
+      <View style={{ alignItems: 'center', marginBottom: SPACING.space5 }}>
+        <MascotHero size={140} />
       </View>
-    </KeyboardAvoidingView>
+      <ThemedText variant="largeTitle" accessibilityRole="header">THRIVE</ThemedText>
+      <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space6 }}>Connecte-toi à ton espace</ThemedText>
+
+      <AuthField
+        label="Email"
+        testID="login-email"
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
+        keyboardType="email-address"
+        autoComplete="email"
+      />
+      <AuthField
+        label="Mot de passe"
+        testID="login-password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
+        autoComplete="current-password"
+      />
+
+      <AuthError testID="login-error" message={error} />
+
+      <AuthButton
+        testID="login-submit"
+        label={isLoading ? 'Connexion...' : 'Se connecter'}
+        onPress={handleLogin}
+        disabled={isLoading}
+      />
+
+      <AuthLink label="Mot de passe oublié ?" onPress={() => router.push('/(auth)/forgot-password')}>
+        <ThemedText variant="subheadline" color="label2" style={{ textDecorationLine: 'underline' }}>Mot de passe oublié ?</ThemedText>
+      </AuthLink>
+
+      <AuthLink label="Créer un compte" onPress={() => router.push('/(auth)/register')}>
+        <ThemedText variant="subheadline" color="label2">
+          Pas encore de compte ? <ThemedText variant="subheadline" color="tint" style={{ fontWeight: '600' }}>Créer un compte</ThemedText>
+        </ThemedText>
+      </AuthLink>
+    </AuthScaffold>
   );
 }

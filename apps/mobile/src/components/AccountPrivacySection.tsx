@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
+import { View, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { LEGAL } from '../services/legal';
+import { ListGroup, ListRow, SPACING, ThemedText } from '../design';
 import { useEntitlement } from '../hooks/useEntitlement';
 import { deletionSubscriptionWarning } from '../services/subscription-logic';
 
@@ -22,16 +23,13 @@ const DELETION_DELAY = '30 jours';
 
 function LinkRow({ label, url }: { label: string; url: string }) {
   if (!url) return null;
+  // Pages web : navigateur in-app ; mailto:/tel: restent sur Linking.
   return (
-    <Pressable
-      className="flex-row justify-between items-center py-4 border-b border-gray-100"
-      // Pages web : navigateur in-app ; mailto:/tel: restent sur Linking.
+    <ListRow
+      title={label}
+      accessibilityLabel={label}
       onPress={() => (/^https?:\/\//i.test(url) ? WebBrowser.openBrowserAsync(url) : Linking.openURL(url))}
-      accessibilityRole="link"
-    >
-      <Text className="text-base">{label}</Text>
-      <Text className="text-gray-400 text-lg">›</Text>
-    </Pressable>
+    />
   );
 }
 
@@ -74,23 +72,22 @@ export function AccountPrivacySection() {
   };
 
   return (
-    <View className="bg-white rounded-2xl px-5 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-gray-500 text-sm pt-5 pb-1">Confidentialité et compte</Text>
-      <LinkRow label="Politique de confidentialité" url={LEGAL.privacy} />
-      <LinkRow label="Conditions d’utilisation" url={LEGAL.terms} />
-      <LinkRow label="Aide et contact" url={LEGAL.support} />
-      <Pressable
-        className="py-4"
-        onPress={confirmDeletion}
-        disabled={deleting}
-        accessibilityRole="button"
-      >
+    <View style={{ marginBottom: SPACING.space4 }}>
+      <ThemedText variant="footnote" color="label2" style={{ paddingHorizontal: SPACING.space4, paddingBottom: SPACING.space1 }}>
+        Confidentialité et compte
+      </ThemedText>
+      <ListGroup>
+        <LinkRow label="Politique de confidentialité" url={LEGAL.privacy} />
+        <LinkRow label="Conditions d’utilisation" url={LEGAL.terms} />
+        <LinkRow label="Aide et contact" url={LEGAL.support} />
         {deleting ? (
-          <ActivityIndicator />
+          <View style={{ minHeight: SPACING.rowMin, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator />
+          </View>
         ) : (
-          <Text className="text-base font-semibold text-red-600">Supprimer mon compte et mes données</Text>
+          <ListRow title="Supprimer mon compte et mes données" destructive last onPress={confirmDeletion} />
         )}
-      </Pressable>
+      </ListGroup>
     </View>
   );
 }

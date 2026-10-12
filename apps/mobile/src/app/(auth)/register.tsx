@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 import { LEGAL, LEGAL_VERSION } from '../../services/legal';
+import { SPACING, ThemedText, useTheme } from '../../design';
+import { AuthButton, AuthError, AuthField, AuthLink, AuthScaffold } from '../../components/account/AuthScaffold';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { signUp, isLoading } = useAuthStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -51,60 +55,63 @@ export default function RegisterScreen() {
 
   if (success) {
     return (
-      <View className="flex-1 justify-center items-center px-6 bg-white">
-        <Text className="text-4xl mb-4">🎉</Text>
-        <Text className="text-2xl font-bold mb-2">Compte créé !</Text>
-        <Text className="text-gray-500 text-center mb-8">Vérifie ton email pour confirmer ton compte.</Text>
-        <Pressable className="bg-black rounded-2xl py-4 px-8" onPress={() => router.push('/(auth)/login')}>
-          <Text className="text-white font-semibold">Se connecter</Text>
-        </Pressable>
-      </View>
+      <AuthScaffold>
+        <ThemedText variant="title1" accessibilityRole="header" style={{ marginBottom: SPACING.space2 }}>Compte créé !</ThemedText>
+        <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space8 }}>Vérifie ton email pour confirmer ton compte.</ThemedText>
+        <AuthButton label="Se connecter" onPress={() => router.push('/(auth)/login')} />
+      </AuthScaffold>
     );
   }
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text className="text-4xl font-bold mb-2">Rejoins THRIVE 🏆</Text>
-        <Text className="text-gray-500 mb-8">Crée ton espace parent</Text>
+    <AuthScaffold>
+      <ThemedText variant="largeTitle" accessibilityRole="header">Rejoins THRIVE</ThemedText>
+      <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space6 }}>Crée ton espace parent</ThemedText>
 
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Prénom" value={firstName} onChangeText={setFirstName} />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Nom" value={lastName} onChangeText={setLastName} />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`} value={password} onChangeText={setPassword} secureTextEntry />
+      <AuthField label="Prénom" value={firstName} onChangeText={setFirstName} autoComplete="given-name" />
+      <AuthField label="Nom" value={lastName} onChangeText={setLastName} autoComplete="family-name" />
+      <AuthField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" />
+      <AuthField label={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`} value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" />
 
-        <Pressable
-          className="flex-row items-start mb-4"
-          onPress={() => setAccepted((v) => !v)}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: accepted }}
+      <Pressable
+        onPress={() => setAccepted((v) => !v)}
+        accessibilityRole="checkbox"
+        accessibilityLabel="Je confirme avoir 18 ans ou plus, être parent ou tuteur légal, et accepter les conditions"
+        accessibilityState={{ checked: accepted }}
+        style={{ flexDirection: 'row', alignItems: 'flex-start', minHeight: 44, marginBottom: SPACING.space4 }}
+      >
+        <View
+          style={{
+            width: 24, height: 24, borderRadius: 7, marginRight: SPACING.space3, marginTop: 1,
+            alignItems: 'center', justifyContent: 'center',
+            backgroundColor: accepted ? colors.tint : 'transparent',
+            borderWidth: accepted ? 0 : 2, borderColor: colors.label2,
+          }}
         >
-          <View className={`w-6 h-6 rounded-md border-2 mr-3 mt-0.5 items-center justify-center ${accepted ? 'bg-black border-black' : 'border-gray-300'}`}>
-            {accepted && <Text className="text-white text-xs font-bold">✓</Text>}
-          </View>
-          <Text className="flex-1 text-sm text-gray-600">
-            J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
-            <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}>conditions d’utilisation</Text>
-            {LEGAL.privacy ? (
-              <>
-                {' '}et la{' '}
-                <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}>politique de confidentialité</Text>
-              </>
-            ) : null}
-            .
-          </Text>
-        </Pressable>
+          {accepted ? <Ionicons name="checkmark" size={16} color={colors.tintInk} /> : null}
+        </View>
+        <ThemedText variant="footnote" color="label2" style={{ flex: 1 }}>
+          J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
+          <ThemedText variant="footnote" color="tint" style={{ textDecorationLine: 'underline' }} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}>conditions d’utilisation</ThemedText>
+          {LEGAL.privacy ? (
+            <>
+              {' '}et la{' '}
+              <ThemedText variant="footnote" color="tint" style={{ textDecorationLine: 'underline' }} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}>politique de confidentialité</ThemedText>
+            </>
+          ) : null}
+          .
+        </ThemedText>
+      </Pressable>
 
-        {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
+      <AuthError message={error} />
 
-        <Pressable className="bg-black rounded-2xl py-4 items-center mb-4" onPress={handleRegister} disabled={isLoading}>
-          <Text className="text-white font-semibold text-base">{isLoading ? 'Création...' : 'Créer mon compte'}</Text>
-        </Pressable>
+      <AuthButton label={isLoading ? 'Création...' : 'Créer mon compte'} onPress={handleRegister} disabled={isLoading} />
 
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-center text-gray-500">Déjà un compte ? <Text className="text-black font-semibold">Se connecter</Text></Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      <AuthLink label="Se connecter" onPress={() => router.back()}>
+        <ThemedText variant="subheadline" color="label2">
+          Déjà un compte ? <ThemedText variant="subheadline" color="tint" style={{ fontWeight: '600' }}>Se connecter</ThemedText>
+        </ThemedText>
+      </AuthLink>
+    </AuthScaffold>
   );
 }
