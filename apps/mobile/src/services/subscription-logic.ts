@@ -143,3 +143,66 @@ export function deletionSubscriptionWarning(
   }
   return null;
 }
+
+// ── Affichage des offres (D2, Y) : calculs purs, jamais de prix saisi ───────
+
+/** Prix mensuel équivalent d'un abonnement annuel : prix annuel / 12, arrondi au cent. */
+export function perMonthFromAnnual(annualPrice: number | null | undefined): number | null {
+  if (typeof annualPrice !== 'number' || !Number.isFinite(annualPrice) || annualPrice <= 0) return null;
+  return Math.round((annualPrice / 12) * 100) / 100;
+}
+
+/** Pourcentage d'économie de l'annuel face à 12 mensualités (entier), ou null s'il n'y a pas d'économie. */
+export function annualSavingPercent(
+  monthlyPrice: number | null | undefined,
+  annualPrice: number | null | undefined,
+): number | null {
+  if (!monthlyPrice || !annualPrice || monthlyPrice <= 0 || annualPrice <= 0) return null;
+  const full = monthlyPrice * 12;
+  if (full <= annualPrice) return null;
+  return Math.round(((full - annualPrice) / full) * 100);
+}
+
+/** Montant en « 24,92 $ » (français canadien). Repli sans Intl si le moteur ne le fournit pas. */
+export function formatMoneyFr(amount: number, currencyCode?: string | null): string {
+  try {
+    return new Intl.NumberFormat('fr-CA', { style: 'currency', currency: currencyCode || 'CAD' }).format(amount);
+  } catch {
+    return `${amount.toFixed(2).replace('.', ',')} $`;
+  }
+}
+
+/** Ajoute une période ISO 8601 simple (P3D, P1W, P1M, P1Y) à une date. null si la période est illisible. */
+export function addIsoPeriod(from: Date, iso: string | null | undefined): Date | null {
+  const m = /^P(\d+)([DWMY])$/.exec(iso ?? '');
+  if (!m || Number.isNaN(from.getTime())) return null;
+  const n = Number(m[1]);
+  const d = new Date(from.getTime());
+  if (m[2] === 'D') d.setDate(d.getDate() + n);
+  else if (m[2] === 'W') d.setDate(d.getDate() + 7 * n);
+  else if (m[2] === 'M') d.setMonth(d.getMonth() + n);
+  else d.setFullYear(d.getFullYear() + n);
+  return d;
+}
+
+/**
+ * Frise de l'essai : aujourd'hui → avis (J-3) → premier paiement, calculée depuis
+ * la période d'essai de l'offering. null si l'essai est absent ou illisible.
+ */
+export function trialTimeline(
+  start: Date,
+  trialIso: string | null | undefined,
+  noticeDays = 3,
+): { notice: Date; firstPayment: Date } | null {
+  const firstPayment = addIsoPeriod(start, trialIso);
+  if (!firstPayment) return null;
+  const notice = new Date(firstPayment.getTime());
+  notice.setDate(notice.getDate() - noticeDays);
+  return { notice: notice.getTime() < start.getTime() ? start : notice, firstPayment };
+}
+
+/** « 7 novembre » (sans l'année), pour la frise de l'essai. */
+export function formatDayMonthFr(d: Date): string {
+  const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  return `${d.getDate()}${d.getDate() === 1 ? 'er' : ''} ${months[d.getMonth()]}`;
+}

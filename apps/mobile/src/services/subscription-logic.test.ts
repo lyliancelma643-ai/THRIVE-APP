@@ -9,6 +9,10 @@ import {
   isStaffRole,
   legalLinks,
   managementMode,
+  perMonthFromAnnual,
+  annualSavingPercent,
+  addIsoPeriod,
+  trialTimeline,
   perPeriodFr,
 } from './subscription-logic';
 
@@ -98,5 +102,28 @@ describe('deletionSubscriptionWarning — suppression de compte', () => {
   it('pas de renouvellement / pas d’abonnement → rien', () => {
     expect(deletionSubscriptionWarning('APP_STORE', false, 'ios')).toBeNull();
     expect(deletionSubscriptionWarning(null, false, 'ios')).toBeNull();
+  });
+});
+
+describe('affichage des offres — calculs purs (D2)', () => {
+  it('prix mensuel équivalent = annuel / 12, jamais saisi', () => {
+    expect(perMonthFromAnnual(299)).toBe(24.92);
+    expect(perMonthFromAnnual(120)).toBe(10);
+    expect(perMonthFromAnnual(0)).toBeNull();
+    expect(perMonthFromAnnual(null)).toBeNull();
+  });
+  it('pourcentage d’économie calculé depuis l’offering', () => {
+    expect(annualSavingPercent(32.5, 299)).toBe(23);
+    expect(annualSavingPercent(10, 120)).toBeNull();
+    expect(annualSavingPercent(null, 299)).toBeNull();
+  });
+  it('frise d’essai : fin de l’essai et avis à J-3', () => {
+    const start = new Date(2026, 9, 10);
+    expect(addIsoPeriod(start, 'P1M')?.getDate()).toBe(10);
+    const t = trialTimeline(start, 'P1M');
+    expect(t?.firstPayment.getMonth()).toBe(10);
+    expect(t?.notice.getDate()).toBe(7);
+    expect(trialTimeline(start, null)).toBeNull();
+    expect(trialTimeline(start, 'bogus')).toBeNull();
   });
 });

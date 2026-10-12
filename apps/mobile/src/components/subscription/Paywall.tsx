@@ -1,15 +1,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, Platform, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
+import { Ionicons } from '@expo/vector-icons';
 import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
 import {
   activeEntitlement,
@@ -18,16 +11,27 @@ import {
   restorePurchases,
   trialEligibleProductIds,
 } from '../../services/purchases';
-import { isoPeriodFr, perPeriodFr } from '../../services/subscription-logic';
+import {
+  annualSavingPercent,
+  formatDayMonthFr,
+  formatMoneyFr,
+  isoPeriodFr,
+  perMonthFromAnnual,
+  perPeriodFr,
+  trialTimeline,
+} from '../../services/subscription-logic';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { GlassButton, GlassSurface, MascotHero, RADIUS, SPACING, ThemedText, useTheme } from '../../design';
+import { freeTrialPeriod } from '../offres/useMaisonOffering';
 import { SubscriptionLoader } from './SubscriptionLoader';
-import { C, LEGAL } from './theme';
+import { LEGAL } from './theme';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Paywall P3 — achat intégré UNIQUEMENT (App Store / Google Play).
+// Paywall D2 — achat intégré UNIQUEMENT (App Store / Google Play).
 // ANTI-STEERING : aucun texte, bouton ni lien ne renvoie vers un autre moyen de
 // paiement. Prix, périodes et essais sont lus dans l'offering RevenueCat
 // courant (jamais écrits en dur). Bouton « Restaurer les achats » obligatoire.
+// Hiérarchie (Apple 3.1.2) : le mois gratuit d'abord, le prix facturé jamais caché.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Nom de l'abonnement, identique à celui des fiches App Store / Google Play. */
@@ -40,14 +44,9 @@ const PROMISES = [
   'Le carnet des moments, pour garder ce que vous vivez ensemble',
 ];
 
-/** Période d'essai gratuit d'un package, si le store en propose une. */
-function freeTrialPeriod(pkg: PurchasesPackage): string | null {
-  const p = pkg.product;
-  if (Platform.OS === 'android') return p.defaultOption?.freePhase?.billingPeriod?.iso8601 ?? null;
-  return p.introPrice && p.introPrice.price === 0 ? p.introPrice.period : null;
-}
-
 export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; onClose?: () => void }) {
+  const { colors, fontsLoaded } = useTheme();
+  const insets = useSafeAreaInsets();
   const setCustomerInfo = useSubscriptionStore((s) => s.setCustomerInfo);
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loading, setLoading] = useState(true);
@@ -87,12 +86,12 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
   const selected = packages.find((p) => p.identifier === selectedId) ?? packages[0] ?? null;
   const trial = selected && eligible.has(selected.product.identifier) ? freeTrialPeriod(selected) : null;
 
-  const annualSaving = useMemo(() => {
-    const m = offering?.monthly?.product.price;
-    const a = offering?.annual?.product.price;
-    if (!m || !a || m * 12 <= a) return null;
-    return Math.round(((m * 12 - a) / (m * 12)) * 100);
-  }, [offering]);
+  const annualSaving = useMemo(
+    () => annualSavingPercent(offering?.monthly?.product.price, offering?.annual?.product.price),
+    [offering],
+  );
+  // Frise : calculée depuis la période d'essai de l'offering, jamais écrite en dur.
+  const timeline = useMemo(() => (trial ? trialTimeline(new Date(), trial) : null), [trial]);
 
   const onBuy = async () => {
     if (!selected) return;
@@ -130,166 +129,253 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
 
   if (loading) return <SubscriptionLoader />;
 
+  const canSell = packages.length > 0 && LEGAL.complete;
+  const serif = fontsLoaded ? 'Fraunces_500Medium' : Platform.select({ ios: 'Times New Roman', default: 'serif' });
+  const trialLabel = trial ? isoPeriodFr(trial) : null;
+  const period = selected ? perPeriodFr(selected.product.subscriptionPeriod) : '';
+  const firstPaymentDay = timeline ? formatDayMonthFr(timeline.firstPayment) : null;
+
+  const steps = timeline
+    ? [
+        { icon: 'gift-outline' as const, day: 'Aujourd’hui', note: '0 $', on: true },
+        { icon: 'notifications-outline' as const, day: formatDayMonthFr(timeline.notice), note: 'On te prévient', on: false },
+        { icon: 'star-outline' as const, day: formatDayMonthFr(timeline.firstPayment), note: '1er paiement', on: false },
+      ]
+    : [];
+
   return (
-    <ScrollView testID="paywall" style={styles.container} contentContainerStyle={styles.content}>
-      {onClose ? (
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.close}
-          accessibilityRole="button"
-          accessibilityLabel="Fermer"
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
-      ) : null}
-      <Text style={styles.eyebrow} accessibilityRole="header">{SUBSCRIPTION_NAME.toUpperCase()}</Text>
-      <Text style={styles.title}>Ce n’est pas le nombre d’heures qui compte. C’est la qualité du moment.</Text>
-
-      <View style={styles.card}>
-        {PROMISES.map((p) => (
-          <View key={p} style={styles.promise}>
-            <Text style={styles.check}>✓</Text>
-            <Text style={styles.promiseText}>{p}</Text>
-          </View>
-        ))}
-      </View>
-
-      {packages.length === 0 || !LEGAL.complete ? (
-        <View style={styles.card}>
-          <Text style={styles.body}>L’abonnement n’est pas disponible pour le moment. Réessayez plus tard.</Text>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={load}>
-            <Text style={styles.secondaryText}>Réessayer</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <>
-          <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
-            {packages.map((pkg) => {
-              const isSel = pkg.identifier === selected?.identifier;
-              const isAnnual = pkg.identifier === '$rc_annual';
-              return (
-                <TouchableOpacity
-                  key={pkg.identifier}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: isSel }}
-                  accessibilityLabel={`${SUBSCRIPTION_NAME}, ${isAnnual ? 'annuel' : 'mensuel'} : ${pkg.product.priceString} ${perPeriodFr(pkg.product.subscriptionPeriod)}, renouvellement automatique`}
-                  onPress={() => setSelectedId(pkg.identifier)}
-                  style={[styles.plan, isSel && styles.planSelected]}
-                >
-                  <View style={[styles.radio, isSel && styles.radioSelected]}>
-                    {isSel && <View style={styles.radioDot} />}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={styles.planName}>{isAnnual ? 'Annuel' : 'Mensuel'}</Text>
-                      {isAnnual && annualSaving ? (
-                        <View style={styles.badge}>
-                          <Text style={styles.badgeText}>−{annualSaving} %</Text>
-                        </View>
-                      ) : null}
-                    </View>
-                    {isAnnual && pkg.product.pricePerMonthString ? (
-                      <Text style={styles.planSub}>soit {pkg.product.pricePerMonthString} par mois</Text>
-                    ) : null}
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.price}>{pkg.product.priceString}</Text>
-                    <Text style={styles.planSub}>{perPeriodFr(pkg.product.subscriptionPeriod)}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.primaryBtn, busy !== null && styles.disabled]}
-            onPress={onBuy}
-            disabled={busy !== null}
-            accessibilityRole="button"
-          >
-            {busy === 'buy' ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.primaryText}>
-                {trial ? `Commencer mon essai de ${isoPeriodFr(trial)}` : 'M’abonner'}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {selected && (
-            <Text style={styles.fineprint}>
-              {`${SUBSCRIPTION_NAME} — abonnement ${isoPeriodFr(selected.product.subscriptionPeriod) === '1 an' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
-              {trial
-                ? `Gratuit pendant ${isoPeriodFr(trial)}, puis ${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `
-                : `${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `}
-              {Platform.OS === 'ios'
-                ? 'Le paiement est prélevé sur votre compte Apple à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement, sauf annulation au moins 24 heures avant la fin de la période en cours. Gérez ou annulez-le dans les réglages de votre compte Apple.'
-                : 'Le paiement est prélevé sur votre compte Google Play à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement jusqu’à annulation. Gérez ou annulez-le dans Google Play › Paiements et abonnements.'}
-            </Text>
-          )}
-        </>
-      )}
-
-      <TouchableOpacity
-        testID="paywall-restore"
-        style={[styles.secondaryBtn, busy !== null && styles.disabled]}
-        onPress={onRestore}
-        disabled={busy !== null}
-        accessibilityRole="button"
+    <View testID="paywall" style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingTop: insets.top + SPACING.space2,
+          paddingHorizontal: SPACING.space4,
+          paddingBottom: SPACING.space8 * 3,
+          gap: SPACING.space4,
+        }}
       >
-        {busy === 'restore' ? <ActivityIndicator color={C.accentText} /> : <Text style={styles.secondaryText}>Restaurer les achats</Text>}
-      </TouchableOpacity>
+        {onClose ? (
+          <View style={{ alignItems: 'flex-start' }}>
+            <GlassButton icon="close" accessibilityLabel="Fermer" onPress={onClose} />
+          </View>
+        ) : null}
 
-      <View style={styles.legal}>
-        {LEGAL.terms ? (
-          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)} accessibilityRole="link">
-            Conditions d’utilisation (EULA)
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.space3 }}>
+          <MascotHero size={76} />
+          <View style={{ flex: 1 }}>
+            <ThemedText variant="footnote" color="label2" accessibilityRole="header">THRIVE MAISON</ThemedText>
+            <ThemedText variant="headline">Le moment qui compte, 10 min par soir</ThemedText>
+          </View>
+        </View>
+
+        {/* Vedette : le mois gratuit d'abord ; sans essai dans l'offering, le prix réel. */}
+        {trial && trialLabel ? (
+          <View style={{ alignItems: 'center', gap: SPACING.space1 }}>
+            <View
+              accessible
+              accessibilityLabel={`0 $ par mois, pendant ${trialLabel}`}
+              style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: SPACING.space2, flexWrap: 'wrap' }}
+            >
+              <ThemedText style={{ fontFamily: serif, fontSize: 58, lineHeight: 64, letterSpacing: -0.5 }}>0 $</ThemedText>
+              <ThemedText color="label2" style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 19, lineHeight: 24 }}>
+                {`par mois, pendant ${trialLabel}`}
+              </ThemedText>
+            </View>
+            <ThemedText variant="subheadline" color="label2" style={{ textAlign: 'center' }}>
+              Un mois complet, gratuit. Annule quand tu veux.
+            </ThemedText>
+          </View>
+        ) : selected ? (
+          <View style={{ alignItems: 'center', gap: SPACING.space1 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: SPACING.space2, flexWrap: 'wrap' }}>
+              <ThemedText style={{ fontFamily: serif, fontSize: 48, lineHeight: 56 }}>{selected.product.priceString}</ThemedText>
+              <ThemedText color="label2" style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 19, lineHeight: 24 }}>
+                {period.replace('/ ', 'par ')}
+              </ThemedText>
+            </View>
+          </View>
         ) : null}
-        {LEGAL.terms && LEGAL.privacy ? <Text style={styles.legalSep}>·</Text> : null}
-        {LEGAL.privacy ? (
-          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)} accessibilityRole="link">
-            Politique de confidentialité
-          </Text>
+
+        {steps.length > 0 ? (
+          <View
+            accessible
+            accessibilityLabel={`Aujourd’hui 0 $. ${steps[1].day} : on vous prévient. ${steps[2].day} : premier paiement.`}
+            style={{ backgroundColor: colors.bgGrouped2, borderRadius: RADIUS.card, paddingVertical: SPACING.space4, paddingHorizontal: SPACING.space3 }}
+          >
+            <View style={{ flexDirection: 'row' }}>
+              {steps.map((st) => (
+                <View key={st.note} style={{ flex: 1, alignItems: 'center', gap: SPACING.space1 }}>
+                  <View
+                    style={{
+                      width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center',
+                      backgroundColor: st.on ? colors.tint : colors.fill3,
+                    }}
+                  >
+                    <Ionicons name={st.icon} size={16} color={st.on ? colors.tintInk : colors.label2} />
+                  </View>
+                  <ThemedText variant="footnote">{st.day}</ThemedText>
+                  <ThemedText variant="caption1" color="label2">{st.note}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
         ) : null}
-      </View>
-    </ScrollView>
+
+        {!canSell ? (
+          <View style={{ backgroundColor: colors.bgGrouped2, borderRadius: RADIUS.card, padding: SPACING.space4, gap: SPACING.space3 }}>
+            <ThemedText variant="body">L’abonnement n’est pas disponible pour le moment. Réessayez plus tard.</ThemedText>
+            <GlassButton label="Réessayer" onPress={load} />
+          </View>
+        ) : (
+          <>
+            <ThemedText variant="title3" accessibilityRole="header">
+              {trial ? 'Après le mois gratuit' : 'Choisissez votre formule'}
+            </ThemedText>
+            <View accessibilityRole="radiogroup" style={{ gap: SPACING.space2 }}>
+              {packages.map((pkg) => {
+                const isSel = pkg.identifier === selected?.identifier;
+                const isAnnual = pkg.identifier === '$rc_annual';
+                const isMonthly = pkg.identifier === '$rc_monthly';
+                const p = pkg.product;
+                const annualPerMonth = isAnnual ? perMonthFromAnnual(p.price) : null;
+                const headline = annualPerMonth ? formatMoneyFr(annualPerMonth, p.currencyCode) : p.priceString;
+                const unit = isAnnual || isMonthly ? 'par mois' : perPeriodFr(p.subscriptionPeriod).replace('/ ', 'par ');
+                const billed = isAnnual
+                  ? `${p.priceString} facturés une fois par an`
+                  : isMonthly
+                    ? `${p.priceString} facturés chaque mois`
+                    : `${p.priceString} ${perPeriodFr(p.subscriptionPeriod)}`;
+                return (
+                  <Pressable
+                    key={pkg.identifier}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: isSel }}
+                    accessibilityLabel={`${SUBSCRIPTION_NAME}, ${isAnnual ? 'annuel' : isMonthly ? 'mensuel' : 'formule'} : ${billed}, renouvellement automatique`}
+                    onPress={() => setSelectedId(pkg.identifier)}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: SPACING.space3, minHeight: SPACING.rowMin + 8,
+                      backgroundColor: colors.bgGrouped2, borderRadius: RADIUS.card, padding: SPACING.space4,
+                      borderWidth: 2.5, borderColor: isSel ? colors.tint : 'transparent',
+                    }}
+                  >
+                    <View
+                      style={{
+                        width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center',
+                        backgroundColor: isSel ? colors.tint : 'transparent', borderWidth: isSel ? 0 : 2, borderColor: colors.label3,
+                      }}
+                    >
+                      {isSel ? <Ionicons name="checkmark" size={15} color={colors.tintInk} /> : null}
+                    </View>
+                    <View style={{ flex: 1, gap: 2 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.space2 }}>
+                        <ThemedText variant="headline">{isAnnual ? 'Annuel' : isMonthly ? 'Mensuel' : 'Formule'}</ThemedText>
+                        {isAnnual && annualSaving ? (
+                          <View style={{ backgroundColor: colors.accent, borderRadius: RADIUS.full, paddingHorizontal: 8, paddingVertical: 2 }}>
+                            <ThemedText variant="caption1" style={{ color: colors.accentInk }}>{`−${annualSaving} %`}</ThemedText>
+                          </View>
+                        ) : null}
+                      </View>
+                      {/* Prix facturé lisible, jamais caché sous le prix mensuel équivalent. */}
+                      <ThemedText variant="subheadline">{billed}</ThemedText>
+                    </View>
+                    <View style={{ alignItems: 'flex-end' }}>
+                      <ThemedText variant="title3">{headline}</ThemedText>
+                      <ThemedText variant="caption1" color="label2">{unit}</ThemedText>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <View style={{ backgroundColor: colors.bgGrouped2, borderRadius: RADIUS.card, padding: SPACING.space4, gap: SPACING.space3 }}>
+              {PROMISES.map((t) => (
+                <View key={t} style={{ flexDirection: 'row', gap: SPACING.space3, alignItems: 'flex-start' }}>
+                  <Ionicons name="checkmark-circle" size={20} color={colors.ok} />
+                  <ThemedText variant="subheadline" style={{ flex: 1 }}>{t}</ThemedText>
+                </View>
+              ))}
+            </View>
+
+            {selected && (
+              <ThemedText variant="caption1" color="label2" style={{ textAlign: 'center' }}>
+                {`${SUBSCRIPTION_NAME} — abonnement ${isoPeriodFr(selected.product.subscriptionPeriod) === '1 an' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
+                {trial
+                  ? `Gratuit pendant ${trialLabel}, puis ${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `
+                  : `${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `}
+                {Platform.OS === 'ios'
+                  ? 'Le paiement est prélevé sur votre compte Apple à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement, sauf annulation au moins 24 heures avant la fin de la période en cours. Gérez ou annulez-le dans les réglages de votre compte Apple.'
+                  : 'Le paiement est prélevé sur votre compte Google Play à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement jusqu’à annulation. Gérez ou annulez-le dans Google Play › Paiements et abonnements.'}
+              </ThemedText>
+            )}
+          </>
+        )}
+
+        <Pressable
+          testID="paywall-restore"
+          onPress={onRestore}
+          disabled={busy !== null}
+          accessibilityRole="button"
+          accessibilityLabel="Restaurer les achats"
+          style={{ minHeight: SPACING.touchMin, alignItems: 'center', justifyContent: 'center', opacity: busy !== null ? 0.6 : 1 }}
+        >
+          {busy === 'restore' ? <ActivityIndicator color={colors.tint} /> : <ThemedText variant="body" color="tint">Restaurer les achats</ThemedText>}
+        </Pressable>
+
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: SPACING.space2 }}>
+          {LEGAL.terms ? (
+            <ThemedText
+              variant="footnote"
+              color="label2"
+              style={{ textDecorationLine: 'underline', paddingVertical: SPACING.space2 }}
+              onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}
+              accessibilityRole="link"
+            >
+              Conditions d’utilisation (EULA)
+            </ThemedText>
+          ) : null}
+          {LEGAL.terms && LEGAL.privacy ? <ThemedText variant="footnote" color="label2" style={{ paddingVertical: SPACING.space2 }}>·</ThemedText> : null}
+          {LEGAL.privacy ? (
+            <ThemedText
+              variant="footnote"
+              color="label2"
+              style={{ textDecorationLine: 'underline', paddingVertical: SPACING.space2 }}
+              onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}
+              accessibilityRole="link"
+            >
+              Politique de confidentialité
+            </ThemedText>
+          ) : null}
+        </View>
+      </ScrollView>
+
+      {canSell ? (
+        <View style={{ position: 'absolute', left: SPACING.space4, right: SPACING.space4, bottom: SPACING.space4 }}>
+          <GlassSurface strong radius={30} style={{ padding: 6 }}>
+            <Pressable
+              onPress={onBuy}
+              disabled={busy !== null}
+              accessibilityRole="button"
+              accessibilityLabel={trial ? (trialLabel === '1 mois' ? 'Commencer mon mois gratuit' : `Commencer mon essai de ${trialLabel}`) : 'M’abonner'}
+              style={{
+                minHeight: 52, borderRadius: 26, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center',
+                opacity: busy !== null ? 0.6 : 1,
+              }}
+            >
+              {busy === 'buy' ? (
+                <ActivityIndicator color={colors.accentInk} />
+              ) : (
+                <ThemedText variant="headline" style={{ color: colors.accentInk }}>
+                  {trial ? (trialLabel === '1 mois' ? 'Commencer mon mois gratuit' : `Commencer mon essai de ${trialLabel}`) : 'M’abonner'}
+                </ThemedText>
+              )}
+            </Pressable>
+            {trial && firstPaymentDay ? (
+              <ThemedText variant="caption1" color="label2" style={{ textAlign: 'center', paddingTop: SPACING.space1, paddingBottom: 2 }}>
+                {`0 $ aujourd’hui · rien à payer avant le ${firstPaymentDay}`}
+              </ThemedText>
+            ) : null}
+          </GlassSurface>
+        </View>
+      ) : null}
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: 20, paddingTop: 60, paddingBottom: 48, gap: 16 },
-  close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', marginTop: -24 },
-  closeText: { color: C.text, fontSize: 18, fontWeight: '700' },
-  eyebrow: { color: C.faint, fontSize: 11, fontWeight: '700', letterSpacing: 1.2 },
-  title: { color: C.text, fontSize: 26, fontWeight: '700', lineHeight: 32 },
-  card: { backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 12 },
-  promise: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  check: { color: C.accentText, fontSize: 15, fontWeight: '700', marginTop: 1 },
-  promiseText: { color: C.body, fontSize: 15, lineHeight: 21, flex: 1 },
-  body: { color: C.body, fontSize: 15, lineHeight: 21 },
-  plan: {
-    flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.card,
-    borderRadius: 16, padding: 16, borderWidth: 1, borderColor: C.border,
-  },
-  planSelected: { borderColor: C.accent, borderWidth: 2 },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  radioSelected: { borderColor: C.accent },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.accent },
-  planName: { color: C.text, fontSize: 16, fontWeight: '700' },
-  planSub: { color: C.muted, fontSize: 13, marginTop: 2 },
-  price: { color: C.text, fontSize: 18, fontWeight: '700' },
-  badge: { backgroundColor: C.accentSoft, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { color: C.accentText, fontSize: 11, fontWeight: '700' },
-  primaryBtn: { backgroundColor: C.accent, borderRadius: 28, height: 56, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  primaryText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  secondaryBtn: { borderRadius: 24, height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  secondaryText: { color: C.accentText, fontSize: 15, fontWeight: '600' },
-  disabled: { opacity: 0.6 },
-  fineprint: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: 'center' },
-  legal: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 },
-  link: { color: C.muted, fontSize: 13, textDecorationLine: 'underline', paddingVertical: 8 },
-  legalSep: { color: C.faint, fontSize: 12 },
-});
