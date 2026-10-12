@@ -61,7 +61,8 @@ async function packIsActiveAfterReturn(): Promise<boolean> {
   try {
     const { useSubscriptionStore } = await import('../stores/subscription.store');
     await useSubscriptionStore.getState().loadServerAccess();
-    return useSubscriptionStore.getState().access?.packEnd != null;
+    // Un pack Stripe n’a pas forcément de date de fin : on lit la source d’accès, pas pack_fin.
+    return useSubscriptionStore.getState().access?.sourceMaison === 'pack';
   } catch {
     return false;
   }

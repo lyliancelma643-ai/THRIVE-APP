@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 const invoke = vi.fn();
 const openBrowserAsync = vi.fn();
 const loadServerAccess = vi.fn();
-const storeState: { access: { packEnd: string | null } | null; loadServerAccess: typeof loadServerAccess } = {
+const storeState: { access: { sourceMaison: string; packEnd: string | null } | null; loadServerAccess: typeof loadServerAccess } = {
   access: null,
   loadServerAccess,
 };
@@ -57,7 +57,7 @@ describe('startProgramCheckout', () => {
 
   it('paid si access_state montre un pack actif après le retour', async () => {
     loadServerAccess.mockImplementation(async () => {
-      storeState.access = { packEnd: '2027-01-01' };
+      storeState.access = { sourceMaison: 'pack', packEnd: null };
     });
     expect(await startProgramCheckout('groupe', 'deux_versements')).toEqual({ status: 'paid' });
   });

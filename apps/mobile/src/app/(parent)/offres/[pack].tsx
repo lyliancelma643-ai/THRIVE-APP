@@ -83,7 +83,7 @@ export default function ProgrammePaiementScreen() {
       subtitle={program.description}
       footer={
         <View style={{ gap: SPACING.space1 }}>
-          <Primary tone="dark" busy={busy} label={`Payer ${formatCentsFr(todayTtc)} · Apple Pay`} onPress={pay} />
+          <Primary tone="dark" busy={busy} label={`Payer ${formatCentsFr(today)} + tx · Apple Pay`} onPress={pay} />
           {notice ? (
             <ThemedText variant="footnote" color="label2" accessibilityLiveRegion="polite" style={{ textAlign: 'center', padding: SPACING.space2 }}>
               {notice}
@@ -103,13 +103,13 @@ export default function ProgrammePaiementScreen() {
         {split ? (
           <>
             {line('Aujourd’hui', 'Remboursable pendant la garantie', `${formatCentsFr(today)} + tx`)}
-            {line('À la séance 7', 'Prélevé automatiquement', `${formatCentsFr(program.totalCents - today)} + tx`)}
+            {line('À la séance 7', '2ᵉ versement, réglé avec le même moyen de paiement ; tu reçois un avis avant.', `${formatCentsFr(program.totalCents - today)} + tx`)}
           </>
         ) : (
           line('Aujourd’hui', 'Remboursable pendant la garantie', `${formatCentsFr(today)} + tx`)
         )}
         <ThemedText variant="footnote" color="label2">
-          {`Aujourd’hui : ${formatCentsFr(todayTtc)} taxes incluses (TPS + TVQ).`}
+          {`Soit ${formatCentsFr(todayTtc)} taxes incluses (TPS + TVQ), à titre indicatif : le montant exact figure au paiement.`}
         </ThemedText>
       </Card>
 
@@ -120,7 +120,7 @@ export default function ProgrammePaiementScreen() {
         {method('mail-outline', 'Recevoir un lien de paiement', 'Payer depuis ton ordinateur, par courriel')}
       </Card>
       <ThemedText variant="footnote" color="label2">
-        {'Paiement sécurisé par Stripe. Le 2ᵉ versement est prélevé sur le même moyen à la séance 7 ; reçu par courriel.'}
+        {'Paiement sécurisé par Stripe. Reçu par courriel.'}
       </ThemedText>
     </Frame>
   );

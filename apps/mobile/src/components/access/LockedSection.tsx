@@ -2,7 +2,8 @@ import React from 'react';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
-import { GlassSurface, RADIUS, SPACING, ThemedText, useGlassMode, useTheme } from '../../design';
+import { useRouter } from 'expo-router';
+import { GlassButton, GlassSurface, RADIUS, SPACING, ThemedText, useGlassMode, useTheme } from '../../design';
 
 // Onglet Bilan / Mes séances verrouillé (abonné Maison seul, aucun droit, fermeture
 // Super Admin). Le contenu est un SQUELETTE FACTICE flouté : aucune donnée
@@ -46,6 +47,7 @@ function Skeleton() {
 export function LockedSection({ section }: { section: 'bilan' | 'seances' }) {
   const { colors, isDark } = useTheme();
   const mode = useGlassMode();
+  const router = useRouter();
   const copy = COPY[section];
   const fill = { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 } as const;
   return (
@@ -70,6 +72,9 @@ export function LockedSection({ section }: { section: 'bilan' | 'seances' }) {
             <ThemedText variant="subheadline" color="label2" style={{ marginTop: SPACING.space2, textAlign: 'center' }}>
               {copy.body}
             </ThemedText>
+            <View style={{ marginTop: SPACING.space4 }}>
+              <GlassButton label="Écrire à mon coach" onPress={() => router.push('/(parent)/messages')} />
+            </View>
           </View>
         </GlassSurface>
       </View>

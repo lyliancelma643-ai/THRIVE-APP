@@ -184,7 +184,7 @@ function Programme({ pack }: { pack: ProgramPack }) {
                   <div>
                     <p className="text-[15px] text-night-ink">{i.dueWhen === 'inscription' ? 'Aujourd’hui' : 'À la séance 7'}</p>
                     <p className="text-[13px] text-soft">
-                      {i.dueWhen === 'inscription' ? 'Remboursable pendant la garantie' : 'Prélevé sur le même moyen de paiement'}
+                      {i.dueWhen === 'inscription' ? 'Remboursable pendant la garantie' : '2ᵉ versement, réglé avec le même moyen de paiement ; tu reçois un avis avant.'}
                     </p>
                   </div>
                   <p className="text-[15px] font-semibold text-night-ink whitespace-nowrap">{formatCad(i.htCents)} + tx</p>
@@ -192,7 +192,7 @@ function Programme({ pack }: { pack: ProgramPack }) {
               ))}
             </ul>
             <p className="text-[13px] text-faint mt-1">
-              {`Aujourd’hui : ${formatCad(installments[0].ttcCents)} taxes incluses (TPS + TVQ).`}
+              {`Soit ${formatCad(installments[0].ttcCents)} taxes incluses (TPS + TVQ), à titre indicatif : le montant exact figure au paiement.`}
             </p>
             <p className="text-[13px] text-soft mt-4 leading-[1.5]">
               Garantie : les 2 premières séances ne sont pas facturées si tu n’es pas convaincu.
@@ -208,11 +208,11 @@ function Programme({ pack }: { pack: ProgramPack }) {
                 disabled={pending}
                 className="mt-5 w-full h-14 rounded-full bg-accent text-accent-on font-bold text-[16px] active:scale-95 disabled:opacity-60 transition-transform"
               >
-                {pending ? 'Ouverture du paiement…' : `Payer ${formatCad(installments[0].ttcCents)}`}
+                {pending ? 'Ouverture du paiement…' : `Payer ${formatCad(installments[0].htCents)} + tx`}
               </button>
             )}
           </section>
-          <p className="text-[13px] text-faint mt-4 text-center">Paiement sécurisé par Stripe ; reçu par courriel.</p>
+          <p className="text-[13px] text-faint mt-4 text-center">Paiement sécurisé par Stripe. Reçu par courriel.</p>
         </>
       )}
     </div>

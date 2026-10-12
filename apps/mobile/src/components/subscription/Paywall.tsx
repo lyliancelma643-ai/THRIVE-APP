@@ -180,7 +180,8 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
                 {`par mois, pendant ${trialLabel}`}
               </ThemedText>
             </View>
-            <ThemedText variant="subheadline" color="label2" style={{ textAlign: 'center' }}>
+            {/* À DÉCIDER (G1) : réduire le « 0 $ » si App Review le demande. Le montant facturé reste lisible juste dessous (≥ taille de l’italique, contraste label). */}
+            <ThemedText color="label" style={{ textAlign: 'center', fontSize: 19, lineHeight: 24 }}>
               {selected
                 ? `Puis ${selected.product.priceString} ${period}. Annule quand tu veux.`
                 : 'Un mois complet, gratuit. Annule quand tu veux.'}
@@ -239,13 +240,15 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
                 const isMonthly = pkg.identifier === '$rc_monthly';
                 const p = pkg.product;
                 const annualPerMonth = isAnnual ? perMonthFromAnnual(p.price) : null;
-                const headline = annualPerMonth ? formatMoneyFr(annualPerMonth, p.currencyCode) : p.priceString;
-                const unit = isAnnual || isMonthly ? 'par mois' : perPeriodFr(p.subscriptionPeriod).replace('/ ', 'par ');
+                // Apple 3.1.2(c) : le montant facturé est l’élément de prix le plus visible.
+                const headline = p.priceString;
+                const unit = isAnnual ? 'par an' : isMonthly ? 'par mois' : perPeriodFr(p.subscriptionPeriod).replace('/ ', 'par ');
                 const billed = isAnnual
                   ? `${p.priceString} facturés une fois par an`
                   : isMonthly
                     ? `${p.priceString} facturés chaque mois`
                     : `${p.priceString} ${perPeriodFr(p.subscriptionPeriod)}`;
+                const perMonthLine = annualPerMonth ? `soit ${formatMoneyFr(annualPerMonth, p.currencyCode)} / mois` : null;
                 return (
                   <Pressable
                     key={pkg.identifier}
@@ -277,11 +280,15 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
                         ) : null}
                       </View>
                       {/* Prix facturé lisible, jamais caché sous le prix mensuel équivalent. */}
-                      <ThemedText variant="subheadline">{billed}</ThemedText>
+                      {perMonthLine ? (
+                        <ThemedText variant="caption1" color="label2">{perMonthLine}</ThemedText>
+                      ) : (
+                        <ThemedText variant="caption1" color="label2">{billed}</ThemedText>
+                      )}
                     </View>
                     <View style={{ alignItems: 'flex-end' }}>
-                      <ThemedText variant="title3">{headline}</ThemedText>
-                      <ThemedText variant="caption1" color="label2">{unit}</ThemedText>
+                      <ThemedText variant="title2">{headline}</ThemedText>
+                      <ThemedText variant="subheadline" color="label2">{unit}</ThemedText>
                     </View>
                   </Pressable>
                 );
