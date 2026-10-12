@@ -137,3 +137,52 @@ Projet Supabase de prod : THRIVE-CA (`kkdcgzvdmipmrgkawnky`). Ne colle jamais un
 
 - [ ] **P2-1 Paywall.** Ajouter l'essai gratuit dans le titre, une preuve sociale, et un test A/B sur le prix annuel. (1 h)
   Console : RevenueCat › Paywalls ; RevenueCat › Experiments.
+
+---
+
+## GO 3 : UI iOS 27 et paiements (2026-10-12)
+
+Rapport complet : `docs/release/GO3_RAPPORT.md`. Rien n'est appliqué en prod ni poussé à ce stade.
+
+### Décisions à trancher
+
+- [ ] **R1. Drapeau programmes iOS.** `EXPO_PUBLIC_OFFRES_PROGRAMMES_IN_APP` reste `false` en production pour la 1re soumission. Décider si et quand l'activer (Apple 3.1.3(e) et (d), voir `GO3_G1_REVUE.md` §3).
+- [ ] **R3. Règle de remboursement de la garantie** (part de 2/13, ou versement 1 entier). Aujourd'hui : montant libre saisi par l'admin.
+- [ ] **R4. Prélèvement automatique du versement 2.** `PROGRAM_AUTOCHARGE_ENABLED=false` ; l'activer quand le parcours est rodé.
+- [ ] **R5. Style par défaut de l'app.** Proposé : `natif`. À confirmer.
+- [ ] **R6. Maison comme page d'arrivée parent.** Proposé : oui (`dashboard` conservé, masqué). À confirmer.
+- [ ] **R7. Web.** Hors périmètre visuel de GO 3 (Nuit calme / Jour clair inchangés). Dire si le web doit suivre le nouveau UI dans un chantier séparé.
+- [ ] **R9. Prix de la visio Individuel, créneaux d'appel réels, agenda du coach.** À fournir.
+- [ ] **Paywall « 0 $ ».** Réduire la mise en avant du « 0 $ » si App Review le demande (Apple 3.1.2).
+- [ ] **Lot séparé `profiles_update_own`** (G1 #6) : révoquer l'UPDATE global et n'accorder que les colonnes utiles. Non bloquant pour GO 3.
+
+### Base de données et fonctions (THRIVE-CA)
+
+- [ ] **Appliquer 081, 082, 083** (`supabase/migrations/20261012_08*.sql`) : d'abord en préproduction, puis en production, après relecture. Vérifier `get_advisors` (0 erreur attendue). Rollbacks disponibles dans `supabase/rollbacks/`.
+- [ ] **Déployer les edge functions** : `create-program-checkout`, `program-installment-charge`, `admin-refund-program-payment`, `admin-create-program-link`, `request-intro-call`, et `stripe-webhook` (`verify_jwt = false`, inchangé).
+- [ ] **Secret `PROGRAM_CRON_SECRET`** (16 caractères ou plus), puis planifier un appel de `program-installment-charge` (pg_cron + pg_net, comme la 079) avec l'en-tête `x-cron-secret`.
+- [ ] **Secrets Supabase** : `PROGRAM_AUTOCHARGE_ENABLED=false`, `STRIPE_TAX_ENABLED=false` (passer à `true` seulement après l'inscription TPS/TVQ), `APP_ORIGINS` (retours vers `/parent/programme/{pack}`). Ne jamais coller une valeur dans un fichier du dépôt.
+
+### Stripe
+
+- [ ] **Reconnecter le connecteur Stripe** dans Claude (Réglages › Connecteurs) avant la vague 3. Sinon lancer soi-même `node scripts/ops/stripe-setup-programmes.mjs --mode test` (dry-run par défaut), puis `--mode test --apply` avec `STRIPE_SECRET_KEY_TEST` dans le terminal seulement.
+- [ ] **Inscription TPS/TVQ** (Revenu Québec), puis activer Stripe Tax. Liens confidentialité et conditions du portail client.
+- [ ] **Webhook** `we_1UKklbGSblkODz4Jro24Yaam` (vers `/functions/v1/stripe-webhook`) : **ajouter** les événements `checkout.session.async_payment_succeeded`, `checkout.session.async_payment_failed`, `checkout.session.expired`, `payment_intent.succeeded`, `payment_intent.payment_failed`, `charge.refunded` (`checkout.session.completed` y est déjà). Même secret de signature.
+- [ ] **Clé restreinte** (si utilisée) : écriture sur Checkout Sessions, PaymentIntents, Refunds, Customers ; lecture sur Prices.
+
+### RevenueCat
+
+- [ ] **Réordonner l'offering principal** : Annuel avant Mensuel (`GO3_O3_REVENUECAT.md` §2 : glisser Annuel au-dessus de Mensuel, Save, puis vérifier `$rc_annual` en position 0). Retour arrière possible.
+- [ ] **Clés RevenueCat iOS et Android** : voir les étapes 8 et 9 ci-dessus. Sans elles, l'essai et les achats ne sont pas lisibles (NON_VÉRIFIÉ).
+
+### Stores
+
+- [ ] **App Store Connect / Play Console** : produits `thrive_moments_mensuel` et `thrive_moments_annuel` (prix CAD), offre d'introduction d'un mois, localisations FR et EN. Notes de revue : mentionner que les programmes sont des services en personne (voir étape 22).
+
+### Tests manuels (simulateur et Stripe test)
+
+- [ ] **Parcours complet sur simulateur iOS dans les trois styles** (natif, nuit, carnet).
+- [ ] **Achat Maison en Sandbox Apple.**
+- [ ] **Checkout Stripe test** (carte `4242 4242 4242 4242`) : versement 1, puis versement 2 (Test Clocks).
+- [ ] **Remboursement admin** partiel puis total, `audit_logs` vérifié.
+- [ ] **Abonné App Store qui ouvre le web** : aucun lien de paiement vers un prix.
