@@ -181,7 +181,9 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
               </ThemedText>
             </View>
             <ThemedText variant="subheadline" color="label2" style={{ textAlign: 'center' }}>
-              Un mois complet, gratuit. Annule quand tu veux.
+              {selected
+                ? `Puis ${selected.product.priceString} ${period}. Annule quand tu veux.`
+                : 'Un mois complet, gratuit. Annule quand tu veux.'}
             </ThemedText>
           </View>
         ) : selected ? (
@@ -297,7 +299,7 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
 
             {selected && (
               <ThemedText variant="caption1" color="label2" style={{ textAlign: 'center' }}>
-                {`${SUBSCRIPTION_NAME} — abonnement ${isoPeriodFr(selected.product.subscriptionPeriod) === '1 an' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
+                {`${SUBSCRIPTION_NAME} — abonnement ${selected.identifier === '$rc_annual' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
                 {trial
                   ? `Gratuit pendant ${trialLabel}, puis ${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `
                   : `${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `}
