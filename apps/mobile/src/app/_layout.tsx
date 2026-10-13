@@ -52,7 +52,7 @@ function RootLayout() {
   useEffect(() => {
     if (isLoading) return;
     // Galerie de contrôle des primitives (dev uniquement) : accessible sans session.
-    if (__DEV__ && segments[0] === '__design') return;
+    if (__DEV__ && (segments[0] === '__design' || segments[0] === '__ecran')) return;
     const inAuthGroup = segments[0] === '(auth)';
     const inWelcome = segments[0] === 'welcome';
 
