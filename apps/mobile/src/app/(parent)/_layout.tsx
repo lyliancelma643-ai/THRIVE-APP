@@ -29,7 +29,11 @@ const HIDDEN = [
   'offres',
   'offres/[pack]',
   'appel',
+  'video/[step]',
 ];
+
+// Écrans plein écran du canevas (fiche moment, moment en cours, séance vidéo) : sans barre d'onglets.
+const FULL_SCREEN = new Set(['activite/[activityId]', 'moment/[activityId]', 'video/[step]']);
 
 type BarProps = {
   state: { index: number; routes: { name: string }[] };
@@ -40,6 +44,7 @@ function ParentTabBar({ state, navigation }: BarProps) {
   const { style } = useTheme();
   const { tabs, prominent } = tabLayoutFor(style);
   const activeRoute = state.routes[state.index]?.name as ParentRoute | undefined;
+  if (activeRoute && FULL_SCREEN.has(activeRoute)) return null;
   const go = (route: string) => navigation.navigate(route);
   // Onglet Prominent : teinté selon le style (Natif = quand Coach est ouvert, Nuit calme = toujours, Carnet = jamais).
   const promActive = activeRoute === prominent.route && prominent.tone === 'auto';

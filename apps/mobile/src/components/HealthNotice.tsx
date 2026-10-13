@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Linking } from 'react-native';
+import { Linking, Pressable, View } from 'react-native';
+import { RADIUS, SPACING, ThemedText, useTheme } from '../design';
 
 // Avertissement santé (Apple 1.4.1) et ressources d'aide, affichés dans l'app.
-// Mêmes ressources que la page web « Quand consulter ».
+// Mêmes ressources que la page web « Quand consulter ». Habillé aux tokens du style courant.
 const RESOURCES = [
   { label: 'Info-Social 811 (option 2)', tel: '811' },
   { label: '9-8-8 · ligne d’aide en cas de crise de suicide', tel: '988' },
@@ -11,22 +12,34 @@ const RESOURCES = [
 ];
 
 export function HealthNotice() {
+  const { colors } = useTheme();
   return (
-    <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-      <Text className="font-semibold mb-1">Quand consulter</Text>
-      <Text className="text-gray-500 text-sm mb-3">
+    <View
+      style={{
+        backgroundColor: colors.bgGrouped2,
+        borderRadius: RADIUS.card,
+        padding: SPACING.space4,
+        marginBottom: SPACING.space4,
+        gap: SPACING.space1,
+      }}
+    >
+      <ThemedText variant="headline">Quand consulter</ThemedText>
+      <ThemedText variant="foot" color="label2" style={{ marginBottom: SPACING.space2 }}>
         THRIVE est un programme éducatif. Il ne remplace pas un avis médical, psychologique ou
         psychosocial. Arrêtez toute activité en cas de douleur ou de malaise.
-      </Text>
+      </ThemedText>
       {RESOURCES.map((r) => (
-        <Text
+        <Pressable
           key={r.tel}
-          className="text-sm underline py-1"
           onPress={() => Linking.openURL(`tel:${r.tel}`)}
           accessibilityRole="link"
+          accessibilityLabel={`Appeler ${r.label}`}
+          style={{ minHeight: 44, justifyContent: 'center' }}
         >
-          {r.label}
-        </Text>
+          <ThemedText variant="sub" style={{ color: colors.tint, textDecorationLine: 'underline' }}>
+            {r.label}
+          </ThemedText>
+        </Pressable>
       ))}
     </View>
   );
