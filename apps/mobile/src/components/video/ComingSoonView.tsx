@@ -32,6 +32,8 @@ export type ComingSoonViewProps = {
    * (aucune donnée de séance vidéo lisible tant que les séances sont fermées).
    */
   upcoming?: readonly UpcomingSession[];
+  /** Nombre de séances du parcours annoncé à droite de « Ce qui viendra ». Défaut 13. */
+  totalSessions?: number;
   /** Espace réservé en bas (barre d'onglets flottante). Défaut 130, comme le canevas. */
   bottomInset?: number;
 };
@@ -42,7 +44,7 @@ export type ComingSoonViewProps = {
  * « Me prévenir à l'ouverture », retour vers Maison, puis « Ce qui viendra » (vignettes grisées, cadenas).
  */
 export function ComingSoonView({
-  childName, notify, onNotifyChange, onBackToHome, onBack, onMore, onSegmentChange, upcoming, bottomInset = 130,
+  childName, notify, onNotifyChange, onBackToHome, onBack, onMore, onSegmentChange, upcoming, totalSessions = 13, bottomInset = 130,
 }: ComingSoonViewProps) {
   const { colors, style } = useTheme();
   const navH = useNavBarHeight();
@@ -115,7 +117,7 @@ export function ComingSoonView({
               }}
             >
               <ThemedText variant="sectionTitle" accessibilityRole="header">Ce qui viendra</ThemedText>
-              <ThemedText variant="body" color="tintText">{`${strip.length} séances`}</ThemedText>
+              <ThemedText variant="body" color="tintText">{`${totalSessions} séances`}</ThemedText>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
               {strip.map((s) => (

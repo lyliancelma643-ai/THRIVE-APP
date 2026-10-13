@@ -52,7 +52,7 @@ export function Certificate({ name, detail, onShare, onPdf }: Props) {
     >
       <AngledGradient from={from} to={to} angle={160} />
       <Image source={BRAND_LOGO} accessibilityIgnoresInvertColors style={{ width: 46, height: 46, borderRadius: 11 }} />
-      <ThemedText variant="cap" weight={600} style={{ marginTop: 14, color: colors.sun, letterSpacing: 1.4, textTransform: 'uppercase' }}>
+      <ThemedText variant="cap" weight={600} style={{ marginTop: 18, color: colors.sun, letterSpacing: 1.4, textTransform: 'uppercase' }}>
         Certificat THRIVE
       </ThemedText>
       <ThemedText variant="displayLarge" accessibilityRole="header" style={{ marginTop: 8, color: white, fontSize: 34, lineHeight: 38, textAlign: 'center' }}>

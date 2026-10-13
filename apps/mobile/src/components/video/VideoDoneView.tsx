@@ -1,6 +1,6 @@
 import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Card, Icon, Section, Slider, ThemedText, VignetteImage, useTheme, withAlpha } from '../../design';
+import { Button, Card, Icon, useCardShadow, Section, Slider, ThemedText, VignetteImage, useTheme, withAlpha } from '../../design';
 import { VideoMascot } from './VideoMascot';
 
 export type VideoHomeTask = {
@@ -31,8 +31,9 @@ export type VideoDoneViewProps = {
  * Vue seulement. [À COMPLÉTER] enregistrement de l'effort ressenti et fin de séance côté serveur.
  */
 export function VideoDoneView({ sessionNumber, childName, durationMinutes, effort, onEffortChange, homeTask, onFinish }: VideoDoneViewProps) {
-  const { colors } = useTheme();
+  const { colors, metrics } = useTheme();
   const insets = useSafeAreaInsets();
+  const shadow = useCardShadow();
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
       <ScrollView
@@ -56,7 +57,7 @@ export function VideoDoneView({ sessionNumber, childName, durationMinutes, effor
             <ThemedText variant="sub" color="label2">{`Demande à ${childName}. De 0 (facile) à 10 (très dur).`}</ThemedText>
             <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
               <ThemedText variant="foot" color="label2">0</ThemedText>
-              <View style={{ flex: 1 }}>
+              <View style={{ flex: 1, marginVertical: -5 }}>
                 <Slider value={effort} onChange={onEffortChange} min={0} max={10} step={1} accessibilityLabel="Effort ressenti" valueText={(v) => `${v} sur 10`} />
               </View>
               <ThemedText variant="foot" color="label2">10</ThemedText>
@@ -70,7 +71,7 @@ export function VideoDoneView({ sessionNumber, childName, durationMinutes, effor
             <View
               accessible
               accessibilityLabel={`À la maison cette semaine. ${homeTask.title}. ${homeTask.text}`}
-              style={{ borderRadius: 26, padding: 16, backgroundColor: colors.tint, flexDirection: 'row', gap: 12 }}
+              style={{ borderRadius: metrics.cardRadius, padding: 16, backgroundColor: colors.tint, flexDirection: 'row', gap: 12, ...shadow }}
             >
               <View style={{ width: 72, height: 72, borderRadius: 18, overflow: 'hidden', backgroundColor: colors.bgGrouped3 }}>
                 <VignetteImage id={homeTask.vignetteId} style={{ width: 72, height: 72 }} />
@@ -81,7 +82,7 @@ export function VideoDoneView({ sessionNumber, childName, durationMinutes, effor
                   <ThemedText variant="foot" weight={600} style={{ color: colors.tintInk }}>À la maison cette semaine</ThemedText>
                 </View>
                 <ThemedText variant="headline" style={{ marginTop: 4, color: colors.tintInk }}>{homeTask.title}</ThemedText>
-                <ThemedText variant="sub" style={{ marginTop: 2, color: colors.tintInk, opacity: 0.86 }}>{homeTask.text}</ThemedText>
+                <ThemedText variant="sub" style={{ marginTop: 2, color: withAlpha(colors.tintInk, 0.86) }}>{homeTask.text}</ThemedText>
               </View>
             </View>
           </Section>

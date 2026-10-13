@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Defs, RadialGradient, Rect, Stop } from 'react-native-svg';
 
@@ -15,17 +15,27 @@ export type RadialGlowProps = {
  */
 export function RadialGlow({ color, height, style }: RadialGlowProps) {
   const id = `glow${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
+  const [w, setW] = useState(0);
   return (
-    <View pointerEvents="none" style={[{ position: 'absolute', top: 0, left: 0, right: 0, height }, style]}>
-      <Svg width="100%" height="100%">
+    <View pointerEvents="none" onLayout={(e) => setW(e.nativeEvent.layout.width)} style={[{ position: 'absolute', top: 0, left: 0, right: 0, height }, style]}>
+      {w > 0 ? (
+      <Svg width={w} height={height}>
         <Defs>
-          <RadialGradient id={id} cx="50%" cy="0%" rx="120%" ry="90%" fx="50%" fy="0%">
+          <RadialGradient
+            id={id}
+            gradientUnits="userSpaceOnUse"
+            cx={0}
+            cy={0}
+            r={1}
+            gradientTransform={`translate(${w / 2} 0) scale(${1.2 * w} ${0.9 * height})`}
+          >
             <Stop offset="0" stopColor={color} />
             <Stop offset="0.7" stopColor={color} stopOpacity={0} />
           </RadialGradient>
         </Defs>
-        <Rect x="0" y="0" width="100%" height="100%" fill={`url(#${id})`} />
+        <Rect x="0" y="0" width={w} height={height} fill={`url(#${id})`} />
       </Svg>
+      ) : null}
     </View>
   );
 }

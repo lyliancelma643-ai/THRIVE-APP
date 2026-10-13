@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Switch, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Redirect, useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { GlassButton, Pill, RADIUS, SPACING, ThemedText, TAB_BAR_INSET, VignetteImage, useTheme } from '../../design';
+import { useChildren, useFamily } from '@thrive/shared';
+import { useAuthStore } from '../../stores/auth.store';
+import { SPACING, TAB_BAR_INSET } from '../../design';
+import { ComingSoonView } from '../../components/video/ComingSoonView';
 import { VIDEO_SESSIONS_ENABLED } from '../../lib/featureFlags';
 
 // O · Séances vidéo « Bientôt disponible » (tant que VIDEO_SESSIONS_ENABLED est faux).
 // Préférence « Me prévenir » : stockée sur l'appareil seulement.
 // [À COMPLÉTER] synchro serveur de la préférence (aucune table/notification existante pour l'ouverture des vidéos).
-// [À COMPLÉTER] liste « Ce qui viendra » : les titres des 13 séances vidéo n'existent pas encore côté données.
+// [À COMPLÉTER] liste « Ce qui viendra » : masquée, car les séances vidéo ne sont pas lisibles côté parent tant que
+// le drapeau fitness_enabled est éteint (policy gate_parent_video_sessions) ; passer `upcoming` à la vue le jour venu.
 export const VIDEO_NOTIFY_KEY = 'thrive.videoNotify';
 
 export default function VideosScreen() {
-  const { colors } = useTheme();
   const router = useRouter();
+  const { user } = useAuthStore();
+  const { family } = useFamily(user?.id);
+  const { children } = useChildren(family?.id);
   const [notify, setNotify] = useState(false);
 
   useEffect(() => {
@@ -27,68 +32,20 @@ export default function VideosScreen() {
     AsyncStorage.setItem(VIDEO_NOTIFY_KEY, next ? '1' : '0').catch(() => {});
   };
 
-  if (VIDEO_SESSIONS_ENABLED) {
-    // [À COMPLÉTER] lecteur des séances vidéo (P, Q, R) : hors périmètre de ce lot.
-    return null;
-  }
+  // [À COMPLÉTER] lecteur des séances vidéo : les écrans P, Q, R sont dans app/(parent)/video/[step].tsx.
+  if (VIDEO_SESSIONS_ENABLED) return <Redirect href="/(parent)/video/pret" />;
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgGrouped }}
-      contentContainerStyle={{ padding: SPACING.space4, paddingTop: 72, paddingBottom: TAB_BAR_INSET + SPACING.space8 }}
-    >
-      <View
-        style={{
-          backgroundColor: colors.bgGrouped2,
-          borderRadius: RADIUS.card,
-          padding: SPACING.space5,
-          alignItems: 'center',
-          gap: SPACING.space3,
-        }}
-      >
-        <VignetteImage
-          id="ACT-1001"
-          accessibilityLabel="Mascotte THRIVE avec la pellicule"
-          style={{ width: 168, height: 168, borderRadius: RADIUS.card }}
-        />
-        <Pill label="En construction" tone="accent" />
-        <ThemedText variant="title2" style={{ color: colors.label, textAlign: 'center' }} accessibilityRole="header">
-          Les séances vidéo arrivent bientôt
-        </ThemedText>
-        <ThemedText variant="subheadline" style={{ color: colors.label2, textAlign: 'center' }}>
-          On prépare les 13 séances de 20 minutes à vivre avec votre enfant. En attendant, les moments Maison sont là pour ce soir.
-        </ThemedText>
-
-        <View
-          style={{
-            alignSelf: 'stretch',
-            minHeight: SPACING.rowMin,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: SPACING.space4,
-            borderRadius: RADIUS.tile,
-            backgroundColor: colors.bgGrouped3,
-          }}
-        >
-          <ThemedText variant="body" style={{ color: colors.label, flex: 1 }}>Me prévenir à l’ouverture</ThemedText>
-          <Switch
-            value={notify}
-            onValueChange={toggle}
-            trackColor={{ true: colors.tint, false: colors.fill }}
-            accessibilityRole="switch"
-            accessibilityLabel="Me prévenir à l’ouverture des séances vidéo"
-            accessibilityState={{ checked: notify }}
-          />
-        </View>
-
-        <GlassButton
-          label="Voir les moments de ce soir"
-          icon="home"
-          onPress={() => router.replace('/(parent)/maison')}
-          accessibilityLabel="Retourner aux moments de ce soir"
-        />
-      </View>
-    </ScrollView>
+    <ComingSoonView
+      childName={children[0]?.first_name}
+      notify={notify}
+      onNotifyChange={toggle}
+      onBackToHome={() => router.replace('/(parent)/maison')}
+      onBack={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison'))}
+      onSegmentChange={(k) => {
+        if (k === 'coach') router.replace('/(parent)/seances');
+      }}
+      bottomInset={TAB_BAR_INSET + SPACING.space8}
+    />
   );
 }
