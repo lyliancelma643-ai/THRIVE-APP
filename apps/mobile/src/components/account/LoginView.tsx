@@ -3,7 +3,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import Svg, { Circle, Defs, RadialGradient, Stop } from 'react-native-svg';
 import {
   Button, Field, GlassButton, List, ListRow, MascotMedallion, NavBar, Section, SectionFooter, ThemedText, useNavBarHeight,
-  useTheme, withAlpha,
+  useTheme,
 } from '../../design';
 
 export type LoginViewProps = {

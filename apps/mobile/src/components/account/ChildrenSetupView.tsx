@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Button, Field, GlassButton, GlassSurface, Icon, List, MenuPopover, NavBar, ProgressBar, Section, SectionFooter, SectionHeader,
+  Button, Field, GlassButton, GlassSurface, Icon, List, MenuPopover, NavBar, ProgressBar, Section, SectionFooter,
   ThemedText, useNavBarHeight, useTheme,
 } from '../../design';
 
@@ -76,7 +76,7 @@ export function ChildrenSetupView(p: ChildrenSetupViewProps) {
   };
   const menuHeight = 12 + SPORT_OPTIONS.length * MENU_ROW;
   const below = anchor ? anchor.y + anchor.h + 4 : 0;
-  const menuTop = anchor ? (below + menuHeight > win.height - 24 ? Math.max(navH, anchor.y + anchor.h - menuHeight) : below) : -9999;
+  const menuTop = anchor ? (below + menuHeight > win.height - 24 ? Math.max(navH, anchor.y + anchor.h - menuHeight + 18) : below) : -9999;
   const active = p.drafts.find((d) => d.key === menuFor);
 
   return (

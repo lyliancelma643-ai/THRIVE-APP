@@ -1,70 +1,64 @@
-import { View, ScrollView } from 'react-native';
-import { useAuthStore } from '../../stores/auth.store';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '../../stores/auth.store';
+import { useChildren, useFamily } from '@thrive/shared';
 import { AccountPrivacySection } from '../../components/AccountPrivacySection';
 import { HealthNotice } from '../../components/HealthNotice';
-import { SubscriptionSettings } from '../../components/subscription/SubscriptionSettings';
 import { BillingIssueBanner } from '../../components/BillingIssueBanner';
-import { StylePicker } from '../../components/account/StylePicker';
-import { ListGroup, ListRow, SPACING, ThemedText, useTheme } from '../../design';
+import { AccountView } from '../../components/account/AccountView';
+import { useEntitlement } from '../../hooks/useEntitlement';
+import { useStyleChoice } from '../../design';
+import { useSubscriptionStore } from '../../stores/subscription.store';
 
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <ThemedText variant="footnote" color="label2" accessibilityRole="header" style={{ paddingHorizontal: SPACING.space4, paddingBottom: SPACING.space1 }}>
-      {children}
-    </ThemedText>
-  );
+function calculateAge(dob: string): number {
+  return Math.floor((Date.now() - new Date(dob).getTime()) / (1000 * 60 * 60 * 24 * 365.25));
 }
 
+/** Compte & famille (maquette X). Mêmes données et mêmes actions qu'avant : identité, abonnement, style, enfants, légal, déconnexion. */
 export default function ProfileScreen() {
   const { user, signOut } = useAuthStore();
   const router = useRouter();
-  const { colors } = useTheme();
+  const { style, setStyle } = useStyleChoice();
+  const ent = useEntitlement();
+  const access = useSubscriptionStore((s) => s.access);
+  const { family } = useFamily(user?.id);
+  const { children } = useChildren(family?.id);
 
   const handleSignOut = async () => {
     await signOut();
     router.replace('/(auth)/login');
   };
 
-  const ROLE_LABELS: Record<string, string> = { PARENT: 'Parent', COACH: 'Coach' };
+  const fromProgram = access?.sourceMaison === 'pack';
+  const days = ent.expirationDate ? Math.max(0, Math.ceil((new Date(ent.expirationDate).getTime() - Date.now()) / 86400000)) : null;
+  const maisonValue = ent.isLoading
+    ? '…'
+    : fromProgram
+      ? 'Inclus'
+      : ent.isSubscribed
+        ? ent.isTrial && days !== null ? `Essai · ${days} j` : 'Actif'
+        : ent.hasAccess ? 'Inclus' : 'Aucun';
+  const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || user?.email || '';
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: colors.bgGrouped }} contentContainerStyle={{ paddingHorizontal: SPACING.space4, paddingTop: SPACING.space8 * 2, paddingBottom: SPACING.space8 * 2 }}>
-      <ThemedText variant="largeTitle" accessibilityRole="header" style={{ marginBottom: SPACING.space5 }}>Compte & famille</ThemedText>
-
-      <View style={{ marginBottom: SPACING.space5 }}>
-        <SectionTitle>Mon profil</SectionTitle>
-        <ListGroup>
-          <ListRow title="Prénom" value={user?.firstName ?? '—'} />
-          <ListRow title="Nom" value={user?.lastName ?? '—'} />
-          <ListRow title="Email" value={user?.email ?? '—'} />
-          <ListRow title="Rôle" value={ROLE_LABELS[user?.role ?? ''] ?? '—'} last />
-        </ListGroup>
-      </View>
-
-      <View style={{ marginBottom: SPACING.space5 }}>
-        <SectionTitle>Style de l’app</SectionTitle>
-        <StylePicker />
-      </View>
-
-      <BillingIssueBanner />
-      <View style={{ marginHorizontal: -SPACING.space4 }}>
-        <SubscriptionSettings />
-      </View>
-
-      <View style={{ marginBottom: SPACING.space4 }}>
-        <ListGroup>
-          <ListRow icon="people" iconColor="sysTeal" title="Mes enfants" onPress={() => router.push('/(parent)/children')} />
-          <ListRow icon="notifications" iconColor="sysOrange" title="Notifications" onPress={() => router.push('/(parent)/notifications')} last />
-        </ListGroup>
-      </View>
-
-      <HealthNotice />
-      <AccountPrivacySection />
-
-      <ListGroup>
-        <ListRow title="Se déconnecter" destructive last onPress={handleSignOut} />
-      </ListGroup>
-    </ScrollView>
+    <AccountView
+      name={name}
+      email={user?.email ?? ''}
+      programValue={fromProgram ? 'Actif' : 'Aucun'}
+      maisonValue={ent.isStaff ? undefined : maisonValue}
+      styleChoice={style}
+      onChangeStyle={setStyle}
+      family={children.map((c) => ({ id: c.id, firstName: c.first_name, ageLabel: `${calculateAge(c.date_of_birth)} ans` }))}
+      onOpenProgram={() => router.push('/(parent)/offres')}
+      onOpenMaison={() => router.push('/(parent)/abonnement')}
+      onOpenOffers={() => router.push('/(parent)/offres')}
+      onOpenChild={(childId) => router.push({ pathname: '/(parent)/badges', params: { childId } })}
+      onOpenChildren={() => router.push('/(parent)/children')}
+      onOpenNotifications={() => router.push('/(parent)/notifications')}
+      onDone={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison'))}
+      onSignOut={handleSignOut}
+      top={<BillingIssueBanner />}
+      beforeData={<HealthNotice />}
+      data={<AccountPrivacySection />}
+    />
   );
 }

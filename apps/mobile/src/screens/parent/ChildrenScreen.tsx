@@ -63,8 +63,8 @@ export default function ChildrenScreen() {
       setDrafts([newDraft()]);
       if (children.length === 0 && !adding) router.replace('/(parent)/maison');
       else setAdding(false);
-    } catch (e: any) {
-      setError(e?.message ?? 'Enregistrement impossible. Réessaie.');
+    } catch (e) {
+      setError((e as Error)?.message ?? 'Enregistrement impossible. Réessaie.');
     }
     setSaving(false);
   };
