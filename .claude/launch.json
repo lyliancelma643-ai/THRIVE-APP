@@ -4,9 +4,21 @@
     {
       "name": "web",
       "runtimeExecutable": "sh",
-      "runtimeArgs": ["-c", "cd apps/web && npx next dev"],
+      "runtimeArgs": [
+        "-c",
+        "cd apps/web && npx next dev"
+      ],
       "autoPort": true,
       "port": 3001
+    },
+    {
+      "name": "mobile-web",
+      "runtimeExecutable": "sh",
+      "runtimeArgs": [
+        "-c",
+        "cd apps/mobile && CI=1 npx expo start --web --port 8081"
+      ],
+      "port": 8081
     }
   ]
 }

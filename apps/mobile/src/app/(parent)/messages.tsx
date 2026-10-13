@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
-import {
-  View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, ActivityIndicator, RefreshControl,
-} from 'react-native';
+import { ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useConversations } from '@thrive/shared';
 import { OfflineState } from '../../components/OfflineState';
+import { LockedScreen } from '../../components/access/LockedSection';
+import { MessagesListView } from '../../components/bilan/MessagesListView';
+import { useSubscriptionStore } from '../../stores/subscription.store';
+import { sectionView } from '../../services/access';
+
+// U — Messages : fils avec le coach et le support THRIVE (conversations existantes). Sans conversation ET sans
+// aucun accès coach (Bilan et Séances verrouillés, lus dans access_state()), l'aperçu « Écrire à un coach » s'affiche.
 
 export default function ParentMessagesScreen() {
   const router = useRouter();
   const { conversations, isLoading, error, refetch } = useConversations();
+  const access = useSubscriptionStore((st) => st.access);
   const [refreshing, setRefreshing] = useState(false);
 
   const onRefresh = async () => {
@@ -21,107 +26,41 @@ export default function ParentMessagesScreen() {
   const formatTime = (dateStr: string | null) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    const now = new Date();
-    const diff = now.getTime() - d.getTime();
+    const diff = Date.now() - d.getTime();
     if (diff < 60000) return 'maintenant';
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}min`;
+    if (diff < 3600000) return `${Math.floor(diff / 60000)} min`;
     if (diff < 86400000) return d.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit' });
     return d.toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
   };
 
-  const getInitials = (name?: string | null) => {
-    const parts = (name ?? '').trim().split(/\s+/).filter(Boolean);
-    return parts.length ? (parts[0][0] + (parts[1]?.[0] ?? '')).toUpperCase() : '?';
-  };
+  if (isLoading) return <ActivityIndicator accessibilityLabel="Chargement des messages" style={{ marginTop: 96 }} />;
+  if (error && conversations.length === 0) return <OfflineState onRetry={refetch} />;
 
-  const totalUnread = conversations.reduce((sum, c) => sum + c.unread_count, 0);
+  const noCoachAccess = !!access && !access.isStaff && sectionView(access, 'bilan') === 'locked' && sectionView(access, 'seances') === 'locked';
+  if (conversations.length === 0 && noCoachAccess) {
+    return (
+      <LockedScreen
+        kind="messages"
+        onOffers={() => router.push('/(parent)/offres')}
+        onCall={() => router.push('/(parent)/appel')}
+        onBack={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison'))}
+      />
+    );
+  }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Mes messages</Text>
-        {totalUnread > 0 && (
-          <View style={styles.unreadBadge}>
-            <Text style={styles.unreadText}>{totalUnread} non lu{totalUnread > 1 ? 's' : ''}</Text>
-          </View>
-        )}
-      </View>
-
-      {isLoading ? (
-        <ActivityIndicator style={{ marginTop: 40 }} accessibilityLabel="Chargement des messages" />
-      ) : error && conversations.length === 0 ? (
-        <OfflineState onRetry={refetch} />
-      ) : conversations.length === 0 ? (
-        <View style={styles.empty}>
-          <Text style={{ fontSize: 48 }}>💬</Text>
-          <Text style={styles.emptyTitle}>Aucun message</Text>
-          <Text style={styles.emptySub}>Votre coach vous contactera ici</Text>
-        </View>
-      ) : (
-        <ScrollView
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          {conversations.map((conv) => (
-            <TouchableOpacity
-              key={conv.id}
-              style={[styles.row, conv.unread_count > 0 && styles.rowUnread]}
-              accessibilityRole="button"
-              accessibilityLabel={`Conversation avec ${conv.counterpart_name ?? 'le support THRIVE'}${conv.unread_count > 0 ? `, ${conv.unread_count} non lu${conv.unread_count > 1 ? 's' : ''}` : ''}`}
-              onPress={() => router.push(
-                `/(parent)/chat/${conv.id}?name=${conv.counterpart_name ?? 'THRIVE'}`
-              )}
-            >
-              <View style={[styles.avatar, conv.unread_count > 0 && styles.avatarUnread]}>
-                <Text style={styles.avatarText}>{getInitials(conv.counterpart_name)}</Text>
-              </View>
-              <View style={styles.rowContent}>
-                <View style={styles.rowTop}>
-                  <Text style={[styles.name, conv.unread_count > 0 && styles.nameBold]}>
-                    {conv.counterpart_name ?? 'Support THRIVE'}
-                  </Text>
-                  <Text style={styles.time}>{formatTime(conv.last_message_at)}</Text>
-                </View>
-                <View style={styles.rowBottom}>
-                  <Text style={[styles.lastMsg, conv.unread_count > 0 && styles.lastMsgBold]} numberOfLines={1}>
-                    {conv.last_message_preview ?? 'Nouvelle conversation'}
-                  </Text>
-                  {conv.unread_count > 0 && (
-                    <View style={styles.dot}>
-                      <Text style={styles.dotText}>{conv.unread_count}</Text>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      )}
-    </View>
+    <MessagesListView
+      items={conversations.map((c) => ({
+        id: c.id,
+        name: c.counterpart_name ?? 'Support THRIVE',
+        preview: c.last_message_preview ?? 'Nouvelle conversation',
+        stamp: formatTime(c.last_message_at),
+        unread: c.unread_count,
+      }))}
+      totalUnread={conversations.reduce((sum, c) => sum + c.unread_count, 0)}
+      onOpen={(c) => router.push(`/(parent)/chat/${c.id}?name=${encodeURIComponent(c.name)}`)}
+      onRefresh={onRefresh}
+      refreshing={refreshing}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F9FAFB' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', padding: 20, paddingTop: 60, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
-  title: { fontSize: 28, fontWeight: '700' },
-  unreadBadge: { backgroundColor: '#EF4444', borderRadius: 20, paddingHorizontal: 12, paddingVertical: 4 },
-  unreadText: { color: '#fff', fontSize: 12, fontWeight: '700' },
-  empty: { alignItems: 'center', paddingTop: 80 },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#374151', marginTop: 12 },
-  emptySub: { fontSize: 14, color: '#9CA3AF', marginTop: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', paddingHorizontal: 20, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F9FAFB' },
-  rowUnread: { backgroundColor: '#FFFBEB' },
-  avatar: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#6B7280', alignItems: 'center', justifyContent: 'center', marginRight: 14 },
-  avatarUnread: { backgroundColor: '#000' },
-  avatarText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  rowContent: { flex: 1 },
-  rowTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
-  name: { fontWeight: '500', fontSize: 15, color: '#374151' },
-  nameBold: { fontWeight: '700', color: '#111' },
-  time: { fontSize: 12, color: '#9CA3AF' },
-  rowBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  lastMsg: { fontSize: 13, color: '#9CA3AF', flex: 1, marginRight: 8 },
-  lastMsgBold: { color: '#374151', fontWeight: '600' },
-  dot: { backgroundColor: '#EF4444', borderRadius: 10, minWidth: 20, paddingHorizontal: 6, paddingVertical: 2, alignItems: 'center' },
-  dotText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-});

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
+import { View, Alert, Linking, ActivityIndicator, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { LEGAL } from '../services/legal';
+import { List, ListRow, Section, SectionFooter, SectionHeader, type IconName } from '../design';
 import { useEntitlement } from '../hooks/useEntitlement';
 import { deletionSubscriptionWarning } from '../services/subscription-logic';
 
@@ -20,18 +21,17 @@ import { deletionSubscriptionWarning } from '../services/subscription-logic';
 // modifier sans mettre les deux à jour.
 const DELETION_DELAY = '30 jours';
 
-function LinkRow({ label, url }: { label: string; url: string }) {
+function LinkRow({ label, url, glyph, color }: { label: string; url: string; glyph: IconName; color: 'sysTeal' | 'sysBlue' | 'sysIndigo' }) {
   if (!url) return null;
+  // Pages web : navigateur in-app ; mailto:/tel: restent sur Linking.
   return (
-    <Pressable
-      className="flex-row justify-between items-center py-4 border-b border-gray-100"
-      // Pages web : navigateur in-app ; mailto:/tel: restent sur Linking.
+    <ListRow
+      glyph={glyph}
+      iconColor={color}
+      title={label}
+      accessibilityLabel={label}
       onPress={() => (/^https?:\/\//i.test(url) ? WebBrowser.openBrowserAsync(url) : Linking.openURL(url))}
-      accessibilityRole="link"
-    >
-      <Text className="text-base">{label}</Text>
-      <Text className="text-gray-400 text-lg">›</Text>
-    </Pressable>
+    />
   );
 }
 
@@ -74,23 +74,23 @@ export function AccountPrivacySection() {
   };
 
   return (
-    <View className="bg-white rounded-2xl px-5 shadow-sm border border-gray-100 mb-4">
-      <Text className="text-gray-500 text-sm pt-5 pb-1">Confidentialité et compte</Text>
-      <LinkRow label="Politique de confidentialité" url={LEGAL.privacy} />
-      <LinkRow label="Conditions d’utilisation" url={LEGAL.terms} />
-      <LinkRow label="Aide et contact" url={LEGAL.support} />
-      <Pressable
-        className="py-4"
-        onPress={confirmDeletion}
-        disabled={deleting}
-        accessibilityRole="button"
-      >
-        {deleting ? (
-          <ActivityIndicator />
-        ) : (
-          <Text className="text-base font-semibold text-red-600">Supprimer mon compte et mes données</Text>
-        )}
-      </Pressable>
-    </View>
+    <>
+      <SectionHeader small title="Données · hébergées au Canada" />
+      <Section>
+        <List>
+          <LinkRow label="Confidentialité · Loi 25" url={LEGAL.privacy} glyph="document" color="sysTeal" />
+          <LinkRow label="Conditions d’utilisation" url={LEGAL.terms} glyph="book" color="sysBlue" />
+          <LinkRow label="Aide et contact" url={LEGAL.support} glyph="info" color="sysIndigo" />
+          {deleting ? (
+            <View style={{ minHeight: 52, alignItems: 'center', justifyContent: 'center' }}>
+              <ActivityIndicator />
+            </View>
+          ) : (
+            <ListRow title="Supprimer mon compte et mes données" destructive last onPress={confirmDeletion} />
+          )}
+        </List>
+        <SectionFooter>Le courriel et le mot de passe se changent avec ton coach ou l’équipe THRIVE.</SectionFooter>
+      </Section>
+    </>
   );
 }

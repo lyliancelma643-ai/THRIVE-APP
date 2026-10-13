@@ -41,6 +41,11 @@ const base = [
 ];
 const m080 = mig('20261010_080_droits_acces_unifies.sql');
 const r080 = join(root, 'rollbacks', '20261010_080_droits_acces_unifies_rollback.sql');
+const m081 = mig('20261012_081_program_payments.sql');
+const r081 = join(root, 'rollbacks', '20261012_081_program_payments_rollback.sql');
+const m082 = mig('20261012_082_call_requests.sql');
+const m083 = mig('20261012_083_ui_style.sql');
+const r083 = join(root, 'rollbacks', '20261012_083_ui_style_rollback.sql');
 
 // Les tests se terminent par une exception dont le message porte le verdict.
 async function run(label, files, expectations) {
@@ -82,6 +87,28 @@ const results = [
     'rollback 080',
     [...base, m080, r080, test('access_matrix.sql'), m080, test('access_rights_080.sql')],
     [/ACCESS_MATRIX_PASSED/, /ACCESS_080_PASSED/]
+  ),
+  // GO 3 : paiements des programmes (081) et appels de 15 min (082), appliquées deux fois.
+  await run(
+    'GO 3 (081, 082)',
+    [...base, m080, m081, m081, test('program_payments.sql'), test('access_rights_080.sql'), m082, m082, test('call_requests.sql')],
+    [/PROGRAM_081_PASSED/, /ACCESS_080_PASSED/, /CALL_REQUESTS_PASSED/]
+  ),
+  // GO 3 · O5 : style de l'app (083), appliquée deux fois, puis rollback.
+  await run(
+    '083',
+    [...base, m080, m083, m083, test('ui_style.sql'), test('access_rights_080.sql')],
+    [/UI_STYLE_PASSED/, /ACCESS_080_PASSED/]
+  ),
+  await run(
+    'rollback 083',
+    [...base, m080, m083, r083, test('access_rights_080.sql'), m083, test('ui_style.sql')],
+    [/ACCESS_080_PASSED/, /UI_STYLE_PASSED/]
+  ),
+  await run(
+    'rollback 081',
+    [...base, m080, m081, r081, test('access_rights_080.sql')],
+    [/ACCESS_080_PASSED/]
   ),
 ];
 

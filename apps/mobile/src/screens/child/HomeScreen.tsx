@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { SPACING, ThemedText, useTheme } from '../../design';
 
-export default function ChildHomeScreen() {
+// [À COMPLÉTER] contenu : écran sans route, laissé neutre (aucune donnée de démo).
+export default function HomeScreen() {
+  const { colors } = useTheme();
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-2xl font-bold">Accueil Enfant 🏆</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space4, backgroundColor: colors.bgGrouped }}>
+      <ThemedText variant="title2" style={{ color: colors.label }} accessibilityRole="header">Accueil</ThemedText>
     </View>
   );
 }

@@ -7,15 +7,19 @@ import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../stores/auth.store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useRevenueCatIdentity } from '../hooks/useRevenueCatIdentity';
+import { useFonts } from 'expo-font';
+import { FONT_ASSETS, ThemeProvider } from '../design';
 
 // Racine unique de l'app mobile. Expo Router prend `src/app/` dès que ce
 // dossier existe : tout écran doit vivre ici (l'ancien `app/` n'est pas embarqué).
 
 function homeFor(role: string | undefined) {
-  return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/dashboard';
+  return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/maison';
 }
 
 function RootLayout() {
+  // Polices Inter / Fraunces : non bloquant, repli police système tant qu'elles ne sont pas prêtes.
+  const [fontsLoaded] = useFonts(FONT_ASSETS);
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
@@ -47,10 +51,14 @@ function RootLayout() {
   // Redirection selon la session et le rôle (app_metadata, non falsifiable).
   useEffect(() => {
     if (isLoading) return;
+    // Galerie de contrôle des primitives (dev uniquement) : accessible sans session.
+    if (__DEV__ && (segments[0] === '__design' || segments[0] === '__ecran')) return;
     const inAuthGroup = segments[0] === '(auth)';
+    const inWelcome = segments[0] === 'welcome';
 
     if (!isAuthenticated) {
-      if (!inAuthGroup) router.replace('/(auth)/login');
+      // Arrivée non connectée : écran Bienvenue (slogans), puis connexion / inscription.
+      if (!inAuthGroup && !inWelcome) router.replace('/welcome');
       return;
     }
 
@@ -77,7 +85,7 @@ function RootLayout() {
     const inCoachGroup = segments[0] === '(coach)';
     const inParentGroup = segments[0] === '(parent)';
     const isCoach = user?.role === 'COACH';
-    if (inAuthGroup || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
+    if (inAuthGroup || inWelcome || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
       router.replace(homeFor(user?.role));
     }
   }, [isAuthenticated, isLoading, segments, user?.role]);
@@ -100,11 +108,13 @@ function RootLayout() {
   }, [isAuthenticated, user?.role]);
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(parent)" />
-      <Stack.Screen name="(coach)" />
-    </Stack>
+    <ThemeProvider fontsLoaded={fontsLoaded}>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(parent)" />
+        <Stack.Screen name="(coach)" />
+      </Stack>
+    </ThemeProvider>
   );
 }
 

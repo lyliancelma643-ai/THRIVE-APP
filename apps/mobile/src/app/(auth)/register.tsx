@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 import { LEGAL, LEGAL_VERSION } from '../../services/legal';
+import { Button, ThemedText, useNavBarHeight, useTheme } from '../../design';
+import { RegisterView } from '../../components/account/RegisterView';
 
 export default function RegisterScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const navH = useNavBarHeight();
   const { signUp, isLoading } = useAuthStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -16,8 +20,11 @@ export default function RegisterScreen() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  // « Recevoir les nouveautés » : préférence locale, NON envoyée (aucune donnée correspondante côté serveur).
+  const [newsletter, setNewsletter] = useState(false);
 
   const handleRegister = async () => {
+    if (isLoading) return;
     if (!firstName || !lastName || !email || !password) {
       setError('Tous les champs sont requis');
       return;
@@ -51,60 +58,40 @@ export default function RegisterScreen() {
 
   if (success) {
     return (
-      <View className="flex-1 justify-center items-center px-6 bg-white">
-        <Text className="text-4xl mb-4">🎉</Text>
-        <Text className="text-2xl font-bold mb-2">Compte créé !</Text>
-        <Text className="text-gray-500 text-center mb-8">Vérifie ton email pour confirmer ton compte.</Text>
-        <Pressable className="bg-black rounded-2xl py-4 px-8" onPress={() => router.push('/(auth)/login')}>
-          <Text className="text-white font-semibold">Se connecter</Text>
-        </Pressable>
+      <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+        <ScrollView contentContainerStyle={{ paddingTop: navH + 40, paddingHorizontal: 16, gap: 8 }}>
+          <ThemedText variant="title1" accessibilityRole="header">Compte créé !</ThemedText>
+          <ThemedText variant="body" color="label2" style={{ marginBottom: 24 }}>Vérifie ton email pour confirmer ton compte.</ThemedText>
+          <Button label="Se connecter" onPress={() => router.push('/(auth)/login')} />
+        </ScrollView>
       </View>
     );
   }
 
+  const pwdErr = password.length >= PASSWORD_MIN_LENGTH ? passwordError(password) : null;
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text className="text-4xl font-bold mb-2">Rejoins THRIVE 🏆</Text>
-        <Text className="text-gray-500 mb-8">Crée ton espace parent</Text>
-
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Prénom" value={firstName} onChangeText={setFirstName} />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Nom" value={lastName} onChangeText={setLastName} />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" />
-        <TextInput className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base" placeholder={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`} value={password} onChangeText={setPassword} secureTextEntry />
-
-        <Pressable
-          className="flex-row items-start mb-4"
-          onPress={() => setAccepted((v) => !v)}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: accepted }}
-        >
-          <View className={`w-6 h-6 rounded-md border-2 mr-3 mt-0.5 items-center justify-center ${accepted ? 'bg-black border-black' : 'border-gray-300'}`}>
-            {accepted && <Text className="text-white text-xs font-bold">✓</Text>}
-          </View>
-          <Text className="flex-1 text-sm text-gray-600">
-            J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
-            <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}>conditions d’utilisation</Text>
-            {LEGAL.privacy ? (
-              <>
-                {' '}et la{' '}
-                <Text className="underline text-black" onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}>politique de confidentialité</Text>
-              </>
-            ) : null}
-            .
-          </Text>
-        </Pressable>
-
-        {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
-
-        <Pressable className="bg-black rounded-2xl py-4 items-center mb-4" onPress={handleRegister} disabled={isLoading}>
-          <Text className="text-white font-semibold text-base">{isLoading ? 'Création...' : 'Créer mon compte'}</Text>
-        </Pressable>
-
-        <Pressable onPress={() => router.back()}>
-          <Text className="text-center text-gray-500">Déjà un compte ? <Text className="text-black font-semibold">Se connecter</Text></Text>
-        </Pressable>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <RegisterView
+      firstName={firstName}
+      lastName={lastName}
+      email={email}
+      password={password}
+      onChangeFirstName={setFirstName}
+      onChangeLastName={setLastName}
+      onChangeEmail={setEmail}
+      onChangePassword={setPassword}
+      passwordMin={PASSWORD_MIN_LENGTH}
+      passwordRuleHint={pwdErr}
+      newsletter={newsletter}
+      onChangeNewsletter={setNewsletter}
+      accepted={accepted}
+      onChangeAccepted={setAccepted}
+      onOpenTerms={() => WebBrowser.openBrowserAsync(LEGAL.terms)}
+      onOpenPrivacy={LEGAL.privacy ? () => WebBrowser.openBrowserAsync(LEGAL.privacy) : undefined}
+      error={error}
+      loading={isLoading}
+      canContinue={Boolean(firstName && lastName && email && password && !passwordError(password))}
+      onContinue={handleRegister}
+      onClose={() => (router.canGoBack() ? router.back() : router.replace('/welcome'))}
+    />
   );
 }

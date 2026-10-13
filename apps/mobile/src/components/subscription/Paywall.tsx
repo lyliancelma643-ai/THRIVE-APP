@@ -1,16 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
-import type { PurchasesOffering, PurchasesPackage } from 'react-native-purchases';
+import type { PurchasesOffering } from 'react-native-purchases';
 import {
   activeEntitlement,
   getCurrentOffering,
@@ -18,34 +9,20 @@ import {
   restorePurchases,
   trialEligibleProductIds,
 } from '../../services/purchases';
-import { isoPeriodFr, perPeriodFr } from '../../services/subscription-logic';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { freeTrialPeriod } from '../offres/useMaisonOffering';
 import { SubscriptionLoader } from './SubscriptionLoader';
-import { C, LEGAL } from './theme';
+import { LEGAL } from './theme';
+import { PaywallView } from './PaywallView';
+import { buildPaywallContent } from './paywallModel';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Paywall P3 — achat intégré UNIQUEMENT (App Store / Google Play).
+// Paywall D2 — achat intégré UNIQUEMENT (App Store / Google Play).
 // ANTI-STEERING : aucun texte, bouton ni lien ne renvoie vers un autre moyen de
 // paiement. Prix, périodes et essais sont lus dans l'offering RevenueCat
 // courant (jamais écrits en dur). Bouton « Restaurer les achats » obligatoire.
+// Hiérarchie (Apple 3.1.2) : le mois gratuit d'abord, le prix facturé jamais caché.
 // ─────────────────────────────────────────────────────────────────────────────
-
-/** Nom de l'abonnement, identique à celui des fiches App Store / Google Play. */
-const SUBSCRIPTION_NAME = 'THRIVE — Le moment qui compte';
-
-const PROMISES = [
-  'Une activité de 10 minutes par jour, rien à préparer',
-  'Choisie pour votre enfant, et de mieux en mieux au fil de vos retours',
-  'Adossée aux 13 séances de la Méthode THRIVE',
-  'Le carnet des moments, pour garder ce que vous vivez ensemble',
-];
-
-/** Période d'essai gratuit d'un package, si le store en propose une. */
-function freeTrialPeriod(pkg: PurchasesPackage): string | null {
-  const p = pkg.product;
-  if (Platform.OS === 'android') return p.defaultOption?.freePhase?.billingPeriod?.iso8601 ?? null;
-  return p.introPrice && p.introPrice.price === 0 ? p.introPrice.period : null;
-}
 
 export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; onClose?: () => void }) {
   const setCustomerInfo = useSubscriptionStore((s) => s.setCustomerInfo);
@@ -87,13 +64,6 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
   const selected = packages.find((p) => p.identifier === selectedId) ?? packages[0] ?? null;
   const trial = selected && eligible.has(selected.product.identifier) ? freeTrialPeriod(selected) : null;
 
-  const annualSaving = useMemo(() => {
-    const m = offering?.monthly?.product.price;
-    const a = offering?.annual?.product.price;
-    if (!m || !a || m * 12 <= a) return null;
-    return Math.round(((m * 12 - a) / (m * 12)) * 100);
-  }, [offering]);
-
   const onBuy = async () => {
     if (!selected) return;
     setBusy('buy');
@@ -130,166 +100,29 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
 
   if (loading) return <SubscriptionLoader />;
 
+  const canSell = packages.length > 0 && LEGAL.complete;
+  const content = buildPaywallContent({
+    packages,
+    selectedId,
+    trialIso: trial,
+    monthlyPrice: offering?.monthly?.product.price,
+    annualPrice: offering?.annual?.product.price,
+    now: new Date(),
+    android: Platform.OS === 'android',
+  });
+
   return (
-    <ScrollView testID="paywall" style={styles.container} contentContainerStyle={styles.content}>
-      {onClose ? (
-        <TouchableOpacity
-          onPress={onClose}
-          style={styles.close}
-          accessibilityRole="button"
-          accessibilityLabel="Fermer"
-          hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
-        >
-          <Text style={styles.closeText}>✕</Text>
-        </TouchableOpacity>
-      ) : null}
-      <Text style={styles.eyebrow} accessibilityRole="header">{SUBSCRIPTION_NAME.toUpperCase()}</Text>
-      <Text style={styles.title}>Ce n’est pas le nombre d’heures qui compte. C’est la qualité du moment.</Text>
-
-      <View style={styles.card}>
-        {PROMISES.map((p) => (
-          <View key={p} style={styles.promise}>
-            <Text style={styles.check}>✓</Text>
-            <Text style={styles.promiseText}>{p}</Text>
-          </View>
-        ))}
-      </View>
-
-      {packages.length === 0 || !LEGAL.complete ? (
-        <View style={styles.card}>
-          <Text style={styles.body}>L’abonnement n’est pas disponible pour le moment. Réessayez plus tard.</Text>
-          <TouchableOpacity style={styles.secondaryBtn} onPress={load}>
-            <Text style={styles.secondaryText}>Réessayer</Text>
-          </TouchableOpacity>
-        </View>
-      ) : (
-        <>
-          <View accessibilityRole="radiogroup" style={{ gap: 10 }}>
-            {packages.map((pkg) => {
-              const isSel = pkg.identifier === selected?.identifier;
-              const isAnnual = pkg.identifier === '$rc_annual';
-              return (
-                <TouchableOpacity
-                  key={pkg.identifier}
-                  accessibilityRole="radio"
-                  accessibilityState={{ checked: isSel }}
-                  accessibilityLabel={`${SUBSCRIPTION_NAME}, ${isAnnual ? 'annuel' : 'mensuel'} : ${pkg.product.priceString} ${perPeriodFr(pkg.product.subscriptionPeriod)}, renouvellement automatique`}
-                  onPress={() => setSelectedId(pkg.identifier)}
-                  style={[styles.plan, isSel && styles.planSelected]}
-                >
-                  <View style={[styles.radio, isSel && styles.radioSelected]}>
-                    {isSel && <View style={styles.radioDot} />}
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <Text style={styles.planName}>{isAnnual ? 'Annuel' : 'Mensuel'}</Text>
-                      {isAnnual && annualSaving ? (
-                        <View style={styles.badge}>
-                          <Text style={styles.badgeText}>−{annualSaving} %</Text>
-                        </View>
-                      ) : null}
-                    </View>
-                    {isAnnual && pkg.product.pricePerMonthString ? (
-                      <Text style={styles.planSub}>soit {pkg.product.pricePerMonthString} par mois</Text>
-                    ) : null}
-                  </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.price}>{pkg.product.priceString}</Text>
-                    <Text style={styles.planSub}>{perPeriodFr(pkg.product.subscriptionPeriod)}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.primaryBtn, busy !== null && styles.disabled]}
-            onPress={onBuy}
-            disabled={busy !== null}
-            accessibilityRole="button"
-          >
-            {busy === 'buy' ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.primaryText}>
-                {trial ? `Commencer mon essai de ${isoPeriodFr(trial)}` : 'M’abonner'}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          {selected && (
-            <Text style={styles.fineprint}>
-              {`${SUBSCRIPTION_NAME} — abonnement ${isoPeriodFr(selected.product.subscriptionPeriod) === '1 an' ? 'annuel' : 'mensuel'} à renouvellement automatique. `}
-              {trial
-                ? `Gratuit pendant ${isoPeriodFr(trial)}, puis ${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `
-                : `${selected.product.priceString} ${perPeriodFr(selected.product.subscriptionPeriod)}. `}
-              {Platform.OS === 'ios'
-                ? 'Le paiement est prélevé sur votre compte Apple à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement, sauf annulation au moins 24 heures avant la fin de la période en cours. Gérez ou annulez-le dans les réglages de votre compte Apple.'
-                : 'Le paiement est prélevé sur votre compte Google Play à la confirmation de l’achat (à la fin de l’essai s’il y en a un). L’abonnement se renouvelle automatiquement jusqu’à annulation. Gérez ou annulez-le dans Google Play › Paiements et abonnements.'}
-            </Text>
-          )}
-        </>
-      )}
-
-      <TouchableOpacity
-        testID="paywall-restore"
-        style={[styles.secondaryBtn, busy !== null && styles.disabled]}
-        onPress={onRestore}
-        disabled={busy !== null}
-        accessibilityRole="button"
-      >
-        {busy === 'restore' ? <ActivityIndicator color={C.accentText} /> : <Text style={styles.secondaryText}>Restaurer les achats</Text>}
-      </TouchableOpacity>
-
-      <View style={styles.legal}>
-        {LEGAL.terms ? (
-          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)} accessibilityRole="link">
-            Conditions d’utilisation (EULA)
-          </Text>
-        ) : null}
-        {LEGAL.terms && LEGAL.privacy ? <Text style={styles.legalSep}>·</Text> : null}
-        {LEGAL.privacy ? (
-          <Text style={styles.link} onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)} accessibilityRole="link">
-            Politique de confidentialité
-          </Text>
-        ) : null}
-      </View>
-    </ScrollView>
+    <PaywallView
+      {...content}
+      onSelect={setSelectedId}
+      canSell={canSell}
+      busy={busy}
+      terms={LEGAL.terms ? { onPress: () => WebBrowser.openBrowserAsync(LEGAL.terms) } : undefined}
+      privacy={LEGAL.privacy ? { onPress: () => WebBrowser.openBrowserAsync(LEGAL.privacy) } : undefined}
+      onBuy={onBuy}
+      onRestore={onRestore}
+      onRetry={load}
+      onClose={onClose}
+    />
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg },
-  content: { padding: 20, paddingTop: 60, paddingBottom: 48, gap: 16 },
-  close: { alignSelf: 'flex-end', width: 40, height: 40, borderRadius: 20, backgroundColor: C.card, alignItems: 'center', justifyContent: 'center', marginTop: -24 },
-  closeText: { color: C.text, fontSize: 18, fontWeight: '700' },
-  eyebrow: { color: C.faint, fontSize: 11, fontWeight: '700', letterSpacing: 1.2 },
-  title: { color: C.text, fontSize: 26, fontWeight: '700', lineHeight: 32 },
-  card: { backgroundColor: C.card, borderRadius: 16, padding: 16, gap: 12 },
-  promise: { flexDirection: 'row', gap: 10, alignItems: 'flex-start' },
-  check: { color: C.accentText, fontSize: 15, fontWeight: '700', marginTop: 1 },
-  promiseText: { color: C.body, fontSize: 15, lineHeight: 21, flex: 1 },
-  body: { color: C.body, fontSize: 15, lineHeight: 21 },
-  plan: {
-    flexDirection: 'row', alignItems: 'center', gap: 14, backgroundColor: C.card,
-    borderRadius: 16, padding: 16, borderWidth: 1, borderColor: C.border,
-  },
-  planSelected: { borderColor: C.accent, borderWidth: 2 },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 2, borderColor: C.border, alignItems: 'center', justifyContent: 'center' },
-  radioSelected: { borderColor: C.accent },
-  radioDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: C.accent },
-  planName: { color: C.text, fontSize: 16, fontWeight: '700' },
-  planSub: { color: C.muted, fontSize: 13, marginTop: 2 },
-  price: { color: C.text, fontSize: 18, fontWeight: '700' },
-  badge: { backgroundColor: C.accentSoft, borderRadius: 10, paddingHorizontal: 8, paddingVertical: 2 },
-  badgeText: { color: C.accentText, fontSize: 11, fontWeight: '700' },
-  primaryBtn: { backgroundColor: C.accent, borderRadius: 28, height: 56, alignItems: 'center', justifyContent: 'center', marginTop: 4 },
-  primaryText: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  secondaryBtn: { borderRadius: 24, height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.border },
-  secondaryText: { color: C.accentText, fontSize: 15, fontWeight: '600' },
-  disabled: { opacity: 0.6 },
-  fineprint: { color: C.muted, fontSize: 12, lineHeight: 17, textAlign: 'center' },
-  legal: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8, marginTop: 4 },
-  link: { color: C.muted, fontSize: 13, textDecorationLine: 'underline', paddingVertical: 8 },
-  legalSep: { color: C.faint, fontSize: 12 },
-});

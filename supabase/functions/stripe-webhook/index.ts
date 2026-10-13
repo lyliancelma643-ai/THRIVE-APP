@@ -13,6 +13,12 @@
 // Toujours 200 une fois la signature validée (sauf erreur interne → 500) :
 // Stripe réessaie toute réponse non 2xx (jusqu'à 3 jours en mode live), et
 // chaque traitement est idempotent (l'état est relu chez RevenueCat).
+//   • PROGRAMMES (GO 3, migration 081 — ajout) : tout événement portant
+//     metadata.kind='program' (sessions Checkout mode=payment et PaymentIntents
+//     que nous créons) ou charge.refunded est confié à la fonction SQL
+//     idempotente program_apply_stripe_event (un event.id n'est appliqué qu'une
+//     fois). Les sessions mode=subscription (Maison) ne passent JAMAIS par là.
+//
 // verify_jwt: FALSE (authentification par signature Stripe).
 // Secrets : STRIPE_WEBHOOK_SECRET, REVENUECAT_SECRET_API_KEY, REVENUECAT_STRIPE_PUBLIC_KEY.
 
@@ -20,6 +26,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { withSentry, captureError } from "../_shared/sentry.ts";
 import { adminClient, env, json, rcPostStripeReceipt, syncFromRevenueCat } from "../_shared/billing.ts";
 import { appUserIdFromCheckoutSession, isUuid } from "../_shared/billing_core.ts";
+import { handleProgramEvent, isProgramEvent, type RpcLike } from "../_shared/program_billing.ts";
 import { verifyStripeSignature } from "./verify.ts";
 
 const SUBSCRIPTION_EVENTS = new Set([
@@ -48,6 +55,16 @@ Deno.serve(withSentry("stripe-webhook", async (req: Request) => {
     const event = JSON.parse(payload);
     const object = event?.data?.object ?? {};
     const admin = adminClient();
+
+    // Programmes payés par Stripe (081) : routage additif, avant le flux Maison.
+    if (isProgramEvent(event) && typeof event?.id === "string") {
+      const rpc: RpcLike = async (fn, args) => {
+        const { data, error } = await admin.rpc(fn, args);
+        return { data, error: error ? { message: error.message } : null };
+      };
+      const result = await handleProgramEvent(event, rpc);
+      return json({ received: true, program: result });
+    }
 
     if (event?.type === "checkout.session.completed") {
       if (object.mode !== "subscription") return json({ received: true, ignored: "mode" });

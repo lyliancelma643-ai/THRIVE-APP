@@ -1,0 +1,5 @@
+# Captures côte à côte générées (régénérables)
+*-natif*.png
+*-nuit*.png
+*-carnet*.png
+!F0-*.png
