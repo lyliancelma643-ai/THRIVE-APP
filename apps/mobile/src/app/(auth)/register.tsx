@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { Pressable, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 import { LEGAL, LEGAL_VERSION } from '../../services/legal';
-import { SPACING, ThemedText, useTheme } from '../../design';
-import { AuthButton, AuthError, AuthField, AuthLink, AuthScaffold } from '../../components/account/AuthScaffold';
+import { Button, ThemedText, useNavBarHeight, useTheme } from '../../design';
+import { RegisterView } from '../../components/account/RegisterView';
 
 export default function RegisterScreen() {
   const router = useRouter();
   const { colors } = useTheme();
+  const navH = useNavBarHeight();
   const { signUp, isLoading } = useAuthStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -20,8 +20,11 @@ export default function RegisterScreen() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  // « Recevoir les nouveautés » : préférence locale, NON envoyée (aucune donnée correspondante côté serveur).
+  const [newsletter, setNewsletter] = useState(false);
 
   const handleRegister = async () => {
+    if (isLoading) return;
     if (!firstName || !lastName || !email || !password) {
       setError('Tous les champs sont requis');
       return;
@@ -55,63 +58,40 @@ export default function RegisterScreen() {
 
   if (success) {
     return (
-      <AuthScaffold>
-        <ThemedText variant="title1" accessibilityRole="header" style={{ marginBottom: SPACING.space2 }}>Compte créé !</ThemedText>
-        <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space8 }}>Vérifie ton email pour confirmer ton compte.</ThemedText>
-        <AuthButton label="Se connecter" onPress={() => router.push('/(auth)/login')} />
-      </AuthScaffold>
+      <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+        <ScrollView contentContainerStyle={{ paddingTop: navH + 40, paddingHorizontal: 16, gap: 8 }}>
+          <ThemedText variant="title1" accessibilityRole="header">Compte créé !</ThemedText>
+          <ThemedText variant="body" color="label2" style={{ marginBottom: 24 }}>Vérifie ton email pour confirmer ton compte.</ThemedText>
+          <Button label="Se connecter" onPress={() => router.push('/(auth)/login')} />
+        </ScrollView>
+      </View>
     );
   }
 
+  const pwdErr = password.length >= PASSWORD_MIN_LENGTH ? passwordError(password) : null;
   return (
-    <AuthScaffold>
-      <ThemedText variant="largeTitle" accessibilityRole="header">Rejoins THRIVE</ThemedText>
-      <ThemedText variant="body" color="label2" style={{ marginBottom: SPACING.space6 }}>Crée ton espace parent</ThemedText>
-
-      <AuthField label="Prénom" value={firstName} onChangeText={setFirstName} autoComplete="given-name" />
-      <AuthField label="Nom" value={lastName} onChangeText={setLastName} autoComplete="family-name" />
-      <AuthField label="Email" value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" autoComplete="email" />
-      <AuthField label={`Mot de passe (min. ${PASSWORD_MIN_LENGTH} caractères)`} value={password} onChangeText={setPassword} secureTextEntry autoComplete="new-password" />
-
-      <Pressable
-        onPress={() => setAccepted((v) => !v)}
-        accessibilityRole="checkbox"
-        accessibilityLabel="Je confirme avoir 18 ans ou plus, être parent ou tuteur légal, et accepter les conditions"
-        accessibilityState={{ checked: accepted }}
-        style={{ flexDirection: 'row', alignItems: 'flex-start', minHeight: 44, marginBottom: SPACING.space4 }}
-      >
-        <View
-          style={{
-            width: 24, height: 24, borderRadius: 7, marginRight: SPACING.space3, marginTop: 1,
-            alignItems: 'center', justifyContent: 'center',
-            backgroundColor: accepted ? colors.tint : 'transparent',
-            borderWidth: accepted ? 0 : 2, borderColor: colors.label2,
-          }}
-        >
-          {accepted ? <Ionicons name="checkmark" size={16} color={colors.tintInk} /> : null}
-        </View>
-        <ThemedText variant="footnote" color="label2" style={{ flex: 1 }}>
-          J’ai 18 ans ou plus, je suis parent ou tuteur légal, et j’accepte les{' '}
-          <ThemedText variant="footnote" color="tint" style={{ textDecorationLine: 'underline' }} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(LEGAL.terms)}>conditions d’utilisation</ThemedText>
-          {LEGAL.privacy ? (
-            <>
-              {' '}et la{' '}
-              <ThemedText variant="footnote" color="tint" style={{ textDecorationLine: 'underline' }} accessibilityRole="link" onPress={() => WebBrowser.openBrowserAsync(LEGAL.privacy)}>politique de confidentialité</ThemedText>
-            </>
-          ) : null}
-          .
-        </ThemedText>
-      </Pressable>
-
-      <AuthError message={error} />
-
-      <AuthButton label={isLoading ? 'Création...' : 'Créer mon compte'} onPress={handleRegister} disabled={isLoading} />
-
-      <AuthLink label="Se connecter" onPress={() => router.back()}>
-        <ThemedText variant="subheadline" color="label2">
-          Déjà un compte ? <ThemedText variant="subheadline" color="tint" style={{ fontWeight: '600' }}>Se connecter</ThemedText>
-        </ThemedText>
-      </AuthLink>
-    </AuthScaffold>
+    <RegisterView
+      firstName={firstName}
+      lastName={lastName}
+      email={email}
+      password={password}
+      onChangeFirstName={setFirstName}
+      onChangeLastName={setLastName}
+      onChangeEmail={setEmail}
+      onChangePassword={setPassword}
+      passwordMin={PASSWORD_MIN_LENGTH}
+      passwordRuleHint={pwdErr}
+      newsletter={newsletter}
+      onChangeNewsletter={setNewsletter}
+      accepted={accepted}
+      onChangeAccepted={setAccepted}
+      onOpenTerms={() => WebBrowser.openBrowserAsync(LEGAL.terms)}
+      onOpenPrivacy={LEGAL.privacy ? () => WebBrowser.openBrowserAsync(LEGAL.privacy) : undefined}
+      error={error}
+      loading={isLoading}
+      canContinue={Boolean(firstName && lastName && email && password && !passwordError(password))}
+      onContinue={handleRegister}
+      onClose={() => (router.canGoBack() ? router.back() : router.replace('/welcome'))}
+    />
   );
 }

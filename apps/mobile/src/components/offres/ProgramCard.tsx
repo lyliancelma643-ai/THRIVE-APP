@@ -1,46 +1,43 @@
 import { Pressable, View } from 'react-native';
-import { router } from 'expo-router';
-import { Pill, SPACING, ThemedText, VignetteImage } from '../../design';
-import { Card } from './Card';
+import { Pills, Tag, ThemedText } from '../../design';
+import { AmberTag, PACK_IMAGE, Packshot, RingCard } from './parts';
 import { formatCentsShortFr, type ProgramInfo } from './pricing';
 
-// Image d'illustration par pack : identifiants de vignettes existants (resolveVignetteId gère le repli).
-const PACK_IMAGE: Record<ProgramInfo['pack'], string> = {
-  groupe: 'BON-01',
-  individuel: 'ACT-0101',
-  complet: 'ACT-0801',
-};
-
-export function ProgramCard({ program, current }: { program: ProgramInfo; current?: boolean }) {
+/**
+ * Carte de programme de Y : vignette, nom, prix HORS TAXES « + tx », accroche, description et étiquettes.
+ * `current` : anneau de sélection + étiquette « Ton programme » (programme actif du compte).
+ */
+export function ProgramCard({ program, current, onPress }: { program: ProgramInfo; current?: boolean; onPress: () => void }) {
   return (
     <Pressable
-      onPress={() => router.push({ pathname: '/(parent)/offres/[pack]', params: { pack: program.pack } })}
+      onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={`THRIVE ${program.name}, ${formatCentsShortFr(program.totalCents)} plus taxes. Voir le paiement.`}
+      accessibilityLabel={`THRIVE ${program.name}, ${formatCentsShortFr(program.totalCents)} plus taxes${current ? ', ton programme' : ''}. Voir le paiement.`}
+      style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
     >
-      <Card>
-        <View style={{ flexDirection: 'row', gap: SPACING.space3, alignItems: 'center' }}>
-          <VignetteImage id={PACK_IMAGE[program.pack]} style={{ width: 64, height: 64, borderRadius: 18 }} accessibilityLabel="" />
+      <RingCard on={current}>
+        <View style={{ flexDirection: 'row', gap: 12 }}>
+          <Packshot id={PACK_IMAGE[program.pack]} />
           <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
-              <ThemedText variant="title3">{`THRIVE ${program.name}`}</ThemedText>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+              <ThemedText variant="title3" style={{ flexShrink: 1 }}>{`THRIVE ${program.name}`}</ThemedText>
               <ThemedText variant="headline">
                 {formatCentsShortFr(program.totalCents)}
-                <ThemedText variant="footnote" color="label2">{' + tx'}</ThemedText>
+                <ThemedText variant="foot" color="label2">{' + tx'}</ThemedText>
               </ThemedText>
             </View>
-            <ThemedText variant="footnote" color="label2">{program.tagline}</ThemedText>
+            <ThemedText variant="foot" color="label2">{program.tagline}</ThemedText>
           </View>
         </View>
-        <ThemedText variant="subheadline" color="label2">{program.description}</ThemedText>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.space1 }}>
-          {program.featured ? <Pill label="Phare" tone="accent" /> : null}
-          {current ? <Pill label="Ton programme" tone="tint" /> : null}
-          <Pill label="En 2 versements" />
-          <Pill label="Maison inclus" />
-          <Pill label="Bilan + Mes séances" />
-        </View>
-      </Card>
+        <ThemedText variant="sub" style={{ marginTop: 10 }}>{program.description}</ThemedText>
+        <Pills style={{ marginTop: 10, gap: 4 }}>
+          {program.featured ? <AmberTag label="Phare" /> : null}
+          {current ? <Tag label="Ton programme" tone="tint" /> : null}
+          <Tag label="En 2 versements" tone="gray" />
+          <Tag label="Maison inclus" tone="gray" />
+          <Tag label="Bilan + Mes séances" tone="gray" />
+        </Pills>
+      </RingCard>
     </Pressable>
   );
 }

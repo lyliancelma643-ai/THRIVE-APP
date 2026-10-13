@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { hasFinalPoint, lsssDelta, shareMessage, wellbeingSeries } from './logic';
+import { hasFinalPoint, lsssDelta, lsssPlot, shareMessage, wellbeingPlot, wellbeingSeries } from './logic';
 
 const pts = [
   { moment: 'BASELINE' as const, created_at: '2026-01-01', value: 56 },
@@ -27,5 +27,23 @@ describe('fin de parcours', () => {
   });
   it('compose le message de partage', () => {
     expect(shareMessage('Léo')).toContain('Léo');
+  });
+  it('trace la courbe LSSS dans le repère du canevas', () => {
+    const plot = lsssPlot(pts);
+    expect(plot.points.map((p) => [p.x, p.y])).toEqual([[24, 88], [169, 66], [314, 42]]);
+    expect(plot.ticks.map((t) => t.y)).toEqual([100, 60, 20]);
+  });
+  it('adapte l’échelle quand une valeur sort du cadre', () => {
+    const plot = lsssPlot([{ moment: 'BASELINE', created_at: '2026-01-01', value: 20 }, { moment: 'FINAL', created_at: '2026-03-01', value: 95 }]);
+    for (const p of plot.points) {
+      expect(p.y).toBeGreaterThanOrEqual(26);
+      expect(p.y).toBeLessThanOrEqual(118);
+    }
+  });
+  it('trace le bien-être : séance 1 à gauche, valeur 5 en haut', () => {
+    const plot = wellbeingPlot([{ session_number: 1, value: 1 }, { session_number: 13, value: 5 }]);
+    expect(plot[0]).toMatchObject({ x: 4, y: 52 });
+    expect(plot[1].x).toBeCloseTo(334, 5);
+    expect(plot[1].y).toBe(12);
   });
 });

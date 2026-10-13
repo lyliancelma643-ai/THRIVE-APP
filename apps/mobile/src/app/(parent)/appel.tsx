@@ -1,34 +1,28 @@
 import { useState } from 'react';
-import { Pressable, Switch, View } from 'react-native';
-import { Redirect } from 'expo-router';
-import { RADIUS, SPACING, ThemedText, useTheme } from '../../design';
-import { Card } from '../../components/offres/Card';
-import { Frame } from '../../components/offres/Frame';
-import { Primary } from '../../components/offres/Primary';
-import { Segmented } from '../../components/offres/Segmented';
+import { Redirect, router } from 'expo-router';
+import { AppelView, type CallMode } from '../../components/offres/AppelView';
+import { bookLabel, groupSlotsByDay, type SlotInput } from '../../components/offres/slots';
 import { OFFRES_PROGRAMMES_IN_APP } from '../../lib/offresFlags';
 import { requestIntroCall } from '../../services/introCall';
 
 // Y3 — Appel de 15 minutes, sans engagement. Aucun paiement ici.
 // [À COMPLÉTER : créneaux réels du coach (agenda non fourni)] — la liste reste vide,
 // avec un message neutre, tant que la fonction serveur `request-intro-call` (O4) ne les fournit pas.
-type Slot = { iso: string; dayLabel: string; timeLabel: string };
-const AVAILABLE_SLOTS: Slot[] = [];
-
-const MODES = [
-  { key: 'video', label: 'Vidéo' },
-  { key: 'telephone', label: 'Téléphone' },
-] as const;
+const AVAILABLE_SLOTS: SlotInput[] = [];
 
 export default function AppelScreen() {
-  const { colors } = useTheme();
-  const [mode, setMode] = useState<'video' | 'telephone'>('video');
-  const [slot, setSlot] = useState<Slot | null>(null);
+  const [mode, setMode] = useState<CallMode>('video');
+  const [dayKey, setDayKey] = useState<string | null>(null);
+  const [slotIso, setSlotIso] = useState<string | null>(null);
   const [calendar, setCalendar] = useState(false);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
 
   if (!OFFRES_PROGRAMMES_IN_APP) return <Redirect href="/(parent)/offres" />;
+
+  const days = groupSlotsByDay(AVAILABLE_SLOTS);
+  const day = days.find((d) => d.key === (dayKey ?? days[0]?.key)) ?? null;
+  const slot = day?.slots.find((s) => s.iso === slotIso) ?? null;
 
   const book = async () => {
     if (!slot) return;
@@ -48,69 +42,25 @@ export default function AppelScreen() {
   };
 
   return (
-    <Frame
-      title="Rencontrer un coach"
-      subtitle="15 minutes, sans engagement. On parle de ton enfant et du programme qui lui convient."
-      footer={
-        <View style={{ gap: SPACING.space1 }}>
-          <Primary
-            label={slot ? `Réserver ${slot.dayLabel} · ${slot.timeLabel}` : 'Choisis un créneau'}
-            onPress={book}
-            disabled={!slot}
-            busy={busy}
-          />
-          {notice ? (
-            <ThemedText variant="footnote" color="label2" accessibilityLiveRegion="polite" style={{ textAlign: 'center', padding: SPACING.space2 }}>
-              {notice}
-            </ThemedText>
-          ) : null}
-        </View>
-      }
-    >
-      <Segmented label="Type d’appel" options={MODES} value={mode} onChange={setMode} />
-
-      <ThemedText variant="title3" accessibilityRole="header">Créneaux</ThemedText>
-      {AVAILABLE_SLOTS.length === 0 ? (
-        <Card>
-          <ThemedText variant="subheadline" color="label2">
-            Les créneaux s’affichent ici dès qu’ils sont ouverts. En attendant, écris à ton coach par la messagerie.
-          </ThemedText>
-        </Card>
-      ) : (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.space2 }}>
-          {AVAILABLE_SLOTS.map((s) => {
-            const on = slot?.iso === s.iso;
-            return (
-              <Pressable
-                key={s.iso}
-                onPress={() => setSlot(s)}
-                accessibilityRole="radio"
-                accessibilityState={{ checked: on }}
-                accessibilityLabel={`${s.dayLabel}, ${s.timeLabel}`}
-                style={{
-                  minWidth: '30%',
-                  minHeight: SPACING.touchMin,
-                  borderRadius: RADIUS.chip + 2,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: on ? colors.tint : colors.bgGrouped2,
-                }}
-              >
-                <ThemedText variant="body" style={{ color: on ? colors.tintInk : colors.label }}>{s.timeLabel}</ThemedText>
-              </Pressable>
-            );
-          })}
-        </View>
-      )}
-
-      <Card style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.space3 }}>
-        <ThemedText variant="body" style={{ flex: 1 }}>Ajouter au calendrier</ThemedText>
-        <Switch value={calendar} onValueChange={setCalendar} accessibilityLabel="Ajouter au calendrier" />
-      </Card>
-
-      <ThemedText variant="footnote" color="label2">
-        {'Rien n’est payé avant l’appel. Ensuite, le 1er versement se règle par Stripe, dans l’app ou par le lien reçu par courriel.'}
-      </ThemedText>
-    </Frame>
+    <AppelView
+      mode={mode}
+      onModeChange={setMode}
+      days={days}
+      selectedDayKey={day?.key ?? null}
+      onSelectDay={(k) => {
+        setDayKey(k);
+        setSlotIso(null);
+      }}
+      selectedSlot={slot?.iso ?? null}
+      onSelectSlot={setSlotIso}
+      calendar={calendar}
+      onCalendarChange={setCalendar}
+      bookLabel={bookLabel(day, slot)}
+      canBook={!!slot}
+      busy={busy}
+      notice={notice}
+      onBook={book}
+      onClose={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/offres'))}
+    />
   );
 }

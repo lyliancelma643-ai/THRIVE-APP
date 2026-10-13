@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, type TextStyle } from 'react-native';
 import Animated, {
   Easing, cancelAnimation, interpolate, useAnimatedStyle, useSharedValue, withRepeat, withTiming,
@@ -30,6 +30,9 @@ const T = [0, 0.44, 0.5, 0.94, 1];
 export function SloganDuo({ variant = 'title1', color = 'label', dotColor = 'accent', align = 'left', textStyle }: Props) {
   const { reduceMotion, colors } = useTheme();
   const p = useSharedValue(0);
+  // La cellule prend la hauteur du plus haut des deux slogans (grille `.thr-sl` du canevas) : la mise en page ne saute pas.
+  const [hA, setHA] = useState(0);
+  const [hB, setHB] = useState(0);
 
   useEffect(() => {
     if (reduceMotion) {
@@ -70,9 +73,9 @@ export function SloganDuo({ variant = 'title1', color = 'label', dotColor = 'acc
 
   return (
     <View accessible accessibilityLabel={`${SLOGAN_A} ${SLOGAN_B}`}>
-      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden>
-        <Animated.View style={aStyle}>{text(SLOGAN_A)}</Animated.View>
-        <Animated.View style={[{ position: 'absolute', left: 0, right: 0, top: 0 }, bStyle]}>{text(SLOGAN_B)}</Animated.View>
+      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={{ minHeight: Math.max(hA, hB) }}>
+        <Animated.View style={aStyle} onLayout={(e) => setHA(e.nativeEvent.layout.height)}>{text(SLOGAN_A)}</Animated.View>
+        <Animated.View style={[{ position: 'absolute', left: 0, right: 0, top: 0 }, bStyle]} onLayout={(e) => setHB(e.nativeEvent.layout.height)}>{text(SLOGAN_B)}</Animated.View>
       </View>
       <View
         accessibilityElementsHidden

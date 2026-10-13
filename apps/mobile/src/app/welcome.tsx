@@ -1,30 +1,9 @@
-import { View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { MascotHero, SPACING, ThemedText, useTheme } from '../design';
-import { AuthButton, AuthLink, AuthScaffold } from '../components/account/AuthScaffold';
-import { SloganDuo } from '../components/account/SloganDuo';
+import { WelcomeView } from '../components/account/WelcomeView';
 
-// Écran Bienvenue (maquette A). Les boutons mènent aux écrans de connexion et
-// d'inscription existants. Il n'est pas encore l'écran d'arrivée non connecté :
-// app/_layout.tsx redirige toujours vers /(auth)/login (à décider par S1).
+// Écran Bienvenue (maquette A) : arrivée non connectée (app/_layout.tsx y renvoie).
+// « Essayer 1 mois gratuitement » mène à l'inscription (C), « J’ai déjà un compte » à la connexion (B).
 export default function WelcomeScreen() {
   const router = useRouter();
-  const { style } = useTheme();
-  return (
-    <AuthScaffold logo={false}>
-      <View style={{ alignItems: 'center', marginBottom: SPACING.space6 }}>
-        <MascotHero size={220} withLogo />
-      </View>
-      <ThemedText variant={style === 'carnet' ? 'displayLarge' : 'largeTitle'} style={{ textAlign: 'center', marginBottom: SPACING.space2 }} accessibilityRole="header">
-        Bienvenue dans THRIVE
-      </ThemedText>
-      <View style={{ marginBottom: SPACING.space8 }}>
-        <SloganDuo variant="headline" color="tint" dotColor="tint" align="center" />
-      </View>
-      <AuthButton label="Créer mon compte" onPress={() => router.push('/(auth)/register')} />
-      <AuthLink label="Se connecter" onPress={() => router.push('/(auth)/login')}>
-        <ThemedText variant="body" color="tint">J’ai déjà un compte</ThemedText>
-      </AuthLink>
-    </AuthScaffold>
-  );
+  return <WelcomeView onStart={() => router.push('/(auth)/register')} onLogin={() => router.push('/(auth)/login')} />;
 }

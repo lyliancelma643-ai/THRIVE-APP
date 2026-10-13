@@ -17,6 +17,8 @@ export type ProgramInfo = {
   installments: number;
   tagline: string;
   description: string;
+  /** Ligne d'en-tête de l'écran de paiement (Y2) : « 13 séances … · … ». */
+  summary: string;
   featured: boolean;
 };
 
@@ -28,6 +30,7 @@ export const PROGRAMS: readonly ProgramInfo[] = [
     installments: 2,
     tagline: 'Notre programme phare',
     description: '13 séances en petit groupe (4 à 6 enfants), ateliers sportifs.',
+    summary: '13 séances en petit groupe · ateliers sportifs · 4 à 6 enfants',
     featured: true,
   },
   {
@@ -37,6 +40,7 @@ export const PROGRAMS: readonly ProgramInfo[] = [
     installments: 2,
     tagline: 'Seul avec un coach',
     description: '13 séances 1:1 de 60 à 70 min, et le Book THRIVE à la fin.',
+    summary: '13 séances 1:1 de 60 à 70 min · le Book THRIVE à la fin',
     featured: false,
   },
   {
@@ -46,6 +50,7 @@ export const PROGRAMS: readonly ProgramInfo[] = [
     installments: 2,
     tagline: 'Le parcours le plus complet',
     description: '13 séances 1:1, puis l’intégration progressive au groupe.',
+    summary: '13 séances 1:1 · puis l’intégration progressive au groupe',
     featured: false,
   },
 ] as const;

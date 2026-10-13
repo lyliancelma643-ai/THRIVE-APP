@@ -1,10 +1,12 @@
 import React from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
-import { RADIUS, SPACING, ThemedText, useTheme } from '../../design';
+import { Image, Pressable, ScrollView, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BRAND_LOGO, Icon, ThemedText, useTheme } from '../../design';
+import { epochPalette } from './palette';
 
 // W · Questionnaire de l'enfant (EPOCH, boutons 1 à 5). L'enfant n'a ni compte ni mot de passe.
 // Écran de présentation seulement : la soumission (verrou 1 test/séance, migrations 047/053) reste
-// côté appelant via `onAnswer`. [À COMPLÉTER] brancher sur la route/lien à jeton existante.
+// côté appelant via `onAnswer`. [À COMPLÉTER] brancher sur la route/lien à jeton existante (aucune route mobile aujourd'hui).
 export type QuestionsLang = 'fr' | 'en';
 
 const SCALE: Record<QuestionsLang, string[]> = {
@@ -18,18 +20,22 @@ const COPY = {
     intro: 'Il n’y a pas de bonne ou de mauvaise réponse. Réponds comme tu te sens ces jours-ci.',
     shared: 'Tes réponses sont partagées avec ton coach.',
     step: (i: number, n: number) => `${i} sur ${n}`,
+    heading: 'Prise de pouls',
   },
   en: {
     hello: (n?: string) => (n ? `Hi ${n}!` : 'Hi!'),
     intro: 'There are no right or wrong answers. Answer how you feel these days.',
     shared: 'Your answers are shared with your coach.',
     step: (i: number, n: number) => `${i} of ${n}`,
+    heading: 'Pulse check',
   },
 } as const;
 
 export type QuestionsScreenProps = {
   firstName?: string;
   lang?: QuestionsLang;
+  /** Bascule FR / EN. Absent : le sélecteur reste affiché sans effet. */
+  onLangChange?: (lang: QuestionsLang) => void;
   /** Libellé de la dimension (ex. Engagement). */
   dimension?: string;
   /** Énoncé de la question courante, fourni par la source de données. */
@@ -41,36 +47,91 @@ export type QuestionsScreenProps = {
   onAnswer?: (value: number) => void;
 };
 
+/**
+ * W · Questionnaire de l'enfant : interface ambrée (jour pour Natif et Carnet, nuit pour Nuit calme), logo et
+ * sélecteur FR/EN, accueil, progression, une question par carte avec cinq gros boutons 1 à 5, note de confidentialité.
+ */
 export default function QuestionsScreen({
-  firstName, lang = 'fr', dimension, question, index = 1, total = 1, selected = null, onAnswer,
+  firstName, lang = 'fr', onLangChange, dimension, question, index = 1, total = 1, selected = null, onAnswer,
 }: QuestionsScreenProps) {
-  const { colors } = useTheme();
+  const { style } = useTheme();
+  const insets = useSafeAreaInsets();
+  const p = epochPalette(style);
   const t = COPY[lang];
+  const carnet = style === 'carnet';
   const pct = total > 0 ? Math.min(1, index / total) : 0;
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgGrouped }}
-      contentContainerStyle={{ padding: SPACING.space4, paddingTop: 62, gap: SPACING.space4 }}
+      style={{ flex: 1, backgroundColor: p.bg }}
+      contentContainerStyle={{ paddingTop: insets.top + 8, paddingBottom: Math.max(insets.bottom, 16) + 24 }}
+      showsVerticalScrollIndicator={false}
     >
-      <View style={{ gap: SPACING.space2 }}>
-        <ThemedText variant="largeTitle" style={{ color: colors.label }} accessibilityRole="header">{t.hello(firstName)}</ThemedText>
-        <ThemedText variant="callout" style={{ color: colors.label2 }}>{t.intro}</ThemedText>
+      <View style={{ paddingVertical: 8, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Image source={BRAND_LOGO} accessibilityLabel="THRIVE" accessibilityIgnoresInvertColors style={{ width: 34, height: 34, borderRadius: 9 }} />
+        <View
+          accessibilityRole="tablist"
+          accessibilityLabel="Langue"
+          style={{ width: 104, height: 32, borderRadius: 16, padding: 2, flexDirection: 'row', backgroundColor: p.segTrack }}
+        >
+          {(['fr', 'en'] as const).map((l) => {
+            const on = l === lang;
+            return (
+              <Pressable
+                key={l}
+                onPress={() => onLangChange?.(l)}
+                accessibilityRole="tab"
+                accessibilityLabel={l === 'fr' ? 'Français' : 'English'}
+                accessibilityState={{ selected: on }}
+                style={{ flex: 1, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: on ? p.segOn : 'transparent' }}
+              >
+                <ThemedText variant="sub" weight={on ? 600 : 500} style={{ fontSize: 13, lineHeight: 18, color: on ? p.segOnInk : p.ink }}>
+                  {l.toUpperCase()}
+                </ThemedText>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
-      <View accessible accessibilityRole="progressbar" accessibilityLabel={t.step(index, total)} style={{ gap: SPACING.space1 + 2 }}>
-        <ThemedText variant="footnote" style={{ color: colors.label2 }}>{t.step(index, total)}</ThemedText>
-        <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.fill3 }}>
-          <View style={{ width: `${pct * 100}%`, height: 8, borderRadius: 4, backgroundColor: colors.kid }} />
+      <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
+        <ThemedText
+          variant="largetitle"
+          weight={carnet ? 600 : 800}
+          accessibilityRole="header"
+          style={{ color: p.ink, fontSize: 34, lineHeight: carnet ? 38 : 40 }}
+        >
+          {t.hello(firstName)}
+        </ThemedText>
+        <ThemedText variant="callout" style={{ marginTop: 6, color: p.ink, opacity: 0.82 }}>{t.intro}</ThemedText>
+      </View>
+
+      <View
+        accessible
+        accessibilityRole="progressbar"
+        accessibilityLabel={t.step(index, total)}
+        style={{ paddingHorizontal: 16, marginTop: 18 }}
+      >
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <ThemedText variant="foot" weight={600} style={{ color: p.ink }}>{t.heading}</ThemedText>
+          <ThemedText variant="foot" weight={600} style={{ color: p.ink }}>{t.step(index, total)}</ThemedText>
+        </View>
+        <View style={{ height: 8, borderRadius: 4, marginTop: 6, backgroundColor: p.track }}>
+          <View style={{ width: `${pct * 100}%`, height: 8, borderRadius: 4, backgroundColor: p.accent }} />
         </View>
       </View>
 
       {question ? (
-        <View style={{ backgroundColor: colors.bgGrouped2, borderRadius: RADIUS.card, padding: SPACING.space5, gap: SPACING.space2 }}>
-          {dimension ? <ThemedText variant="caption1" style={{ color: colors.label2, fontWeight: '700' }}>{dimension}</ThemedText> : null}
-          <ThemedText variant="title3" style={{ color: colors.label }}>{question}</ThemedText>
-          <View style={{ gap: SPACING.space2, marginTop: SPACING.space3 }}>
+        <View style={{ marginTop: 18, marginHorizontal: 16, borderRadius: 30, padding: 20, backgroundColor: p.card }}>
+          {dimension ? (
+            <ThemedText variant="foot" weight={700} style={{ color: p.accent, letterSpacing: 0.6, textTransform: 'uppercase' }}>
+              {dimension}
+            </ThemedText>
+          ) : null}
+          <ThemedText variant="title3" style={{ marginTop: 6, color: p.ink }}>{question}</ThemedText>
+          <View style={{ marginTop: 16, gap: 8 }}>
             {SCALE[lang].map((label, i) => {
               const on = selected === i + 1;
+              const ink = on ? p.selectedInk : p.ink;
               return (
                 <Pressable
                   key={label}
@@ -79,17 +140,12 @@ export default function QuestionsScreen({
                   accessibilityLabel={`${i + 1}, ${label}`}
                   accessibilityState={{ selected: on }}
                   style={{
-                    minHeight: 54,
-                    borderRadius: RADIUS.tile,
-                    paddingHorizontal: SPACING.space4,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    backgroundColor: on ? colors.kid : colors.fill3,
+                    height: 54, borderRadius: 27, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center',
+                    justifyContent: 'space-between', backgroundColor: on ? p.accent : p.option,
                   }}
                 >
-                  <ThemedText variant="body" style={{ color: on ? colors.tintInk : colors.label }}>{label}</ThemedText>
-                  <ThemedText variant="headline" style={{ color: on ? colors.tintInk : colors.label, fontVariant: ['tabular-nums'] }}>{i + 1}</ThemedText>
+                  <ThemedText variant="headline" style={{ color: ink }}>{label}</ThemedText>
+                  <ThemedText variant="headline" weight={800} style={{ color: ink }}>{String(i + 1)}</ThemedText>
                 </Pressable>
               );
             })}
@@ -97,7 +153,10 @@ export default function QuestionsScreen({
         </View>
       ) : null}
 
-      <ThemedText variant="footnote" style={{ color: colors.label2, textAlign: 'center' }}>{t.shared}</ThemedText>
+      <View style={{ marginTop: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, opacity: 0.75 }}>
+        <Icon name="eye" size={14} color={p.ink} />
+        <ThemedText variant="foot" style={{ color: p.ink, textAlign: 'center' }}>{t.shared}</ThemedText>
+      </View>
     </ScrollView>
   );
 }
