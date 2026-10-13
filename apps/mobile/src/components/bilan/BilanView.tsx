@@ -122,7 +122,7 @@ function PassportObject({ m }: { m: BilanModel }) {
       </View>
       <View style={{ flexDirection: 'row', gap: 16, marginTop: 22 }}>
         {([['Club', m.club], ['Coach', m.coachFirst], ['Force n° 1', m.strength]] as const).filter(([, v]) => !!v).map(([k, v]) => (
-          <View key={k} style={{ flexShrink: 1 }}>
+          <View key={k} style={k === 'Club' ? { flexShrink: 1 } : { flexShrink: 0 }}>
             <ThemedText variant="foot" weight={500} style={{ color: kid.ink, opacity: 0.8 }}>{k}</ThemedText>
             <ThemedText variant="body" weight={700} style={{ color: kid.ink, fontSize: 15, lineHeight: 20 }}>{v}</ThemedText>
           </View>
