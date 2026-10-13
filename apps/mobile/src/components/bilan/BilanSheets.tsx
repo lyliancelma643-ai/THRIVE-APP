@@ -4,6 +4,9 @@ import {
   Button, Card, Field, GlassButton, GlassSurface, Icon, List, NavBar, Section, SectionFooter, SectionHeader, Segmented, Sheet,
   ThemedText, useNavBarHeight, useScrollEdge, useTheme,
 } from '../../design';
+import { InfoSheet } from './InfoSheet';
+import { LockedPreview, TrackRow } from './BilanCards';
+import { LOCK_NOTES } from './bilanPage';
 import { LsssCurve } from './Charts';
 import { JerseyDisc, useKidColor } from './Chrome';
 import {
@@ -25,7 +28,8 @@ export type LifeSkillsProps = {
   understandVisible?: boolean;
   onCloseUnderstand?: () => void;
   childName?: string | null;
-  onShowStatements?: () => void;
+  /** Forfait Groupe : le détail par compétence est un aperçu atténué (« dès le pack Individuel »), sans donnée réelle. */
+  skillsLocked?: boolean;
 };
 
 const MOMENT_SUBTITLE: Record<string, string> = {
@@ -34,14 +38,14 @@ const MOMENT_SUBTITLE: Record<string, string> = {
   Final: 'bilan final, séance 13',
 };
 
-export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onInfo, understandVisible, onCloseUnderstand, childName, onShowStatements }: LifeSkillsProps) {
+export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onInfo, understandVisible, onCloseUnderstand, skillsLocked }: LifeSkillsProps) {
   const { colors } = useTheme();
   const [tab, setTab] = useState<'global' | 'skills'>('global');
   const latest = lsss.length ? lsss[lsss.length - 1] : null;
   const total = gauge?.global ?? latest?.value ?? null;
   const delta = lsssDelta(lsss);
   const label = lsssLatestLabel(lsss);
-  const skills = orderedSkills(gauge?.by_skill ?? {});
+  const skills = skillsLocked ? [] : orderedSkills(gauge?.by_skill ?? {});
   return (
     <Sheet
       visible={visible}
@@ -49,7 +53,7 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
       title="Compétences de vie"
       detent="large"
       contentStyle={{ paddingHorizontal: 0 }}
-      trailing={<GlassButton glyph="info" accessibilityLabel="Comprendre l’outil" onPress={onInfo} />}
+      trailing={<GlassButton glyph="info" accessibilityLabel="Comprendre cette carte" onPress={onInfo} />}
     >
       <View style={{ paddingHorizontal: 16 }}>
         <Segmented
@@ -89,7 +93,13 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
           ) : null}
         </>
       ) : null}
-      {skills.length > 0 ? (
+      {skillsLocked ? (
+        <Section style={{ marginTop: 18 }}>
+          <LockedPreview note={LOCK_NOTES.skills} height={210}>
+            <View style={{ gap: 14 }}>{[68, 44, 81].map((v, i) => <TrackRow key={i} label="Compétence" value={v} />)}</View>
+          </LockedPreview>
+        </Section>
+      ) : skills.length > 0 ? (
         <>
           <SectionHeader small title={`${skills.length} compétences${Object.keys(baselines).length ? ' · trait = départ' : ''}`} />
           <Section>
@@ -120,40 +130,10 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
         </>
       ) : (
         <ThemedText variant="sub" color="label2" style={{ paddingTop: 18, paddingHorizontal: 20 }}>
-          Le détail par compétence s’ouvre avec le suivi d’un coach.
+          Le détail par compétence apparaîtra après le premier questionnaire LSSS.
         </ThemedText>
       )}
-      <UnderstandSheet visible={!!understandVisible} onClose={onCloseUnderstand ?? (() => {})} childName={childName} onShowStatements={onShowStatements} />
-    </Sheet>
-  );
-}
-
-// ── I — Comprendre l'outil : feuille flottante en verre ──────────────────────────
-
-export function UnderstandSheet({ visible, onClose, childName, onShowStatements }: { visible: boolean; onClose: () => void; childName?: string | null; onShowStatements?: () => void }) {
-  const { colors } = useTheme();
-  const name = childName || 'votre enfant';
-  const block = (t: string, b: string) => (
-    <View>
-      <ThemedText variant="headline">{t}</ThemedText>
-      <ThemedText variant="sub" color="label2" style={{ marginTop: 3 }}>{b}</ThemedText>
-    </View>
-  );
-  return (
-    <Sheet visible={visible} onClose={onClose} title="Comprendre l’outil" detent="medium" dim={0.18} contentStyle={{ paddingHorizontal: 22, gap: 16 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name="sparkles" size={24} color={colors.tintInk} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <ThemedText variant="title3">L’échelle LSSS</ThemedText>
-          <ThemedText variant="foot" color="label2">Life Skills Scale for Sport · Cronin &amp; Allen, 2017</ThemedText>
-        </View>
-      </View>
-      {block('Ce qu’elle mesure', '8 compétences de vie que le sport peut faire grandir — travail d’équipe, émotions, leadership… — à partir de 43 affirmations officielles.')}
-      {block('Pourquoi ça compte', `Ce sont ces compétences, plus que le score du match, qui suivront ${name} à l’école et ailleurs.`)}
-      {block('Comment la lire', `${name === 'votre enfant' ? 'Votre enfant répond' : `${name} répond`} 3 fois : au départ, à la séance 7 et à la séance 13. Regarde l’écart avec le départ, pas la note absolue.`)}
-      {onShowStatements ? <Button label="Voir les 43 affirmations" variant="gray" onPress={onShowStatements} /> : null}
+      <InfoSheet visible={!!understandVisible} onClose={onCloseUnderstand ?? (() => {})} cardKey="competences" />
     </Sheet>
   );
 }
@@ -222,8 +202,8 @@ export function PersonalizeView(p: PersonalizeProps) {
         <SectionHeader small title="Identité" />
         <Section>
           <List>
-            <Field label="Surnom" value={p.nickname} onChangeText={(t) => p.onNickname(t.slice(0, 30))} placeholder="Facultatif" accessibilityLabel="Surnom" maxLength={30} />
-            <Field label="Numéro" value={p.jersey} onChangeText={(t) => p.onJersey(t.replace(/\D/g, '').slice(0, 3))} placeholder="Facultatif" keyboardType="number-pad" accessibilityLabel="Numéro de maillot" />
+            <Field label="Surnom d’athlète" value={p.nickname} onChangeText={(t) => p.onNickname(t.slice(0, 30))} placeholder="Facultatif" accessibilityLabel="Surnom d’athlète" maxLength={30} />
+            <Field label="N° maillot" value={p.jersey} onChangeText={(t) => p.onJersey(t.replace(/\D/g, '').slice(0, 3))} placeholder="Facultatif" keyboardType="number-pad" accessibilityLabel="Numéro de maillot" />
             <Field label="Poste">
               <ThemedText variant="body" color={p.position ? 'label' : 'label2'}>{p.position ?? 'Renseigné par le coach'}</ThemedText>
             </Field>
@@ -257,12 +237,18 @@ export function PersonalizeView(p: PersonalizeProps) {
           </List>
           <SectionFooter>{`${p.name} verra sa couleur partout dans son passeport.`}</SectionFooter>
         </Section>
+
+        <Section style={{ marginTop: 22 }}>
+          <Button label="Enregistrer" variant="accent" onPress={p.onSave} disabled={p.saving || p.invalid} loading={p.saving} testID="passeport-enregistrer" />
+          <ThemedText variant="cap" color="label2" style={{ textAlign: 'center', marginTop: 12 }}>
+            La photo reste privée : visible uniquement par la famille, le coach et l’équipe THRIVE.
+          </ThemedText>
+        </Section>
       </ScrollView>
       <NavBar
         edge
-        title="Passeport"
+        title="Personnaliser le passeport"
         left={<GlassButton label="Annuler" accessibilityLabel="Annuler" onPress={p.onCancel} />}
-        right={<GlassButton glyph="check" tinted accessibilityLabel="OK" disabled={p.saving || p.invalid} onPress={p.onSave} />}
       />
     </View>
   );

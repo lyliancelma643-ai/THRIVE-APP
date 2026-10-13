@@ -12,6 +12,10 @@ import { useTheme } from '../../design';
 import { BilanView } from '../../components/bilan/BilanView';
 import { LifeSkillsSheet, PersonalizeView } from '../../components/bilan/BilanSheets';
 import { CoachDetailSheet, type CoachDetailKind } from '../../components/bilan/CoachDetailSheet';
+import { InfoSheet } from '../../components/bilan/InfoSheet';
+import { useCurrentPack } from '../../components/offres/useCurrentPack';
+import { fetchBilanExtras } from '../../components/bilan/bilanExtraApi';
+import { EMPTY_RAW_EXTRAS, buildExtras, cardForFocus, rightsFor, type RawExtras } from '../../components/bilan/bilanPage';
 import {
   fetchDocuments, fetchIdentity, fetchInsights, fetchNextSteps, fetchPassportCard, fetchSkillBaselines, saveIdentity, signedDocumentUrl,
   type DocRow, type NextStepRow, type PassportCard,
@@ -19,8 +23,8 @@ import {
 import { buildBilanModel } from '../../components/bilan/bilanModel';
 import { parseJersey, type AccentKey, type Gauge, type Identity, type LsssPoint, type PermaPoint } from '../../components/bilan/bilanData';
 
-// Bilan de l'enfant (écrans G, H, I, J) : passeport, jauges (RPC gauge_summary / lsss_progression / perma_progression),
-// travail du coach, questionnaires à remplir. Accès : section Bilan de access_state() (migration 080) ;
+// Bilan de l'enfant (écrans G, G11, H, I, J, G3 à G10) : toutes les cartes de la page web (RPC gauge_summary / lsss_progression /
+// perma_progression, tables RLS), travail du coach, questionnaires à remplir. Forfait Groupe : analyses en aperçu (rights). Accès : section Bilan de access_state() (migration 080) ;
 // verrouillé → aperçu factice flouté, AUCUNE requête de données. La mise en page vit dans components/bilan (vues).
 
 const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
@@ -72,6 +76,8 @@ export default function BilansScreen() {
   const [card, setCard] = useState<PassportCard | null>(null);
   const [steps, setSteps] = useState<NextStepRow[]>([]);
   const [docs, setDocs] = useState<DocRow[]>([]);
+  const [raw, setRaw] = useState<RawExtras>(EMPTY_RAW_EXTRAS);
+  const [info, setInfo] = useState<string | null>(null);
   const [baselines, setBaselines] = useState<Record<string, number>>({});
   const [sheet, setSheet] = useState<'skills' | null>(null);
   const [understand, setUnderstand] = useState(false);
@@ -83,6 +89,9 @@ export default function BilansScreen() {
   const [saving, setSaving] = useState(false);
 
   const access = useSubscriptionStore((st) => st.access);
+  // Droits d'analyse : le forfait lu dans access_state() (hook existant). Accès par pack dont le forfait n'est pas encore lu = fermé.
+  const pack = useCurrentPack();
+  const rights = rightsFor(pack, access?.sourceMaison === 'pack' && pack === null);
   const view = access ? sectionView(access, 'bilan') : null;
 
   const reload = useCallback(async () => {
@@ -91,9 +100,11 @@ export default function BilansScreen() {
     setLoadError(false);
     try {
       setData(await loadBilans(child.id));
-      const [ins, idt, pc, st, dc] = await Promise.all([
+      const [ins, idt, pc, st, dc, ex] = await Promise.all([
         fetchInsights(child.id), fetchIdentity(child.id), fetchPassportCard(child.id), fetchNextSteps(child.id), fetchDocuments(child.id),
+        fetchBilanExtras(child.id),
       ]);
+      setRaw(ex);
       setLsss(ins.lsss);
       setPerma(ins.perma);
       setGauge(ins.gauge);
@@ -173,18 +184,29 @@ export default function BilansScreen() {
     }
   };
   const pendingToken = data?.pending[0]?.token;
+  const extras = buildExtras({ raw, completed: data?.done ?? 0, card, steps, docs, gauge, lsss, perma, rights });
+  const openDoc = async (docId: string) => {
+    const d = docs.find((x) => x.id === docId);
+    const url = d ? await signedDocumentUrl(d.storage_path) : null;
+    if (url) WebBrowser.openBrowserAsync(url);
+  };
 
   return (
     <>
       <BilanView
         m={model}
+        x={extras}
+        focus={cardForFocus(typeof params.focus === 'string' ? params.focus : null)}
         a={{
           onSkills: () => setSheet('skills'),
           onPersonalize: openPerso,
           onBell: () => router.push('/(parent)/notifications'),
           onSelectChild: setSelectedId,
           onQuestionnaire: () => pendingToken && WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${pendingToken}`),
+          onWellbeingQuestionnaire: () => raw.pendingWellbeing?.token && WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${raw.pendingWellbeing.token}`),
           onRow: setDetail,
+          onInfo: setInfo,
+          onOpenDoc: openDoc,
           onRefresh: reload,
           refreshing: loading,
         }}
@@ -198,18 +220,15 @@ export default function BilansScreen() {
         onInfo={() => setUnderstand(true)}
         understandVisible={understand}
         onCloseUnderstand={() => setUnderstand(false)}
-        childName={child.first_name}
+        skillsLocked={!rights.skillBreakdown}
       />
+      <InfoSheet visible={info !== null && !detail && sheet === null && !perso} onClose={() => setInfo(null)} cardKey={info} />
       <CoachDetailSheet
         kind={detail}
         onClose={() => setDetail(null)}
-        card={card}
-        steps={steps}
-        docs={docs}
-        onOpenDoc={async (d) => {
-          const url = await signedDocumentUrl(d.storage_path);
-          if (url) WebBrowser.openBrowserAsync(url);
-        }}
+        firstName={child.first_name}
+        x={extras}
+        onOpenDoc={openDoc}
       />
       <Modal visible={perso} animationType="slide" onRequestClose={() => setPerso(false)} statusBarTranslucent>
         <PersonalizeView

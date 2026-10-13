@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import {
-  CANVAS, Card, Grid2, GlassButton, GlassGroup, GlassSurface, Icon, Kicker, LargeTitle, List, ListRow, LockOverlay,
+  CANVAS, Card, GlassButton, GlassGroup, GlassSurface, Icon, Kicker, LargeTitle, List, ListRow, LockOverlay,
   MascotMedallion, MutedPreview, NavBar, RADIUS, ThemedText, VignetteImage, useNavBarHeight, useTheme,
 } from '../../design';
 import { Ring } from '../bilan/Ring';
@@ -135,14 +135,19 @@ export function LockedCard({ kind, childName = null, onOffers, onWrite, onCall }
 
 function BilanPreview() {
   const { colors } = useTheme();
-  const bar = (w: number | string) => <View style={{ height: 12, width: w as number, borderRadius: 6, backgroundColor: colors.fill, marginTop: 6 }} />;
+  const bar = (w: number | string, h = 12) => <View style={{ height: h, width: w as number, borderRadius: h / 2, backgroundColor: colors.fill, marginTop: 8 }} />;
   return (
     <MutedPreview>
-      <LargeTitle>Bilan</LargeTitle>
-      <View style={{ marginHorizontal: 16, marginTop: 14 }}>
+      {/* Même ossature que la page Bilan ouverte (G) : formes décoratives, jamais de donnée réelle. */}
+      <View style={{ marginHorizontal: 20, marginTop: 8 }}>
+        <ThemedText variant="eyebrow" color="label2">Programme complété</ThemedText>
+        {bar(150, 64)}
+        {bar('100%', 8)}
+      </View>
+      <View style={{ marginHorizontal: 16, marginTop: 22 }}>
         <Card>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: colors.kid }} />
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.kid }} />
             <View style={{ flex: 1 }}>
               <ThemedText variant="headline">Passeport d’athlète</ThemedText>
               {bar('55%')}
@@ -150,19 +155,17 @@ function BilanPreview() {
           </View>
         </Card>
       </View>
-      <View style={{ marginHorizontal: 16, marginTop: 12 }}>
-        <Grid2>
-          <Card>
-            <Kicker glyph="sparkles">Compétences de vie</Kicker>
-            <View style={{ marginTop: 8 }}><Ring size={78} stroke={9} value={0.67} /></View>
-          </Card>
-          <Card>
-            <Kicker glyph="pulse">Bien-être</Kicker>
-            <View style={{ marginTop: 14 }}><Sparkline values={[3.2, 3.5, 3.4, 3.9, 3.8, 4.2, 4.4]} /></View>
-          </Card>
-        </Grid2>
+      <View style={{ marginHorizontal: 16, marginTop: 12, gap: 12 }}>
+        <Card>
+          <Kicker glyph="sparkles">Compétences de vie</Kicker>
+          <View style={{ marginTop: 8 }}><Ring size={78} stroke={9} value={0.67} /></View>
+        </Card>
+        <Card>
+          <Kicker glyph="pulse">Bien-être</Kicker>
+          <View style={{ marginTop: 14 }}><Sparkline values={[3.2, 3.5, 3.4, 3.9, 3.8, 4.2, 4.4]} /></View>
+        </Card>
+        <Card style={{ height: 150 }} />
       </View>
-      <View style={{ marginHorizontal: 16, marginTop: 12 }}><Card style={{ height: 150 }} /></View>
     </MutedPreview>
   );
 }

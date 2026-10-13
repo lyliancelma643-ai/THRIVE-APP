@@ -2,7 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
 import { resolveTextStyle, useTheme } from '../../design';
-import { LSSS_MOMENT_LABEL, LSSS_MOMENT_ORDER, type LsssPoint } from './bilanData';
+import { LSSS_MOMENT_LABEL, LSSS_MOMENT_ORDER, TOTAL_SESSIONS, type LsssPoint, type PermaPoint } from './bilanData';
 
 /** Mini courbe du bien-être (G) : aire `tint` à 12 %, trait 2,4, points évidés, dernier point plein (140 × 40). */
 export function Sparkline({ values, width = 140, height = 40 }: { values: number[]; width?: number; height?: number }) {
@@ -36,8 +36,8 @@ const yFor = (v: number) => Math.max(8, Math.min(122, 100 - (v - 50) * 2));
  * valeur au-dessus de chaque point. Le prochain moment à venir est un cercle pointillé relié en pointillés.
  */
 export function LsssCurve({ points }: { points: LsssPoint[] }) {
-  const { colors, fontsLoaded, style } = useTheme();
-  const fontFamily = resolveTextStyle('sub', fontsLoaded, style).fontFamily;
+  const { colors, fontsLoaded } = useTheme();
+  const fontFamily = resolveTextStyle('sub', fontsLoaded).fontFamily;
   const H = 150;
   const slots = LSSS_MOMENT_ORDER.map((m, i) => ({ m, i, p: points.find((q) => q.moment === m) ?? null }));
   const lastIdx = slots.reduce((acc, s) => (s.p ? s.i : acc), -1);
@@ -79,6 +79,48 @@ export function LsssCurve({ points }: { points: LsssPoint[] }) {
             ) : null}
             <SvgText fontFamily={fontFamily} x={SLOT_X[s.i]} y={144} textAnchor={s.i === 0 ? 'start' : s.i === 2 ? 'end' : 'middle'} fontSize={12} fill={colors.label2}>{label(s)}</SvgText>
           </React.Fragment>
+        ))}
+      </Svg>
+    </View>
+  );
+}
+
+/** x d'une séance sur l'axe S1 → S13 (viewBox 338 de large, marges 14). */
+export const wellbeingX = (session: number): number => 14 + ((Math.max(1, Math.min(TOTAL_SESSIONS, session)) - 1) / (TOTAL_SESSIONS - 1)) * 310;
+/** y d'une valeur 0–100 (viewBox de 130 de haut). */
+export const wellbeingY = (v: number): number => 10 + ((100 - Math.max(0, Math.min(100, v))) / 100) * 96;
+
+/**
+ * Courbe du bien-être (G) : une mesure par séance sur l'axe S1 → S13, repères Élevé / Moyen / Bas, dernier point plein.
+ * Les valeurs viennent de `perma_progression` (0–100) ; rien n'est recalculé ici.
+ */
+export function WellbeingCurve({ points }: { points: PermaPoint[] }) {
+  const { colors, fontsLoaded } = useTheme();
+  const fontFamily = resolveTextStyle('cap', fontsLoaded).fontFamily;
+  const pts = [...points].sort((a, b) => a.session_number - b.session_number);
+  const H = 130;
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${wellbeingX(p.session_number).toFixed(1)} ${wellbeingY(p.value).toFixed(1)}`).join(' ');
+  const last = pts[pts.length - 1];
+  const summary = pts.map((p) => `séance ${p.session_number} : ${Math.round(p.value)}`).join(', ');
+  return (
+    <View accessible accessibilityRole="image" accessibilityLabel={`Courbe du bien-être : ${summary}`}>
+      <Svg width="100%" height={H} viewBox={`0 0 338 ${H}`}>
+        {[20, 58, 96].map((y) => (
+          <Line key={y} x1={0} x2={338} y1={y} y2={y} stroke={colors.separator} strokeDasharray="2 4" />
+        ))}
+        {pts.length > 1 ? <Path d={d} fill="none" stroke={colors.tint} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /> : null}
+        {pts.map((p, i) => {
+          const isLast = i === pts.length - 1;
+          return <Circle key={p.session_number} cx={wellbeingX(p.session_number)} cy={wellbeingY(p.value)} r={isLast ? 6 : 3.4} fill={isLast ? colors.tint : colors.bgGrouped2} stroke={colors.tint} strokeWidth={2.2} />;
+        })}
+        {last ? (
+          <SvgText
+            fontFamily={fontFamily} x={Math.min(wellbeingX(last.session_number), 300)} y={Math.max(wellbeingY(last.value) - 12, 12)}
+            textAnchor="middle" fontSize={12} fontWeight="600" fill={colors.label}
+          >{`S${last.session_number} · ${Math.round(last.value)}`}</SvgText>
+        ) : null}
+        {[1, 3, 5, 7, 9, 11, 13].map((s) => (
+          <SvgText key={s} fontFamily={fontFamily} x={wellbeingX(s)} y={H - 6} textAnchor="middle" fontSize={11} fill={colors.label2}>{`S${s}`}</SvgText>
         ))}
       </Svg>
     </View>
