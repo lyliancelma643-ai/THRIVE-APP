@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import {
-  CANVAS, Field, GlassButton, Icon, LargeTitle, NavBar, Tag, ThemedText, VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
+  CANVAS, Field, GlassButton, Icon, Lamp, LargeTitle, NavBar, Tag, ThemedText, VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
 } from '../../design';
+import { POSTER_BG } from './palette';
 import type { ParcoursVM, PosterVM } from './viewModels';
 
 type Props = {
@@ -13,7 +14,7 @@ type Props = {
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
-/** Cellule du parcours : vignette 114 pt (coche verte si vécue, grisée si semaine pas ouverte), titre 13/16, durées 12/16. */
+/** Cellule du parcours : vignette 114 pt (coche sauge si vécue, grisée si semaine pas ouverte), titre 13/16, durées 12/16. */
 function Cell({ poster, size, onPress }: { poster: PosterVM; size: number; onPress: () => void }) {
   const { colors } = useTheme();
   return (
@@ -24,7 +25,7 @@ function Cell({ poster, size, onPress }: { poster: PosterVM; size: number; onPre
       accessibilityLabel={`${poster.title}, ${poster.durations}${poster.locked ? ', pas encore ouverte' : poster.done ? ', déjà vécue' : ''}`}
       style={({ pressed }) => ({ width: size, gap: 6, opacity: pressed ? 0.75 : 1 })}
     >
-      <View style={{ width: size, height: size, borderRadius: 20, overflow: 'hidden', backgroundColor: colors.bgGrouped3 }}>
+      <View style={{ width: size, height: size, borderRadius: 20, overflow: 'hidden', backgroundColor: POSTER_BG, borderWidth: 1, borderColor: colors.separator }}>
         <VignetteImage
           id={poster.vignetteId}
           style={[{ width: size, height: size }, poster.locked ? ({ opacity: 0.55, filter: 'grayscale(1)' } as object) : null]}
@@ -32,11 +33,11 @@ function Cell({ poster, size, onPress }: { poster: PosterVM; size: number; onPre
         {poster.done && !poster.locked ? (
           <View
             style={{
-              position: 'absolute', right: 4, bottom: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.sysGreen,
+              position: 'absolute', right: 4, bottom: 4, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.sage,
               alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: CANVAS.white,
             } as object}
           >
-            <Icon name="check" size={13} color={CANVAS.white} strokeWidth={3} />
+            <Icon name="check" size={13} color={colors.navy900} strokeWidth={3} />
           </View>
         ) : null}
       </View>
@@ -53,7 +54,7 @@ function Cell({ poster, size, onPress }: { poster: PosterVM; size: number; onPre
 export function ParcoursView({ vm, onBack, onOpen }: Props) {
   const { width } = useWindowDimensions();
   const navH = useNavBarHeight();
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const lt = useLargeTitle(40);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
@@ -78,13 +79,14 @@ export function ParcoursView({ vm, onBack, onOpen }: Props) {
 
   const head = (title: string, right?: React.ReactNode) => (
     <View style={{ paddingTop: 26, paddingBottom: 8, paddingHorizontal: 4, marginHorizontal: 16, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-      <ThemedText variant="title3" accessibilityRole="header" style={{ flex: 1, fontSize: 20, lineHeight: 25 }}>{title}</ThemedText>
+      <ThemedText variant="sectionTitle" accessibilityRole="header" style={{ flex: 1, fontSize: 20, lineHeight: 25 }}>{title}</ThemedText>
       {right}
     </View>
   );
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      {styleKey === 'veillee' ? <Lamp /> : null}
       <ScrollView
         onScroll={lt.onScroll}
         scrollEventThrottle={lt.scrollEventThrottle}

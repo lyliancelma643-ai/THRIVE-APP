@@ -1,7 +1,6 @@
 // Données de démonstration du lot « Maison » (K, K2, L, M, N) : ce sont celles de la maquette Claude Design
 // (Léo, « La cabane impossible », « 14 moments »…). Elles ne servent QU'À la galerie DEV (/__ecran) : jamais en production.
 // Les vignettes, titres et durées viennent des vraies fiches (lib/p3) ; seuls les textes propres à la maquette sont littéraux.
-import type { StyleKey } from '../../design';
 import { P3_ACTIVITIES, WEEK_COUNT } from '../../lib/p3';
 import { durationsText, posterOf } from '../../components/maison/models';
 import { vignetteIdFor } from '../../lib/vignettes';
@@ -28,16 +27,16 @@ export const HOME_ACTIONS: HomeActions = {
   onPhasesChip: () => {}, onAll: () => {}, onInvite: () => {}, onCarnet: () => {}, onSources: () => {},
 };
 
-/** K : natif et carnet = « Inclus avec ton programme » ; nuit = essai gratuit en haut + invitation vers les programmes. */
-export function homeFixture(style: StyleKey): HomeVM {
+/** K : « Inclus avec ton programme » ; K3 (Maison seul) : essai gratuit en haut + invitation vers l'écran Offres. */
+export function homeFixture(variant: 'included' | 'trial' = 'included'): HomeVM {
   const cabane = act('ACT-0802');
   return {
     childName: 'Léo',
     childInitial: 'L',
     banner:
-      style === 'nuit'
+      variant === 'trial'
         ? { kind: 'trial', label: 'Essai gratuit · encore 24 jours' }
-        : { kind: 'included', label: `Inclus avec ton programme ${style === 'carnet' ? 'Complet' : 'Individuel'}` },
+        : { kind: 'included', label: 'Inclus avec ton programme Individuel' },
     hero: {
       id: cabane.id,
       vignetteId: vignetteIdFor(cabane),
@@ -72,7 +71,7 @@ export function homeFixture(style: StyleKey): HomeVM {
       posters: posters(['ACT-0301', 'ACT-0401', 'ACT-0501', 'ACT-0601']),
     },
     allLabel: 'Voir les 53 activités, triées par âge',
-    invite: style === 'nuit',
+    invite: variant === 'trial',
     carnet: [
       { id: 'c1', dateLabel: 'jeudi 8 octobre', title: 'Mes trois personnes', phrase: 'Maman, Coach Lylian, Noah. Noah, c’est pour quand j’ai peur au hockey.' },
       { id: 'c2', dateLabel: 'dimanche 4 octobre', title: 'Le podium des progrès', phrase: 'Avant, je lâchais après une erreur. Là, je reviens au jeu.' },

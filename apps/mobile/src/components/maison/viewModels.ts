@@ -47,7 +47,7 @@ export type HomeVM = {
   moments: HomeShelfVM | null;
   phases: HomeShelfVM | null;
   allLabel: string;
-  /** Invitation discrète vers l'écran Offres de l'app (ambiance nuit, jamais un paiement web). */
+  /** Invitation discrète vers l'écran Offres de l'app (style Veillée, jamais un paiement web). */
   invite: boolean;
   carnet: { id: string; dateLabel: string; title: string; phrase: string | null }[];
   carnetEmptyText: string;

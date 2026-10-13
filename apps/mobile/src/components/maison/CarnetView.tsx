@@ -1,8 +1,9 @@
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import {
-  Card, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, ThemedText, VignetteImage, useLargeTitle,
-  useNavBarHeight, useTheme, withAlpha,
+  Card, Enamel, Felt, GlassButton, Icon, Lamp, LargeTitle, List, ListRow, NavBar, Paper, Section, SectionHeader, ThemedText,
+  VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
 } from '../../design';
+import { POSTER_BG } from './palette';
 import type { CarnetVM } from './viewModels';
 
 type Props = {
@@ -13,11 +14,12 @@ type Props = {
 };
 
 /**
- * N · Le carnet : ce qu’on garde (avec la vignette de chaque activité), l’objet gagné, la collection.
- * Il se remplit tout seul ; jamais de manque ni de score. Vue présentationnelle.
+ * N · Le carnet : ce qu’on garde (avec la vignette de chaque activité), l’objet gagné (l’émail : le seul geste soleil),
+ * la collection (papier pour les objets acquis, feutre pour ceux qui se débloquent). Il se remplit tout seul ;
+ * jamais de manque ni de score. Identique dans Lin et Veillée. Vue présentationnelle.
  */
 export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
-  const { colors, style } = useTheme();
+  const { colors, styleKey } = useTheme();
   const { width } = useWindowDimensions();
   const navH = useNavBarHeight();
   const lt = useLargeTitle(40);
@@ -26,6 +28,7 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      {styleKey === 'veillee' ? <Lamp /> : null}
       <ScrollView
         onScroll={lt.onScroll}
         scrollEventThrottle={lt.scrollEventThrottle}
@@ -39,12 +42,13 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
             <SectionHeader title="Gagné" />
             <Section style={{ gap: 8 }}>
               {vm.earned.map((e) => (
-                <Card key={e.id} padding={0}>
-                  <View style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: withAlpha(colors.accent, style === 'nuit' ? 0.06 : 0.28) }} />
-                  <View accessible accessibilityLabel={`${e.label}. ${e.detail}`} style={{ padding: 16, flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-                    <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon name={e.glyph} size={32} color={colors.accentInk} />
-                    </View>
+                <Card key={e.id}>
+                  <View accessible accessibilityLabel={`${e.label}. ${e.detail}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                    <Enamel radius={20}>
+                      <View style={{ width: 64, height: 64, alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon name={e.glyph} size={30} color={colors.accentInk} />
+                      </View>
+                    </Enamel>
                     <View style={{ flex: 1 }}>
                       <ThemedText variant="headline">{e.label}</ThemedText>
                       <ThemedText variant="sub" color="label2">{e.detail}</ThemedText>
@@ -70,7 +74,7 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
                   title={k.title}
                   subtitle={k.phrase ? `${k.detail} · « ${k.phrase} »` : k.detail}
                   leading={
-                    <View style={{ width: 48, height: 48, borderRadius: 14, overflow: 'hidden', backgroundColor: colors.bgGrouped3 }}>
+                    <View style={{ width: 48, height: 48, borderRadius: 14, overflow: 'hidden', backgroundColor: POSTER_BG }}>
                       <VignetteImage id={k.vignetteId} style={{ width: 48, height: 48 }} />
                     </View>
                   }
@@ -86,22 +90,22 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
           <>
             <View style={{ marginHorizontal: 16, paddingTop: 22, paddingBottom: 8, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' }}>
               <ThemedText variant="sectionTitle" accessibilityRole="header">Objets</ThemedText>
-              <ThemedText variant="body" color="tintText">{`${got} sur ${vm.objects.length}`}</ThemedText>
+              <ThemedText variant="sub" weight={600} color="sageText">{`${got} sur ${vm.objects.length}`}</ThemedText>
             </View>
             <Section style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-              {vm.objects.map((o) => (
-                <View
-                  key={o.id}
-                  accessible
-                  accessibilityLabel={o.got ? `${o.label}, acquis pour toujours` : `${o.label}, se débloque en avançant`}
-                  style={{
-                    width: cell, height: cell, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
-                    backgroundColor: o.got ? colors.tintSoft : colors.fill4,
-                  }}
-                >
-                  <Icon name={o.got ? o.glyph : 'lock'} size={28} color={o.got ? colors.tintText : colors.label4} />
-                </View>
-              ))}
+              {vm.objects.map((o) => {
+                const label = o.got ? `${o.label}, acquis pour toujours` : `${o.label}, se débloque en avançant`;
+                const tile = { width: cell, height: cell, alignItems: 'center' as const, justifyContent: 'center' as const };
+                return o.got ? (
+                  <Paper key={o.id} accessible accessibilityLabel={label} radius={20}>
+                    <View style={tile}><Icon name={o.glyph} size={28} color={colors.sageInk} /></View>
+                  </Paper>
+                ) : (
+                  <Felt key={o.id} accessible accessibilityLabel={label} radius={20} color={colors.fill4}>
+                    <View style={tile}><Icon name="lock" size={28} color={colors.label4} /></View>
+                  </Felt>
+                );
+              })}
             </Section>
           </>
         ) : null}

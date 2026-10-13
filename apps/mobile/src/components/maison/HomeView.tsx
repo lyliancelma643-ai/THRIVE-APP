@@ -1,13 +1,12 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { Pressable, ScrollView, View, type ScrollViewProps } from 'react-native';
 import {
-  Avatar, BASE_VIGNETTE_ID, GlassPair, GlassSurface, Icon, NavBar, ThemedText, VignetteImage, useScrollEdge, useTheme,
-  type IconName,
+  Avatar, BASE_VIGNETTE_ID, Card, Felt, GlassPair, GlassSurface, Icon, Lamp, NavBar, Paper, Star, ThemedText, Velvet, VignetteImage,
+  useScrollEdge, useTheme, type IconName,
 } from '../../design';
 import { HomeChipRow, HomeSectionHeader, PosterRow } from './HomeParts';
 import { TonightHero } from './TonightHero';
-import { COUNTER_EMPTY, FELT_STRIPE, PAPER_RULE, SUN_GRADIENT, useHomePalette } from './palette';
+import { SOON_TAG } from './palette';
 import type { HomeActions, HomeShelfVM, HomeVM } from './viewModels';
 
 type Props = {
@@ -27,29 +26,52 @@ const DOORS: { key: 'toutes' | 'programme' | 'carnet' | 'refus'; glyph: IconName
 const TILT = [-0.6, 0.5, -0.3];
 
 /**
- * K · Maison (« Soir de famille »). Vue présentationnelle : tout vient de `vm` et `actions`.
- * Natif / Carnet : lin et cartes papier ; Nuit calme : marine, essai en haut, invitation vers l'écran Offres.
+ * K · Maison (« Soir de famille »), identique dans Lin et Veillée (seuls les jetons changent) : la lampe (Veillée),
+ * l'affiche du soir avec Lancer en émail (le seul geste soleil), quatre portes en feutre, la semaine en velours,
+ * des rangées d'affiches, le carnet en papier vergé. Vue présentationnelle : tout vient de `vm` et `actions`.
+ * K3 (« Maison seul ») : même vue, bandeau d'essai et invitation vers l'écran Offres de l'app (jamais un paiement).
  */
 export function HomeView({ vm, actions, footer, refreshControl }: Props) {
-  const p = useHomePalette();
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const scroll = useScrollEdge();
 
-  const doorCard = {
-    minHeight: 76, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 22, flexDirection: 'row' as const, alignItems: 'center' as const,
-    gap: 12, backgroundColor: p.card, borderWidth: 1, borderColor: p.cardBorder, ...p.cardShadow,
-  };
-  const badge = (glyph: IconName) => (
-    <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: p.badgeBg, alignItems: 'center', justifyContent: 'center' }}>
-      <Icon name={glyph} size={20} color={p.link} />
-    </View>
+  const doorInk = (strong: boolean) => (strong ? colors.cream : colors.label);
+  const door = (d: (typeof DOORS)[number], strong: boolean) => (
+    <Pressable
+      key={d.key}
+      onPress={() => actions.onDoor(d.key)}
+      accessibilityRole="button"
+      accessibilityLabel={d.label}
+      style={({ pressed }) => ({ width: '48.6%', flexGrow: 1, opacity: pressed ? 0.75 : 1 })}
+    >
+      <Felt
+        strong={strong}
+        radius={22}
+        color={strong ? undefined : colors.bgGrouped2}
+        style={strong ? undefined : { borderWidth: 1, borderColor: colors.separator }}
+      >
+        <View style={{ minHeight: 76, paddingVertical: 12, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View
+            style={{
+              width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
+              backgroundColor: strong ? 'rgba(247,245,242,0.14)' : colors.badgeBg,
+            }}
+          >
+            <Icon name={d.glyph} size={20} color={strong ? colors.cream : colors.badgeInk} />
+          </View>
+          <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3, color: doorInk(strong) }}>
+            {d.label}
+          </ThemedText>
+        </View>
+      </Felt>
+    </Pressable>
   );
 
   const shelf = (s: HomeShelfVM, onAll: () => void, onChip: (k: string) => void) => (
     <View style={{ marginTop: 34 }}>
       <HomeSectionHeader title={s.title} actionLabel={s.actionLabel} onAction={onAll} />
       {s.chips ? <HomeChipRow chips={s.chips} active={s.activeChip} onChip={onChip} /> : null}
-      <ThemedText variant="sub" style={{ marginHorizontal: 20, marginTop: s.chips ? 10 : 6, fontSize: 14, lineHeight: 19, letterSpacing: 0, color: p.muted }}>
+      <ThemedText variant="sub" color="label2" style={{ marginHorizontal: 20, marginTop: s.chips ? 10 : 6, fontSize: 14, lineHeight: 19, letterSpacing: 0 }}>
         {s.note}
       </ThemedText>
       <PosterRow posters={s.posters} onOpen={actions.onOpenCard} />
@@ -57,7 +79,8 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
   );
 
   return (
-    <View style={{ flex: 1, backgroundColor: p.bg }}>
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      {styleKey === 'veillee' ? <Lamp /> : null}
       <ScrollView
         onScroll={scroll.onScroll}
         scrollEventThrottle={scroll.scrollEventThrottle}
@@ -74,91 +97,72 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
             accessibilityLabel={`${vm.hero.minutes} minutes, à la maison. Changer la durée`}
             style={{
               height: 44, paddingHorizontal: 18, borderRadius: 22, flexDirection: 'row', alignItems: 'center', gap: 8,
-              backgroundColor: p.chipBg, borderWidth: 1, borderColor: p.glassBorder,
+              backgroundColor: colors.fill3, borderWidth: 1, borderColor: colors.separator,
             }}
           >
-            <Icon name="timer" size={17} color={p.ink} />
-            <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0, color: p.ink }}>{`${vm.hero.minutes} min`}</ThemedText>
-            <ThemedText variant="sub" style={{ fontSize: 15, color: p.muted }}>·</ThemedText>
-            <Icon name="home" size={17} color={p.ink} />
-            <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0, color: p.ink }}>À la maison</ThemedText>
-            <Icon name="chevronDown" size={14} color={p.ink} strokeWidth={2.4} />
+            <Icon name="timer" size={17} color={colors.label} />
+            <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0 }}>{`${vm.hero.minutes} min`}</ThemedText>
+            <ThemedText variant="sub" color="label2" style={{ fontSize: 15 }}>·</ThemedText>
+            <Icon name="home" size={17} color={colors.label} />
+            <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0 }}>À la maison</ThemedText>
+            <Icon name="chevronDown" size={14} color={colors.label} strokeWidth={2.4} />
           </Pressable>
         </View>
 
         <View style={{ marginHorizontal: 20, marginTop: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
-          {DOORS.map((d) => (
-            <Pressable
-              key={d.key}
-              onPress={() => actions.onDoor(d.key)}
-              accessibilityRole="button"
-              accessibilityLabel={d.label}
-              style={({ pressed }) => [doorCard, { width: '48.6%', flexGrow: 1, opacity: pressed ? 0.75 : 1 }]}
-            >
-              {badge(d.glyph)}
-              <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3, color: p.ink }}>{d.label}</ThemedText>
-            </Pressable>
-          ))}
+          {DOORS.map((d, i) => door(d, i === 0))}
           <Pressable
             onPress={() => actions.onDoor('videos')}
             accessibilityRole="button"
             accessibilityLabel="Les séances vidéo de 20 min, bientôt disponibles"
-            style={[doorCard, { width: '100%', minHeight: 64, paddingVertical: 10, opacity: 0.75 }]}
+            style={{ width: '100%', opacity: 0.8 }}
           >
-            {badge('video')}
-            <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3, color: p.ink }}>Les séances vidéo de 20 min</ThemedText>
-            <View style={{ height: 24, paddingHorizontal: 10, borderRadius: 12, backgroundColor: p.soonBg, justifyContent: 'center' }}>
-              <ThemedText variant="cap" weight={600} style={{ color: p.soonInk, letterSpacing: 0 }}>Bientôt</ThemedText>
-            </View>
+            <Felt radius={22} color={colors.bgGrouped2} style={{ borderWidth: 1, borderColor: colors.separator }}>
+              <View style={{ minHeight: 64, paddingVertical: 10, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.badgeBg }}>
+                  <Icon name="video" size={20} color={colors.badgeInk} />
+                </View>
+                <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3 }}>Les séances vidéo de 20 min</ThemedText>
+                <View style={{ height: 24, paddingHorizontal: 10, borderRadius: 12, backgroundColor: SOON_TAG.bg, justifyContent: 'center' }}>
+                  <ThemedText variant="cap" weight={600} style={{ color: SOON_TAG.ink, letterSpacing: 0 }}>Bientôt</ThemedText>
+                </View>
+              </View>
+            </Felt>
           </Pressable>
         </View>
 
         <View
           accessible
           accessibilityLabel={`${vm.counter.total} moment${vm.counter.total > 1 ? 's' : ''} ensemble. ${vm.counter.done} sur ${vm.counter.target} cette semaine`}
-          style={{
-            marginHorizontal: 20, marginTop: 30, paddingVertical: 24, paddingHorizontal: 20, borderRadius: 26, alignItems: 'center', gap: 14,
-            backgroundColor: p.counterBg, overflow: 'hidden',
-          }}
+          style={{ marginHorizontal: 20, marginTop: 30 }}
         >
-          <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
-            {Array.from({ length: 60 }, (_, i) => (
-              <View key={i} style={{ position: 'absolute', top: 0, bottom: 0, left: i * 7, width: 2, backgroundColor: FELT_STRIPE }} />
-            ))}
-          </View>
-          <ThemedText variant="displayLarge" weight={500} style={{ fontSize: 30, lineHeight: 34, letterSpacing: 0, textAlign: 'center', color: p.counterInk }}>
-            {vm.counter.total === 0 ? 'Votre premier moment vous attend' : `${vm.counter.total} moment${vm.counter.total > 1 ? 's' : ''} ensemble`}
-          </ThemedText>
-          <View style={{ flexDirection: 'row', gap: 16 }}>
-            {Array.from({ length: vm.counter.target }, (_, i) =>
-              i < vm.counter.done ? (
-                <LinearGradient
-                  key={i}
-                  colors={[...SUN_GRADIENT.medal]}
-                  start={{ x: 0.34, y: 0.26 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{
-                    width: 64, height: 64, borderRadius: 32, alignItems: 'center', justifyContent: 'center',
-                    shadowColor: colors.sun, shadowOpacity: 0.5, shadowRadius: 12, shadowOffset: { width: 0, height: 8 },
-                  }}
-                >
-                  <Icon name="star" size={30} color={colors.navy900} filled />
-                </LinearGradient>
-              ) : (
-                <View key={i} style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: COUNTER_EMPTY.bg, alignItems: 'center', justifyContent: 'center' }}>
-                  <Icon name="star" size={28} color={COUNTER_EMPTY.ink} strokeWidth={1.6} />
-                </View>
-              ),
-            )}
-          </View>
-          <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 16, letterSpacing: 0, color: p.counterInk, opacity: 0.84 }}>
-            {`${vm.counter.done} sur ${vm.counter.target} cette semaine`}
-          </ThemedText>
+          <Velvet radius={26}>
+            <View style={{ paddingVertical: 24, paddingHorizontal: 20, alignItems: 'center', gap: 14 }}>
+              <ThemedText variant="displayLarge" weight={500} style={{ fontSize: 30, lineHeight: 34, letterSpacing: 0, textAlign: 'center' }}>
+                {vm.counter.total === 0 ? 'Votre premier moment vous attend' : `${vm.counter.total} moment${vm.counter.total > 1 ? 's' : ''} ensemble`}
+              </ThemedText>
+              <View style={{ flexDirection: 'row', gap: 16 }}>
+                {Array.from({ length: vm.counter.target }, (_, i) =>
+                  i < vm.counter.done ? (
+                    // Étoile gagnée en sauge : le soleil (émail) de l'écran est déjà « Lancer ».
+                    <View key={i} style={{ width: 64, height: 64, borderRadius: 32, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center' }}>
+                      <Icon name="star" size={30} color={colors.navy900} filled />
+                    </View>
+                  ) : (
+                    <Star key={i} size={64} />
+                  ),
+                )}
+              </View>
+              <ThemedText variant="sub" weight={600} color="label2" style={{ fontSize: 14, lineHeight: 16, letterSpacing: 0 }}>
+                {`${vm.counter.done} sur ${vm.counter.target} cette semaine`}
+              </ThemedText>
+            </View>
+          </Velvet>
         </View>
 
         <View style={{ marginTop: 34 }}>
           <HomeSectionHeader title="Cette semaine" actionLabel="Le programme" onAction={actions.onWeekAll} />
-          <ThemedText variant="sub" style={{ marginHorizontal: 20, marginTop: 6, fontSize: 14, lineHeight: 19, letterSpacing: 0, color: p.muted }}>
+          <ThemedText variant="sub" color="label2" style={{ marginHorizontal: 20, marginTop: 6, fontSize: 14, lineHeight: 19, letterSpacing: 0 }}>
             {vm.weekNote}
           </ThemedText>
           <PosterRow posters={vm.weekPosters} onOpen={actions.onOpenCard} />
@@ -172,62 +176,50 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
           accessibilityRole="button"
           accessibilityLabel={vm.allLabel}
           style={{
-            marginHorizontal: 20, marginTop: 30, height: 56, borderRadius: 28, borderWidth: 1, borderColor: p.glassBorder,
+            marginHorizontal: 20, marginTop: 30, height: 56, borderRadius: 28, borderWidth: 1, borderColor: colors.separator, backgroundColor: colors.fill4,
             flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
           }}
         >
-          <Icon name="grid" size={20} color={p.ink} />
-          <ThemedText variant="sub" weight={600} style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0, color: p.ink }}>{vm.allLabel}</ThemedText>
+          <Icon name="grid" size={20} color={colors.label} />
+          <ThemedText variant="sub" weight={600} style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0 }}>{vm.allLabel}</ThemedText>
         </Pressable>
 
         {vm.invite ? (
-          <Pressable
+          <Card
+            padding={14}
             onPress={actions.onInvite}
-            accessibilityRole="button"
             accessibilityLabel="Envie d’aller plus loin ? Un coach, en groupe ou seul, près de chez toi."
-            style={[
-              { marginHorizontal: 20, marginTop: 24, padding: 14, borderRadius: 26, flexDirection: 'row', alignItems: 'center', gap: 12 },
-              { backgroundColor: p.card, borderWidth: 1, borderColor: p.cardBorder, ...p.cardShadow },
-            ]}
+            style={{ marginHorizontal: 20, marginTop: 24 }}
           >
-            <View style={{ width: 56, height: 56, borderRadius: 16, overflow: 'hidden' }}>
-              <VignetteImage id={BASE_VIGNETTE_ID} style={{ width: 56, height: 56 }} />
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ width: 56, height: 56, borderRadius: 16, overflow: 'hidden' }}>
+                <VignetteImage id={BASE_VIGNETTE_ID} style={{ width: 56, height: 56 }} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <ThemedText variant="headline" style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0 }}>Envie d’aller plus loin ?</ThemedText>
+                <ThemedText variant="sub" color="label2" style={{ fontSize: 14, lineHeight: 19, letterSpacing: 0 }}>Un coach, en groupe ou seul, près de chez toi.</ThemedText>
+              </View>
+              <Icon name="chevronRight" size={16} color={colors.label3} strokeWidth={2.4} />
             </View>
-            <View style={{ flex: 1 }}>
-              <ThemedText variant="headline" style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0, color: p.ink }}>Envie d’aller plus loin ?</ThemedText>
-              <ThemedText variant="sub" style={{ fontSize: 14, lineHeight: 19, letterSpacing: 0, color: p.muted }}>Un coach, en groupe ou seul, près de chez toi.</ThemedText>
-            </View>
-            <Icon name="chevronRight" size={16} color={p.muted} strokeWidth={2.4} />
-          </Pressable>
+          </Card>
         ) : null}
 
         <View style={{ marginHorizontal: 20, marginTop: 34 }}>
-          <HomeSectionHeaderPlain title="Le carnet" />
+          <ThemedText variant="sectionTitle" accessibilityRole="header" style={{ marginBottom: 12, lineHeight: 27, letterSpacing: 0 }}>Le carnet</ThemedText>
           {vm.carnet.length === 0 ? (
-            <View style={{ padding: 16, borderRadius: 20, backgroundColor: p.chipBg }}>
-              <ThemedText variant="sub" style={{ color: p.muted }}>{vm.carnetEmptyText}</ThemedText>
+            <View style={{ padding: 16, borderRadius: 20, backgroundColor: colors.fill3 }}>
+              <ThemedText variant="sub" color="label2">{vm.carnetEmptyText}</ThemedText>
             </View>
           ) : (
             <View style={{ gap: 12 }}>
               {vm.carnet.map((m, i) => (
-                <View
-                  key={m.id}
-                  style={[
-                    { borderRadius: 20, padding: 16, backgroundColor: p.paper, transform: [{ rotate: `${TILT[i % TILT.length]}deg` }] },
-                    { shadowColor: '#000000', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 10 } },
-                  ]}
-                >
-                  <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 20, overflow: 'hidden' }}>
-                    {Array.from({ length: 30 }, (_, k) => (
-                      <View key={k} style={{ position: 'absolute', left: 0, right: 0, top: k * 4, height: 1, backgroundColor: PAPER_RULE }} />
-                    ))}
-                  </View>
-                  <ThemedText variant="displayQuote" weight={400} style={{ fontSize: 13, lineHeight: 17, fontStyle: 'italic', color: p.paperAccent }}>{m.dateLabel}</ThemedText>
-                  <ThemedText variant="sub" weight={700} style={{ marginTop: 4, fontSize: 15, lineHeight: 19, letterSpacing: 0, color: p.paperInk }}>{m.title}</ThemedText>
+                <Paper key={m.id} laid radius={20} padding={16} style={{ transform: [{ rotate: `${TILT[i % TILT.length]}deg` }] }}>
+                  <ThemedText variant="displayQuote" weight={400} color="sageText" style={{ fontSize: 13, lineHeight: 17, fontStyle: 'italic' }}>{m.dateLabel}</ThemedText>
+                  <ThemedText variant="sub" weight={700} style={{ marginTop: 4, fontSize: 15, lineHeight: 19, letterSpacing: 0 }}>{m.title}</ThemedText>
                   {m.phrase ? (
-                    <ThemedText variant="displayQuote" weight={400} style={{ marginTop: 6, fontSize: 16, lineHeight: 22, color: p.paperInk }}>{`« ${m.phrase} »`}</ThemedText>
+                    <ThemedText variant="displayQuote" weight={400} style={{ marginTop: 6, fontSize: 16, lineHeight: 22 }}>{`« ${m.phrase} »`}</ThemedText>
                   ) : null}
-                </View>
+                </Paper>
               ))}
             </View>
           )}
@@ -237,14 +229,14 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
             accessibilityLabel="Tout le carnet"
             style={{ marginTop: 12, minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 }}
           >
-            <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0, color: p.link }}>Tout le carnet</ThemedText>
-            <Icon name="arrowRight" size={16} color={p.link} />
+            <ThemedText variant="sub" weight={600} color="sageText" style={{ fontSize: 15, lineHeight: 18, letterSpacing: 0 }}>Tout le carnet</ThemedText>
+            <Icon name="arrowRight" size={16} color={colors.sageText} />
           </Pressable>
         </View>
 
-        <View style={{ marginHorizontal: 20, marginTop: 40, paddingTop: 20, borderTopWidth: 1, borderTopColor: p.rule }}>
+        <View style={{ marginHorizontal: 20, marginTop: 40, paddingTop: 20, borderTopWidth: 1, borderTopColor: colors.separator }}>
           <Pressable onPress={actions.onSources} accessibilityRole="button" accessibilityLabel="Les sources de la méthode" style={{ minHeight: 44, justifyContent: 'center' }}>
-            <ThemedText variant="sub" style={{ fontSize: 14, lineHeight: 16, letterSpacing: 0, color: p.muted }}>Les sources de la méthode</ThemedText>
+            <ThemedText variant="sub" color="label2" style={{ fontSize: 14, lineHeight: 16, letterSpacing: 0 }}>Les sources de la méthode</ThemedText>
           </Pressable>
           {footer}
         </View>
@@ -257,7 +249,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
             <GlassSurface interactive radius={22}>
               <View style={{ height: 44, paddingLeft: 5, paddingRight: 12, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <Avatar label={vm.childInitial} size={34} />
-                <ThemedText variant="headline">{vm.childName}</ThemedText>
+                <ThemedText variant="navTitle">{vm.childName}</ThemedText>
                 <Icon name="chevronDown" size={14} color={colors.label} strokeWidth={2.6} />
               </View>
             </GlassSurface>
@@ -273,14 +265,5 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
         }
       />
     </View>
-  );
-}
-
-function HomeSectionHeaderPlain({ title }: { title: string }) {
-  const p = useHomePalette();
-  return (
-    <ThemedText variant="displayLarge" accessibilityRole="header" style={{ marginBottom: 12, fontSize: 21, lineHeight: 26, letterSpacing: 0, color: p.ink }}>
-      {title}
-    </ThemedText>
   );
 }

@@ -1,12 +1,12 @@
 import { Pressable, ScrollView, View } from 'react-native';
-import { Icon, ThemedText, VignetteImage, useTheme } from '../../design';
-import { POSTER_BG, useHomePalette } from './palette';
+import { Felt, Icon, ThemedText, VignetteImage, useCardShadow, useTheme } from '../../design';
+import { POSTER_BG } from './palette';
 import type { HomeChip, PosterVM } from './viewModels';
 
 /** Vignette de 148 pt du carrousel d'accueil : image, coche sauge si vécue, titre 15/19, durées 13/17. */
 export function HomePoster({ poster, onPress }: { poster: PosterVM; onPress: () => void }) {
-  const p = useHomePalette();
   const { colors } = useTheme();
+  const shadow = useCardShadow();
   return (
     <Pressable
       onPress={onPress}
@@ -14,7 +14,7 @@ export function HomePoster({ poster, onPress }: { poster: PosterVM; onPress: () 
       accessibilityLabel={`${poster.title}, ${poster.durations}${poster.done ? ', déjà vécue' : ''}`}
       style={({ pressed }) => ({ width: 148, opacity: pressed ? 0.75 : 1 })}
     >
-      <View style={[{ width: 148, height: 148, borderRadius: 20, backgroundColor: POSTER_BG }, p.cardShadow]}>
+      <View style={[{ width: 148, height: 148, borderRadius: 20, backgroundColor: POSTER_BG }, shadow]}>
         <View style={{ width: 148, height: 148, borderRadius: 20, overflow: 'hidden' }}>
           <VignetteImage id={poster.vignetteId} style={{ width: 148, height: 148 }} />
           {poster.done ? (
@@ -24,31 +24,27 @@ export function HomePoster({ poster, onPress }: { poster: PosterVM; onPress: () 
                 backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center',
               }}
             >
-              <Icon name="check" size={13} color={colors.navy900} strokeWidth={3} />
+              <Icon name="check" size={14} color={colors.navy900} strokeWidth={3} />
             </View>
           ) : null}
         </View>
       </View>
-      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: -0.35, color: p.ink }}>
+      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: -0.35 }}>
         {poster.title}
       </ThemedText>
-      <ThemedText variant="foot" numberOfLines={1} style={{ marginTop: 2, fontSize: 13, lineHeight: 17, letterSpacing: 0, color: p.muted }}>
+      <ThemedText variant="foot" color="label2" numberOfLines={1} style={{ marginTop: 2, lineHeight: 17, letterSpacing: 0 }}>
         {poster.durations}
       </ThemedText>
     </Pressable>
   );
 }
 
-/** Titre de rangée : Fraunces 600 21/26 à gauche, lien sauge 14 à droite. */
+/** Titre de rangée : Fraunces 600 22/27 à gauche, lien sauge 14 à droite (`rowHead` de la maquette K). */
 export function HomeSectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
-  const p = useHomePalette();
+  const { colors } = useTheme();
   return (
     <View style={{ marginHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <ThemedText
-        variant="displayLarge"
-        accessibilityRole="header"
-        style={{ fontSize: 21, lineHeight: 26, letterSpacing: 0, color: p.ink }}
-      >
+      <ThemedText variant="sectionTitle" accessibilityRole="header" style={{ lineHeight: 27, letterSpacing: 0 }}>
         {title}
       </ThemedText>
       {actionLabel && onAction ? (
@@ -59,39 +55,55 @@ export function HomeSectionHeader({ title, actionLabel, onAction }: { title: str
           hitSlop={10}
           style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 }}
         >
-          <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0, color: p.link }}>{actionLabel}</ThemedText>
-          <Icon name="chevronRight" size={14} color={p.link} strokeWidth={2.4} />
+          <ThemedText variant="sub" weight={600} color="sageText" style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0 }}>{actionLabel}</ThemedText>
+          <Icon name="chevronRight" size={14} color={colors.sageText} strokeWidth={2.4} />
         </Pressable>
       ) : null}
     </View>
   );
 }
 
-/** Pastilles de filtre 40 pt (rayon plein, 14 600) ; la pastille active inverse encre et fond. */
+/** Pastille de filtre 40 pt (rayon plein, 14 600) : active = feutre marine en Lin, crème en Veillée (jamais jaune). */
+function HomeChipPill({ chip, on, onPress }: { chip: HomeChip; on: boolean; onPress: () => void }) {
+  const { colors, styleKey } = useTheme();
+  const felt = on && styleKey === 'lin';
+  const ink = on ? (felt ? colors.cream : colors.navy900) : colors.label;
+  const label = (
+    <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0, color: ink }}>{chip.label}</ThemedText>
+  );
+  const box = { height: 40, paddingHorizontal: 16, justifyContent: 'center' as const };
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={{ top: 2, bottom: 2 }}
+      accessibilityRole="button"
+      accessibilityLabel={chip.label}
+      accessibilityState={{ selected: on }}
+      style={{ flexShrink: 0 }}
+    >
+      {felt ? (
+        <Felt radius={20}><View style={box}>{label}</View></Felt>
+      ) : (
+        <View
+          style={[box, {
+            borderRadius: 20, backgroundColor: on ? colors.cream : colors.fill3,
+            borderWidth: on ? 0 : 1, borderColor: colors.separator,
+          }]}
+        >
+          {label}
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+/** Pastilles de filtre d'une rangée (marges 20, écart 8). */
 export function HomeChipRow({ chips, active, onChip }: { chips: HomeChip[]; active?: string; onChip: (key: string) => void }) {
-  const p = useHomePalette();
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }} style={{ marginTop: 12 }}>
-      {chips.map((c) => {
-        const on = c.key === active;
-        return (
-          <Pressable
-            key={c.key}
-            onPress={() => onChip(c.key)}
-            accessibilityRole="button"
-            accessibilityLabel={c.label}
-            accessibilityState={{ selected: on }}
-            style={{
-              height: 40, paddingHorizontal: 16, borderRadius: 20, justifyContent: 'center', flexShrink: 0,
-              backgroundColor: on ? p.chipOnBg : p.chipBg, borderWidth: on ? 0 : 1, borderColor: p.chipBorder,
-            }}
-          >
-            <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0, color: on ? p.chipOnInk : p.chipInk }}>
-              {c.label}
-            </ThemedText>
-          </Pressable>
-        );
-      })}
+      {chips.map((c) => (
+        <HomeChipPill key={c.key} chip={c} on={c.key === active} onPress={() => onChip(c.key)} />
+      ))}
     </ScrollView>
   );
 }

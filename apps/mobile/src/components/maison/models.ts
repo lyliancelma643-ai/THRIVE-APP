@@ -81,6 +81,14 @@ export function bannerFor(input: { sourceMaison?: string | null; isTrial: boolea
   return null;
 }
 
+/**
+ * Invitation discrète vers l'écran Offres DE L'APP (jamais un paiement web, anti-steering) : style Veillée seulement,
+ * et jamais pour un abonné accompagné (`sourceMaison === 'pack'`). Les droits viennent d'access_state() (store), rien n'est recalculé.
+ */
+export function showOffersInvite(input: { styleKey: 'lin' | 'veillee'; sourceMaison?: string | null }): boolean {
+  return input.styleKey === 'veillee' && input.sourceMaison !== 'pack';
+}
+
 type HomeInput = {
   childName: string;
   tonight: Tonight;

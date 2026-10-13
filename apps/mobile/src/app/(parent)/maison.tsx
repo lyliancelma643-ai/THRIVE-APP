@@ -12,9 +12,8 @@ import { momentsCount, resolveActivity, weeklyProgress, type Duration } from '..
 import { Icon, List, ListRow, SPACING, Sheet, ThemedText, useTheme } from '../../design';
 import { HomeView } from '../../components/maison/HomeView';
 import { SourcesSheet } from '../../components/maison/SourcesSheet';
-import { useHomePalette } from '../../components/maison/palette';
 import { recommendTonight } from '../../components/maison/logic';
-import { bannerFor, buildHomeVM, phaseOfWeek } from '../../components/maison/models';
+import { bannerFor, buildHomeVM, phaseOfWeek, showOffersInvite } from '../../components/maison/models';
 import type { HomeActions } from '../../components/maison/viewModels';
 
 // « Soir de famille » : le moment recommandé ce soir, puis les portes, le compteur, la semaine, les rangées,
@@ -24,8 +23,7 @@ import type { HomeActions } from '../../components/maison/viewModels';
 function MaisonContent() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { colors, style } = useTheme();
-  const p = useHomePalette();
+  const { colors, styleKey } = useTheme();
   const ctx = useMaisonContext();
   const ent = useEntitlement();
   const sourceMaison = useSubscriptionStore((s) => s.access?.sourceMaison);
@@ -68,18 +66,18 @@ function MaisonContent() {
   // Pas d'enfant ou tranche d'âge hors 8-17 : mêmes messages qu'avant, sur le fond de la page.
   if (children.length === 0 || !band || !activity || !child || !tonight) {
     return (
-      <View style={{ flex: 1, backgroundColor: p.bg, paddingTop: insets.top + 80, paddingHorizontal: SPACING.space4 }}>
+      <View style={{ flex: 1, backgroundColor: colors.bgGrouped, paddingTop: insets.top + 80, paddingHorizontal: SPACING.space4 }}>
         {children.length === 0 ? (
           <Pressable
             onPress={() => router.push('/(parent)/children')}
             accessibilityRole="button"
-            style={{ padding: SPACING.space6, alignItems: 'center', borderRadius: 26, borderWidth: 1, borderStyle: 'dashed', borderColor: p.glassBorder }}
+            style={{ padding: SPACING.space6, alignItems: 'center', borderRadius: 26, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.label4 }}
           >
-            <ThemedText variant="body" style={{ textAlign: 'center', color: p.muted }}>Ajoutez votre enfant pour recevoir ses activités.</ThemedText>
+            <ThemedText variant="body" color="label2" style={{ textAlign: 'center' }}>Ajoutez votre enfant pour recevoir ses activités.</ThemedText>
           </Pressable>
         ) : (
-          <View style={{ padding: SPACING.space5, borderRadius: 26, backgroundColor: p.card, borderWidth: 1, borderColor: p.cardBorder }}>
-            <ThemedText variant="body" style={{ color: p.muted }}>
+          <View style={{ padding: SPACING.space5, borderRadius: 26, backgroundColor: colors.bgGrouped2, borderWidth: 1, borderColor: colors.separator }}>
+            <ThemedText variant="body" color="label2">
               Les activités Maison sont conçues pour les 8 à 17 ans. Vérifiez la date de naissance de {child?.first_name} dans « Mes enfants ».
             </ThemedText>
           </View>
@@ -104,8 +102,8 @@ function MaisonContent() {
     momentChip,
     phaseChip: phaseChip ?? phaseOfWeek(tonight.openWeek),
     banner: bannerFor({ sourceMaison, isTrial: ent.isTrial, expirationDate: ent.expirationDate, now }),
-    // Invitation vers l'écran Offres de l'app (jamais un paiement web) : ambiance nuit, hors forfait accompagné.
-    invite: style === 'nuit' && sourceMaison !== 'pack',
+    // Invitation vers l'écran Offres de l'app (jamais un paiement web) : style Veillée, hors forfait accompagné.
+    invite: showOffersInvite({ styleKey, sourceMaison }),
     carnet: moments,
   });
   vm.allLabel = `Voir les ${pool.length} activités, triées par âge`;

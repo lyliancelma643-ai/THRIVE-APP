@@ -3,10 +3,12 @@ import { useState, type ReactNode } from 'react';
 import { ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Button, CANVAS, Card, GlassButton, GlassSurface, Kicker, List, ListRow, NavBar, Section, SectionHeader, Segmented, Sheet,
+  Button, GlassButton, GlassSurface, Icon, Lamp, List, ListRow, NavBar, Paper, Section, SectionHeader, Segmented, Sheet,
   ThemedText, VignetteImage, useScrollEdge, useTheme, withAlpha,
 } from '../../design';
 import { copyPhrase, stripQuotes } from './copy';
+import { FadedImage } from './TonightHero';
+import { useHeroStyle } from './palette';
 import type { FicheVM } from './viewModels';
 
 type Props = {
@@ -19,11 +21,13 @@ type Props = {
 };
 
 /**
- * L · Fiche moment : vignette en grand, durée 10/20/30, phrase d’ouverture à copier, étapes, niveau de preuve,
- * puis la barre en verre « Pas ce soir / Commencer ». Vue présentationnelle.
+ * L · Fiche moment : l’affiche en grand (fondue dans le fond), durée 10/20/30, phrase d’ouverture sur papier vergé
+ * à copier, étapes, niveau de preuve, puis la barre en verre « Pas ce soir / Commencer » (Commencer = l’émail,
+ * le seul geste soleil). Identique dans Lin et Veillée. Vue présentationnelle.
  */
 export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) {
-  const { colors, style } = useTheme();
+  const { colors, styleKey } = useTheme();
+  const { ficheBlurOpacity } = useHeroStyle();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const scroll = useScrollEdge();
@@ -41,38 +45,35 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      {styleKey === 'veillee' ? <Lamp /> : null}
       <ScrollView
         onScroll={scroll.onScroll}
         scrollEventThrottle={scroll.scrollEventThrottle}
         contentContainerStyle={{ paddingBottom: 130 + insets.bottom }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={{ height: 340, backgroundColor: colors.bgGrouped3, overflow: 'hidden' }}>
+        <View style={{ height: 372, overflow: 'hidden' }}>
           <VignetteImage
             id={vm.vignetteId}
-            accessibilityLabel={vm.vignetteLabel}
-            style={{ position: 'absolute', left: (width - 300) / 2, top: 44, width: 300, height: 296 }}
+            blurRadius={34}
+            style={{ position: 'absolute', top: -60, left: -60, width: width + 120, height: 372 + 120, opacity: ficheBlurOpacity }}
           />
+          <FadedImage id={vm.vignetteId} label={vm.vignetteLabel} width={width} height={330} top={52} fadeFrom={0.7} />
           <LinearGradient
             pointerEvents="none"
-            colors={[withAlpha(colors.navy900, 0), withAlpha(colors.navy900, 0.88)]}
-            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 150 }}
+            colors={[withAlpha(colors.bgGrouped, 0), colors.bgGrouped]}
+            locations={[0.62, 1]}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
-          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 18 }}>
-            <ThemedText variant="cap" weight={600} style={{ color: CANVAS.white, opacity: 0.85, letterSpacing: 1, lineHeight: 16, textTransform: 'uppercase' }}>
-              {vm.kicker}
-            </ThemedText>
-            <ThemedText
-              variant="title1"
-              accessibilityRole="header"
-              style={{ color: CANVAS.white, fontSize: style === 'carnet' ? 30 : 28, lineHeight: 34, letterSpacing: 0 }}
-            >
+          <View style={{ position: 'absolute', left: 20, right: 20, bottom: 6 }}>
+            <ThemedText variant="eyebrow" color="sageText">{vm.kicker}</ThemedText>
+            <ThemedText variant="displayLarge" accessibilityRole="header" style={{ marginTop: 6, fontSize: 38, lineHeight: 40, letterSpacing: 0 }}>
               {vm.title}
             </ThemedText>
           </View>
         </View>
 
-        <ThemedText variant="callout" color="label2" style={{ marginHorizontal: 16, marginTop: 16 }}>{vm.objective}</ThemedText>
+        <ThemedText variant="callout" color="label2" style={{ marginHorizontal: 16, marginTop: 12 }}>{vm.objective}</ThemedText>
 
         {vm.durations.length > 1 ? (
           <Section style={{ marginTop: 14 }}>
@@ -86,15 +87,18 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
         ) : null}
 
         <Section style={{ marginTop: 14 }}>
-          <Card>
-            <Kicker glyph="quote">Ce que tu dis pour commencer</Kicker>
-            <ThemedText variant={style === 'carnet' ? 'displayQuote' : 'title3'} weight={500} style={{ marginTop: 8, ...(style === 'carnet' ? { fontSize: 19, lineHeight: 25, letterSpacing: -0.2 } : null) }}>
+          <Paper laid radius={22} padding={18}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+              <Icon name="quote" size={15} color={colors.sageInk} />
+              <ThemedText variant="kick" color="sageText" style={{ flexShrink: 1 }}>Ce que tu dis pour commencer</ThemedText>
+            </View>
+            <ThemedText variant="displayQuote" weight={400} style={{ marginTop: 8, fontSize: 20, lineHeight: 27 }}>
               {`« ${opener} »`}
             </ThemedText>
             <View style={{ marginTop: 12, flexDirection: 'row' }}>
               <Button size="sm" variant="gray" glyph="copy" label={copied ? 'Phrase copiée' : 'Copier la phrase'} onPress={copy} />
             </View>
-          </Card>
+          </Paper>
         </Section>
 
         <SectionHeader small title="Ce que tu vas faire" />
@@ -106,8 +110,8 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
                 title={s}
                 accessibilityLabel={`Étape ${i + 1} : ${s}`}
                 leading={
-                  <View style={{ width: 30, height: 30, borderRadius: 8, backgroundColor: colors.fill3, alignItems: 'center', justifyContent: 'center' }}>
-                    <ThemedText variant="sub" weight={600} style={{ fontSize: 15 }}>{String(i + 1)}</ThemedText>
+                  <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: colors.badgeBg, alignItems: 'center', justifyContent: 'center' }}>
+                    <ThemedText variant="sectionTitle" color="badgeInk" style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0 }}>{String(i + 1)}</ThemedText>
                   </View>
                 }
                 leadingInset={60}
@@ -152,7 +156,7 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
         <GlassSurface strong radius={30}>
           <View style={{ flexDirection: 'row', padding: 6, gap: 6, alignItems: 'center' }}>
             <Button variant="plain" size="lg" label="Pas ce soir" onPress={onBack} style={{ paddingHorizontal: 18, alignSelf: 'center' }} />
-            <Button flex glyph="play" label={`Commencer · ${vm.minutes} min`} onPress={onStart} />
+            <Button flex variant="accent" glyph="play" label={`Commencer · ${vm.minutes} min`} onPress={onStart} />
           </View>
         </GlassSurface>
       </View>
