@@ -2,7 +2,7 @@ import { Pressable, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CANVAS, Icon, ThemedText, VignetteImage, useTheme } from '../../design';
-import { MOMENT_BACKGROUND, momentInk } from './palette';
+import { momentInk } from './palette';
 import type { MomentVM } from './viewModels';
 
 type Props = {
@@ -36,11 +36,14 @@ function DarkGlass({ size, onPress, label, disabled, children }: { size: number;
 }
 
 /**
+ * @deprecated GO 4 : la route `moment/[activityId]` utilise désormais `components/activite/DerouleView` (flot pas à pas,
+ * Veillée forcée). Conservé tel quel parce que la galerie DEV (`dev-gallery/lot-maison.tsx`) l'importe encore.
+ *
  * M · Moment en cours : plein écran sombre, mascotte, minuteur en anneau, commandes en verre.
  * Le chiffre annoncé est toujours celui du minuteur. Vue présentationnelle (le temps vit dans la route).
  */
 export function MomentView({ vm, onClose, onPrev, onNext, onToggle, onStop }: Props) {
-  const { colors, style } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
   const ring = Math.min(270, Math.max(190, height - 600));
@@ -49,7 +52,7 @@ export function MomentView({ vm, onClose, onPrev, onNext, onToggle, onStop }: Pr
   const top = insets.top + 54;
 
   return (
-    <View style={{ flex: 1, backgroundColor: MOMENT_BACKGROUND[style] }}>
+    <View style={{ flex: 1, backgroundColor: colors.navy900 }}>
       <View
         pointerEvents="box-none"
         style={{ position: 'absolute', top: insets.top, left: 0, right: 0, height: 54, zIndex: 20, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center' }}
