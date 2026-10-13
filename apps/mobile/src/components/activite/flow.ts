@@ -294,6 +294,8 @@ export type FlowState = {
   quitAsk: boolean;
   /** Une écriture est partie : plus aucun second enregistrement. */
   recording: boolean;
+  /** L'écriture n'a pas abouti (hors ligne, erreur serveur) : deux choix calmes, « Réessayer » ou « Quitter sans enregistrer ». */
+  saveFailed: boolean;
   recorded: boolean;
   skipped: boolean;
   letter: LetterState;
@@ -319,6 +321,8 @@ export type FlowEvent =
   | { t: 'synthese.save'; skipped: boolean } // « Garder ce moment » / « Passer »
   | { t: 'record.done' }
   | { t: 'record.failed' }
+  | { t: 'record.retry' } // « Réessayer »
+  | { t: 'record.leave' } // « Quitter sans enregistrer » : n'écrit rien, on sort
   | { t: 'note.open' }
   | { t: 'note.close' }
   | { t: 'note.items'; items: string[] }
@@ -356,6 +360,7 @@ export function initialFlow(): FlowState {
     captureText: '',
     quitAsk: false,
     recording: false,
+    saveFailed: false,
     recorded: false,
     skipped: false,
     letter: LETTER_INITIAL,
@@ -424,7 +429,12 @@ export function flowReduce(s: FlowState, e: FlowEvent, c: FlowCtx): Step {
     case 'record.done':
       return to(s, { recording: false, recorded: true, screen: 'fin' });
     case 'record.failed':
-      return to(s, { recording: false });
+      return s.recording ? to(s, { recording: false, saveFailed: true }) : same(s);
+    case 'record.retry':
+      if (!s.saveFailed || s.recording || s.recorded) return same(s);
+      return to(s, { saveFailed: false, recording: true }, [{ type: 'record', skipped: s.skipped }]);
+    case 'record.leave':
+      return s.saveFailed ? to(s, { saveFailed: false }, [{ type: 'exit', to: 'home' }]) : same(s);
     case 'note.open':
       return to(s, { noteOpen: true });
     case 'note.close':
@@ -452,6 +462,8 @@ export function flowReduce(s: FlowState, e: FlowEvent, c: FlowCtx): Step {
     case 'letter.failed':
       return s.letter.step === 'sealing' ? to(s, { letter: { step: 'paper', text: '', sealedAt: null } }) : same(s);
     case 'quit.request':
+      // Écriture en échec : les deux choix sont déjà à l'écran, fermer ne relance rien.
+      if (s.saveFailed) return same(s);
       // Fin, ou rien commencé : on sort sans question. Synthèse : on garde le temps joué sans rien noter.
       if (s.screen === 'fin') return to(s, {}, [{ type: 'exit', to: 'home' }]);
       if (s.startedAt === null) return to(s, {}, [{ type: 'exit', to: 'fiche' }]);
@@ -500,6 +512,9 @@ export type MomentPayload = {
   outcome: P3Outcome | null;
 };
 
+/** La base refuse une durée réelle au-delà de 4 h : une activité oubliée le soir puis terminée le matin doit quand même s'enregistrer. */
+export const MAX_REAL_DURATION_S = 14_400;
+
 /** Ligne de p3_moments. « Passer » (skipped) ne garde ni note, ni ressenti, ni phrase, mais le temps joué compte. */
 export function buildMomentPayload(
   s: FlowState,
@@ -519,7 +534,8 @@ export function buildMomentPayload(
     activityId: input.activity.id,
     week: input.activity.week as number,
     duration_chosen: playedDuration(input.baseDuration, s.ext.extraMinutes),
-    duration_real_s: s.startedAt !== null ? Math.round(((s.endedAt ?? input.now) - s.startedAt) / 1000) : null,
+    duration_real_s:
+      s.startedAt !== null ? Math.min(MAX_REAL_DURATION_S, Math.max(0, Math.round(((s.endedAt ?? input.now) - s.startedAt) / 1000))) : null,
     place: input.place,
     checkin: checkinRow(s.checkin),
     debrief: rows.length ? rows : null,

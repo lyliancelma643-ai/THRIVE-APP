@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, BackHandler, View } from 'react-native';
+import { ActivityIndicator, BackHandler, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { PremiumGate } from '../../../components/subscription/PremiumGate';
 import { Button, SPACING, ThemeScope, ThemedText, useTheme } from '../../../design';
@@ -14,7 +14,7 @@ import { EndView, type EndReward } from '../../../components/activite/EndView';
 import { KeptSheet } from '../../../components/activite/KeptSheet';
 import { LetterView } from '../../../components/activite/LetterView';
 import { PlayTimer } from '../../../components/activite/PlayTimer';
-import { QuitSheet } from '../../../components/activite/QuitSheet';
+import { QuitSheet, SaveFailedSheet } from '../../../components/activite/QuitSheet';
 import { RecallView } from '../../../components/activite/RecallView';
 import { SynthesisView } from '../../../components/activite/SynthesisView';
 import { useNow, type Chrome } from '../../../components/activite/parts';
@@ -119,10 +119,7 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
         dispatch({ t: 'record.done' });
         void reload();
       },
-      () => {
-        Alert.alert('Enregistrement impossible', 'Vérifiez votre connexion et réessayez.');
-        dispatch({ t: 'record.failed' });
-      },
+      () => dispatch({ t: 'record.failed' }),
     );
   };
 
@@ -366,6 +363,7 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
         />
       ) : null}
       {playTimer ? <PlayTimer timer={playTimer} onClose={() => setPlayTimer(null)} /> : null}
+      <SaveFailedSheet visible={state.saveFailed} onRetry={() => dispatch({ t: 'record.retry' })} onLeave={() => dispatch({ t: 'record.leave' })} />
       <QuitSheet
         visible={state.quitAsk}
         subtitle={quitSubtitle(minutesPlayed(elapsedS), firstName)}

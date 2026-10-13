@@ -18,6 +18,7 @@ import {
   frTypo,
   initialFlow,
   letterOpensAt,
+  MAX_REAL_DURATION_S,
   minutesPlayed,
   nextIsNewStep,
   parsePlaceChoice,
@@ -348,6 +349,55 @@ describe('quitter (M17) : « Enregistrer ce moment ? »', () => {
   });
 });
 
+describe('échec d’enregistrement et plafond de durée', () => {
+  const atSynthese = (): FlowState => ({ ...initialFlow(), screen: 'synthese', startedAt: 0, endedAt: 600_000 });
+
+  it('la durée réelle est plafonnée à 4 h (activité oubliée jusqu’au matin)', () => {
+    const s = { ...atSynthese(), endedAt: 20 * 3600_000 };
+    const p = buildMomentPayload(s, { activity, debrief: [], baseDuration: 10, place: 'maison', skipped: false, now: 1 });
+    expect(MAX_REAL_DURATION_S).toBe(14_400);
+    expect(p.duration_real_s).toBe(14_400);
+    const normal = buildMomentPayload(atSynthese(), { activity, debrief: [], baseDuration: 10, place: 'maison', skipped: false, now: 1 });
+    expect(normal.duration_real_s).toBe(600);
+  });
+
+  it('un échec ouvre deux choix ; fermer ne relance pas l’écriture', () => {
+    const saving = flowReduce(atSynthese(), { t: 'synthese.save', skipped: true }, ctx());
+    const failed = flowReduce(saving.state, { t: 'record.failed' }, ctx());
+    expect(failed.state.saveFailed).toBe(true);
+    expect(failed.state.recording).toBe(false);
+    const closed = flowReduce(failed.state, { t: 'quit.request' }, ctx());
+    expect(closed.effects).toEqual([]);
+    expect(closed.state.saveFailed).toBe(true);
+  });
+
+  it('« Réessayer » relance une seule écriture, avec le même choix (Passer ou Garder)', () => {
+    const saving = flowReduce(atSynthese(), { t: 'synthese.save', skipped: true }, ctx());
+    const failed = flowReduce(saving.state, { t: 'record.failed' }, ctx()).state;
+    const retry = flowReduce(failed, { t: 'record.retry' }, ctx());
+    expect(retry.effects).toEqual([{ type: 'record', skipped: true }]);
+    expect(retry.state.saveFailed).toBe(false);
+    expect(flowReduce(retry.state, { t: 'record.retry' }, ctx()).effects).toEqual([]);
+  });
+
+  it('« Quitter sans enregistrer » sort sans aucun enregistrement', () => {
+    const saving = flowReduce(atSynthese(), { t: 'synthese.save', skipped: false }, ctx());
+    const failed = flowReduce(saving.state, { t: 'record.failed' }, ctx()).state;
+    const left = flowReduce(failed, { t: 'record.leave' }, ctx());
+    expect(left.effects).toEqual([{ type: 'exit', to: 'home' }]);
+    expect(left.effects.some((e) => e.type === 'record' || e.type === 'seal-letter')).toBe(false);
+    // Hors échec, ces deux évènements ne font rien.
+    expect(flowReduce(atSynthese(), { t: 'record.leave' }, ctx()).effects).toEqual([]);
+    expect(flowReduce(atSynthese(), { t: 'record.retry' }, ctx()).effects).toEqual([]);
+  });
+
+  it('un échec à la sortie anticipée (synthèse) donne les mêmes deux choix', () => {
+    const q = flowReduce(atSynthese(), { t: 'quit.request' }, ctx());
+    expect(q.effects).toEqual([{ type: 'record', skipped: true }]);
+    expect(flowReduce(q.state, { t: 'record.failed' }, ctx()).state.saveFailed).toBe(true);
+  });
+});
+
 describe('enregistrement et fin', () => {
   const answered = play([
     { t: 'checkin.answer', axis: 'emotion', option: 'joie' },
@@ -384,7 +434,7 @@ describe('enregistrement et fin', () => {
     expect(flowReduce(rec.state, { t: 'record.done' }, ctx()).state.screen).toBe('fin');
     const failed = flowReduce(rec.state, { t: 'record.failed' }, ctx()).state;
     expect(failed.screen).toBe('synthese');
-    expect(flowReduce(failed, { t: 'synthese.save', skipped: false }, ctx()).effects).toHaveLength(1);
+    expect(flowReduce(failed, { t: 'record.retry' }, ctx()).effects).toHaveLength(1);
   });
 
   it('compteur, étoiles, objet débloqué : calculés depuis les moments, jamais figés', () => {
