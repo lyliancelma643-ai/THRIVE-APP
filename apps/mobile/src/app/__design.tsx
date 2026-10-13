@@ -2,15 +2,16 @@ import { Redirect } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
-  Avatar, Button, Card, Chip, Chips, Field, FloatingTabBar, GlassButton, GlassGroup, GlassMenu, GlassPair, Grid2,
-  ICON_NAMES, Icon, Kicker, LargeTitle, List, ListRow, LockOverlay, MascotMedallion, MutedPreview, NavBar, Pills,
-  ProgressBar, Section, SectionFooter, SectionHeader, Segmented, Sheet, Slider, STYLE_KEYS, STYLE_LABELS, Tag,
-  TAB_LAYOUTS, ThemedText, Toggle, useLargeTitle, useNavBarHeight, useTheme, type StyleKey, type TextStyleName,
+  Arch, Avatar, Button, Card, Chip, Chips, Enamel, Felt, Field, FloatingTabBar, GlassButton, GlassGroup, GlassMenu, GlassPair,
+  Grid2, ICON_NAMES, Icon, Kicker, LargeTitle, List, ListRow, LockOverlay, MascotMedallion, MutedPreview, NavBar, Paper,
+  Pills, ProgressBar, Section, SectionFooter, SectionHeader, Segmented, Sheet, Slider, Star, THEME_STYLE_KEYS,
+  THEME_STYLE_LABELS, Tag, ThemeScope, ThemedText, Toggle, Velvet, tabLayoutFor, useLargeTitle,
+  useNavBarHeight, useTheme, type ThemeStyleKey, type TextStyleName,
 } from '../design';
 
 /**
  * Galerie de contrôle des primitives (DEV uniquement) : toutes les briques du canevas Claude Design dans le style
- * courant, avec un sélecteur des trois styles. Route /__design — jamais livrée (redirige hors DEV).
+ * courant, avec un sélecteur des deux styles (Lin, Veillée) et les matières. Route /__design — jamais livrée (redirige hors DEV).
  */
 const SCALE: TextStyleName[] = ['largetitle', 'title1', 'title2', 'title3', 'headline', 'body', 'callout', 'sub', 'foot', 'cap', 'cap2'];
 
@@ -20,7 +21,7 @@ export default function DesignGallery() {
 }
 
 function Gallery() {
-  const { colors, style, setStyle } = useTheme();
+  const { colors, styleKey, setStyle } = useTheme();
   const navH = useNavBarHeight();
   const lt = useLargeTitle();
   const [seg, setSeg] = useState<'coach' | 'video'>('coach');
@@ -30,7 +31,7 @@ function Gallery() {
   const [sheet, setSheet] = useState<'none' | 'medium' | 'large'>('none');
   const [email, setEmail] = useState('camille@exemple.ca');
   const [pwd, setPwd] = useState('');
-  const layout = TAB_LAYOUTS[style];
+  const layout = tabLayoutFor(styleKey);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} testID="design-gallery">
@@ -45,12 +46,42 @@ function Gallery() {
         <SectionHeader small title="Style de l'app" />
         <Section>
           <Segmented
-            options={STYLE_KEYS.map((k) => ({ key: k, label: STYLE_LABELS[k] }))}
-            value={style}
-            onChange={(k: StyleKey) => setStyle(k)}
+            options={THEME_STYLE_KEYS.map((k) => ({ key: k, label: THEME_STYLE_LABELS[k] }))}
+            value={styleKey}
+            onChange={(k: ThemeStyleKey) => setStyle(k)}
             accessibilityLabel="Style de l'app"
           />
         </Section>
+
+        <SectionHeader small title="Matières" />
+        <View style={{ paddingHorizontal: 16, gap: 12 }}>
+          <Paper laid framed padding={16}>
+            <ThemedText variant="title3">Papier vergé, encre marine</ThemedText>
+            <ThemedText variant="sub" color="label2">Dans les deux styles, l'encre du papier reste marine.</ThemedText>
+          </Paper>
+          <Felt strong padding={16}>
+            <ThemedText variant="headline">Feutre : ce qu'on touche</ThemedText>
+          </Felt>
+          <Velvet padding={16}>
+            <ThemedText variant="headline">Velours côtelé : la semaine</ThemedText>
+            <View style={{ flexDirection: 'row', gap: 8, marginTop: 8 }}>
+              <Star on size={36} />
+              <Star size={36} />
+              <Star size={36} />
+            </View>
+          </Velvet>
+          <Enamel padding={16}>
+            <ThemedText variant="headline">Émail : le seul geste jaune</ThemedText>
+          </Enamel>
+          <View style={{ flexDirection: 'row', gap: 12, alignItems: 'flex-end' }}>
+            <Arch size="md" width={120} />
+            <Arch size="sm" width={84} />
+            <Arch size="xs" width={56} />
+          </View>
+          <ThemeScope style="veillee" fill containerStyle={{ flex: 0, height: 96, borderRadius: 20, overflow: 'hidden', padding: 16 }}>
+            <ThemedText variant="headline">ThemeScope veillee (mode activité)</ThemedText>
+          </ThemeScope>
+        </View>
 
         <SectionHeader title="Médaillons" action={{ label: 'Tout voir', onPress: () => {} }} />
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingVertical: 12 }}>
@@ -211,7 +242,7 @@ function Gallery() {
 
         <SectionHeader title="Barre d'onglets" />
         <Section style={{ gap: 8 }}>
-          <ThemedText variant="foot" color="label2">Style courant : {STYLE_LABELS[style]}</ThemedText>
+          <ThemedText variant="foot" color="label2">Style courant : {THEME_STYLE_LABELS[styleKey]}</ThemedText>
         </Section>
       </ScrollView>
 
@@ -231,7 +262,7 @@ function Gallery() {
         tabs={layout.tabs.map((t) => ({ key: t.route, label: t.label, glyph: t.glyph }))}
         activeKey={layout.tabs[1].route}
         onSelect={() => {}}
-        prominent={{ key: 'p', label: layout.prominent.label, glyph: layout.prominent.glyph, tinted: layout.prominent.tone === 'tinted', onPress: () => {} }}
+        prominent={{ key: 'p', label: layout.prominent.label, glyph: layout.prominent.glyph, onPress: () => {} }}
       />
 
       <Sheet visible={sheet !== 'none'} detent={sheet === 'large' ? 'large' : 'medium'} title="Comprendre l'outil" onClose={() => setSheet('none')}>

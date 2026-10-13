@@ -28,7 +28,7 @@ export type SheetProps = {
 };
 
 /**
- * Feuille modale (`.sheet`, `.grabber`, `.sbar`, `.dim`). Modal natif : pas de piège `position: fixed`.
+ * Feuille modale (`.sheet`, `.grabber`, `.sbar`, `.dim`). Modal React Native : pas de piège `position: fixed`.
  * Poignée 36 × 5 `label3`, barre de 62 pt (bouton verre 44, titre 600 17 centré).
  */
 export function Sheet({

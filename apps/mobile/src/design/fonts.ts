@@ -7,7 +7,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { Fraunces_400Regular, Fraunces_500Medium, Fraunces_600SemiBold } from '@expo-google-fonts/fraunces';
 
-/** À passer à `useFonts()` (cf. app/_layout.tsx). Inter = interface, Fraunces = titres Carnet / « 0 $ ». */
+/** À passer à `useFonts()` (cf. app/_layout.tsx). Inter = interface, Fraunces (400/500/600, sans axe SOFT : instance statique la plus proche) = titres éditoriaux / « 0 $ ». */
 export const FONT_ASSETS = {
   Inter_400Regular,
   Inter_500Medium,

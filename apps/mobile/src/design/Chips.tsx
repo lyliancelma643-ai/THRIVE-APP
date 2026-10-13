@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Icon, type IconName } from './icons';
 import { useTheme } from './ThemeProvider';
+import { Felt } from './Materials';
 import { ThemedText } from './ThemedText';
 
 export type TagTone = 'tint' | 'ok' | 'gray';
@@ -14,11 +15,11 @@ export type TagProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** `.tag` : étiquette 22 pt, rayon 11, texte 600 12/16, fond `tintSoft` / `okSoft` / `fill3`. Non interactive. */
+/** `.tag` : étiquette 22 pt, rayon 11, texte 600 12/16, fond `badgeBg` (sauge) / `okSoft` / `fill3`. Non interactive. */
 export function Tag({ label, tone = 'tint', glyph, style }: TagProps) {
   const { colors } = useTheme();
   const p = {
-    tint: { bg: colors.tintSoft, ink: colors.tintText },
+    tint: { bg: colors.badgeBg, ink: colors.badgeInk },
     ok: { bg: colors.okSoft, ink: colors.ok },
     gray: { bg: colors.fill3, ink: colors.label2 },
   }[tone];
@@ -39,7 +40,7 @@ export function Tag({ label, tone = 'tint', glyph, style }: TagProps) {
 
 export type ChipProps = {
   label: string;
-  /** `.chip.on` : fond `tint`, texte `tintInk`. */
+  /** `.chip.on` : feutre marine en Lin, crème en Veillée (jamais jaune : le soleil est pour le geste principal). */
   on?: boolean;
   glyph?: IconName;
   onPress?: () => void;
@@ -51,24 +52,28 @@ export type ChipProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** `.chip` : capsule 36 pt, padding 0 14, texte 500 15/20, fond `fill3` ; sélectionnée = `tint`. */
+/** `.chip` : capsule 36 pt, padding 0 14, texte 500 15/20, fond `fill3` ; sélectionnée = feutre (Lin) ou crème (Veillée). */
 export function Chip({ label, on, glyph, onPress, tall, disabled, surface = 'fill3', style }: ChipProps) {
-  const { colors } = useTheme();
-  const bg = on ? colors.tint : surface === 'bgGrouped2' ? colors.bgGrouped2 : colors.fill3;
-  const ink = on ? colors.tintInk : colors.label;
-  const body = (
-    <View
-      style={[
-        {
-          height: tall ? 44 : 36, borderRadius: tall ? 14 : 18, paddingHorizontal: 14, backgroundColor: bg,
-          flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, opacity: disabled ? 0.35 : 1,
-        },
-        style,
-      ]}
-    >
+  const { colors, styleKey } = useTheme();
+  const felt = !!on && styleKey === 'lin';
+  const bg = on ? (felt ? colors.navy600 : colors.cream) : surface === 'bgGrouped2' ? colors.bgGrouped2 : colors.fill3;
+  const ink = on ? (felt ? colors.cream : colors.navy900) : colors.label;
+  const box: ViewStyle = {
+    height: tall ? 44 : 36, borderRadius: tall ? 14 : 18, paddingHorizontal: 14,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+  };
+  const content = (
+    <>
       {glyph ? <Icon name={glyph} size={16} color={ink} /> : null}
       <ThemedText variant="sub" weight={on && tall ? 600 : 500} style={{ color: ink }} numberOfLines={1}>{label}</ThemedText>
-    </View>
+    </>
+  );
+  const body = felt ? (
+    <Felt radius={tall ? 14 : 18} style={[{ opacity: disabled ? 0.35 : 1 }, style]}>
+      <View style={box}>{content}</View>
+    </Felt>
+  ) : (
+    <View style={[box, { backgroundColor: bg, opacity: disabled ? 0.35 : 1 }, style]}>{content}</View>
   );
   if (!onPress) return body;
   return (

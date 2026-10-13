@@ -3,36 +3,35 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import { AccessibilityInfo, Platform } from 'react-native';
 import { supabaseClient } from '@thrive/shared';
 import { useAuthStore } from '../stores/auth.store';
+import { normalizeStyle, parseStyle, type LegacyStyleKey } from './styleMigration';
 import { fetchServerStyle, mergeStyle, pushServerStyle, type StyleSyncClient } from './styleSync';
-import { DEFAULT_STYLE, getTokens, isStyleKey, type StyleKey, type Tokens } from './tokens';
+import { themeFor, type ThemeContextValue } from './themeValue';
+import { DEFAULT_STYLE, type StyleKey } from './tokens';
 
 export const UI_STYLE_STORAGE_KEY = 'thrive.uiStyle';
 
-export type ThemeContextValue = Tokens & {
-  setStyle: (s: StyleKey) => void;
-  /** Réglage système « Réduire la transparence » : surfaces opaques. */
-  reduceTransparency: boolean;
-  /** Réglage système « Réduire les animations ». */
-  reduceMotion: boolean;
-  fontsLoaded: boolean;
-};
+export type { ThemeContextValue } from './themeValue';
 
-const ThemeContext = createContext<ThemeContextValue | null>(null);
+export const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 type Props = { children: ReactNode; fontsLoaded?: boolean; initialStyle?: StyleKey };
 
 export function ThemeProvider({ children, fontsLoaded = false, initialStyle = DEFAULT_STYLE }: Props) {
-  const [style, setStyleState] = useState<StyleKey>(initialStyle);
+  const [styleKey, setStyleState] = useState<StyleKey>(initialStyle);
   const [reduceTransparency, setReduceTransparency] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(false);
 
-  // Style persisté localement ; toute erreur de stockage retombe sur le défaut.
+  // Style persisté localement, normalisé (une ancienne clé est convertie puis réécrite) ;
+  // toute erreur de stockage ou valeur inconnue retombe sur le défaut.
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
-        const v = await AsyncStorage.getItem(UI_STYLE_STORAGE_KEY);
-        if (alive && isStyleKey(v)) setStyleState(v);
+        const raw = await AsyncStorage.getItem(UI_STYLE_STORAGE_KEY);
+        const parsed = parseStyle(raw);
+        if (!parsed) return;
+        if (alive) setStyleState(parsed);
+        if (raw !== parsed) AsyncStorage.setItem(UI_STYLE_STORAGE_KEY, parsed).catch(() => {});
       } catch {
         /* défaut conservé */
       }
@@ -76,17 +75,18 @@ export function ThemeProvider({ children, fontsLoaded = false, initialStyle = DE
     return () => { alive = false; subs.forEach((s) => s.remove()); };
   }, []);
 
-  const setStyle = useCallback((s: StyleKey) => {
-    setStyleState(s);
-    AsyncStorage.setItem(UI_STYLE_STORAGE_KEY, s).catch(() => {});
+  const setStyle = useCallback((s: StyleKey | LegacyStyleKey) => {
+    const next = normalizeStyle(s);
+    setStyleState(next);
+    AsyncStorage.setItem(UI_STYLE_STORAGE_KEY, next).catch(() => {});
     if (useAuthStore.getState().isAuthenticated) {
-      void pushServerStyle(supabaseClient as unknown as StyleSyncClient, s);
+      void pushServerStyle(supabaseClient as unknown as StyleSyncClient, next);
     }
   }, []);
 
   const value = useMemo<ThemeContextValue>(
-    () => ({ ...getTokens(style), setStyle, reduceTransparency, reduceMotion, fontsLoaded }),
-    [style, setStyle, reduceTransparency, reduceMotion, fontsLoaded],
+    () => ({ ...themeFor(styleKey), setStyle, reduceTransparency, reduceMotion, fontsLoaded }),
+    [styleKey, setStyle, reduceTransparency, reduceMotion, fontsLoaded],
   );
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
@@ -98,8 +98,13 @@ export function useTheme(): ThemeContextValue {
   return ctx;
 }
 
-/** Choix du style de l'app (persisté localement, défaut `natif`). */
-export function useStyleChoice(): { style: StyleKey; setStyle: (s: StyleKey) => void } {
-  const { style, setStyle } = useTheme();
-  return { style, setStyle };
+/** Choix du style de l'app (persisté localement, défaut `lin`). `style` = alias hérité (COMPAT), préférer `styleKey`. */
+export function useStyleChoice(): {
+  styleKey: StyleKey;
+  /** @deprecated COMPAT L2–L7 : voir `ThemeContextValue.style`. */
+  style: LegacyStyleKey;
+  setStyle: (s: StyleKey | LegacyStyleKey) => void;
+} {
+  const { styleKey, style, setStyle } = useTheme();
+  return { styleKey, style, setStyle };
 }

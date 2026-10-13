@@ -12,10 +12,10 @@ export type ThemedTextProps = TextProps & {
 };
 
 /**
- * Texte aux styles du canevas (`.t-*` : largetitle, title1-3, headline, body, callout, sub, foot, cap, cap2) ;
+ * Texte aux styles du canevas (`.t-*` : largetitle, title1-3, headline, body, callout, sub, foot, cap, cap2 ; `eyebrow`, `kick`, `navTitle`) ;
  * Dynamic Type respecté (allowFontScaling par défaut). `color` = nom d'un token (label, label2, tintText…).
  */
 export function ThemedText({ variant = 'body', color = 'label', weight, style, ...rest }: ThemedTextProps) {
-  const { colors, fontsLoaded, style: uiStyle } = useTheme();
-  return <Text {...rest} style={[resolveTextStyle(variant, fontsLoaded, uiStyle, weight), { color: colors[color] }, style]} />;
+  const { colors, fontsLoaded } = useTheme();
+  return <Text {...rest} style={[resolveTextStyle(variant, fontsLoaded, undefined, weight), { color: colors[color] }, style]} />;
 }

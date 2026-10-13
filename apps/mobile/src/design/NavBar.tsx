@@ -109,7 +109,7 @@ export type LargeTitleProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-/** `.largetitle` : 34/41 (Inter 700) ou 36/42 (Fraunces 600 en Carnet), padding 4 16 0. */
+/** `.largetitle` : 36/42 Fraunces 500 (les deux styles), padding 4 16 0. */
 export function LargeTitle({ children, subtitle, style }: LargeTitleProps) {
   return (
     <View style={style}>

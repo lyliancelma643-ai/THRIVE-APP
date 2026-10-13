@@ -11,7 +11,7 @@ export type AvatarProps = {
   color?: keyof ColorTokens;
   /** Couleur libre (couleur de passeport choisie par l'enfant) : remplace `color`. */
   background?: string;
-  /** Encre du texte (défaut blanc ; `accentInk` sur fond jaune en Nuit calme). */
+  /** Encre du texte (défaut blanc ; `accentInk` sur fond jaune). */
   ink?: string;
   /** Photo (URL résolue) : remplace l'initiale. */
   uri?: string | null;

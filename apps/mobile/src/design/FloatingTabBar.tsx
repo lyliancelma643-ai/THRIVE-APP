@@ -3,8 +3,10 @@ import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from './GlassSurface';
 import { Icon, type IconName } from './icons';
+import { Felt } from './Materials';
 import { useTheme } from './ThemeProvider';
 import { ThemedText } from './ThemedText';
+import { Texture } from './Texture';
 import { SPACING } from './tokens';
 
 export type FloatingTab = {
@@ -22,21 +24,21 @@ export type FloatingTabBarProps = {
   onSelect: (key: string) => void;
   /**
    * Onglet Prominent (`.prom`) : rond de 62 pt détaché, icône seule (le libellé ne sert qu'à VoiceOver).
-   * `tinted` = `.glass.tinted` (action active) ; sinon `.glass.plainglass` (verre neutre).
+   * Toujours en feutre (marine #004E7A en Lin, #0B3C59 cerclé en Veillée) : jamais de jaune.
    */
-  prominent?: FloatingTab & { onPress: () => void; tinted?: boolean };
+  prominent?: FloatingTab & { onPress: () => void };
 };
 
 /** Hauteur à réserver sous le contenu : barre + marge basse (hors zone sûre). */
 export const TAB_BAR_INSET = SPACING.tabbarH + SPACING.space6;
 
 /**
- * `.tabbar` : capsule de verre de 62 pt (`.tabs`, padding 4) à 3 onglets + onglet Prominent rond détaché.
- * Onglet actif (`.tab.on`) : fond `tabOn`, icône et libellé `tintText` ; inactifs : encre `label`.
+ * `.tabbar` : capsule de verre grainé de 62 pt (`.tabs`, padding 5) à 3 onglets + onglet Prominent rond détaché.
+ * Onglet actif (`.tab.on`) : fond `tabOn`, filet et icône/libellé `navActive` ; inactifs : encre `label`.
  * Rendue dans le flux (pas en absolu) : le contenu s'arrête au-dessus ; le fond reprend `bgGrouped`.
  */
 export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: FloatingTabBarProps) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const insets = useSafeAreaInsets();
   const draw = (t: FloatingTab, color: string, size: number) =>
     t.glyph ? <Icon name={t.glyph} size={size} color={color} /> : t.icon ? <Ionicons name={t.icon} size={size} color={color} /> : null;
@@ -51,10 +53,12 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
       }}
     >
       <GlassSurface radius={31} style={{ flex: 1 }}>
-        <View accessibilityRole="tabbar" style={{ flexDirection: 'row', height: SPACING.tabbarH - 2, padding: 4 }}>
+        <View accessibilityRole="tabbar" style={{ flexDirection: 'row', height: SPACING.tabbarH - 2, padding: 5 }}>
+          {/* ::before grain à 22 % (Veillée) ; la version Lin (grain blanc inversé à 10 %) est invisible, omise. */}
+          {styleKey === 'veillee' ? <Texture name="grain" opacity={0.22} /> : null}
           {tabs.map((t) => {
             const active = t.key === activeKey;
-            const color = active ? colors.tintText : colors.label;
+            const color = active ? colors.navActive : colors.label;
             return (
               <Pressable
                 key={t.key}
@@ -66,6 +70,7 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
                 style={{
                   flex: 1, borderRadius: 27, gap: 1, alignItems: 'center', justifyContent: 'center',
                   backgroundColor: active ? colors.tabOn : 'transparent',
+                  borderWidth: 1, borderColor: active ? `${colors.navActive}42` : 'transparent',
                 }}
               >
                 {draw(t, color, 24)}
@@ -85,11 +90,11 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
           accessibilityLabel={prominent.label}
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
         >
-          <GlassSurface interactive tinted={prominent.tinted} radius={31} style={{ width: SPACING.tabbarH, height: SPACING.tabbarH }}>
-            <View style={{ width: SPACING.tabbarH - 2, height: SPACING.tabbarH - 2, alignItems: 'center', justifyContent: 'center' }}>
-              {draw(prominent, prominent.tinted ? colors.tintInk : colors.label, 25)}
+          <Felt raised radius={SPACING.tabbarH / 2} style={{ width: SPACING.tabbarH, height: SPACING.tabbarH }}>
+            <View style={{ width: SPACING.tabbarH, height: SPACING.tabbarH, alignItems: 'center', justifyContent: 'center' }}>
+              {draw(prominent, colors.cream, 25)}
             </View>
-          </GlassSurface>
+          </Felt>
         </Pressable>
       ) : null}
     </View>

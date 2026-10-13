@@ -57,7 +57,7 @@ export function ListRow({
   const hasBadge = !!(glyph || icon);
   const inset = leading ? (leadingInset ?? 60) : hasBadge ? (large ? 72 : 60) : 16;
   const box = large ? 44 : 30;
-  // Glyphe blanc sur les pastilles de couleur système ; sur `tint` (jaune en Nuit calme) l'encre `tintInk`.
+  // Glyphe blanc sur les pastilles de couleur système ; sur `tint` (jaune en Veillée) l'encre `tintInk`.
   const badgeInk = iconColor === 'tint' ? colors.tintInk : CANVAS.white;
   const content = (
     <View style={{ minHeight: SPACING.rowMin, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -119,7 +119,7 @@ ListRow.isListItem = true;
 export type ListProps = { children?: ReactNode; style?: StyleProp<ViewStyle> };
 
 /**
- * `.list` : groupe inset grouped, fond `bgGrouped2`, rayon 26 (22 en Carnet), ombre Carnet.
+ * `.list` : groupe inset grouped, fond `bgGrouped2`, rayon 26, filet 1 pt `separator`, ombre `--shadow-card`.
  * Pose `last` sur la dernière `ListRow`/`Field` (le filet de séparation s'y arrête).
  */
 export function List({ children, style }: ListProps) {
@@ -128,7 +128,7 @@ export function List({ children, style }: ListProps) {
   const items = Children.toArray(children);
   const lastIdx = items.length - 1;
   return (
-    <View style={[{ backgroundColor: colors.bgGrouped2, borderRadius: metrics.rowRadius, ...shadow }, style]}>
+    <View style={[{ backgroundColor: colors.bgGrouped2, borderRadius: metrics.rowRadius, borderWidth: 1, borderColor: colors.separator, ...shadow }, style]}>
       <View style={{ borderRadius: metrics.rowRadius, overflow: 'hidden' }}>
         {items.map((c, i) => {
           if (!isValidElement(c)) return c;

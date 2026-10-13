@@ -10,7 +10,7 @@ import { BASE_VIGNETTE_ID } from './vignetteIds';
 export type MascotMedallionProps = {
   /** Diamètre du disque : 220 (Bienvenue), 112 (Connexion), 76 (en-têtes). */
   size?: number;
-  /** Badge du logo THRIVE en bas à droite, anneau blanc (Bienvenue Natif). */
+  /** Badge du logo THRIVE en bas à droite, anneau blanc (Bienvenue). */
   withLogo?: boolean;
   /** false : sans halo ni anneaux (le disque seul). */
   halo?: boolean;
@@ -19,20 +19,20 @@ export type MascotMedallionProps = {
 };
 
 /**
- * Médaillon rond de la mascotte (Main.dc.html / V1-B) : halo radial teinté (`tint` 16 %/12 % en Natif, soleil 30 %
- * en Carnet, aucun en Nuit calme), disque crème en dégradé radial (#F6F2EA → #EEE8DD 62 % → #E4DCCD) avec anneaux
- * blancs et ombre intérieure basse (Natif/Carnet), mascotte (ACT-0603) masquée par un dégradé radial, badge du logo.
- * Le composant occupe `size` × `size` ; le halo et les anneaux débordent.
+ * Médaillon rond de la mascotte : halo radial teinté (`tint` 16 %/12 % en Lin, aucun en Veillée), disque crème en
+ * dégradé radial (#F6F2EA → #EEE8DD 62 % → #E4DCCD) avec anneaux blancs et ombre intérieure basse (Lin),
+ * mascotte (ACT-0603) masquée par un dégradé radial, badge du logo. Le composant occupe `size` × `size` ; le halo
+ * et les anneaux débordent. Pour la fenêtre en arche de lin du canevas final, voir `<Arch>`.
  */
 export function MascotMedallion({ size = 220, withLogo = false, halo = true, accessibilityLabel = 'La mascotte THRIVE', style }: MascotMedallionProps) {
-  const { colors, style: uiStyle } = useTheme();
+  const { colors, styleKey } = useTheme();
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const nuit = uiStyle === 'nuit';
+  const night = styleKey === 'veillee';
   const pad = Math.ceil(size * 0.14);
   const box = size + pad * 2;
   const c = box / 2;
   const R = size / 2;
-  const haloColor = nuit || !halo ? null : uiStyle === 'carnet' ? withAlpha(colors.sun, 0.3) : withAlpha(colors.tint, size >= 160 ? 0.16 : 0.12);
+  const haloColor = night || !halo ? null : withAlpha(colors.tint, size >= 160 ? 0.16 : 0.12);
   const inset = size * 0.04;
   const img = size * 0.92;
   const ix = pad + inset;
@@ -65,14 +65,14 @@ export function MascotMedallion({ size = 220, withLogo = false, halo = true, acc
           </Mask>
         </Defs>
         {haloColor ? <Circle cx={c} cy={c} r={size * 0.64} fill={`url(#halo${uid})`} /> : null}
-        {!nuit && halo ? (
+        {!night && halo ? (
           <>
             <Circle cx={c} cy={c} r={R + 4} fill={m.ring2} />
             <Circle cx={c} cy={c} r={R + 0.5} fill="none" stroke={m.ring} strokeWidth={1} />
           </>
         ) : null}
         <Circle cx={c} cy={c} r={R} fill={`url(#disc${uid})`} />
-        {!nuit && halo ? <Circle cx={c} cy={c} r={R} fill={`url(#inner${uid})`} /> : null}
+        {!night && halo ? <Circle cx={c} cy={c} r={R} fill={`url(#inner${uid})`} /> : null}
         <SvgImage
           x={ix}
           y={ix}

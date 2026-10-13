@@ -2,6 +2,7 @@ import { Tabs } from 'expo-router';
 import {
   FloatingTabBar,
   HIDDEN_FROM_BAR,
+  activeTabKey,
   tabLayoutFor,
   useTheme,
   type ParentRoute,
@@ -10,7 +11,7 @@ import { useTrialReminder } from '../../hooks/useTrialReminder';
 
 // Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
 // déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
-// selon le style (Natif / Nuit calme / Carnet — cf. design/tabConfig.ts).
+// selon le style (Lin : Coach / Veillée : Ce soir — cf. design/tabConfig.ts).
 // Les écrans secondaires sont masqués de la barre avec `href: null`.
 const HIDDEN = [
   ...HIDDEN_FROM_BAR,
@@ -41,23 +42,22 @@ type BarProps = {
 };
 
 function ParentTabBar({ state, navigation }: BarProps) {
-  const { style } = useTheme();
-  const { tabs, prominent } = tabLayoutFor(style);
+  const { styleKey } = useTheme();
+  const layout = tabLayoutFor(styleKey);
+  const { tabs, prominent } = layout;
   const activeRoute = state.routes[state.index]?.name as ParentRoute | undefined;
   if (activeRoute && FULL_SCREEN.has(activeRoute)) return null;
   const go = (route: string) => navigation.navigate(route);
-  // Onglet Prominent : teinté selon le style (Natif = quand Coach est ouvert, Nuit calme = toujours, Carnet = jamais).
-  const promActive = activeRoute === prominent.route && prominent.tone === 'auto';
+  // Les droits (cadenas « Maison seul ») sont lus par les écrans eux-mêmes via access_state() : la barre ne les recalcule pas.
   return (
     <FloatingTabBar
       tabs={tabs.map((t) => ({ key: t.route, label: t.label, glyph: t.glyph }))}
-      activeKey={activeRoute === prominent.route && prominent.tone === 'auto' ? '' : activeRoute ?? ''}
+      activeKey={activeTabKey(layout, activeRoute)}
       onSelect={go}
       prominent={{
         key: 'prominent',
         label: prominent.label,
         glyph: prominent.glyph,
-        tinted: prominent.tone === 'tinted' || promActive,
         onPress: () => go(prominent.route),
       }}
     />

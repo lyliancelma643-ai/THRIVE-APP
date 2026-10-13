@@ -32,8 +32,8 @@ export type FieldProps = Pick<
 export function Field({
   label, children, labelWidth = 108, right, last, accessibilityLabel, inputRef, placeholder, multiline, ...input
 }: FieldProps) {
-  const { colors, fontsLoaded, style } = useTheme();
-  const text = resolveTextStyle('body', fontsLoaded, style);
+  const { colors, fontsLoaded } = useTheme();
+  const text = resolveTextStyle('body', fontsLoaded);
   return (
     <View style={{ minHeight: SPACING.rowMin, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <ThemedText variant="body" style={{ width: labelWidth }}>{label}</ThemedText>

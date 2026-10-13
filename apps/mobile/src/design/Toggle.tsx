@@ -14,7 +14,7 @@ export type ToggleProps = {
 
 /**
  * `.tgl` : interrupteur iOS 26/27, 64 × 28, pouce 39 × 24 blanc (ombre 0 2 6). Piste `fill` éteinte,
- * `sysGreen` allumée. Cible tactile élargie à 44 pt de haut.
+ * `tglOn` (sauge) allumée. Cible tactile élargie à 44 pt de haut.
  */
 export function Toggle({ value, onValueChange, disabled, accessibilityLabel, style }: ToggleProps) {
   const { colors } = useTheme();
@@ -30,7 +30,7 @@ export function Toggle({ value, onValueChange, disabled, accessibilityLabel, sty
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ checked: value, disabled: !!disabled }}
       hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-      style={[{ width: 64, height: 28, borderRadius: 14, backgroundColor: value ? colors.sysGreen : colors.fill, opacity: disabled ? 0.4 : 1 }, style]}
+      style={[{ width: 64, height: 28, borderRadius: 14, backgroundColor: value ? colors.tglOn : colors.fill, opacity: disabled ? 0.4 : 1 }, style]}
     >
       <Animated.View
         style={{

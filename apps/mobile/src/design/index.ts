@@ -1,9 +1,31 @@
 export * from './tokens';
 export * from './contrast';
 export * from './tabConfig';
+export { STYLE_MIGRATION, normalizeStyle, parseStyle, isLegacyStyleKey } from './styleMigration';
+export type { LegacyStyleKey } from './styleMigration';
+// ── COMPAT GO 4 · L1 (à supprimer avec legacyCompat.ts, cf. ce fichier) ──────────────────────────────
+// Ces cinq noms désignent ENCORE les anciennes clés pour les écrans non migrés. Les versions strictes
+// (`'lin' | 'veillee'`) restent disponibles sous les alias ci-dessous et dans tokens.ts / tabConfig.ts.
+export { STYLE_KEYS, STYLE_LABELS, COLORS, TAB_LAYOUTS, toLegacyStyle, withLegacyKeys } from './legacyCompat';
+export type { StyleKey } from './legacyCompat';
+export type { StyleKey as ThemeStyleKey } from './tokens';
+export {
+  STYLE_KEYS as THEME_STYLE_KEYS,
+  STYLE_LABELS as THEME_STYLE_LABELS,
+  STYLE_DESCRIPTIONS as THEME_STYLE_DESCRIPTIONS,
+  COLORS as THEME_COLORS,
+} from './tokens';
+// ── fin COMPAT ───────────────────────────────────────────────────────────────────────────────────────
 export { resolveTextStyle } from './typography';
 export { FONT_ASSETS } from './fonts';
 export { ThemeProvider, useTheme, useStyleChoice, UI_STYLE_STORAGE_KEY } from './ThemeProvider';
+export { ThemeScope, type ThemeScopeProps } from './ThemeScope';
+export { Lamp, type LampProps } from './Lamp';
+export { Paper, Felt, Velvet, Enamel, type PaperProps, type FeltProps, type VelvetProps, type EnamelProps } from './Materials';
+export { Star, type StarProps } from './Star';
+export { Arch, type ArchProps } from './Arch';
+export { Texture, type TextureProps } from './Texture';
+export type { TextureName } from './materialSpecs';
 export type { ThemeContextValue } from './ThemeProvider';
 export { ThemedText, type ThemedTextProps } from './ThemedText';
 export { GlassSurface, useGlassMode, type GlassMode, type GlassSurfaceProps } from './GlassSurface';

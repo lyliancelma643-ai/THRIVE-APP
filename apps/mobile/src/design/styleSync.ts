@@ -1,10 +1,13 @@
-import { isStyleKey, type StyleKey } from './tokens';
+import { parseStyle } from './styleMigration';
+import type { StyleKey } from './tokens';
 
 /**
  * Synchro serveur du style de l'app (migration 083). AsyncStorage reste la
  * source immédiate ; le serveur ne fait que réconcilier au démarrage connecté
  * et recevoir les changements en tâche de fond. Toute erreur est avalée
  * (migration non appliquée, réseau coupé, session expirée) : le style local gagne.
+ * Les valeurs lues (locales ou serveur) passent toutes par `parseStyle()` : une ancienne
+ * valeur est convertie en `lin` / `veillee`, une valeur inconnue est ignorée.
  */
 
 /** Sous-ensemble du client Supabase utilisé ici (injecté, donc testable). */
@@ -22,7 +25,7 @@ export type StyleSyncClient = {
 export type MergeResult = {
   /** Style à afficher. */
   style: StyleKey | null;
-  /** Écrire `style` dans le stockage local. */
+  /** Écrire `style` dans le stockage local (valeur absente, différente ou à l'ancien format). */
   writeLocal: boolean;
   /** Pousser le style local vers le serveur (le serveur n'en a pas encore). */
   pushServer: boolean;
@@ -30,14 +33,15 @@ export type MergeResult = {
 
 /**
  * Fusion local/serveur : un style serveur valide l'emporte et est réécrit
- * localement s'il diffère ; sans valeur serveur, le local est conservé et
+ * localement s'il diffère de la valeur brute stockée (y compris une ancienne clé, migrée au passage) ;
+ * sans valeur serveur, le local est conservé (et réécrit s'il était à l'ancien format) puis
  * poussé une fois s'il existe ; une valeur serveur invalide est ignorée.
  */
 export function mergeStyle(local: unknown, server: unknown): MergeResult {
-  const l = isStyleKey(local) ? local : null;
-  const s = isStyleKey(server) ? server : null;
-  if (s) return { style: s, writeLocal: s !== l, pushServer: false };
-  return { style: l, writeLocal: false, pushServer: l !== null };
+  const l = parseStyle(local);
+  const s = parseStyle(server);
+  if (s) return { style: s, writeLocal: local !== s, pushServer: false };
+  return { style: l, writeLocal: l !== null && local !== l, pushServer: l !== null };
 }
 
 /** Lit le style serveur du parent connecté ; `null` si absent ou en cas d'erreur. */
@@ -45,7 +49,7 @@ export async function fetchServerStyle(client: StyleSyncClient, userId: string):
   try {
     const { data, error } = await client.from('profiles').select('ui_style').eq('id', userId).maybeSingle();
     if (error || !data) return null;
-    return isStyleKey(data.ui_style) ? data.ui_style : null;
+    return parseStyle(data.ui_style);
   } catch {
     return null;
   }

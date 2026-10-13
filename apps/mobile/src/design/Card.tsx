@@ -3,12 +3,12 @@ import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
 import { Icon, type IconName } from './icons';
 import { ThemedText } from './ThemedText';
 import { useTheme } from './ThemeProvider';
-import { SHADOW_CARD_CARNET } from './tokens';
+import { SHADOW_CARD } from './tokens';
 
-/** Ombre portée du Carnet (`--shadow-card`) ; rien en Natif et Nuit calme. */
-export function useCardShadow(): ViewStyle | undefined {
-  const { metrics } = useTheme();
-  return metrics.cardShadow ? SHADOW_CARD_CARNET : undefined;
+/** Ombre portée des cartes et listes (`--shadow-card`), propre à chaque style. */
+export function useCardShadow(): ViewStyle {
+  const { styleKey } = useTheme();
+  return SHADOW_CARD[styleKey];
 }
 
 export type CardProps = {
@@ -21,8 +21,8 @@ export type CardProps = {
 };
 
 /**
- * `.card` : fond `bgGrouped2`, rayon 26 (24 en Carnet), padding 16, `overflow: hidden`.
- * L'ombre (Carnet) vit sur un conteneur externe pour ne pas être rognée.
+ * `.card` : fond `bgGrouped2`, rayon 26, filet 1 pt `separator`, ombre `--shadow-card`, padding 16, `overflow: hidden`.
+ * L'ombre vit sur un conteneur externe pour ne pas être rognée.
  */
 export function Card({ children, padding = 16, onPress, accessibilityLabel, style }: CardProps) {
   const { colors, metrics } = useTheme();
@@ -30,7 +30,7 @@ export function Card({ children, padding = 16, onPress, accessibilityLabel, styl
   const body = (
     <View style={{ borderRadius: metrics.cardRadius, overflow: 'hidden', padding }}>{children}</View>
   );
-  const outer: ViewStyle = { backgroundColor: colors.bgGrouped2, borderRadius: metrics.cardRadius, ...shadow };
+  const outer: ViewStyle = { backgroundColor: colors.bgGrouped2, borderRadius: metrics.cardRadius, borderWidth: 1, borderColor: colors.separator, ...shadow };
   if (onPress) {
     return (
       <Pressable
@@ -46,13 +46,13 @@ export function Card({ children, padding = 16, onPress, accessibilityLabel, styl
   return <View style={[outer, style]}>{body}</View>;
 }
 
-/** `.card .kick` : sur-titre 13/18 600 `label2`, icône optionnelle (14 pt) à gauche. */
+/** `.card .kick` : sur-titre en capitales espacées 11,5/16, sauge, icône optionnelle (14 pt) à gauche. */
 export function Kicker({ children, glyph, style }: { children: string; glyph?: IconName; style?: StyleProp<ViewStyle> }) {
   const { colors } = useTheme();
   return (
     <View style={[{ flexDirection: 'row', alignItems: 'center', gap: 6 }, style]}>
-      {glyph ? <Icon name={glyph} size={14} color={colors.label2} /> : null}
-      <ThemedText variant="foot" weight={600} color="label2" style={{ flexShrink: 1 }}>{children}</ThemedText>
+      {glyph ? <Icon name={glyph} size={14} color={colors.sageText} /> : null}
+      <ThemedText variant="kick" color="sageText" style={{ flexShrink: 1 }}>{children}</ThemedText>
     </View>
   );
 }

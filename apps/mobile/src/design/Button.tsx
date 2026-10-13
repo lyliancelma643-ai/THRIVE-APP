@@ -1,9 +1,9 @@
 import { Pressable, View, type StyleProp, type ViewStyle } from 'react-native';
+import { Enamel, Felt } from './Materials';
 import { GlassSurface } from './GlassSurface';
 import { Icon, type IconName } from './icons';
 import { useTheme } from './ThemeProvider';
 import { ThemedText } from './ThemedText';
-import { CANVAS } from './tokens';
 
 export type ButtonVariant = 'prom' | 'gray' | 'plain' | 'plainglass' | 'accent' | 'danger';
 export type ButtonSize = 'lg' | 'md' | 'sm';
@@ -12,9 +12,10 @@ export type ButtonProps = {
   label: string;
   onPress: () => void;
   /**
-   * `prom` (`.btn.prom`) : bouton proéminent, capsule `tint` pleine largeur, reflet haut ;
-   * `gray` : `fill2` + texte `tintText` ; `plain` : texte `tintText` seul ; `plainglass` : capsule de verre neutre ;
-   * `accent` : `accent` + `accentInk` ; `danger` : texte `sysRed` sur `fill2`.
+   * `prom` (`.btn.prom`) : bouton principal — feutre marine en Lin, ÉMAIL jaune en Veillée (le seul geste soleil) ;
+   * `accent` (`.btn.sun`) : émail jaune dans les deux styles ; `gray` : `fill3` + texte `label` ;
+   * `plain` : texte seul ; `plainglass` : capsule de verre neutre ; `danger` : texte `sysRed` sur `fill2`.
+   * Un seul émail par écran : un second bouton principal passe en `gray`.
    */
   variant?: ButtonVariant;
   /** `lg` 52 pt pleine largeur (défaut) ; `md` 44 pt (`.btn.md`) ; `sm` 36 pt (`.btn.sm`), largeur au contenu. */
@@ -39,13 +40,16 @@ const SIZES: Record<ButtonSize, { height: number; radius: number; padding: numbe
 export function Button({
   label, onPress, variant = 'prom', size = 'lg', glyph, disabled, loading, flex, accessibilityLabel, testID, style,
 }: ButtonProps) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const m = SIZES[size];
   const off = !!disabled || !!loading;
+  const lin = styleKey === 'lin';
+  // `prom` : feutre marine en Lin, émail en Veillée ; `accent` : émail dans les deux styles.
+  const material = variant === 'accent' || (variant === 'prom' && !lin) ? 'enamel' : variant === 'prom' ? 'felt' : null;
   const palette = {
-    prom: { bg: colors.tint, ink: colors.tintInk },
-    gray: { bg: colors.fill2, ink: colors.tintText },
-    plain: { bg: 'transparent', ink: colors.tintText },
+    prom: lin ? { bg: colors.navy600, ink: colors.cream } : { bg: colors.accent, ink: colors.accentInk },
+    gray: { bg: colors.fill3, ink: colors.label },
+    plain: { bg: 'transparent', ink: lin ? colors.tint : colors.label },
     plainglass: { bg: 'transparent', ink: colors.label },
     accent: { bg: colors.accent, ink: colors.accentInk },
     danger: { bg: colors.fill2, ink: colors.sysRed },
@@ -81,18 +85,16 @@ export function Button({
         <GlassSurface radius={m.radius}>
           <View style={box}>{inner}</View>
         </GlassSurface>
+      ) : material === 'felt' ? (
+        <Felt strong radius={m.radius}>
+          <View style={box}>{inner}</View>
+        </Felt>
+      ) : material === 'enamel' ? (
+        <Enamel radius={m.radius}>
+          <View style={box}>{inner}</View>
+        </Enamel>
       ) : (
-        <View
-          style={[
-            box,
-            { backgroundColor: palette.bg },
-            variant === 'prom'
-              ? { borderWidth: 1, borderColor: CANVAS.promEdge, borderTopColor: CANVAS.promSpec }
-              : null,
-          ]}
-        >
-          {inner}
-        </View>
+        <View style={[box, { backgroundColor: palette.bg }]}>{inner}</View>
       )}
     </Pressable>
   );
