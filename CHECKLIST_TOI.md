@@ -186,3 +186,39 @@ Rapport complet : `docs/release/GO3_RAPPORT.md`. Rien n'est appliqué en prod ni
 - [ ] **Checkout Stripe test** (carte `4242 4242 4242 4242`) : versement 1, puis versement 2 (Test Clocks).
 - [ ] **Remboursement admin** partiel puis total, `audit_logs` vérifié.
 - [ ] **Abonné App Store qui ouvre le web** : aucun lien de paiement vers un prix.
+
+## GO 4 : Lin et Veillée (UI finale, branche locale `feature/ios27-lin-veillee`)
+
+Rapport complet : `docs/release/GO4_RAPPORT.md`. Rien n'est poussé ni appliqué en prod. La branche est locale et non poussée.
+
+### Base de données
+
+- [ ] **Appliquer la migration 083 modifiée** (`supabase/migrations/20261012_083_ui_style.sql`, commit `a51f52b`), **en même temps que 081 et 082** (GO 3), seulement après validation du rapport et relecture. Contrôler `get_advisors` (0 erreur attendue). Rollback : `supabase/rollbacks/20261012_083_ui_style_rollback.sql`.
+
+### Décisions à trancher
+
+- [ ] **R5. Style par défaut `lin`** (décidé seul). Confirmer, ou choisir `veillee`.
+- [ ] **R11. Anciennes valeurs normalisées** (`natif` et `carnet` vers `lin`, `nuit` vers `veillee`). Confirmer.
+- [ ] **R12. Fraunces sans axe SOFT, textures en tuiles PNG.** Accepter l'écart, après avoir jugé sur simulateur.
+- [ ] **R13. Design system artifact « THRIVE iOS 27 » périmé.** `final.css` fait foi. Demander la mise à jour de l'artifact si utile.
+- [ ] **D1. Invitation Offres de K3** (« Envie d'aller plus loin ? ») : la limiter à Veillée ou l'afficher dans les deux styles. Recommandation : les deux (supprimer la condition `styleKey` dans `apps/mobile/src/components/maison/models.ts:88-90`).
+- [ ] **D2. Libellé X2** « Programme réglé par Stripe · aucun abonnement séparé ». Recommandation : garder, ou écrire « Inclus avec ton programme · aucun abonnement séparé » pour un risque nul en revue Apple.
+- [ ] **D3. Lettre scellée puis « Non »** au moment de quitter. Recommandation : garder, et ajouter « Ta lettre reste scellée » sous le titre de M17.
+- [ ] **D4. Lettre du Bilan (G9)** : le mobile ne montre jamais le texte, le web oui. Recommandation : garder le mobile, aligner le web plus tard. Décider si la lettre se descelle après 12 mois (aucune date n'est stockée).
+- [ ] **D5. Règle « un seul soleil »** sur V (points non lus) et G en Veillée (marques d'état). Recommandation : accepter, comme sur la maquette, et corriger le commentaire de `apps/mobile/src/components/bilan/BilanCards.tsx:17`.
+- [ ] **Décider `expo-keep-awake`.** Absent : l'écran peut se mettre en veille pendant le minuteur du mode activité. Ajouter la dépendance (écran allumé pendant le minuteur), ou accepter le risque. La vibration remplace le bip (expo-haptics).
+- [ ] **Capture trop lourde** : `docs/release/go4-captures/L3-K2-lin-long.png` fait 1,1 Mo. La recompresser ou la retirer avant de pousser.
+
+### Tests manuels (simulateur iOS)
+
+- [ ] **Parcours complet sur simulateur iOS en Lin**, puis en Veillée : arrivée, Maison, mode activité, Bilan, Mes séances, messages, Offres, Compte.
+- [ ] **Mode activité en Lin** : il doit rester sur le fond marine (Veillée).
+- [ ] **Bascule Lin et Veillée à chaud** (sans relancer l'app).
+- [ ] **Réduire la transparence et Réduire les animations** (Réglages › Accessibilité).
+- [ ] **Dynamic Type** à la taille la plus grande.
+- [ ] **VoiceOver sur la barre d'onglets** : l'onglet central s'annonce « Coach » en Lin, « Ce soir » en Veillée.
+- [ ] **Mode activité hors ligne** : si l'enregistrement échoue, « Réessayer » et « Quitter sans enregistrer » doivent être visibles et fonctionner.
+
+### Pousser la branche
+
+- [ ] **Pousser `feature/ios27-lin-veillee`** seulement quand les décisions ci-dessus sont prises, la capture corrigée, et la migration 083 traitée avec le GO 3. Cette branche part de `feature/ios27-ui-paiements` : pousser les deux dans le bon ordre.
