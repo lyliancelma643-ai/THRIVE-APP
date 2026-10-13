@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Modal, Share, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { supabaseClient as supabase, useFamily, useChildren } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
@@ -13,7 +13,7 @@ import { SessionReportView, type SessionReportModel } from '../../components/bil
 import { fetchSessionReport } from '../../components/bilan/bilanApi';
 import { buildReportModel, buildSeancesModel, type SessionRow } from '../../components/bilan/bilanModel';
 
-// Mes séances (écrans S et T) : séances en présentiel de l'enfant, par phase, et bilan du coach de chaque séance validée.
+// Mes séances (écrans S et T ; S2 = état verrouillé « Maison seul », rendu par LockedSection) : séances en présentiel de l'enfant, par phase, et bilan du coach de chaque séance validée.
 // Accès : section Mes séances de access_state() (migration 080) ; verrouillé → aperçu factice flouté,
 // AUCUNE requête de données (la RLS refuse aussi). La mise en page vit dans components/bilan (vues).
 
@@ -21,6 +21,7 @@ type ParentReport = { id: string; created_at: string; parent_visible_body: { ses
 
 export default function SeancesScreen() {
   const { colors } = useTheme();
+  const router = useRouter();
   const { user } = useAuthStore();
   const { family } = useFamily(user?.id);
   const { children, isLoading: childrenLoading } = useChildren(family?.id);
@@ -109,7 +110,7 @@ export default function SeancesScreen() {
     <>
       <SeancesView
         m={model}
-        a={{ onOpenReport: openReport, onSelectChild: setSelectedId, onRefresh: reload, refreshing: loading }}
+        a={{ onOpenReport: openReport, onSelectChild: setSelectedId, onRefresh: reload, refreshing: loading, onOpenVideo: () => router.push('/(parent)/videos') }}
       />
       <Modal visible={!!report} animationType="slide" onRequestClose={() => setReport(null)} statusBarTranslucent>
         {report ? (

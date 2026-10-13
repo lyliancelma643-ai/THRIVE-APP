@@ -1,11 +1,11 @@
 import React, { useRef } from 'react';
 import { FlatList, KeyboardAvoidingView, Platform, Pressable, TextInput, View } from 'react-native';
 import {
-  Avatar, CANVAS, GlassButton, GlassSurface, Icon, NavBar, ThemedText, resolveTextStyle, useNavBarHeight, useTheme,
+  Avatar, GlassButton, GlassSurface, Icon, NavBar, ThemedText, resolveTextStyle, useNavBarHeight, useTheme,
 } from '../../design';
 import { Bubble } from './Bubble';
 
-// U — Messages : le fil avec le coach (bulles, saisie en verre). Vue PRÉSENTATIONNELLE : la route (chat/[conversationId])
+// U — Messages : le fil avec le coach (bulles crème / marine, champ de saisie en verre ; le bouton d'envoi est le seul geste soleil en Veillée). Vue PRÉSENTATIONNELLE : la route (chat/[conversationId])
 // garde la logique existante (useMessages, signalement, blocage). Le « + » (pièces jointes) n'existe pas dans le produit.
 
 export type ThreadMessage = {
@@ -43,10 +43,10 @@ const dayText = (iso: string) => {
 };
 
 export function ThreadView(p: ThreadViewProps) {
-  const { colors, fontsLoaded, style } = useTheme();
+  const { colors, fontsLoaded, styleKey } = useTheme();
   const navH = useNavBarHeight();
   const list = useRef<FlatList>(null);
-  const body = resolveTextStyle('body', fontsLoaded, style);
+  const body = resolveTextStyle('body', fontsLoaded, styleKey);
   const canSend = p.input.trim().length > 0 && !p.sending;
   const lastMine = [...p.messages].reverse().find((m) => m.mine);
   return (
@@ -133,7 +133,7 @@ export function ThreadView(p: ThreadViewProps) {
       />
       <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height: navH, alignItems: 'center', justifyContent: 'flex-end', paddingBottom: 13, zIndex: 41 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Avatar label={p.initial} size={28} background={colors.sysIndigo} ink={CANVAS.white} />
+          <Avatar label={p.initial} size={28} background={colors.sageInk} ink={colors.cream} />
           <ThemedText variant="headline" numberOfLines={1} style={{ maxWidth: 200 }}>{p.title}</ThemedText>
         </View>
       </View>

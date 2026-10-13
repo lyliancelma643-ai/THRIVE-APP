@@ -19,7 +19,7 @@ function useSvgFonts() {
 }
 
 /**
- * Courbe LSSS (Z · « La courbe se referme ») : repères pointillés 50 · 70 · 90, trait `tint` de 3 pt, un point par
+ * Courbe LSSS (Z · « La courbe se referme ») : repères pointillés 50 · 70 · 90, trait `kid` de 3 pt (sauge, `var(--kid)` du canevas), un point par
  * moment (Départ, Mi-parcours, Final) avec sa valeur au-dessus et son libellé en bas. SVG 338 × 150 comme le canevas.
  */
 export function LsssChart({ points, label }: { points: LsssPoint[]; label: string }) {
@@ -40,10 +40,10 @@ export function LsssChart({ points, label }: { points: LsssPoint[]; label: strin
             </SvgText>
           </React.Fragment>
         ))}
-        {plot.points.length > 1 ? <Path d={d} fill="none" stroke={colors.tint} strokeWidth={3} strokeLinecap="round" /> : null}
+        {plot.points.length > 1 ? <Path d={d} fill="none" stroke={colors.kid} strokeWidth={3} strokeLinecap="round" /> : null}
         {plot.points.map((p) => (
           <React.Fragment key={p.moment}>
-            <Circle cx={p.x} cy={p.y} r={6} fill={colors.tint} stroke={colors.bgGrouped2} strokeWidth={2.5} />
+            <Circle cx={p.x} cy={p.y} r={6} fill={colors.kid} stroke={colors.bgGrouped2} strokeWidth={2.5} />
             <SvgText x={p.x} y={p.y - 13} textAnchor="middle" fontSize={13} fontWeight="600" fill={colors.label} fontFamily={f.semibold}>
               {String(p.value)}
             </SvgText>
@@ -58,7 +58,7 @@ export function LsssChart({ points, label }: { points: LsssPoint[]; label: strin
 }
 
 /**
- * Bien-être sur 13 séances : zone `tint` à 12 %, trait de 2,4 pt, un point par séance, le dernier plein.
+ * Bien-être sur 13 séances : zone `kid` à 12 %, trait de 2,4 pt, un point par séance, le dernier plein.
  * SVG 338 × 64 comme le canevas.
  */
 export function WellbeingSpark({ points, label }: { points: WellbeingPoint[]; label: string }) {
@@ -72,13 +72,13 @@ export function WellbeingSpark({ points, label }: { points: WellbeingPoint[]; la
   return (
     <View accessible accessibilityRole="image" accessibilityLabel={label}>
       <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ maxWidth: '100%' }}>
-        <Path d={`${line} L${last.x.toFixed(1)} ${height} L${first.x.toFixed(1)} ${height}Z`} fill={colors.tint} opacity={0.12} />
-        <Path d={line} fill="none" stroke={colors.tint} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
+        <Path d={`${line} L${last.x.toFixed(1)} ${height} L${first.x.toFixed(1)} ${height}Z`} fill={colors.kid} opacity={0.12} />
+        <Path d={line} fill="none" stroke={colors.kid} strokeWidth={2.4} strokeLinecap="round" strokeLinejoin="round" />
         {plot.map((p, i) =>
           i === plot.length - 1 ? (
-            <Circle key={p.session} cx={p.x} cy={p.y} r={4} fill={colors.tint} stroke={colors.tint} strokeWidth={2} />
+            <Circle key={p.session} cx={p.x} cy={p.y} r={4} fill={colors.kid} stroke={colors.kid} strokeWidth={2} />
           ) : (
-            <Circle key={p.session} cx={p.x} cy={p.y} r={2.4} fill={colors.bgGrouped2} stroke={colors.tint} strokeWidth={2} />
+            <Circle key={p.session} cx={p.x} cy={p.y} r={2.4} fill={colors.bgGrouped2} stroke={colors.kid} strokeWidth={2} />
           ),
         )}
       </Svg>

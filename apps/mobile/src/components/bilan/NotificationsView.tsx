@@ -1,12 +1,12 @@
 import React from 'react';
 import { Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import {
-  CANVAS, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, ThemedText, useCardShadow, useLargeTitle,
-  useNavBarHeight, useTheme, type ColorTokens, type IconName,
+  GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, ThemedText, useCardShadow, useLargeTitle,
+  useNavBarHeight, useTheme, type IconName,
 } from '../../design';
 import { NOTIF_BUCKET_LABEL, groupNotifications, notifStamp } from './bilanData';
 
-// V — Notifications, groupées (Aujourd'hui · Cette semaine · Plus tôt), pastille non lue, chaque ligne mène au bon endroit.
+// V — Notifications, groupées (Aujourd'hui · Cette semaine · Plus tôt), pastille non lue (point soleil cerclé, comme le canevas), chaque ligne mène au bon endroit.
 // Vue PRÉSENTATIONNELLE : la route garde la lecture, la suppression et la navigation (data.path → route, ?focus=…).
 
 export type NotifItem = {
@@ -18,12 +18,13 @@ export type NotifItem = {
   is_read: boolean;
 };
 
-const VISUAL: Record<string, { glyph: IconName; color: keyof ColorTokens }> = {
-  MESSAGE: { glyph: 'chat', color: 'sysIndigo' },
-  SESSION: { glyph: 'document', color: 'sysGreen' },
-  PROGRAM: { glyph: 'pulse', color: 'sysOrange' },
-  BADGE: { glyph: 'gift', color: 'sysPink' },
-  SYSTEM: { glyph: 'document', color: 'sysTeal' },
+// `.ibadge.lg` : pastille ronde sauge (`badgeBg` + `badgeInk`), même pour tous les types ; seul le glyphe change.
+const VISUAL: Record<string, { glyph: IconName }> = {
+  MESSAGE: { glyph: 'chat' },
+  SESSION: { glyph: 'document' },
+  PROGRAM: { glyph: 'pulse' },
+  BADGE: { glyph: 'gift' },
+  SYSTEM: { glyph: 'document' },
 };
 
 export type NotificationsViewProps = {
@@ -56,13 +57,20 @@ function NotifRow({ n, bucket, last, onOpen, onDelete }: { n: NotifItem; bucket:
       style={({ pressed }) => ({ backgroundColor: pressed ? colors.fill3 : 'transparent' })}
     >
       <View style={{ minHeight: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        {!n.is_read ? <View style={{ position: 'absolute', left: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.sysBlue }} /> : null}
-        <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors[v.color], alignItems: 'center', justifyContent: 'center' }}>
-          <Icon name={v.glyph} size={22} color={CANVAS.white} strokeWidth={2} />
+        {!n.is_read ? (
+          <View
+            style={{
+              position: 'absolute', left: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.accent,
+              borderWidth: 1.5, borderColor: 'rgba(0,49,76,0.25)', boxSizing: 'content-box',
+            } as never}
+          />
+        ) : null}
+        <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.badgeBg, alignItems: 'center', justifyContent: 'center' }}>
+          <Icon name={v.glyph} size={22} color={colors.badgeInk} strokeWidth={2} />
         </View>
         <View style={{ flex: 1, minWidth: 0, paddingVertical: 11 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-            <ThemedText variant="body" weight={400} numberOfLines={1} style={{ flex: 1 }}>{n.title}</ThemedText>
+            <ThemedText variant="body" weight={n.is_read ? 400 : 700} numberOfLines={1} style={{ flex: 1 }}>{n.title}</ThemedText>
             <ThemedText variant="foot" color="label2">{notifStamp(n.created_at, bucket)}</ThemedText>
           </View>
           {n.body ? <ThemedText variant="sub" color="label2" numberOfLines={2}>{n.body}</ThemedText> : null}

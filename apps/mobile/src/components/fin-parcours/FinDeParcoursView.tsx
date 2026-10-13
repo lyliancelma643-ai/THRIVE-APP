@@ -34,7 +34,7 @@ export type FinDeParcoursViewProps = {
 };
 
 /**
- * Z · Fin de parcours : barre « Fin de parcours » (retour, partage), certificat partageable, « La courbe se referme »
+ * Z · Fin de parcours : barre « Fin de parcours » (retour, partage), certificat sur papier à double cadre sauge, « La courbe se referme »
  * (courbe LSSS complète et écart depuis le départ), bien-être sur 13 séances, documents du parcours.
  * Vue seulement ; les données viennent de lsss_progression et perma_progression (voir la route).
  */
@@ -70,7 +70,7 @@ export function FinDeParcoursView({ certificate, lsss, wellbeing, loading, docum
                 <Card padding={0}>
                   <View style={{ paddingTop: 12, paddingHorizontal: 12, paddingBottom: 6 }}>
                     <View style={{ paddingTop: 2, paddingHorizontal: 4, paddingBottom: 6, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                      <ThemedText variant="title2">{String(Math.round(latest.value))}</ThemedText>
+                      <ThemedText variant="largetitle" style={{ lineHeight: 36 }}>{String(Math.round(latest.value))}</ThemedText>
                       {delta != null ? (
                         <ThemedText variant="headline" color="ok">{`${delta >= 0 ? '+' : ''}${delta} depuis le départ`}</ThemedText>
                       ) : null}

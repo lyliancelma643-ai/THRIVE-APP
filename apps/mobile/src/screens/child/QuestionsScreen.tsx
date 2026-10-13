@@ -48,17 +48,16 @@ export type QuestionsScreenProps = {
 };
 
 /**
- * W · Questionnaire de l'enfant : interface ambrée (jour pour Natif et Carnet, nuit pour Nuit calme), logo et
+ * W · Questionnaire de l'enfant : interface ambrée (claire en Lin, sombre en Veillée), logo et
  * sélecteur FR/EN, accueil, progression, une question par carte avec cinq gros boutons 1 à 5, note de confidentialité.
  */
 export default function QuestionsScreen({
   firstName, lang = 'fr', onLangChange, dimension, question, index = 1, total = 1, selected = null, onAnswer,
 }: QuestionsScreenProps) {
-  const { style } = useTheme();
+  const { styleKey } = useTheme();
   const insets = useSafeAreaInsets();
-  const p = epochPalette(style);
+  const p = epochPalette(styleKey);
   const t = COPY[lang];
-  const carnet = style === 'carnet';
   const pct = total > 0 ? Math.min(1, index / total) : 0;
   return (
     <ScrollView
@@ -96,9 +95,9 @@ export default function QuestionsScreen({
       <View style={{ paddingHorizontal: 16, marginTop: 14 }}>
         <ThemedText
           variant="largetitle"
-          weight={carnet ? 600 : 800}
+          weight={600}
           accessibilityRole="header"
-          style={{ color: p.ink, fontSize: 34, lineHeight: carnet ? 38 : 40 }}
+          style={{ color: p.ink, fontSize: 36, lineHeight: 40 }}
         >
           {t.hello(firstName)}
         </ThemedText>
@@ -121,7 +120,12 @@ export default function QuestionsScreen({
       </View>
 
       {question ? (
-        <View style={{ marginTop: 18, marginHorizontal: 16, borderRadius: 30, padding: 20, backgroundColor: p.card }}>
+        <View
+          style={{
+            marginTop: 18, marginHorizontal: 16, borderRadius: 30, padding: 20, backgroundColor: p.card,
+            shadowColor: '#783C00', shadowOpacity: p.cardShadow, shadowRadius: 11, shadowOffset: { width: 0, height: 8 }, elevation: p.cardShadow > 0 ? 2 : 0,
+          }}
+        >
           {dimension ? (
             <ThemedText variant="foot" weight={700} style={{ color: p.accent, letterSpacing: 0.6, textTransform: 'uppercase' }}>
               {dimension}

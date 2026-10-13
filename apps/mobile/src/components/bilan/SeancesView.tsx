@@ -1,14 +1,14 @@
 import React, { useRef } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import {
-  Card, Chip, Chips, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, Segmented, ThemedText,
-  VignetteImage, useLargeTitle, useNavBarHeight, useTheme, CANVAS,
+  Chip, Chips, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, Segmented, ThemedText,
+  VignetteImage, Velvet, useLargeTitle, useNavBarHeight, useTheme, CANVAS,
 } from '../../design';
 import { ReadOnlyNotice } from '../access/LockedSection';
 import { Ring } from './Ring';
 import { PHASE_TITLE, TOTAL_SESSIONS, phaseOfSession, type SessionState } from './bilanData';
 
-// S — Mes séances : anneau x/13, séances par phase avec leur vignette (validée / prochaine / à venir).
+// S — Mes séances : carte velours (anneau soleil x/13), séances par phase avec leur vignette (validée / prochaine / à venir).
 // Vue PRÉSENTATIONNELLE. Aucun état d'échec : une séance manquée se « replanifie ».
 
 export type SeanceItem = {
@@ -38,6 +38,8 @@ export type SeancesActions = {
   onSelectChild: (id: string) => void;
   onRefresh?: () => void;
   refreshing?: boolean;
+  /** Segment « Vidéo · bientôt » : mène à l'écran O. Absent : le segment reste sans effet. */
+  onOpenVideo?: () => void;
 };
 
 function Thumb({ item }: { item: SeanceItem }) {
@@ -65,7 +67,7 @@ function Thumb({ item }: { item: SeanceItem }) {
 }
 
 export function SeancesView({ m, a }: { m: SeancesModel; a: SeancesActions }) {
-  const { colors, style } = useTheme();
+  const { colors } = useTheme();
   const navH = useNavBarHeight();
   const lt = useLargeTitle(34);
   const scrollRef = useRef<ScrollView>(null);
@@ -75,12 +77,11 @@ export function SeancesView({ m, a }: { m: SeancesModel; a: SeancesActions }) {
     if (!nextRef.current || !node) return;
     nextRef.current.measureLayout(node, (_x, y) => scrollRef.current?.scrollTo({ y: Math.max(0, y - navH - 12), animated: true }), () => {});
   };
-  const carnet = style === 'carnet';
   const multiple = m.childOptions.length > 1;
   const phases = (['ANCRER', 'DEVELOPPER', 'INTEGRER'] as const)
     .map((p) => ({ phase: p, items: m.items.filter((i) => phaseOfSession(i.number) === p) }))
     .filter((g) => g.items.length > 0);
-  const title = carnet ? 'Avec le coach' : 'Séances';
+  const title = 'Séances';
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} testID="seances-ouvert">
       <ScrollView
@@ -93,16 +94,14 @@ export function SeancesView({ m, a }: { m: SeancesModel; a: SeancesActions }) {
         <LargeTitle>{title}</LargeTitle>
         <View style={{ height: 12 }} />
         {m.readonly ? <Section><ReadOnlyNotice /></Section> : null}
-        {!carnet ? (
-          <Section style={{ marginBottom: 6 }}>
-            <Segmented
-              options={[{ key: 'coach', label: 'Avec le coach' }, { key: 'video', label: 'Vidéo · bientôt' }]}
-              value="coach"
-              onChange={() => {}} /* Vidéo : pas encore ouverte (module « en construction ») */
-              accessibilityLabel="Type de séances"
-            />
-          </Section>
-        ) : null}
+        <Section style={{ marginBottom: 6 }}>
+          <Segmented
+            options={[{ key: 'coach', label: 'Avec le coach' }, { key: 'video', label: 'Vidéo · bientôt' }]}
+            value="coach"
+            onChange={(k) => { if (k === 'video') a.onOpenVideo?.(); }}
+            accessibilityLabel="Type de séances"
+          />
+        </Section>
         {multiple ? (
           <Chips scroll style={{ marginTop: 8 }}>
             {m.childOptions.map((c) => (
@@ -112,17 +111,18 @@ export function SeancesView({ m, a }: { m: SeancesModel; a: SeancesActions }) {
         ) : null}
 
         <Section style={{ marginTop: 8 }}>
-          <Card>
+          <Velvet padding={16} testID="seances-velours">
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+              {/* Anneau soleil : le seul geste jaune de l'écran (piste et arc viennent de la matière velours). */}
               <Ring size={64} stroke={8} value={m.done / TOTAL_SESSIONS} accessibilityLabel={`${m.done} séances sur ${TOTAL_SESSIONS}`}>
-                <ThemedText variant="headline">{m.done}</ThemedText>
+                <ThemedText variant="title2" weight={500}>{m.done}</ThemedText>
               </Ring>
               <View style={{ flex: 1 }}>
-                <ThemedText variant="headline">{m.done} séance{m.done > 1 ? 's' : ''} sur {TOTAL_SESSIONS}</ThemedText>
+                <ThemedText variant="title3" weight={500}>{m.done} séance{m.done > 1 ? 's' : ''} sur {TOTAL_SESSIONS}</ThemedText>
                 {m.nextLine ? <ThemedText variant="sub" color="label2">{m.nextLine}</ThemedText> : null}
               </View>
             </View>
-          </Card>
+          </Velvet>
         </Section>
 
         {m.items.length === 0 ? (

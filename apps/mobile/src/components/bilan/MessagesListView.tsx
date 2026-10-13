@@ -3,6 +3,7 @@ import { RefreshControl, ScrollView, View } from 'react-native';
 import { Avatar, Icon, LargeTitle, List, ListRow, NavBar, Section, ThemedText, useLargeTitle, useNavBarHeight, useTheme } from '../../design';
 
 // Messages : fils avec le coach et le support THRIVE (liste des conversations). Vue PRÉSENTATIONNELLE.
+// Non lu = sauge (jamais soleil : le seul geste jaune de U est l'envoi, dans le fil).
 
 export type ConversationItem = {
   id: string;
@@ -51,14 +52,14 @@ export function MessagesListView({ items, totalUnread, onOpen, onRefresh, refres
               {items.map((c) => (
                 <ListRow
                   key={c.id}
-                  leading={<Avatar label={initials(c.name)} size={44} background={c.unread > 0 ? colors.tint : colors.fill} ink={c.unread > 0 ? colors.tintInk : colors.label} />}
+                  leading={<Avatar label={initials(c.name)} size={44} background={c.unread > 0 ? colors.sageInk : colors.fill} ink={c.unread > 0 ? colors.cream : colors.label} />}
                   leadingInset={72}
                   title={c.name}
                   subtitle={c.preview}
                   value={c.stamp}
                   accessory={c.unread > 0 ? (
-                    <View style={{ backgroundColor: colors.tint, borderRadius: 10, minWidth: 20, height: 20, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' }}>
-                      <ThemedText variant="cap2" style={{ color: colors.tintInk }}>{c.unread}</ThemedText>
+                    <View style={{ backgroundColor: colors.badgeBg, borderRadius: 10, minWidth: 20, height: 20, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' }}>
+                      <ThemedText variant="cap2" style={{ color: colors.badgeInk }}>{c.unread}</ThemedText>
                     </View>
                   ) : undefined}
                   chevron

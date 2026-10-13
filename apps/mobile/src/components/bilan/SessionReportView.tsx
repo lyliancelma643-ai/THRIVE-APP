@@ -1,12 +1,12 @@
 import React from 'react';
 import { ScrollView, View } from 'react-native';
 import {
-  Avatar, Card, GlassButton, NavBar, Section, SectionHeader, Tag, ThemedText, VignetteImage, CANVAS, useNavBarHeight, useScrollEdge, useTheme,
+  Avatar, Card, GlassButton, NavBar, Paper, Section, SectionHeader, Tag, ThemedText, VignetteImage, useNavBarHeight, useScrollEdge, useTheme,
 } from '../../design';
 import { Ring } from './Ring';
 import { fmtNote } from './bilanData';
 
-// T — Bilan du coach : le message, le bilan détaillé, les observations sur 5.
+// T — Bilan du coach : le message (papier vergé : ce qu'on garde), le bilan détaillé, les observations sur 5.
 // Vue PRÉSENTATIONNELLE. Un bloc absent (pas de message, bilan non servi par le serveur…) n'est pas affiché ;
 // la numérotation 1 · 2 · 3 suit les blocs présents.
 
@@ -26,7 +26,7 @@ export type SessionReportModel = {
 };
 
 export function SessionReportView({ m, onBack, onShare }: { m: SessionReportModel; onBack: () => void; onShare?: () => void }) {
-  const { colors, style } = useTheme();
+  const { colors } = useTheme();
   const navH = useNavBarHeight();
   const scroll = useScrollEdge();
   let n = 0;
@@ -44,7 +44,7 @@ export function SessionReportView({ m, onBack, onShare }: { m: SessionReportMode
               <VignetteImage id={`ACT-${String(m.number).padStart(2, '0')}01`} style={{ width: 64, height: 64 }} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText variant="title1" accessibilityRole="header">{m.title}</ThemedText>
+              <ThemedText variant="title1" weight={600} accessibilityRole="header" style={{ fontSize: 28, lineHeight: 32 }}>{m.title}</ThemedText>
               <ThemedText variant="sub" color="label2">{m.subtitle}</ThemedText>
             </View>
           </View>
@@ -54,15 +54,15 @@ export function SessionReportView({ m, onBack, onShare }: { m: SessionReportMode
           <>
             {head('Le message du coach')}
             <Section>
-              <Card>
+              <Paper laid radius={22} padding={18} testID="bilan-message-papier">
                 {m.coachName ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                    <Avatar label={m.coachInitial ?? m.coachName.charAt(0)} size={32} background={colors.sysIndigo} ink={CANVAS.white} />
+                    <Avatar label={m.coachInitial ?? m.coachName.charAt(0)} size={32} background={colors.sageInk} ink={colors.cream} />
                     <ThemedText variant="headline">{m.coachName}</ThemedText>
                   </View>
                 ) : null}
-                <ThemedText variant="body" style={{ marginTop: m.coachName ? 10 : 0 }}>{m.message}</ThemedText>
-              </Card>
+                <ThemedText variant="displayQuote" weight={400} style={{ marginTop: m.coachName ? 10 : 0, fontSize: 18, lineHeight: 26 }}>{m.message}</ThemedText>
+              </Paper>
             </Section>
           </>
         ) : null}
@@ -108,7 +108,7 @@ export function SessionReportView({ m, onBack, onShare }: { m: SessionReportMode
       </ScrollView>
       <NavBar
         title="Bilan"
-        edge={scroll.edge || style !== 'natif'}
+        edge
         left={<GlassButton glyph="chevronLeft" accessibilityLabel="Retour" onPress={onBack} />}
         right={onShare ? <GlassButton glyph="share" accessibilityLabel="Partager" onPress={onShare} /> : undefined}
       />

@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Avatar, Button, ThemedText, VignetteImage, useTheme, withAlpha } from '../../design';
+import { Avatar, Button, ThemedText, VignetteImage, useTheme } from '../../design';
 import { RadialGlow } from './RadialGlow';
 import { SceneBar } from './SceneBar';
 import { SceneButton } from './SceneButton';
@@ -22,18 +22,16 @@ export type VideoReadyViewProps = {
 };
 
 /**
- * P · Prêt avec … ? Scène sombre (noir, bleu nuit en Carnet) avec une lueur en haut, vignette de la séance, deux avatars
+ * P · Prêt avec … ? Scène marine (la même dans Lin et Veillée) avec une lueur bleutée en haut, vignette de la séance, deux avatars
  * (l'enfant et le parent), fiche de la séance en verre, « On y va » (soleil) et « Plus tard ».
  * Vue seulement : le lecteur vidéo (Wistia) n'est pas branché.
  * [À COMPLÉTER] branchement du lecteur de séance vidéo quand VIDEO_SESSIONS_ENABLED passera à vrai.
  */
 export function VideoReadyView({ childName, partnerInitial, vignetteId, questionCount, rows, onStart, onLater, onClose }: VideoReadyViewProps) {
-  const { colors, style } = useTheme();
+  const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const nuit = style === 'nuit';
-  const carnet = style === 'carnet';
-  const bg = carnet ? colors.navy900 : SCENE.black;
-  const glow = nuit ? withAlpha(colors.sun, 0.28) : withAlpha(colors.sysCyan, 0.42);
+  const bg = SCENE.marine;
+  const glow = SCENE.marineLight;
   const times = questionCount === 1 ? '1 fois' : `${questionCount} fois`;
   return (
     <View style={{ flex: 1, backgroundColor: bg }}>
@@ -48,7 +46,7 @@ export function VideoReadyView({ childName, partnerInitial, vignetteId, question
             <VignetteImage id={vignetteId} style={{ width: 132, height: 132 }} />
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: -22 }}>
-            <Avatar label={childName.slice(0, 1)} size={44} color="kid" ink={nuit ? colors.accentInk : SCENE.white} accessibilityLabel={childName} />
+            <Avatar label={childName.slice(0, 1)} size={44} background={SCENE.childAvatarBg} ink={SCENE.childAvatarInk} accessibilityLabel={childName} />
             <Avatar label={partnerInitial} size={44} background={SCENE.partnerAvatar} ink={SCENE.white} style={{ marginLeft: -10 }} accessibilityLabel="Le parent" />
           </View>
           <ThemedText variant="largetitle" accessibilityRole="header" style={{ marginTop: 26, color: SCENE.white, textAlign: 'center' }}>

@@ -6,8 +6,15 @@ import { CANVAS } from '../../design';
  * Tout le reste vient de `useTheme().colors`.
  */
 export const SCENE = {
-  /** Fond d'une scène vidéo (Natif, Nuit calme). Carnet : `colors.navy900`. */
+  /** Fond d'une scène vidéo en lecture (Q, R) : toujours noir, dans les deux styles. */
   black: '#000000',
+  /** Fond marine de « Prêt avec … ? » (P) : le bas du dégradé radial du canevas. */
+  marine: '#022539',
+  /** Avatar de l'enfant sur la scène marine de P (sauge clair, encre marine). */
+  childAvatarBg: '#A7C4BC',
+  childAvatarInk: '#022539',
+  /** Haut du dégradé radial de P (`#0f4563` → `#022539`). */
+  marineLight: '#0F4563',
   white: CANVAS.white,
   /** Avatar du parent / coach (pastille grise de P). */
   partnerAvatar: '#3A3A3C',

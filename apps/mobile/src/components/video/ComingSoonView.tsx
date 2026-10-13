@@ -1,10 +1,10 @@
 import { Platform, ScrollView, View } from 'react-native';
 import {
-  Button, Card, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, Segmented, ThemedText, VignetteImage,
-  useNavBarHeight, useScrollEdge, useTheme, withAlpha,
+  Arch, Button, Card, GlassButton, Icon, LargeTitle, List, ListRow, NavBar, Section, Segmented, ThemedText, VignetteImage,
+  resolveVignetteId, useNavBarHeight, useScrollEdge, useTheme,
 } from '../../design';
+import { VIGNETTE_SOURCES } from '../../design/vignetteSources';
 import { SCENE } from './scene';
-import { VideoMascot } from './VideoMascot';
 
 export type UpcomingSession = {
   id: string;
@@ -25,7 +25,7 @@ export type ComingSoonViewProps = {
   onBack?: () => void;
   /** Bouton « … » de la barre : absent = non affiché. */
   onMore?: () => void;
-  /** Contrôle segmenté (Natif, Nuit calme) : le segment « coach » mène à Mes séances. */
+  /** Contrôle segmenté « Avec le coach · Vidéo · bientôt » : le segment « coach » mène à Mes séances. */
   onSegmentChange?: (key: 'coach' | 'video') => void;
   /**
    * « Ce qui viendra » : les séances vidéo à venir, grisées. Absent ou vide : la liste est masquée
@@ -39,20 +39,18 @@ export type ComingSoonViewProps = {
 };
 
 /**
- * O · Bientôt disponible. Natif : grand titre « Séances » + contrôle segmenté ; Nuit calme : « Parcours » + segmenté
- * « Mes séances » ; Carnet : « Séances » sans segmenté. Mascotte avec la pellicule, étiquette « En construction »,
+ * O · Bientôt disponible (Lin et Veillée : même structure). Grand titre « Séances » + contrôle segmenté
+ * (« Vidéo · bientôt » actif), mascotte à la pellicule dans son arche de lin, étiquette « En construction »,
  * « Me prévenir à l'ouverture », retour vers Maison, puis « Ce qui viendra » (vignettes grisées, cadenas).
+ * Aucun geste soleil sur cet écran.
  */
 export function ComingSoonView({
   childName, notify, onNotifyChange, onBackToHome, onBack, onMore, onSegmentChange, upcoming, totalSessions = 13, bottomInset = 130,
 }: ComingSoonViewProps) {
-  const { colors, style } = useTheme();
+  const { colors } = useTheme();
   const navH = useNavBarHeight();
   const scroll = useScrollEdge();
-  const nuit = style === 'nuit';
-  const carnet = style === 'carnet';
   const who = childName?.trim() ? childName.trim() : 'votre enfant';
-  const haloColor = nuit ? withAlpha(colors.sun, 0.22) : withAlpha(colors.navy600, 0.14);
   const strip = upcoming && upcoming.length > 0 ? upcoming : null;
 
   return (
@@ -64,25 +62,23 @@ export function ComingSoonView({
         contentContainerStyle={{ paddingTop: navH, paddingBottom: bottomInset }}
         showsVerticalScrollIndicator={false}
       >
-        <LargeTitle>{nuit ? 'Parcours' : 'Séances'}</LargeTitle>
+        <LargeTitle>Séances</LargeTitle>
         <View style={{ height: 12 }} />
-        {carnet ? null : (
-          <Section style={{ marginBottom: 14 }}>
-            <Segmented
-              accessibilityLabel="Type de séances"
-              options={[
-                { key: 'coach', label: nuit ? 'Mes séances' : 'Avec le coach' },
-                { key: 'video', label: 'Vidéo · bientôt' },
-              ]}
-              value="video"
-              onChange={(k) => onSegmentChange?.(k)}
-            />
-          </Section>
-        )}
+        <Section style={{ marginBottom: 14 }}>
+          <Segmented
+            accessibilityLabel="Type de séances"
+            options={[
+              { key: 'coach', label: 'Avec le coach' },
+              { key: 'video', label: 'Vidéo · bientôt' },
+            ]}
+            value="video"
+            onChange={(k) => onSegmentChange?.(k)}
+          />
+        </Section>
         <Section>
           <Card padding={0}>
             <View style={{ paddingTop: 26, paddingHorizontal: 20, paddingBottom: 20, alignItems: 'center' }}>
-              <VideoMascot size={168} vignetteId="ACT-1001" halo={haloColor} accessibilityLabel="La mascotte THRIVE avec la pellicule" />
+              <Arch width={168} height={188} source={VIGNETTE_SOURCES[resolveVignetteId('ACT-1001')]} accessibilityLabel="La mascotte THRIVE avec la pellicule" />
               <View
                 accessible
                 accessibilityLabel="En construction"
