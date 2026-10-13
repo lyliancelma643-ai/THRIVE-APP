@@ -9,7 +9,7 @@ import { SeancesView } from '../components/bilan/SeancesView';
 import { SessionReportView } from '../components/bilan/SessionReportView';
 import { ThreadView } from '../components/bilan/ThreadView';
 import { NotificationsView } from '../components/bilan/NotificationsView';
-import { LEO_EXTRAS, LEO_EXTRAS_GROUPE } from './fixtures/bilanPage';
+import { DEMO_CHILD, LEO_EXTRAS, LEO_EXTRAS_GROUPE } from './fixtures/bilanPage';
 import { CoachDetailSheet, type CoachDetailKind } from '../components/bilan/CoachDetailSheet';
 import { InfoSheet } from '../components/bilan/InfoSheet';
 import { BASELINES, BY_SKILL, LEO, LSSS, NOTIFS, REPORT, SEANCES, THREAD } from './fixtures/bilan';
@@ -23,7 +23,7 @@ const actions: BilanActions = {
 
 const GOpen = () => <BilanView m={LEO} x={LEO_EXTRAS} a={actions} />;
 const GGroupe = () => <BilanView m={LEO} x={LEO_EXTRAS_GROUPE} a={actions} />;
-const GLocked = () => <LockedScreen kind="bilan" childName="Léo" childInitial="L" onOffers={noop} onWrite={noop} onCall={noop} onBell={noop} />;
+const GLocked = () => <LockedScreen kind="bilan" childName={DEMO_CHILD.name} childInitial={DEMO_CHILD.initial} onOffers={noop} onWrite={noop} onCall={noop} onBell={noop} />;
 /** État de la maquette : V2 montre le verrou, V1 et V3 l'état ouvert. */
 const GMaquette = () => (useTheme().styleKey === 'veillee' ? <GLocked /> : <GOpen />);
 
@@ -46,7 +46,7 @@ const HScreen = ({ withI }: { withI?: boolean }) => (
 );
 
 const SheetScreen = ({ kind }: { kind: CoachDetailKind }) => (
-  <Behind><CoachDetailSheet kind={kind} onClose={noop} firstName="Léo" x={LEO_EXTRAS} onOpenDoc={noop} /></Behind>
+  <Behind><CoachDetailSheet kind={kind} onClose={noop} firstName={DEMO_CHILD.name} x={LEO_EXTRAS} onOpenDoc={noop} /></Behind>
 );
 const DETAILS: [string, string, CoachDetailKind][] = [
   ['G3', 'Fiche Identité Athlète', 'identite'], ['G4', 'Fiche Objectif', 'objectif'], ['G5', 'Focus Word', 'focus'], ['G6', 'Routine pré-tir', 'routine'],
@@ -54,19 +54,19 @@ const DETAILS: [string, string, CoachDetailKind][] = [
 ];
 
 const JScreen = () => {
-  const [nick, setNick] = useState('Flash');
-  const [num, setNum] = useState('17');
+  const [nick, setNick] = useState<string>(DEMO_CHILD.nickname);
+  const [num, setNum] = useState<string>(DEMO_CHILD.jersey);
   const [accent, setAccent] = useState<'sun' | 'amber' | 'teal' | 'sky' | 'coral' | 'violet' | null>(useTheme().styleKey === 'lin' ? 'sky' : 'sun');
   return (
     <PersonalizeView
-      name="Léo" initial="L" jersey={num} onJersey={setNum} nickname={nick} onNickname={setNick} accent={accent} onAccent={setAccent}
-      position="Ailier gauche" onPickPhoto={noop} onCancel={noop} onSave={noop}
+      name={DEMO_CHILD.name} initial={DEMO_CHILD.initial} jersey={num} onJersey={setNum} nickname={nick} onNickname={setNick} accent={accent} onAccent={setAccent}
+      position={DEMO_CHILD.position} onPickPhoto={noop} onCancel={noop} onSave={noop}
     />
   );
 };
 
 const SOpen = () => <SeancesView m={SEANCES} a={{ onOpenReport: noop, onSelectChild: noop }} />;
-const SLocked = () => <LockedScreen kind="seances" childName="Léo" onOffers={noop} onWrite={noop} onCall={noop} onCalendar={noop} />;
+const SLocked = () => <LockedScreen kind="seances" childName={DEMO_CHILD.name} onOffers={noop} onWrite={noop} onCall={noop} onCalendar={noop} />;
 const SMaquette = () => (useTheme().styleKey === 'veillee' ? <SLocked /> : <SOpen />);
 
 const TScreen = () => <SessionReportView m={REPORT} onBack={noop} onShare={noop} />;

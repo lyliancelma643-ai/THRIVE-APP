@@ -15,7 +15,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Pourquoi c’est important ?",
-        "text": "THRIVE commence par apprendre à connaître le jeune — pas à l’évaluer. À la première séance : aucun chrono, aucun score, aucune note. Le coach observe, écoute et découvre. C’est cette relation de confiance qui rend tout le reste possible."
+        "text": "THRIVE commence par apprendre à connaître le jeune — pas à l’évaluer. À la première séance : aucun chrono, aucune note, aucune évaluation. Le coach observe, écoute et découvre. C’est cette relation de confiance qui rend tout le reste possible."
       },
       {
         "label": "Ce que le coach y note",
@@ -128,13 +128,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Après chaque séance, demande plutôt « Qu’est-ce que tu as appris ? » que « As-tu gagné ? »."
   },
   "competences": {
-    "badge": "Score global",
+    "badge": "Vue d’ensemble",
     "title": "Compétences de vie",
     "tagline": "Le niveau global des habiletés utiles partout — pas juste sur la glace.",
     "sections": [
       {
         "label": "C’est quoi ?",
-        "text": "Un score qui résume où en est ton enfant dans ses « life skills » : les compétences qu’on apprend par le sport mais qu’on utilise dans toute la vie — à l’école, à la maison, avec les amis."
+        "text": "Un repère qui résume où en est ton enfant dans ses « life skills » : les compétences qu’on apprend par le sport mais qu’on utilise dans toute la vie — à l’école, à la maison, avec les amis."
       },
       {
         "label": "Les 8 familles mesurées",
@@ -151,7 +151,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Pourquoi c’est le vrai but ?",
-        "text": "THRIVE n’est pas un programme pour former un meilleur joueur de hockey — c’est un programme pour former un jeune plus solide, qui utilise le hockey comme terrain d’entraînement. Le score qui monte, c’est ça, la victoire."
+        "text": "THRIVE n’est pas un programme pour former un meilleur joueur de hockey — c’est un programme pour former un jeune plus solide, qui utilise le hockey comme terrain d’entraînement. Le repère qui monte, c’est ça, la victoire."
       }
     ],
     "tip": "Cette jauge suit les mesures LSSS (S1 · S7 · S13) : elle avance au rythme des vraies évaluations, pas des impressions."
@@ -312,7 +312,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Apprise sous vraie pression",
-        "text": "La routine est entraînée pendant des tirs chronométrés avec score visible — une pression réelle mais bienveillante. Une technique apprise seulement au calme ne fonctionne pas le jour du match : c’est pour ça que THRIVE l’entraîne en situation."
+        "text": "La routine est entraînée pendant des tirs chronométrés, devant tout le monde — une pression réelle mais bienveillante. Une technique apprise seulement au calme ne fonctionne pas le jour du match : c’est pour ça que THRIVE l’entraîne en situation."
       }
     ],
     "tip": "Ton enfant a une carte plastifiée des 3 étapes dans son sac de hockey. La même routine marche avant un contrôle ou un exposé."
@@ -328,7 +328,7 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Pourquoi c’est fondamental ?",
-        "text": "La recherche est formelle : ce qui fait le plus progresser un jeune, c’est la qualité du lien de confiance avec la personne qui l’accompagne — ce qu’on appelle l’« alliance ». Toute la séance 1 y est consacrée : zéro évaluation, zéro chrono, zéro score."
+        "text": "La recherche est formelle : ce qui fait le plus progresser un jeune, c’est la qualité du lien de confiance avec la personne qui l’accompagne — ce qu’on appelle l’« alliance ». Toute la séance 1 y est consacrée : zéro évaluation, zéro chrono, zéro note."
       },
       {
         "label": "L’engagement du parent",

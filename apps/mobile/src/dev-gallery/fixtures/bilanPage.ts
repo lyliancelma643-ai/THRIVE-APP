@@ -49,3 +49,6 @@ const make = (pack: 'groupe' | null): BilanExtras =>
 
 export const LEO_EXTRAS = make(null);
 export const LEO_EXTRAS_GROUPE = make('groupe');
+
+/** Valeurs de démonstration des écrans de la galerie (prénom, surnom, numéro, poste) : DEV uniquement. */
+export const DEMO_CHILD = { name: 'Léo', initial: 'L', nickname: 'Flash', jersey: '17', position: 'Ailier gauche' } as const;
