@@ -1,5 +1,13 @@
 # GO 3 · O5 — Synchro serveur du style de l'app
 
+> **Remplacé par GO 4 (lot O6) : valeurs `lin|veillee`.** La migration 083, toujours non appliquée en prod, a été modifiée en place (pas de 084) :
+> - contrainte `check (ui_style in ('lin','veillee'))`, `NULL` = défaut côté app (`lin`) ;
+> - `set_ui_style` accepte `lin|veillee` et normalise les anciennes valeurs pour les clients GO 3 (`natif|carnet → lin`, `nuit → veillee`) ; toute autre valeur → `22023` ; `NULL` remet le défaut ; renvoie la valeur enregistrée ;
+> - si une base porte déjà la version GO 3 de 083, la migration retire l'ancienne contrainte, convertit les lignes existantes, puis pose la nouvelle ;
+> - garanties de sécurité inchangées (SECURITY DEFINER, `search_path = ''`, `auth.uid()` seul, EXECUTE retiré à `public`/`anon`) ; rollback inchangé (fonction, contrainte, colonne).
+>
+> Les mentions `natif|nuit|carnet` ci-dessous décrivent l'état GO 3 et ne sont plus valables. Spécification : `GO4_UI_LIN_VEILLEE.md` §3.2.
+
 Statut : livré en local, migration 083 NON appliquée en prod (aucune écriture base faite).
 
 ## Décision (voie la plus sûre)
