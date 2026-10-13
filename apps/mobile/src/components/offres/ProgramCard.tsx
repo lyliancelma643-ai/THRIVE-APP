@@ -1,6 +1,6 @@
 import { Pressable, View } from 'react-native';
-import { Pills, Tag, ThemedText } from '../../design';
-import { AmberTag, PACK_IMAGE, Packshot, RingCard } from './parts';
+import { ThemedText } from '../../design';
+import { AmberTag, PACK_IMAGE, PROPORTIONAL, Packshot, RingCard, SoftTag } from './parts';
 import { formatCentsShortFr, type ProgramInfo } from './pricing';
 
 /**
@@ -29,14 +29,14 @@ export function ProgramCard({ program, current, onPress }: { program: ProgramInf
             <ThemedText variant="foot" color="label2">{program.tagline}</ThemedText>
           </View>
         </View>
-        <ThemedText variant="sub" style={{ marginTop: 10 }}>{program.description}</ThemedText>
-        <Pills style={{ marginTop: 10, gap: 4 }}>
+        <ThemedText variant="sub" style={[PROPORTIONAL, { marginTop: 10 }]}>{program.description}</ThemedText>
+        <View style={{ marginTop: 10, flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
           {program.featured ? <AmberTag label="Phare" /> : null}
-          {current ? <Tag label="Ton programme" tone="tint" /> : null}
-          <Tag label="En 2 versements" tone="gray" />
-          <Tag label="Maison inclus" tone="gray" />
-          <Tag label="Bilan + Mes séances" tone="gray" />
-        </Pills>
+          {current ? <SoftTag label="Ton programme" tone="tint" /> : null}
+          <SoftTag label="En 2 versements" />
+          <SoftTag label="Maison inclus" />
+          <SoftTag label="Bilan + Mes séances" />
+        </View>
       </RingCard>
     </Pressable>
   );

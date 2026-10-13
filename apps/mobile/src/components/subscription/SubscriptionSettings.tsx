@@ -1,14 +1,18 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Linking, Platform, View } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 import { router } from 'expo-router';
-import { GlassButton, ListGroup, ListRow, Pill, SPACING, ThemedText, VignetteImage, useTheme } from '../../design';
 import { useEntitlement } from '../../hooks/useEntitlement';
-import { restorePurchases, showNativeSubscriptionManagement } from '../../services/purchases';
-import { ENTITLEMENT_ID, formatDateFr, isNativeStoreManagementUrl } from '../../services/subscription-logic';
+import { useMaisonOffering } from '../offres/useMaisonOffering';
+import { useCurrentPack } from '../offres/useCurrentPack';
+import { programByPack } from '../offres/pricing';
+import { activeEntitlement, restorePurchases, showNativeSubscriptionManagement } from '../../services/purchases';
+import { ENTITLEMENT_ID, formatDateFr, isNativeStoreManagementUrl, perPeriodFr } from '../../services/subscription-logic';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { SubscriptionView } from './SubscriptionView';
+import { buildSubscriptionModel, trialProgress } from './subscriptionModel';
 
 // ─────────────────────────────────────────────────────────────────────────────
-// X2 — Mon abonnement (Maison).
+// X2 — Mon abonnement (Maison). Conteneur : lit l'accès RÉEL et délègue l'affichage à SubscriptionView.
 //   • Payé via Apple / Google (sur CE téléphone) → « Gérer dans l’App Store » ouvre
 //     les réglages natifs ; « Restaurer les achats » n'apparaît que dans ce cas.
 //   • Payé ailleurs → message neutre, AUCUN bouton d'annulation ni lien sortant
@@ -20,19 +24,19 @@ import { useSubscriptionStore } from '../../stores/subscription.store';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function SubscriptionSettings({ embedded = false }: { embedded?: boolean }) {
-  const { colors } = useTheme();
   const ent = useEntitlement();
   const setCustomerInfo = useSubscriptionStore((s) => s.setCustomerInfo);
+  const customerInfo = useSubscriptionStore((s) => s.customerInfo);
   const access = useSubscriptionStore((s) => s.access);
+  const { monthly, annual } = useMaisonOffering();
+  const currentPack = useCurrentPack();
   const [restoring, setRestoring] = useState(false);
 
   if (ent.isStaff) return null;
 
-  const end = formatDateFr(ent.expirationDate);
-  const packEnd = formatDateFr(access?.packEnd);
+  const android = Platform.OS === 'android';
+  const storeName = android ? 'Google Play' : 'l’App Store';
   const fromProgram = access?.sourceMaison === 'pack';
-  const storeName = Platform.OS === 'android' ? 'Google Play' : 'l’App Store';
-  const native = ent.isSubscribed && ent.management === 'native';
 
   const manage = async () => {
     try {
@@ -60,122 +64,38 @@ export function SubscriptionSettings({ embedded = false }: { embedded?: boolean 
     }
   };
 
-  let status: string;
-  let pill: string | null = null;
-  if (ent.isLoading) status = 'Vérification…';
-  else if (fromProgram && !ent.isSubscribed) {
-    status = 'Inclus avec ton programme';
-    pill = 'Actif';
-  } else if (!ent.isSubscribed && ent.hasAccess) status = 'Inclus dans ton accompagnement THRIVE.';
-  else if (!ent.isSubscribed) status = 'Aucun abonnement actif.';
-  else if (ent.management === 'gift') {
-    status = end ? `Accès offert jusqu’au ${end}.` : 'Accès offert.';
-    pill = 'Actif';
-  } else if (ent.isTrial) {
-    status = end ? `Essai gratuit jusqu’au ${end}.` : 'Essai gratuit en cours.';
-    pill = 'Essai gratuit';
-  } else if (end) {
-    status = ent.willRenew ? `Actif · renouvellement le ${end}.` : `Actif jusqu’au ${end}, sans renouvellement.`;
-    pill = 'Actif';
-  } else {
-    status = 'Abonnement actif.';
-    pill = 'Actif';
-  }
+  // Formule de l'abonnement actif : retrouvée dans l'offering par identifiant de produit (jamais de prix en dur).
+  const entitlement = activeEntitlement(customerInfo);
+  const pkg = [annual, monthly].find((p) => p && p.product.identifier === entitlement?.productIdentifier) ?? null;
+  const planUnit = pkg ? perPeriodFr(pkg.product.subscriptionPeriod).replace('/ ', 'par ') : '';
+  const model = buildSubscriptionModel({
+    isLoading: ent.isLoading,
+    hasAccess: ent.hasAccess,
+    isSubscribed: ent.isSubscribed,
+    isTrial: ent.isTrial,
+    willRenew: ent.willRenew,
+    management: ent.management,
+    fromProgram,
+    programName: programByPack(currentPack)?.name ?? null,
+    endDate: formatDateFr(ent.expirationDate),
+    packEnd: formatDateFr(access?.packEnd),
+    planLine: pkg ? `${pkg === annual ? 'Annuel' : 'Mensuel'} · ${pkg.product.priceString} ${planUnit}` : null,
+    planPrice: pkg ? `${pkg.product.priceString} ${planUnit}` : null,
+    offer: { monthly: monthly?.product.priceString ?? null, annual: annual?.product.priceString ?? null },
+    trialProgress: ent.isTrial ? trialProgress(entitlement?.latestPurchaseDate, entitlement?.expirationDate) : null,
+    storeName,
+  });
 
   return (
-    <View style={{ gap: SPACING.space4, marginHorizontal: SPACING.space4, marginBottom: SPACING.space4 }}>
-      {embedded ? <ThemedText variant="title3" accessibilityRole="header">Abonnement</ThemedText> : null}
-
-      <View
-        style={{
-          backgroundColor: colors.bgGrouped2, borderRadius: 26, padding: SPACING.space4, gap: SPACING.space3,
-        }}
-      >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: SPACING.space3 }}>
-          <VignetteImage id="ACT-0603" style={{ width: 56, height: 56, borderRadius: 16 }} accessibilityLabel="" />
-          <View style={{ flex: 1 }}>
-            <ThemedText variant="headline">THRIVE Maison</ThemedText>
-            <ThemedText variant="subheadline" color="label2">{status}</ThemedText>
-          </View>
-          {pill ? <Pill label={pill} tone={ent.isTrial ? 'tint' : 'ok'} /> : null}
-        </View>
-        {fromProgram && packEnd ? (
-          <ThemedText variant="footnote" color="label2">{`Accès ouvert jusqu’au ${packEnd}.`}</ThemedText>
-        ) : null}
-        {ent.isSubscribed && ent.isTrial && end ? (
-          <ThemedText variant="footnote" color="label2">
-            Annule au moins 24 h avant la fin de l’essai pour ne rien payer.
-          </ThemedText>
-        ) : null}
-      </View>
-
-      {ent.isSubscribed || fromProgram ? (
-        <ListGroup>
-          <ListRow
-            icon="people"
-            iconColor="sysIndigo"
-            title="Partagé avec ton co-parent"
-            subtitle="Un seul accès pour la famille"
-            last={!native && !fromProgram}
-          />
-          {native ? (
-            <ListRow
-              icon="phone-portrait"
-              iconColor="label"
-              title={`Payé via ${storeName}`}
-              subtitle="Sur ce téléphone"
-              last
-            />
-          ) : null}
-          {fromProgram && !native ? (
-            <ListRow
-              icon="card"
-              iconColor="sysIndigo"
-              title="Payé avec ton programme"
-              subtitle="Programme réglé par Stripe · aucun abonnement séparé"
-              last
-            />
-          ) : null}
-        </ListGroup>
-      ) : null}
-
-      {ent.isSubscribed && ent.management === 'external' ? (
-        <ThemedText variant="subheadline" color="label2">Ton abonnement est actif sur ce compte.</ThemedText>
-      ) : null}
-
-      {native ? (
-        <ListGroup>
-          <ListRow
-            icon="settings"
-            iconColor="fill"
-            title={`Gérer dans ${storeName}`}
-            subtitle="Changer de formule ou annuler"
-            onPress={manage}
-          />
-          <ListRow
-            icon="refresh"
-            iconColor="fill"
-            title="Restaurer les achats"
-            accessory={restoring ? <ActivityIndicator color={colors.tint} /> : undefined}
-            chevron={false}
-            onPress={restoring ? undefined : restore}
-            last
-          />
-        </ListGroup>
-      ) : null}
-
-      {!ent.isLoading && !ent.hasAccess ? (
-        <View style={{ alignItems: 'flex-start' }}>
-          <GlassButton
-            label="Découvrir l’abonnement"
-            onPress={() => router.push('/(parent)/abonnement')}
-          />
-        </View>
-      ) : null}
-
-      <ThemedText variant="footnote" color="label2">
-        Déjà abonné ailleurs ? Connecte-toi avec la même adresse : ton accès est reconnu partout.
-      </ThemedText>
-    </View>
+    <SubscriptionView
+      model={model}
+      storeName={storeName}
+      deviceLabel={android ? 'Sur ce téléphone' : 'Sur cet iPhone'}
+      embedded={embedded}
+      restoring={restoring}
+      onManage={manage}
+      onRestore={restore}
+      onDiscover={() => router.push('/(parent)/abonnement')}
+    />
   );
 }

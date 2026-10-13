@@ -17,6 +17,9 @@ import {
 import { BRAND } from './brand';
 import type { ProgramPack } from '../../services/programPayments';
 
+/** Chiffres proportionnels (le canevas n'applique `tabular-nums` qu'aux montants `.num`) : évite des retours à la ligne en plus. */
+export const PROPORTIONAL = { fontVariant: [] as never[] };
+
 /** Vignette de chaque programme : identifiants existants (resolveVignetteId gère le repli). */
 export const PACK_IMAGE: Record<ProgramPack, string> = {
   groupe: 'BON-01',
@@ -55,6 +58,17 @@ export function StripeMark({ size = 36 }: { size?: number }) {
   );
 }
 
+/** `.tag` / `.tag.gray` à chiffres proportionnels (la `Tag` du design applique tabular-nums, qui élargit « + » et les espaces). */
+export function SoftTag({ label, tone = 'gray', style }: { label: string; tone?: 'tint' | 'gray'; style?: StyleProp<ViewStyle> }) {
+  const { colors } = useTheme();
+  const p = tone === 'tint' ? { bg: colors.tintSoft, ink: colors.tintText } : { bg: colors.fill3, ink: colors.label2 };
+  return (
+    <View accessible accessibilityLabel={label} style={[{ alignSelf: 'flex-start', height: 22, paddingHorizontal: 8, borderRadius: 11, backgroundColor: p.bg, justifyContent: 'center' }, style]}>
+      <ThemedText variant="cap" weight={600} style={[PROPORTIONAL, { color: p.ink }]}>{label}</ThemedText>
+    </View>
+  );
+}
+
 /** Étiquette ambre « Phare » / « Programme phare » (`#FFE7B8` / `#5A3A00`). */
 export function AmberTag({ label }: { label: string }) {
   return (
@@ -63,7 +77,7 @@ export function AmberTag({ label }: { label: string }) {
       accessibilityLabel={label}
       style={{ alignSelf: 'flex-start', height: 22, paddingHorizontal: 8, borderRadius: 11, backgroundColor: BRAND.phareBg, justifyContent: 'center' }}
     >
-      <ThemedText variant="cap" weight={600} style={{ color: BRAND.phareInk }}>{label}</ThemedText>
+      <ThemedText variant="cap" weight={600} style={[PROPORTIONAL, { color: BRAND.phareInk }]}>{label}</ThemedText>
     </View>
   );
 }

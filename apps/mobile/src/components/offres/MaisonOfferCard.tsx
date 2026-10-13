@@ -3,7 +3,7 @@ import { router } from 'expo-router';
 import { Card, Icon, Tag, ThemedText, useTheme } from '../../design';
 import { useEntitlement } from '../../hooks/useEntitlement';
 import { useSubscriptionStore } from '../../stores/subscription.store';
-import { Packshot } from './parts';
+import { PROPORTIONAL, Packshot, SoftTag } from './parts';
 import { buildMaisonOfferData, type MaisonOfferData } from './maisonOffer';
 import { freeTrialPeriod, useMaisonOffering } from './useMaisonOffering';
 
@@ -27,12 +27,12 @@ export function MaisonOfferCardView({ data, onPress }: { data: MaisonOfferData; 
       <View style={{ flexDirection: 'row', gap: 12 }}>
         <Packshot id="ACT-0603" />
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 4 }}>
             <ThemedText variant="title3" style={{ flexShrink: 1 }}>THRIVE Maison</ThemedText>
-            {data.badge === 'inclus' ? <Tag label="Inclus" tone="ok" /> : null}
-            {data.badge === 'abonnement' ? <Tag label="Ton abonnement" tone="tint" /> : null}
+            {data.badge === 'inclus' ? <Tag label="Inclus" tone="ok" style={{ alignSelf: 'center' }} /> : null}
+            {data.badge === 'abonnement' ? <SoftTag label="Ton abonnement" tone="tint" style={{ alignSelf: 'center' }} /> : null}
           </View>
-          <ThemedText variant="foot" color="label2">Le moment qui compte, 10 minutes par jour</ThemedText>
+          <ThemedText variant="foot" color="label2" style={PROPORTIONAL}>Le moment qui compte, 10 minutes par jour</ThemedText>
         </View>
       </View>
 
@@ -48,7 +48,7 @@ export function MaisonOfferCardView({ data, onPress }: { data: MaisonOfferData; 
       )}
 
       {data.trialLine ? (
-        <ThemedText variant="foot" color="label2" style={{ marginTop: 8 }}>{data.trialLine}</ThemedText>
+        <ThemedText variant="foot" color="label2" style={[PROPORTIONAL, { marginTop: 8 }]}>{data.trialLine}</ThemedText>
       ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 }}>
         <Icon name="phone" size={13} color={colors.label2} />
