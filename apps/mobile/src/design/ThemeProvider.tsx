@@ -98,13 +98,8 @@ export function useTheme(): ThemeContextValue {
   return ctx;
 }
 
-/** Choix du style de l'app (persisté localement, défaut `lin`). `style` = alias hérité (COMPAT), préférer `styleKey`. */
-export function useStyleChoice(): {
-  styleKey: StyleKey;
-  /** @deprecated COMPAT L2–L7 : voir `ThemeContextValue.style`. */
-  style: LegacyStyleKey;
-  setStyle: (s: StyleKey | LegacyStyleKey) => void;
-} {
-  const { styleKey, style, setStyle } = useTheme();
-  return { styleKey, style, setStyle };
+/** Choix du style de l'app (persisté localement, défaut `lin`). */
+export function useStyleChoice(): { styleKey: StyleKey; setStyle: (s: StyleKey | LegacyStyleKey) => void } {
+  const { styleKey, setStyle } = useTheme();
+  return { styleKey, setStyle };
 }

@@ -7,7 +7,6 @@ import { BASE_VIGNETTE_ID, VIGNETTE_IDS, resolveVignetteId } from './vignetteIds
 import { HIDDEN_FROM_BAR, TAB_LAYOUTS, activeTabKey, tabLayoutFor } from './tabConfig';
 import { scopeTheme, themeFor, type ThemeContextValue } from './themeValue';
 import { TEXTURE_FILES, TEXTURE_MAX_BYTES, archGeometry, archPath, enamelSpec, feltSpec, paperSpec, starSpec, velvetSpec } from './materialSpecs';
-import { STYLE_LABELS as LEGACY_LABELS, STYLE_KEYS as LEGACY_KEYS, COLORS as LEGACY_COLORS, TAB_LAYOUTS as LEGACY_TABS } from './legacyCompat';
 
 describe('thèmes', () => {
   it('expose deux styles, Lin par défaut', () => {
@@ -191,20 +190,5 @@ describe('barre d’onglets du parent', () => {
     expect(tabLayoutFor('nuit')).toBe(TAB_LAYOUTS.veillee);
     expect(tabLayoutFor('carnet')).toBe(TAB_LAYOUTS.lin);
     expect(tabLayoutFor(null)).toBe(TAB_LAYOUTS[DEFAULT_STYLE]);
-  });
-});
-
-describe('couche de compatibilité temporaire (legacyCompat.ts, à supprimer)', () => {
-  it('Lin ⇒ natif, Veillée ⇒ nuit pour les écrans non migrés ; les trois anciennes clés sont indexables', () => {
-    expect(themeFor('lin').style).toBe('natif');
-    expect(themeFor('veillee').style).toBe('nuit');
-    for (const k of LEGACY_KEYS) {
-      expect(LEGACY_COLORS[k]).toBeDefined();
-      expect(LEGACY_TABS[k]).toBeDefined();
-      expect(LEGACY_LABELS[k]).toBeDefined();
-    }
-    expect(LEGACY_COLORS.natif).toBe(COLORS.lin);
-    expect(LEGACY_COLORS.carnet).toBe(COLORS.lin);
-    expect(LEGACY_COLORS.nuit).toBe(COLORS.veillee);
   });
 });

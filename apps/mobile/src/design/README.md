@@ -4,6 +4,7 @@ Source de vérité visuelle : `maquettes-ios27/final.css` (tokens `[data-v="v4"]
 **Veillée**, et blocs « Matières »), écrans `v4.html` / `v5.html` + `screens-final.js` (cf. `maquettes-ios27/LISEZMOI.md`).
 **Deux styles seulement** : `lin` (clair, défaut) et `veillee` (sombre). Les anciens styles du GO 3 n'existent plus ;
 leurs valeurs stockées sont converties par `styleMigration.ts` (seul fichier où ces mots ont le droit d'apparaître comme clés).
+Noms stricts : `StyleKey`, `STYLE_KEYS`, `STYLE_LABELS`, `COLORS` (alias `ThemeStyleKey`, `THEME_*` conservés).
 Import unique : `import { … } from '../../design'`. Aucune couleur en dur : `useTheme().colors.<token>` ; aucune donnée de démo
 (prénoms, dates, chiffres des maquettes) : on reproduit la forme, jamais le contenu. Galerie de contrôle (DEV) : route `/__design`.
 
@@ -99,10 +100,3 @@ Contraste : `contrastPairs(style)` liste toutes les paires encre/fond à 4,5:1 (
 - `VignetteImage id` (52 webp, repli ACT-0603), `resolveVignetteId`. `Capsule`, `Pill` : capsule de verre sur image, pastille simple.
 - Tests (depuis `apps/mobile`) : `../web/node_modules/.bin/vitest run src/design src/components src/services src/lib` — `canvasFidelity.test.ts`
   compare tokens, matières, échelle de texte et tracés d'icônes à `maquettes-ios27/final.css`, `ios27.css`, `icons.js`.
-
-## Couche de compatibilité TEMPORAIRE (à supprimer après L2–L7)
-`legacyCompat.ts` + le bloc « COMPAT » de `index.ts` évitent de casser les écrans non migrés :
-- `useTheme().style` / `useStyleChoice().style` valent encore `'natif'` (Lin) ou `'nuit'` (Veillée) — **déprécié, utiliser `styleKey`** ;
-- `StyleKey`, `STYLE_KEYS`, `STYLE_LABELS`, `COLORS`, `TAB_LAYOUTS` exportés par `design/index.ts` désignent les anciennes clés ;
-  leurs versions strictes sont `ThemeStyleKey`, `THEME_STYLE_KEYS`, `THEME_STYLE_LABELS`, `THEME_COLORS`, `tabLayoutFor()`.
-Supprimer : ce fichier, le bloc COMPAT de `index.ts` et le champ `style` de `themeValue.ts` ; `StyleKey` redevient `'lin' | 'veillee'`.

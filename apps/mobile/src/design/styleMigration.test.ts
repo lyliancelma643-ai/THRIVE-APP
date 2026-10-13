@@ -27,10 +27,10 @@ describe('migration des valeurs de style stockées', () => {
   });
 });
 
-describe('les anciennes clés n’existent que dans la table de migration (et la compat temporaire)', () => {
+describe('les anciennes clés n’existent que dans la table de migration ', () => {
   // Clés de style entre guillemets ou deux-points : 'natif' / "nuit" / carnet: … ; les mots courants (« carnet de moments ») restent permis.
   const KEY = /['"`](natif|nuit|carnet)['"`]|\b(natif|nuit|carnet)\s*:/;
-  const ALLOWED = new Set(['styleMigration.ts', 'styleMigration.test.ts', 'legacyCompat.ts', 'themeValue.ts', 'design.test.ts', 'styleSync.test.ts']);
+  const ALLOWED = new Set(['styleMigration.ts', 'styleMigration.test.ts', 'design.test.ts', 'styleSync.test.ts']);
   it('aucun fichier de design/ ne réintroduit natif / nuit / carnet comme clé de style', () => {
     const offenders: string[] = [];
     for (const f of readdirSync(__dirname)) {

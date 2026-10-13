@@ -4,9 +4,9 @@ import { ScrollView, View } from 'react-native';
 import {
   Arch, Avatar, Button, Card, Chip, Chips, Enamel, Felt, Field, FloatingTabBar, GlassButton, GlassGroup, GlassMenu, GlassPair,
   Grid2, ICON_NAMES, Icon, Kicker, LargeTitle, List, ListRow, LockOverlay, MascotMedallion, MutedPreview, NavBar, Paper,
-  Pills, ProgressBar, Section, SectionFooter, SectionHeader, Segmented, Sheet, Slider, Star, THEME_STYLE_KEYS,
-  THEME_STYLE_LABELS, Tag, ThemeScope, ThemedText, Toggle, Velvet, tabLayoutFor, useLargeTitle,
-  useNavBarHeight, useTheme, type ThemeStyleKey, type TextStyleName,
+  Pills, ProgressBar, Section, SectionFooter, SectionHeader, Segmented, Sheet, Slider, Star, STYLE_KEYS,
+  STYLE_LABELS, Tag, ThemeScope, ThemedText, Toggle, Velvet, tabLayoutFor, useLargeTitle,
+  useNavBarHeight, useTheme, type StyleKey, type TextStyleName,
 } from '../design';
 
 /**
@@ -43,13 +43,13 @@ function Gallery() {
       >
         <LargeTitle subtitle="Primitives du canevas Claude Design">Galerie</LargeTitle>
 
-        <SectionHeader small title="Style de l'app" />
+        <SectionHeader small title="Style de l’app" />
         <Section>
           <Segmented
-            options={THEME_STYLE_KEYS.map((k) => ({ key: k, label: THEME_STYLE_LABELS[k] }))}
+            options={STYLE_KEYS.map((k) => ({ key: k, label: STYLE_LABELS[k] }))}
             value={styleKey}
-            onChange={(k: ThemeStyleKey) => setStyle(k)}
-            accessibilityLabel="Style de l'app"
+            onChange={(k: StyleKey) => setStyle(k)}
+            accessibilityLabel="Style de l’app"
           />
         </Section>
 
@@ -57,10 +57,10 @@ function Gallery() {
         <View style={{ paddingHorizontal: 16, gap: 12 }}>
           <Paper laid framed padding={16}>
             <ThemedText variant="title3">Papier vergé, encre marine</ThemedText>
-            <ThemedText variant="sub" color="label2">Dans les deux styles, l'encre du papier reste marine.</ThemedText>
+            <ThemedText variant="sub" color="label2">Dans les deux styles, l’encre du papier reste marine.</ThemedText>
           </Paper>
           <Felt strong padding={16}>
-            <ThemedText variant="headline">Feutre : ce qu'on touche</ThemedText>
+            <ThemedText variant="headline">Feutre : ce qu’on touche</ThemedText>
           </Felt>
           <Velvet padding={16}>
             <ThemedText variant="headline">Velours côtelé : la semaine</ThemedText>
@@ -143,7 +143,7 @@ function Gallery() {
         <Section style={{ gap: 12 }}>
           <Button label="Essayer 1 mois gratuitement" onPress={() => {}} />
           <Button label="Voir les offres" variant="gray" onPress={() => {}} />
-          <Button label="J'ai déjà un compte" variant="plain" onPress={() => {}} />
+          <Button label="J’ai déjà un compte" variant="plain" onPress={() => {}} />
           <Button label="Verre neutre" variant="plainglass" onPress={() => {}} />
           <Button label="Lancer · 20 min" variant="accent" glyph="play" onPress={() => {}} />
           <Button label="Supprimer" variant="danger" onPress={() => {}} />
@@ -215,14 +215,14 @@ function Gallery() {
               align="end"
               preview={
                 <MutedPreview>
-                  <Card><Kicker>Passeport d'athlète</Kicker><ThemedText variant="title1">Exemple</ThemedText></Card>
+                  <Card><Kicker>Passeport d’athlète</Kicker><ThemedText variant="title1">Exemple</ThemedText></Card>
                   <Card style={{ marginTop: 8 }}><ThemedText variant="title2">Aperçu</ThemedText></Card>
                 </MutedPreview>
               }
             >
               <Card style={{ margin: 8 }}>
                 <Kicker glyph="lock">Avec un programme THRIVE</Kicker>
-                <ThemedText variant="headline">Le Bilan s'ouvre avec un coach</ThemedText>
+                <ThemedText variant="headline">Le Bilan s’ouvre avec un coach</ThemedText>
               </Card>
             </LockOverlay>
           </View>
@@ -240,9 +240,9 @@ function Gallery() {
           </View>
         </Section>
 
-        <SectionHeader title="Barre d'onglets" />
+        <SectionHeader title="Barre d’onglets" />
         <Section style={{ gap: 8 }}>
-          <ThemedText variant="foot" color="label2">Style courant : {THEME_STYLE_LABELS[styleKey]}</ThemedText>
+          <ThemedText variant="foot" color="label2">Style courant : {STYLE_LABELS[styleKey]}</ThemedText>
         </Section>
       </ScrollView>
 
@@ -265,7 +265,7 @@ function Gallery() {
         prominent={{ key: 'p', label: layout.prominent.label, glyph: layout.prominent.glyph, onPress: () => {} }}
       />
 
-      <Sheet visible={sheet !== 'none'} detent={sheet === 'large' ? 'large' : 'medium'} title="Comprendre l'outil" onClose={() => setSheet('none')}>
+      <Sheet visible={sheet !== 'none'} detent={sheet === 'large' ? 'large' : 'medium'} title="Comprendre l’outil" onClose={() => setSheet('none')}>
         <ThemedText variant="body" color="label2">Contenu de la feuille.</ThemedText>
       </Sheet>
     </View>
