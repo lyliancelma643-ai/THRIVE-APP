@@ -1,7 +1,7 @@
 import React from 'react';
 import { View } from 'react-native';
 import Svg, { Circle, Line, Path, Text as SvgText } from 'react-native-svg';
-import { useTheme } from '../../design';
+import { resolveTextStyle, useTheme } from '../../design';
 import { LSSS_MOMENT_LABEL, LSSS_MOMENT_ORDER, type LsssPoint } from './bilanData';
 
 /** Mini courbe du bien-être (G) : aire `tint` à 12 %, trait 2,4, points évidés, dernier point plein (140 × 40). */
@@ -36,7 +36,8 @@ const yFor = (v: number) => Math.max(8, Math.min(122, 100 - (v - 50) * 2));
  * valeur au-dessus de chaque point. Le prochain moment à venir est un cercle pointillé relié en pointillés.
  */
 export function LsssCurve({ points }: { points: LsssPoint[] }) {
-  const { colors } = useTheme();
+  const { colors, fontsLoaded, style } = useTheme();
+  const fontFamily = resolveTextStyle('sub', fontsLoaded, style).fontFamily;
   const H = 150;
   const slots = LSSS_MOMENT_ORDER.map((m, i) => ({ m, i, p: points.find((q) => q.moment === m) ?? null }));
   const lastIdx = slots.reduce((acc, s) => (s.p ? s.i : acc), -1);
@@ -53,7 +54,7 @@ export function LsssCurve({ points }: { points: LsssPoint[] }) {
         {[50, 70, 90].map((l) => (
           <React.Fragment key={l}>
             <Line x1={0} x2={338} y1={yFor(l)} y2={yFor(l)} stroke={colors.separator} strokeDasharray="2 4" />
-            <SvgText x={338} y={yFor(l) - 4} textAnchor="end" fontSize={11} fill={colors.label3}>{String(l)}</SvgText>
+            <SvgText fontFamily={fontFamily} x={338} y={yFor(l) - 4} textAnchor="end" fontSize={11} fill={colors.label3}>{String(l)}</SvgText>
           </React.Fragment>
         ))}
         {filled.length > 1 ? (
@@ -73,10 +74,10 @@ export function LsssCurve({ points }: { points: LsssPoint[] }) {
             {s.p ? (
               <>
                 <Circle cx={SLOT_X[s.i]} cy={yFor(s.p.value)} r={6} fill={colors.tint} stroke={colors.bgGrouped2} strokeWidth={2.5} />
-                <SvgText x={SLOT_X[s.i]} y={yFor(s.p.value) - 13} textAnchor="middle" fontSize={13} fontWeight="600" fill={colors.label}>{String(s.p.value)}</SvgText>
+                <SvgText fontFamily={fontFamily} x={SLOT_X[s.i]} y={yFor(s.p.value) - 13} textAnchor="middle" fontSize={13} fontWeight="600" fill={colors.label}>{String(s.p.value)}</SvgText>
               </>
             ) : null}
-            <SvgText x={SLOT_X[s.i]} y={144} textAnchor={s.i === 0 ? 'start' : s.i === 2 ? 'end' : 'middle'} fontSize={12} fill={colors.label2}>{label(s)}</SvgText>
+            <SvgText fontFamily={fontFamily} x={SLOT_X[s.i]} y={144} textAnchor={s.i === 0 ? 'start' : s.i === 2 ? 'end' : 'middle'} fontSize={12} fill={colors.label2}>{label(s)}</SvgText>
           </React.Fragment>
         ))}
       </Svg>

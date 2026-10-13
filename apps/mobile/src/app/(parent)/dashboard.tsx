@@ -1,17 +1,19 @@
 import React from 'react';
-import { View, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren, useSessions } from '@thrive/shared';
 import { OfflineState } from '../../components/OfflineState';
 import { BillingIssueBanner } from '../../components/BillingIssueBanner';
-import { ListGroup, ListRow, SPACING, ThemedText, useTheme } from '../../design';
+import {
+  Avatar, Card, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, ThemedText, useLargeTitle, useNavBarHeight, useTheme,
+} from '../../design';
 
-// Tableau de bord (masqué de la barre, joignable) : rhabillage aux tokens uniquement.
+// Tableau de bord (masqué de la barre, joignable) : mêmes données qu'avant, rhabillé aux primitives du canevas.
 export default function ParentDashboard() {
-  const { colors, radius } = useTheme();
-  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const navH = useNavBarHeight();
+  const lt = useLargeTitle(34);
   const { user } = useAuthStore();
   const router = useRouter();
   const { family, error: familyError, refetch: refetchFamily } = useFamily(user?.id);
@@ -24,70 +26,65 @@ export default function ParentDashboard() {
     return <OfflineState onRetry={() => Promise.all([refetchFamily(), refetchChildren()])} />;
   }
 
-  const card = { backgroundColor: colors.bgGrouped2, borderRadius: radius.card, padding: SPACING.space4, marginBottom: SPACING.space3 } as const;
-
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: colors.bgGrouped }}
-      contentContainerStyle={{ paddingTop: insets.top + SPACING.space4, paddingHorizontal: SPACING.space4, paddingBottom: SPACING.space8 }}
-    >
-      <ThemedText variant="footnote" color="label2">Bonjour</ThemedText>
-      <ThemedText variant="largeTitle" accessibilityRole="header">{user?.firstName ?? 'Parent'}</ThemedText>
-      {family && <ThemedText variant="subheadline" color="label2">Famille {family.name}</ThemedText>}
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      <ScrollView onScroll={lt.onScroll} scrollEventThrottle={lt.scrollEventThrottle} contentContainerStyle={{ paddingTop: navH, paddingBottom: 40 }}>
+        <LargeTitle subtitle={family ? `Famille ${family.name}` : undefined}>{user?.firstName ?? 'Parent'}</LargeTitle>
+        <Section style={{ marginTop: 14 }}>
+          <BillingIssueBanner />
+        </Section>
 
-      <View style={{ marginTop: SPACING.space4 }}>
-        <BillingIssueBanner />
+        <SectionHeader title="Mes enfants" action={{ label: 'Voir tout', onPress: () => router.push('/(parent)/children') }} />
+        <Section>
+          {childrenLoading ? (
+            <ActivityIndicator />
+          ) : children.length === 0 ? (
+            <List>
+              <ListRow glyph="plus" iconColor="tint" title="Ajouter un enfant" onPress={() => router.push('/(parent)/children')} />
+            </List>
+          ) : (
+            <List>
+              {children.map((child) => (
+                <ListRow
+                  key={child.id}
+                  leading={<Avatar label={(child.first_name ?? '?')[0]} size={44} />}
+                  leadingInset={72}
+                  title={child.first_name}
+                />
+              ))}
+            </List>
+          )}
+        </Section>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: SPACING.space3 }}>
-          <ThemedText variant="title3" accessibilityRole="header">Mes enfants</ThemedText>
-          <Pressable onPress={() => router.push('/(parent)/children')} accessibilityRole="button" accessibilityLabel="Voir tous mes enfants" style={{ minHeight: SPACING.touchMin, justifyContent: 'center' }}>
-            <ThemedText variant="subheadline" color="label2">Voir tout</ThemedText>
-          </Pressable>
-        </View>
+        <SectionHeader title="Prochaines séances" />
+        <Section>
+          {nextSessions.length === 0 ? (
+            <Card>
+              <ThemedText variant="sub" color="label2" style={{ textAlign: 'center' }}>Aucune séance planifiée</ThemedText>
+            </Card>
+          ) : (
+            <List>
+              {nextSessions.map((session) => (
+                <ListRow
+                  key={session.id}
+                  glyph="calendar"
+                  iconColor="sysBlue"
+                  title={session.title}
+                  subtitle={`Séance ${session.session_number}${session.scheduled_at ? ` · ${new Date(session.scheduled_at).toLocaleDateString('fr-CA')}` : ''}`}
+                />
+              ))}
+            </List>
+          )}
+        </Section>
 
-        {childrenLoading ? (
-          <ActivityIndicator />
-        ) : children.length === 0 ? (
-          <Pressable onPress={() => router.push('/(parent)/children')} accessibilityRole="button" accessibilityLabel="Ajouter un enfant" style={[card, { alignItems: 'center', borderWidth: 1.5, borderStyle: 'dashed', borderColor: colors.separator, minHeight: SPACING.touchMin }]}>
-            <ThemedText variant="subheadline" color="label2">Ajouter un enfant</ThemedText>
-          </Pressable>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: SPACING.space3, flexGrow: 0 }}>
-            {children.map((child) => (
-              <View key={child.id} style={[card, { width: 144, marginRight: SPACING.space3, marginBottom: 0 }]}>
-                <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: colors.kid, alignItems: 'center', justifyContent: 'center', marginBottom: SPACING.space2 }}>
-                  <ThemedText variant="headline" style={{ color: colors.tintInk }}>{(child.first_name ?? '?')[0]}</ThemedText>
-                </View>
-                <ThemedText variant="headline">{child.first_name}</ThemedText>
-              </View>
-            ))}
-          </ScrollView>
-        )}
-
-        <ThemedText variant="title3" accessibilityRole="header" style={{ marginTop: SPACING.space3, marginBottom: SPACING.space3 }}>Prochaines séances</ThemedText>
-        {nextSessions.length === 0 ? (
-          <View style={[card, { alignItems: 'center' }]}>
-            <ThemedText variant="subheadline" color="label2">Aucune séance planifiée</ThemedText>
-          </View>
-        ) : (
-          nextSessions.map((session) => (
-            <View key={session.id} style={card}>
-              <ThemedText variant="headline">{session.title}</ThemedText>
-              <ThemedText variant="footnote" color="label2">
-                Séance {session.session_number}
-                {session.scheduled_at ? ` · ${new Date(session.scheduled_at).toLocaleDateString('fr-CA')}` : ''}
-              </ThemedText>
-            </View>
-          ))
-        )}
-
-        <View style={{ marginTop: SPACING.space3 }}>
-          <ListGroup>
-            <ListRow icon="home" iconColor="sysOrange" title="Le moment qui compte" subtitle="Votre activité de 10 minutes ce soir" onPress={() => router.push('/(parent)/maison')} />
-            <ListRow icon="trophy" iconColor="sysIndigo" title="Programmes THRIVE" subtitle="Découvrir les programmes" onPress={() => router.push('/(parent)/programs')} last />
-          </ListGroup>
-        </View>
-      </View>
-    </ScrollView>
+        <Section style={{ marginTop: 22 }}>
+          <List>
+            <ListRow glyph="home" iconColor="sysOrange" title="Le moment qui compte" subtitle="Votre activité de 10 minutes ce soir" onPress={() => router.push('/(parent)/maison')} />
+            <ListRow glyph="medal" iconColor="sysIndigo" title="Programmes THRIVE" subtitle="Découvrir les programmes" onPress={() => router.push('/(parent)/programs')} />
+          </List>
+        </Section>
+      </ScrollView>
+      <NavBar title={user?.firstName ?? 'Parent'} titleVisible={lt.titleVisible} edge={lt.edge} />
+    </View>
   );
 }
