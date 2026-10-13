@@ -207,7 +207,7 @@ Rapport complet : `docs/release/GO4_RAPPORT.md`. Rien n'est poussé ni appliqué
 - [ ] **D4. Lettre du Bilan (G9)** : le mobile ne montre jamais le texte, le web oui. Recommandation : garder le mobile, aligner le web plus tard. Décider si la lettre se descelle après 12 mois (aucune date n'est stockée).
 - [ ] **D5. Règle « un seul soleil »** sur V (points non lus) et G en Veillée (marques d'état). Recommandation : accepter, comme sur la maquette, et corriger le commentaire de `apps/mobile/src/components/bilan/BilanCards.tsx:17`.
 - [ ] **Décider `expo-keep-awake`.** Absent : l'écran peut se mettre en veille pendant le minuteur du mode activité. Ajouter la dépendance (écran allumé pendant le minuteur), ou accepter le risque. La vibration remplace le bip (expo-haptics).
-- [ ] **Capture trop lourde** : `docs/release/go4-captures/L3-K2-lin-long.png` fait 1,1 Mo. La recompresser ou la retirer avant de pousser.
+- [x] **Capture trop lourde** : `docs/release/go4-captures/L3-K2-lin-long.png` recompressée (359 Ko).
 
 ### Tests manuels (simulateur iOS)
 

@@ -45,7 +45,7 @@ Notes : le `test` racine ne couvre pas le mobile, qui se lance à part. La revue
 - `git status` propre avant ce rapport.
 - `git diff --name-only a78501c..HEAD` : 177 fichiers. **Aucun `.env*`.**
 - Binaires ajoutés : 9 tuiles de texture (160 × 160 px, sauf `laid` 30 × 4, `linen` 3 × 3, `ribs` 6 × 6, répétées) ; 21 captures PNG de 49 à 831 Ko.
-- **Une capture dépasse 1 Mo** : `docs/release/go4-captures/L3-K2-lin-long.png` (1 104 828 octets). À recompresser ou retirer avant de pousser. Non modifiée par ce rapport.
+- **Capture recompressée** : `docs/release/go4-captures/L3-K2-lin-long.png` ramenée de 1,1 Mo à 359 Ko (commit de08313).
 
 ## 4. Écarts de fidélité connus
 
@@ -95,6 +95,6 @@ Décision technique à prendre (hors G1) : `expo-keep-awake`, à ajouter ou à a
 
 1. Trancher R5, R11, R12, R13 et D1 à D5.
 2. Relire et appliquer la migration 083 modifiée (`a51f52b`) avec 081 et 082, après validation. Vérifier `get_advisors`.
-3. Recompresser ou retirer `L3-K2-lin-long.png`.
+3. ~~Recompresser `L3-K2-lin-long.png`~~ (fait).
 4. Tests manuels sur simulateur iOS (Lin, Veillée, mode activité, accessibilité).
 5. Pousser la branche une fois validée.
