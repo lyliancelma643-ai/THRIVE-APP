@@ -21,7 +21,7 @@ export function ProgramCard({ program, current, onPress }: { program: ProgramInf
           <View style={{ flex: 1 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
               <ThemedText variant="title3" style={{ flexShrink: 1 }}>{`THRIVE ${program.name}`}</ThemedText>
-              <ThemedText variant="headline">
+              <ThemedText variant="title2" weight={500} style={{ fontSize: 20, lineHeight: 24, letterSpacing: 0 }}>
                 {formatCentsShortFr(program.totalCents)}
                 <ThemedText variant="foot" color="label2">{' + tx'}</ThemedText>
               </ThemedText>

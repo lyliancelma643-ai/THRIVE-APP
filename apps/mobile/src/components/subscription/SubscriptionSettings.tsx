@@ -14,7 +14,7 @@ import { buildSubscriptionModel, trialProgress } from './subscriptionModel';
 // ─────────────────────────────────────────────────────────────────────────────
 // X2 — Mon abonnement (Maison). Conteneur : lit l'accès RÉEL et délègue l'affichage à SubscriptionView.
 //   • Payé via Apple / Google (sur CE téléphone) → « Gérer dans l’App Store » ouvre
-//     les réglages natifs ; « Restaurer les achats » n'apparaît que dans ce cas.
+//     les réglages du système ; « Restaurer les achats » n'apparaît que dans ce cas.
 //   • Payé ailleurs → message neutre, AUCUN bouton d'annulation ni lien sortant
 //     (anti-steering App Store / Google Play).
 //   • Accès offert → message neutre.

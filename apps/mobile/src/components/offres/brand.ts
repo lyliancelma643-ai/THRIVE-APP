@@ -1,4 +1,4 @@
-// Couleurs de MARQUE reprises du canevas Claude Design (pas des couleurs de thème : identiques dans les 3 styles).
+// Couleurs de MARQUE reprises du canevas Claude Design (pas des couleurs de thème : identiques en Lin et en Veillée).
 // Stripe, Apple Pay et l'étiquette « Phare » ont des teintes imposées par leur identité ; tout le reste passe par useTheme().
 export const BRAND = {
   /** Pastille « S » de Stripe. */
@@ -8,6 +8,6 @@ export const BRAND = {
   /** Étiquette « Phare » (ambre) : fond et texte. */
   phareBg: '#FFE7B8',
   phareInk: '#5A3A00',
-  /** Fond crème des vignettes de programmes (hero de Y2). */
+  /** Fond clair des vignettes de programmes (haut de Y2, derrière l’image). */
   packshot: '#F1EEE8',
 } as const;

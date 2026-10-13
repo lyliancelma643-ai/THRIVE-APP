@@ -36,7 +36,7 @@ export type SubscriptionViewProps = {
  * de Stripe est la ligne « Programme réglé par Stripe · aucun abonnement séparé » d'un accès venant d'un pack.
  */
 export function SubscriptionView({ model, storeName, deviceLabel, embedded, restoring, onManage, onRestore, onDiscover }: SubscriptionViewProps) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const m = model;
   return (
     <View style={{ marginHorizontal: 16, marginBottom: 16, gap: 12 }}>
@@ -46,7 +46,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <Packshot id="ACT-0603" size={56} radius={16} />
           <View style={{ flex: 1 }}>
-            <ThemedText variant="headline">THRIVE Maison</ThemedText>
+            <ThemedText variant="title3">THRIVE Maison</ThemedText>
             <ThemedText variant="sub" color="label2">{m.status}</ThemedText>
           </View>
           {m.tag ? <Tag label={m.tag.label} tone={m.tag.tone} style={{ alignSelf: 'center' }} /> : null}
@@ -59,7 +59,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
               <ThemedText variant="sub" weight={600} style={{ flexShrink: 1, textAlign: 'right' }}>{m.detail.value}</ThemedText>
             </View>
             {typeof m.detail.progress === 'number' ? (
-              <ProgressBar value={m.detail.progress} accessibilityLabel="Avancement de l’essai" style={{ marginTop: 8 }} />
+              <ProgressBar value={m.detail.progress} color={styleKey === 'lin' ? 'tint' : 'sage'} accessibilityLabel="Avancement de l’essai" style={{ marginTop: 8 }} />
             ) : null}
           </>
         ) : null}
@@ -68,7 +68,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
 
       {m.shared ? (
         <List>
-          <ListRow glyph="people" iconColor="sysIndigo" title="Partagé avec ton co-parent" subtitle="Un seul accès pour la famille" />
+          <ListRow leading={<IconBadge glyph="people" />} leadingInset={60} title="Partagé avec ton co-parent" subtitle="Un seul accès pour la famille" />
           {m.storeRow ? (
             <ListRow
               leading={<IconBadge glyph="phone" bg={BRAND.applePay} ink={CANVAS.white} />}
@@ -93,17 +93,17 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
       {m.manage ? (
         <List>
           <ListRow
-            leading={<IconBadge glyph="settings" bg={colors.fill} ink={colors.label} />}
+            leading={<IconBadge glyph="settings" />}
             leadingInset={60}
             title={`Gérer dans ${storeName}`}
             subtitle="Changer de formule ou annuler"
             onPress={onManage}
           />
           <ListRow
-            leading={<IconBadge glyph="restore" bg={colors.fill} ink={colors.label} />}
+            leading={<IconBadge glyph="restore" />}
             leadingInset={60}
             title="Restaurer les achats"
-            accessory={restoring ? <ActivityIndicator color={colors.tint} /> : undefined}
+            accessory={restoring ? <ActivityIndicator color={colors.sageText} /> : undefined}
             chevron={false}
             onPress={restoring ? undefined : onRestore}
           />

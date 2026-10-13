@@ -11,7 +11,6 @@ import {
   SectionHeader,
   ThemedText,
   useTheme,
-  withAlpha,
 } from '../../design';
 import type { ProgramPack } from '../../services/programPayments';
 import { OffreScreen, StripeMark } from './parts';
@@ -32,7 +31,10 @@ export type OffresViewProps = {
   onBookCall: () => void;
 };
 
-/** Y · Offres : Maison en tête, puis (si le drapeau le permet) les trois programmes, le paiement Stripe, la garantie et l'appel. */
+/**
+ * Y · Offres : Maison en tête, puis (si le drapeau le permet) les trois programmes, le paiement Stripe, la garantie et l'appel.
+ * Un seul geste soleil : « Réserver un appel » (émail). Sélection « Ton programme » : marine en Lin, sauge en Veillée.
+ */
 export function OffresView({ maison, showPrograms, currentPack, visioNote, onClose, onOpenProgram, onBookCall }: OffresViewProps) {
   const { colors } = useTheme();
   return (
@@ -41,7 +43,7 @@ export function OffresView({ maison, showPrograms, currentPack, visioNote, onClo
       collapseTitle
       testID="offres"
       left={<GlassButton glyph="close" accessibilityLabel="Fermer" onPress={onClose} />}
-      footer={showPrograms ? <Button glyph="calendar" label="Réserver un appel de 15 min" onPress={onBookCall} /> : undefined}
+      footer={showPrograms ? <Button variant="accent" glyph="calendar" label="Réserver un appel de 15 min" onPress={onBookCall} /> : undefined}
     >
       <LargeTitle subtitle="Pour ta famille. Prix en dollars canadiens.">Offres</LargeTitle>
 
@@ -70,8 +72,7 @@ export function OffresView({ maison, showPrograms, currentPack, visioNote, onClo
           </Section>
 
           <Section style={{ marginTop: 12 }}>
-            <Card>
-              <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: withAlpha(colors.sysGreen, 0.12) }} />
+            <Card style={{ backgroundColor: colors.badgeBg }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
                 <Icon name="shieldCheck" size={24} color={colors.ok} />
                 <ThemedText variant="sub" style={{ flex: 1 }}>

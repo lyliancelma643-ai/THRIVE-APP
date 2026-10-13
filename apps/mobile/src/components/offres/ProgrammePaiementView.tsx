@@ -10,12 +10,11 @@ import {
   SectionHeader,
   Segmented,
   ThemedText,
-  VignetteImage,
   useTheme,
 } from '../../design';
 import type { ProgramPaymentMode } from '../../services/programPayments';
 import { BRAND } from './brand';
-import { AmberTag, IconBadge, OffreScreen, PACK_IMAGE, StripeMark } from './parts';
+import { AmberTag, IconBadge, OffreScreen, PACK_IMAGE, PackHero, StripeMark } from './parts';
 import { formatCentsFr, todayCents, withTaxesCents, type ProgramInfo } from './pricing';
 
 const MODES = [
@@ -42,7 +41,9 @@ export type ProgrammePaiementViewProps = {
  * { pack, mode }) ; le TTC n'est qu'indicatif. Moyens de paiement traités par Stripe.
  */
 export function ProgrammePaiementView({ program, mode, onModeChange, cohort, busy, notice, onPay, onBack, onShare }: ProgrammePaiementViewProps) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
+  // Bouton Apple Pay : noir en Lin, crème sur marine en Veillée (maquette) ; jamais jaune (pas de second geste soleil).
+  const payBtn = styleKey === 'lin' ? { bg: BRAND.applePay, ink: CANVAS.white } : { bg: colors.cream, ink: colors.navy900 };
   const today = todayCents(program, mode);
   const todayTtc = withTaxesCents(today);
   const split = mode === 'deux_versements';
@@ -68,12 +69,12 @@ export function ProgrammePaiementView({ program, mode, onModeChange, cohort, bus
             accessibilityLabel={payLabel}
             accessibilityState={{ disabled: !!busy, busy: !!busy }}
             style={({ pressed }) => ({
-              height: 52, borderRadius: 26, backgroundColor: BRAND.applePay, flexDirection: 'row', alignItems: 'center',
+              height: 52, borderRadius: 26, backgroundColor: payBtn.bg, flexDirection: 'row', alignItems: 'center',
               justifyContent: 'center', gap: 8, opacity: busy ? 0.5 : pressed ? 0.8 : 1,
             })}
           >
-            <Icon name="phone" size={19} color={CANVAS.white} />
-            <ThemedText variant="headline" style={{ color: CANVAS.white }}>{busy ? '…' : payLabel}</ThemedText>
+            <Icon name="phone" size={19} color={payBtn.ink} />
+            <ThemedText variant="headline" style={{ color: payBtn.ink }}>{busy ? '…' : payLabel}</ThemedText>
           </Pressable>
           {notice ? (
             <ThemedText variant="cap" color="label2" accessibilityLiveRegion="polite" style={{ textAlign: 'center', paddingTop: 6, paddingBottom: 2, paddingHorizontal: 8 }}>
@@ -83,21 +84,19 @@ export function ProgrammePaiementView({ program, mode, onModeChange, cohort, bus
         </View>
       }
     >
-      <View style={{ height: 280, backgroundColor: BRAND.packshot, overflow: 'hidden', alignItems: 'center', paddingTop: 40 }}>
-        <VignetteImage id={PACK_IMAGE[program.pack]} style={{ width: 250, height: 246 }} accessibilityLabel="" />
-      </View>
+      <PackHero id={PACK_IMAGE[program.pack]} />
 
       <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
         {program.featured ? <AmberTag label="Programme phare" /> : null}
-        <ThemedText variant="title1" accessibilityRole="header" style={{ marginTop: 8 }}>{`THRIVE ${program.name}`}</ThemedText>
+        <ThemedText variant="title1" weight={600} accessibilityRole="header" style={{ marginTop: 8, fontSize: 34, lineHeight: 38 }}>{`THRIVE ${program.name}`}</ThemedText>
         <ThemedText variant="sub" color="label2">{program.summary}</ThemedText>
       </View>
 
       <Section style={{ marginTop: 14 }}>
         <List>
-          {cohort ? <ListRow glyph="people" iconColor="sysIndigo" title={cohort.title} subtitle={cohort.detail} /> : null}
-          <ListRow glyph="home" iconColor="sysGreen" title="Maison inclus" subtitle="Pendant tout le programme" />
-          <ListRow glyph="sparkles" iconColor="tint" title="Bilan et Mes séances" subtitle="Questionnaires avant / après" />
+          {cohort ? <ListRow leading={<IconBadge glyph="people" />} title={cohort.title} subtitle={cohort.detail} /> : null}
+          <ListRow leading={<IconBadge glyph="home" />} title="Maison inclus" subtitle="Pendant tout le programme" />
+          <ListRow leading={<IconBadge glyph="sparkles" />} title="Bilan et Mes séances" subtitle="Questionnaires avant / après" />
         </List>
       </Section>
 
@@ -134,13 +133,13 @@ export function ProgrammePaiementView({ program, mode, onModeChange, cohort, bus
             checked
           />
           <ListRow
-            leading={<IconBadge glyph="tray" bg={colors.fill} ink={colors.label} />}
+            leading={<IconBadge glyph="tray" />}
             leadingInset={60}
             title="Carte de crédit ou de débit"
             subtitle="Visa, Mastercard, Amex · traité par Stripe"
           />
           <ListRow
-            leading={<IconBadge glyph="mail" bg={colors.fill} ink={colors.label} />}
+            leading={<IconBadge glyph="mail" />}
             leadingInset={60}
             title="Recevoir un lien de paiement"
             subtitle="Payer depuis ton ordinateur, par courriel"

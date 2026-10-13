@@ -44,10 +44,11 @@ function D2() {
 }
 
 function Y() {
-  const { style } = useTheme();
-  // Le style Nuit calme montre un parent abonné (« Ton abonnement ») sans programme ; Carnet : programme Complet.
-  const badge = style === 'nuit' ? 'abonnement' : 'inclus';
-  const currentPack = style === 'natif' ? 'individuel' : style === 'carnet' ? 'complet' : null;
+  const { styleKey } = useTheme();
+  // Lin : parent avec un programme (« Inclus », anneau « Ton programme ») ; Veillée : parent abonné (« Ton abonnement »), sans programme.
+  const lin = styleKey === 'lin';
+  const badge = lin ? 'inclus' : 'abonnement';
+  const currentPack = lin ? 'individuel' : null;
   return (
     <Phone>
       <OffresView
@@ -98,14 +99,13 @@ function Y3() {
   );
 }
 
-function X2() {
-  const { style } = useTheme();
-  const state = style === 'nuit' ? 'essai' : 'programme';
+/** X2 : accès venu d’un programme ; X2b : abonnement Maison pris sur le store de ce téléphone (essai). */
+function X2({ state }: { state: 'programme' | 'essai' }) {
   return (
     <Phone>
       <AbonnementFrame onBack={noop}>
         <SubscriptionView
-          model={demoSubscriptionModel(state, style === 'carnet' ? 'Complet' : 'Individuel')}
+          model={demoSubscriptionModel(state, 'Individuel')}
           storeName="l’App Store"
           deviceLabel="Sur cet iPhone"
           onManage={noop}
@@ -123,5 +123,6 @@ export const screens: GalleryScreen[] = [
   { id: 'Y', title: 'Offres', tab: null, render: () => <Y /> },
   { id: 'Y2', title: 'Groupe · paiement', tab: null, render: () => <Y2 /> },
   { id: 'Y3', title: 'Appel de 15 min', tab: null, render: () => <Y3 /> },
-  { id: 'X2', title: 'Mon abonnement', tab: null, render: () => <X2 /> },
+  { id: 'X2', title: 'Mon abonnement', tab: null, render: () => <X2 state="programme" /> },
+  { id: 'X2b', title: 'Mon abonnement · essai', tab: null, render: () => <X2 state="essai" /> },
 ];

@@ -1,20 +1,20 @@
 import { useState } from 'react';
 import { Pressable, ScrollView, View } from 'react-native';
 import {
+  Arch,
   Button,
   Card,
   GlassButton,
   Icon,
   List,
   ListRow,
-  MascotMedallion,
   Section,
   SectionFooter,
   SectionHeader,
   ThemedText,
   useTheme,
 } from '../../design';
-import { OffreScreen } from './parts';
+import { IconBadge, OffreScreen, useSelection } from './parts';
 import type { DayOption } from './slots';
 
 export type CallMode = 'video' | 'telephone';
@@ -73,23 +73,29 @@ function ModeSegmented({ value, onChange }: { value: CallMode; onChange: (m: Cal
 
 function DayTile({ day, on, onPress }: { day: DayOption; on: boolean; onPress: () => void }) {
   const { colors } = useTheme();
-  const ink = on ? colors.tintInk : colors.label;
+  const sel = useSelection();
+  const ink = on ? sel.ink : colors.label;
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={day.long}
       accessibilityState={{ selected: on }}
-      style={{ width: 62, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 2, backgroundColor: on ? colors.tint : colors.bgGrouped2 }}
+      style={{
+        width: 62, height: 72, borderRadius: 20, alignItems: 'center', justifyContent: 'center', gap: 2,
+        backgroundColor: on ? sel.fill : colors.bgGrouped2, borderWidth: 1, borderColor: on ? 'transparent' : colors.separator,
+      }}
     >
       <ThemedText variant="foot" style={{ color: ink, opacity: 0.75 }}>{day.weekday}</ThemedText>
-      <ThemedText variant="title3" style={{ color: ink }}>{String(day.dayNum)}</ThemedText>
+      <ThemedText variant="title2" weight={500} style={{ color: ink, fontSize: 22, lineHeight: 26, letterSpacing: 0 }}>{String(day.dayNum)}</ThemedText>
     </Pressable>
   );
 }
 
 function SlotGrid({ day, selected, onSelect }: { day: DayOption; selected: string | null; onSelect: (iso: string) => void }) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
+  // `.chip.on` : feutre marine en Lin, crème en Veillée (jamais jaune : le soleil est pour « Réserver »).
+  const onChip = styleKey === 'lin' ? { bg: colors.navy600, ink: colors.cream } : { bg: colors.cream, ink: colors.navy900 };
   const [width, setWidth] = useState(0);
   const cell = width > 0 ? (width - 16) / 3 : undefined;
   return (
@@ -106,13 +112,13 @@ function SlotGrid({ day, selected, onSelect }: { day: DayOption; selected: strin
             accessibilityState={{ checked: on, disabled: !s.available }}
             style={{
               width: cell ?? '31%', height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center',
-              backgroundColor: on ? colors.tint : s.available ? colors.bgGrouped2 : colors.fill3, opacity: s.available ? 1 : 0.35,
+              backgroundColor: on ? onChip.bg : colors.fill3, opacity: s.available ? 1 : 0.35,
             }}
           >
             <ThemedText
               variant="sub"
               weight={on ? 600 : 500}
-              style={{ fontSize: 15, lineHeight: 20, color: on ? colors.tintInk : colors.label, textDecorationLine: s.available ? 'none' : 'line-through' }}
+              style={{ fontSize: 15, lineHeight: 20, color: on ? onChip.ink : colors.label, textDecorationLine: s.available ? 'none' : 'line-through' }}
             >
               {s.time}
             </ThemedText>
@@ -124,7 +130,7 @@ function SlotGrid({ day, selected, onSelect }: { day: DayOption; selected: strin
 }
 
 /**
- * Y3 · Appel de 15 minutes. Aucun paiement ici. Jours et créneaux viennent du serveur (jamais écrits en dur) :
+ * Y3 · Appel de 15 minutes. Aucun paiement ici. Un seul geste soleil : le bouton « Réserver » (émail). Jours et créneaux viennent du serveur (jamais écrits en dur) :
  * sans créneau ouvert, un message neutre remplace les jours et les heures.
  */
 export function AppelView({
@@ -139,7 +145,7 @@ export function AppelView({
       left={<GlassButton glyph="close" accessibilityLabel="Fermer" onPress={onClose} />}
       footer={
         <View>
-          <Button label={bookLabel} onPress={onBook} disabled={!canBook} loading={busy} />
+          <Button variant="accent" label={bookLabel} onPress={onBook} disabled={!canBook} loading={busy} />
           {notice ? (
             <ThemedText variant="cap" color="label2" accessibilityLiveRegion="polite" style={{ textAlign: 'center', paddingTop: 6, paddingBottom: 2, paddingHorizontal: 8 }}>
               {notice}
@@ -150,12 +156,12 @@ export function AppelView({
     >
       <View style={{ paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
         <View style={{ flex: 1 }}>
-          <ThemedText variant="title1" accessibilityRole="header">Rencontrer un coach</ThemedText>
+          <ThemedText variant="title1" weight={600} accessibilityRole="header" style={{ fontSize: 32, lineHeight: 36 }}>Rencontrer un coach</ThemedText>
           <ThemedText variant="sub" color="label2" style={{ marginTop: 4 }}>
             15 minutes, sans engagement. On parle de ton enfant et du programme qui lui va.
           </ThemedText>
         </View>
-        <MascotMedallion size={92} />
+        <Arch size="sm" width={78} height={90} />
       </View>
 
       <Section style={{ marginTop: 16 }}>
@@ -193,7 +199,7 @@ export function AppelView({
 
       <Section style={{ marginTop: 16 }}>
         <List>
-          <ListRow glyph="calendar" iconColor="sysRed" title="Ajouter au calendrier" toggle={{ value: calendar, onChange: onCalendarChange }} />
+          <ListRow leading={<IconBadge glyph="calendar" />} title="Ajouter au calendrier" toggle={{ value: calendar, onChange: onCalendarChange }} />
         </List>
         <SectionFooter>
           Rien n’est payé avant l’appel. Ensuite, tu règles le 1ᵉʳ versement par Stripe, dans l’app ou par le lien reçu par courriel, et le programme démarre 1 à 2 semaines plus tard.

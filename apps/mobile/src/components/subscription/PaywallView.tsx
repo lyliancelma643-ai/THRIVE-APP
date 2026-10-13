@@ -1,10 +1,10 @@
-import { Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import {
+  Arch,
   Button,
   Card,
   GlassButton,
   Icon,
-  MascotMedallion,
   Section,
   SectionHeader,
   Tag,
@@ -12,7 +12,7 @@ import {
   useTheme,
   type IconName,
 } from '../../design';
-import { OffreScreen, RingCard } from '../offres/parts';
+import { OffreScreen, RingCard, useSelection } from '../offres/parts';
 
 /** Une formule de l'offering (annuel / mensuel) prête à afficher : tout le texte vient du store. */
 export type PaywallPlanView = {
@@ -65,6 +65,7 @@ const STEPS: readonly { glyph: IconName; key: 'today' | 'notice' | 'first'; note
 
 function Timeline({ t }: { t: PaywallTimelineView }) {
   const { colors } = useTheme();
+  const sel = useSelection();
   const days = { today: 'Aujourd’hui', notice: t.notice, first: t.firstPayment };
   return (
     <View
@@ -73,16 +74,16 @@ function Timeline({ t }: { t: PaywallTimelineView }) {
       style={{ flexDirection: 'row', justifyContent: 'space-between' }}
     >
       <View style={{ position: 'absolute', left: '12%', right: '12%', top: 13, height: 3, borderRadius: 2, flexDirection: 'row', overflow: 'hidden' }}>
-        <View style={{ flex: 1, backgroundColor: colors.tint }} />
+        <View style={{ flex: 1, backgroundColor: sel.fill }} />
         <View style={{ flex: 1, backgroundColor: colors.fill }} />
       </View>
       {STEPS.map((s, i) => {
         const on = i === 0;
         return (
           <View key={s.key} style={{ width: '33%', alignItems: 'center', gap: 4 }}>
-            <View style={{ width: 34, height: 34, margin: -2, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? colors.tint : colors.fill }}>
-              <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? colors.tint : colors.bgGrouped2 }}>
-                <Icon name={s.glyph} size={15} color={on ? colors.tintInk : colors.label2} strokeWidth={2.2} />
+            <View style={{ width: 34, height: 34, margin: -2, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? sel.fill : colors.fill }}>
+              <View style={{ width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? sel.fill : colors.bgGrouped2 }}>
+                <Icon name={s.glyph} size={15} color={on ? sel.ink : colors.label2} strokeWidth={2.2} />
               </View>
             </View>
             <ThemedText variant="foot" weight={600}>{days[s.key]}</ThemedText>
@@ -96,13 +97,14 @@ function Timeline({ t }: { t: PaywallTimelineView }) {
 
 function PlanCard({ plan, on, onPress }: { plan: PaywallPlanView; on: boolean; onPress: () => void }) {
   const { colors } = useTheme();
+  const sel = useSelection();
   return (
     <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: on }} accessibilityLabel={plan.accessibilityLabel}>
       <RingCard on={on} padding={0}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14, paddingHorizontal: 16 }}>
           {on ? (
-            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="check" size={14} color={colors.tintInk} strokeWidth={3} />
+            <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: sel.fill, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="check" size={14} color={sel.ink} strokeWidth={3} />
             </View>
           ) : (
             <View style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: colors.label3 }} />
@@ -128,11 +130,10 @@ function PlanCard({ plan, on, onPress }: { plan: PaywallPlanView; on: boolean; o
 /**
  * D2 · Paywall de Maison (achat intégré App Store / Google Play UNIQUEMENT). Hiérarchie voulue : le mois gratuit
  * d'abord (« 0 $ » en serif, frise), le prix facturé jamais caché. ANTI-STEERING : aucun renvoi vers un autre moyen
- * de paiement. Vue pure : prix, périodes, essai et dates arrivent en props, lus dans l'offering RevenueCat.
+ * de paiement. Un seul geste soleil : le bouton « Commencer mon mois gratuit » (émail) ; frise et coche de formule en marine
+ * (Lin) ou sauge (Veillée). D3 (feuille de confirmation Apple) est une feuille système neutre : NON construite ici. Vue pure : prix, périodes, essai et dates arrivent en props, lus dans l'offering RevenueCat.
  */
 export function PaywallView(p: PaywallViewProps) {
-  const { fontsLoaded } = useTheme();
-  const serif = fontsLoaded ? 'Fraunces_400Regular' : Platform.select({ ios: 'Times New Roman', default: 'serif' });
   const linkStyle = { textDecorationLine: 'underline' as const };
   return (
     <OffreScreen
@@ -147,7 +148,7 @@ export function PaywallView(p: PaywallViewProps) {
       footer={
         p.canSell ? (
           <View>
-            <Button label={p.ctaLabel} onPress={p.onBuy} loading={p.busy === 'buy'} disabled={p.busy !== null} />
+            <Button variant="accent" label={p.ctaLabel} onPress={p.onBuy} loading={p.busy === 'buy'} disabled={p.busy !== null} />
             {p.ctaCaption ? (
               <ThemedText variant="cap" color="label2" style={{ textAlign: 'center', paddingTop: 6, paddingBottom: 2 }}>{p.ctaCaption}</ThemedText>
             ) : null}
@@ -157,10 +158,10 @@ export function PaywallView(p: PaywallViewProps) {
       footerLift={-4}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 24 }}>
-        <MascotMedallion size={76} />
+        <Arch size="xs" width={62} height={70} />
         <View style={{ flex: 1 }}>
-          <ThemedText variant="foot" color="label2" weight={700} accessibilityRole="header" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>THRIVE Maison</ThemedText>
-          <ThemedText variant="headline">Le moment qui compte, 10 min par soir</ThemedText>
+          <ThemedText variant="eyebrow" color="sageText" accessibilityRole="header">THRIVE Maison</ThemedText>
+          <ThemedText variant="title3" style={{ marginTop: 2 }}>Le moment qui compte, 10 min par soir</ThemedText>
         </View>
       </View>
 
@@ -171,8 +172,8 @@ export function PaywallView(p: PaywallViewProps) {
             accessibilityLabel={`0 $ par mois, pendant ${p.trial.periodLabel}`}
             style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}
           >
-            <ThemedText style={{ fontFamily: serif, fontSize: 58, lineHeight: 58, letterSpacing: -0.5 }}>0 $</ThemedText>
-            <ThemedText color="label2" style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 19, lineHeight: 19 }}>
+            <ThemedText variant="numeralHero" weight={400} style={{ fontSize: 62, lineHeight: 62, letterSpacing: -0.5 }}>0 $</ThemedText>
+            <ThemedText variant="displayQuote" weight={400} color="label2" style={{ fontStyle: 'italic', fontSize: 19, lineHeight: 19 }}>
               {`par mois, pendant ${p.trial.periodLabel}`}
             </ThemedText>
           </View>
@@ -182,8 +183,8 @@ export function PaywallView(p: PaywallViewProps) {
       ) : p.noTrialHero ? (
         <View style={{ alignItems: 'center', marginTop: 14 }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <ThemedText style={{ fontFamily: serif, fontSize: 48, lineHeight: 52 }}>{p.noTrialHero.price}</ThemedText>
-            <ThemedText color="label2" style={{ fontFamily: serif, fontStyle: 'italic', fontSize: 19, lineHeight: 24 }}>{p.noTrialHero.period}</ThemedText>
+            <ThemedText variant="numeralHero" weight={400} style={{ fontSize: 48, lineHeight: 52 }}>{p.noTrialHero.price}</ThemedText>
+            <ThemedText variant="displayQuote" weight={400} color="label2" style={{ fontStyle: 'italic', fontSize: 19, lineHeight: 24 }}>{p.noTrialHero.period}</ThemedText>
           </View>
         </View>
       ) : null}

@@ -24,7 +24,7 @@ export function SubscriptionLoader({ label = 'Un instant…' }: { label?: string
         accessibilityRole="progressbar"
         accessibilityLabel={label}
       >
-        <ActivityIndicator size="large" color={colors.tint} />
+        <ActivityIndicator size="large" color={colors.sageText} />
         <ThemedText variant="callout" color="label2">{label}</ThemedText>
       </Animated.View>
     </View>

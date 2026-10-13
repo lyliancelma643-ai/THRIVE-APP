@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
+import { ScrollView, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Card,
@@ -12,6 +13,7 @@ import {
   useLargeTitle,
   useNavBarHeight,
   useTheme,
+  withAlpha,
   type IconName,
 } from '../../design';
 import { BRAND } from './brand';
@@ -36,13 +38,36 @@ export function Packshot({ id, size = 64, radius = 18 }: { id: string; size?: nu
   );
 }
 
-/** `.ibadge` à fond libre (Apple Pay noir, Stripe violet, gris `fill`…) : pastille 30 pt, rayon 8. */
-export function IconBadge({ glyph, bg, ink, size = 30 }: { glyph: IconName; bg: string; ink: string; size?: number }) {
+/**
+ * `.ibadge` de Lin et Veillée : pastille ronde sauge (`badgeBg` / `badgeInk`, filet de 1 pt). Avec `bg` et `ink`
+ * (Apple Pay noir, Stripe violet : identités de marque imposées), carré arrondi 8 pt à fond libre.
+ */
+export function IconBadge({ glyph, bg, ink, size = 30 }: { glyph: IconName; bg?: string; ink?: string; size?: number }) {
+  const { colors } = useTheme();
+  const brand = bg !== undefined;
+  const fg = ink ?? colors.badgeInk;
   return (
-    <View style={{ width: size, height: size, borderRadius: 8, backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Icon name={glyph} size={18} color={ink} strokeWidth={2} />
+    <View
+      style={{
+        width: size, height: size, borderRadius: brand ? 8 : size / 2, backgroundColor: bg ?? colors.badgeBg,
+        borderWidth: brand ? 0 : 1, borderColor: withAlpha(colors.badgeInk, 0.22), alignItems: 'center', justifyContent: 'center',
+      }}
+    >
+      <Icon name={glyph} size={18} color={fg} strokeWidth={2} />
     </View>
   );
+}
+
+/**
+ * Couleurs d'une SÉLECTION (coche d'une formule, anneau d'une carte, jour choisi) : marine en Lin ; en Veillée
+ * `tint` est le jaune émail, réservé au seul geste soleil de l'écran, donc la sélection passe en sauge (comme les
+ * jours de Y3 dans la maquette).
+ */
+export function useSelection(): { fill: string; ink: string; ring: string } {
+  const { colors, styleKey } = useTheme();
+  return styleKey === 'lin'
+    ? { fill: colors.tint, ink: colors.tintInk, ring: colors.tint }
+    : { fill: colors.sage, ink: colors.navy900, ring: colors.sage };
 }
 
 /** Carré « S » de Stripe (`36 pt / rayon 10` dans Y, `18 pt / rayon 5` dans le pied de Y2). */
@@ -61,7 +86,7 @@ export function StripeMark({ size = 36 }: { size?: number }) {
 /** `.tag` / `.tag.gray` à chiffres proportionnels (la `Tag` du design applique tabular-nums, qui élargit « + » et les espaces). */
 export function SoftTag({ label, tone = 'gray', style }: { label: string; tone?: 'tint' | 'gray'; style?: StyleProp<ViewStyle> }) {
   const { colors } = useTheme();
-  const p = tone === 'tint' ? { bg: colors.tintSoft, ink: colors.tintText } : { bg: colors.fill3, ink: colors.label2 };
+  const p = tone === 'tint' ? { bg: colors.badgeBg, ink: colors.badgeInk } : { bg: colors.fill3, ink: colors.label2 };
   return (
     <View accessible accessibilityLabel={label} style={[{ alignSelf: 'flex-start', height: 22, paddingHorizontal: 8, borderRadius: 11, backgroundColor: p.bg, justifyContent: 'center' }, style]}>
       <ThemedText variant="cap" weight={600} style={[PROPORTIONAL, { color: p.ink }]}>{label}</ThemedText>
@@ -83,7 +108,7 @@ export function AmberTag({ label }: { label: string }) {
 }
 
 /**
- * `.card` avec anneau de sélection `box-shadow: 0 0 0 2.5px var(--tint)` : l'anneau déborde de la carte (sans la
+ * `.card` avec anneau de sélection `box-shadow: 0 0 0 2.5px var(--tint)` (sauge en Veillée, cf. `useSelection`) : l'anneau déborde de la carte (sans la
  * déplacer), comme l'ombre portée du canevas.
  */
 export function RingCard({
@@ -97,7 +122,8 @@ export function RingCard({
   children?: ReactNode;
   style?: StyleProp<ViewStyle>;
 }) {
-  const { colors, metrics } = useTheme();
+  const { metrics } = useTheme();
+  const sel = useSelection();
   return (
     <View style={style}>
       <Card padding={padding}>{children}</Card>
@@ -106,10 +132,35 @@ export function RingCard({
           pointerEvents="none"
           style={{
             position: 'absolute', top: -2.5, left: -2.5, right: -2.5, bottom: -2.5,
-            borderRadius: metrics.cardRadius + 2.5, borderWidth: 2.5, borderColor: colors.tint,
+            borderRadius: metrics.cardRadius + 2.5, borderWidth: 2.5, borderColor: sel.ring,
           }}
         />
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * Haut de page d'un programme (Y2) : l'image floutée en fond, l'image nette en dessous de la barre, puis un
+ * fondu vers le fond du style (`.hero` : flou 34, opacité 0,85 en Lin et 0,5 en Veillée).
+ */
+export function PackHero({ id, height = 300 }: { id: string; height?: number }) {
+  const { colors, styleKey } = useTheme();
+  const { width } = useWindowDimensions();
+  return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ height, overflow: 'hidden', backgroundColor: BRAND.packshot }}>
+      <VignetteImage
+        id={id}
+        blurRadius={34}
+        style={{ position: 'absolute', top: -60, left: -60, width: width + 120, height: height + 120, opacity: styleKey === 'lin' ? 0.85 : 0.5 }}
+      />
+      <VignetteImage id={id} style={{ position: 'absolute', left: 0, top: 52, width, height: height - 52 }} />
+      <LinearGradient
+        pointerEvents="none"
+        colors={[withAlpha(colors.bgGrouped, 0), colors.bgGrouped]}
+        locations={[0.62, 1]}
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+      />
     </View>
   );
 }

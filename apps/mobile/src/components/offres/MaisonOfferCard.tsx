@@ -15,7 +15,7 @@ export function MaisonOfferCardView({ data, onPress }: { data: MaisonOfferData; 
   const { colors } = useTheme();
   const tile = (bg: string, price: string, unit: string) => (
     <View style={{ flex: 1, borderRadius: 16, paddingVertical: 10, paddingHorizontal: 12, backgroundColor: bg }}>
-      <ThemedText variant="headline">{price}</ThemedText>
+      <ThemedText variant="title2" weight={500} style={{ fontSize: 22, lineHeight: 26, letterSpacing: 0 }}>{price}</ThemedText>
       <ThemedText variant="foot" color="label2">{unit}</ThemedText>
     </View>
   );
