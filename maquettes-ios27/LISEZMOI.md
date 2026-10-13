@@ -2,6 +2,8 @@
 
 **Version finale : deux styles seulement.**
 
+Seuls `v4.html`, `v5.html`, `final.css`, `screens-final.js` comptent. `v1.html`–`v3.html`, `screens.js`, `ios27.css` (seul) sont obsolètes.
+
 - **V4 « Lin »** (clair) → `v4.html`
 - **V5 « Veillée »** (sombre) → `v5.html`
 - Tokens et matières : `final.css` · Écrans : `screens-final.js` · Icônes : `icons.js` · Images : `assets/`
