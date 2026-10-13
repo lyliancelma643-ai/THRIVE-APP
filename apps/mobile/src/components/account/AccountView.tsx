@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
   Avatar, GlassButton, List, ListRow, NavBar, Section, SectionHeader, ThemedText, useNavBarHeight, useScrollEdge,
-  useTheme, type StyleKey,
+  useTheme, type ThemeStyleKey,
 } from '../../design';
 import { kidAvatarColors } from './kidAvatar';
 import { StylePickerView } from './StylePicker';
@@ -17,8 +17,8 @@ export type AccountViewProps = {
   programValue?: string;
   /** Valeur à droite de « Abonnement Maison » (ex. « Inclus », « Essai · 24 j », « Actif »). */
   maisonValue?: string;
-  styleChoice: StyleKey;
-  onChangeStyle: (k: StyleKey) => void;
+  styleChoice: ThemeStyleKey;
+  onChangeStyle: (k: ThemeStyleKey) => void;
   family: AccountFamilyItem[];
   onOpenProgram: () => void;
   onOpenMaison: () => void;
@@ -37,13 +37,13 @@ export type AccountViewProps = {
 };
 
 /**
- * Maquette X · Compte & famille (identique dans les 3 styles) : avatar et identité, Mon programme / Abonnement Maison /
- * Offres, Style de l'app (Natif · Nuit calme · Carnet), Famille, Préférences, Données, Se déconnecter.
+ * Maquette X · Compte & famille (identique en Lin et en Veillée) : avatar et identité, Mon programme / Abonnement Maison /
+ * Offres, Style de l'app (Lin · Veillée), Famille, Préférences, Données, Se déconnecter.
  * Tout ce que le produit n'a pas encore (co-parent, notifications push en bascule, double authentification, export)
  * n'est pas affiché.
  */
 export function AccountView(p: AccountViewProps) {
-  const { colors, style } = useTheme();
+  const { colors, styleKey } = useTheme();
   const navH = useNavBarHeight();
   const scroll = useScrollEdge();
   return (
@@ -73,7 +73,7 @@ export function AccountView(p: AccountViewProps) {
         <Section>
           <List>
             {p.family.map((c, i) => {
-              const a = kidAvatarColors(i, colors, style);
+              const a = kidAvatarColors(i, colors, styleKey);
               return (
                 <ListRow
                   key={c.id}

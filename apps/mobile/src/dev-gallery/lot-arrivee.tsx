@@ -76,7 +76,7 @@ function Preparing() {
   return (
     <PreparingSpace
       childName={k.first_name}
-      programName={useTheme().style === 'carnet' ? 'Complet' : 'Individuel'}
+      programName="Individuel"
       steps={buildPreparingSteps({
         childName: k.first_name, receivedAt: 'Aujourd’hui, 18 h 02', confirmedAt: 'Aujourd’hui, 18 h 40', coachName: 'Coach Lylian', coachOpened: false,
       })}
@@ -85,28 +85,26 @@ function Preparing() {
 }
 
 function Picker() {
-  // La maquette ne marque la sélection qu'en Natif (coche) ; Nuit calme et Carnet n'en montrent aucune.
-  const { style } = useTheme();
   const [sel, setSel] = useState<string | undefined>(KIDS[0].id);
   return (
     <ChildPicker
       childrenList={KIDS.map((k) => ({ id: k.id, first_name: k.first_name, age: k.age, sport: k.sport, sessionLabel: `Séance ${k.session} sur 13`, jersey: k.jersey }))}
-      selectedId={style === 'natif' ? sel : undefined}
+      selectedId={sel}
       onSelect={setSel}
-      onDone={noop} onCancel={style === 'nuit' ? undefined : noop} onAddChild={noop} onInviteCoParent={noop} onEdit={noop}
+      onCancel={noop} onAddChild={noop} onEdit={noop}
     />
   );
 }
 
 function Account() {
-  const { style } = useTheme();
-  const [choice, setChoice] = useState(style);
+  const { styleKey } = useTheme();
+  const [choice, setChoice] = useState(styleKey);
   return (
     <AccountView
       name={`${PARENT.firstName} ${PARENT.lastName}`}
       email={PARENT.email}
-      programValue={style === 'natif' ? 'Individuel' : style === 'carnet' ? 'Complet' : 'Aucun'}
-      maisonValue={style === 'natif' ? 'Inclus' : style === 'nuit' ? 'Essai · 24 j' : 'Inclus'}
+      programValue="Individuel"
+      maisonValue="Inclus"
       styleChoice={choice}
       onChangeStyle={setChoice}
       family={KIDS.map((k) => ({ id: k.id, firstName: k.first_name, ageLabel: `${k.age} ans` }))}

@@ -1,7 +1,7 @@
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Button, Field, GlassButton, GlassSurface, Icon, List, ListRow, NavBar, ProgressBar, Section, SectionFooter, SectionHeader,
+  Button, Field, GlassButton, GlassSurface, Icon, Lamp, List, ListRow, NavBar, ProgressBar, Section, SectionFooter, SectionHeader,
   ThemedText, useNavBarHeight, useTheme,
 } from '../../design';
 
@@ -47,6 +47,7 @@ export function RegisterView(p: RegisterViewProps) {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bgGrouped }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <Lamp />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: navH + 8, paddingBottom: 140 }}>
         <Section>
           <ProgressBar value={0.5} accessibilityLabel="Étape 1 sur 2" valueText="1 sur 2" />

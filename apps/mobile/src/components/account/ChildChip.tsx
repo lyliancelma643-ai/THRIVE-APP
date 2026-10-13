@@ -12,8 +12,8 @@ type Props = {
 
 /** `.gbtn.glass` de la barre : pastille de verre « avatar · prénom · chevron » qui ouvre le choix du profil (F). */
 export function ChildChip({ name, index = 0, onPress }: Props) {
-  const { colors, style } = useTheme();
-  const k = kidAvatarColors(index, colors, style);
+  const { colors, styleKey } = useTheme();
+  const k = kidAvatarColors(index, colors, styleKey);
   return (
     <Pressable
       onPress={onPress}

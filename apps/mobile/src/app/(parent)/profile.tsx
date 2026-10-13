@@ -17,7 +17,7 @@ function calculateAge(dob: string): number {
 export default function ProfileScreen() {
   const { user, signOut } = useAuthStore();
   const router = useRouter();
-  const { style, setStyle } = useStyleChoice();
+  const { styleKey, setStyle } = useStyleChoice();
   const ent = useEntitlement();
   const access = useSubscriptionStore((s) => s.access);
   const { family } = useFamily(user?.id);
@@ -45,7 +45,7 @@ export default function ProfileScreen() {
       email={user?.email ?? ''}
       programValue={fromProgram ? 'Actif' : 'Aucun'}
       maisonValue={ent.isStaff ? undefined : maisonValue}
-      styleChoice={style}
+      styleChoice={styleKey}
       onChangeStyle={setStyle}
       family={children.map((c) => ({ id: c.id, firstName: c.first_name, ageLabel: `${calculateAge(c.date_of_birth)} ans` }))}
       onOpenProgram={() => router.push('/(parent)/offres')}
