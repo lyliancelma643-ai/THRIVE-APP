@@ -1,5 +1,5 @@
 // Activité → vignette. La table des 52 images vit dans src/design (S1) : on ne la duplique pas.
-import { BASE_VIGNETTE_ID, resolveVignetteId } from '../design';
+import { BASE_VIGNETTE_ID, resolveVignetteId } from '../design/vignetteIds';
 
 /** Identifiant de vignette d'une activité (repli sur la mascotte si pas d'image, ex. ACT-0704). */
 export function vignetteIdFor(activity: { id: string } | string | null | undefined): string {

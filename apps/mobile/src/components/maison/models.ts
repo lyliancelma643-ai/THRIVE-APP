@@ -11,7 +11,7 @@ import { MOVEMENT_LABEL, formatDay, materialsLabel } from './helpers';
 import type { ParcoursWeek, Tonight } from './logic';
 import { reasonLine } from './logic';
 import type {
-  CarnetVM, FicheVM, HomeChip, HomeShelfVM, HomeVM, MomentVM, ParcoursVM, PosterVM,
+  CarnetVM, FicheVM, HomeChip, HomeVM, MomentVM, ParcoursVM, PosterVM,
 } from './viewModels';
 
 export { BAND_LABELS };
@@ -51,7 +51,7 @@ export function momentShelfItems(pool: P3Activity[], key: string, doneIds: Reado
   const match =
     chip.filter === 'weekend'
       ? visible.filter((a) => a.moments.includes('week-end'))
-      : visible.filter((a) => matchesFilter(a, chip.filter, { doneIds, favoris: new Set() }));
+      : visible.filter((a) => matchesFilter(a, chip.filter as FilterId, { doneIds, favoris: new Set() }));
   return freshFirst(match, doneIds).slice(0, 12);
 }
 
@@ -94,7 +94,7 @@ type HomeInput = {
   phaseChip: string;
   banner: HomeVM['banner'];
   invite: boolean;
-  carnet: { id: string; created_at: string; activity_id: string; kept_phrase: string | null }[];
+  carnet: { created_at: string; activity_id: string; kept_phrase: string | null }[];
 };
 
 export function buildHomeVM(i: HomeInput): HomeVM {
@@ -291,6 +291,7 @@ export function buildCarnetVM(input: {
       const a = getActivity(m.activity_id);
       return {
         id: `${m.activity_id}-${m.created_at}`,
+        activityId: m.activity_id,
         vignetteId: vignetteIdFor(a),
         title: captureTitle(a),
         detail: a?.title ?? 'Un moment ensemble',

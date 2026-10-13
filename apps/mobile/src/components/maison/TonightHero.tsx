@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, View, useWindowDimensions } from 'react-native';
 import { Icon, ThemedText, VignetteImage, useNavBarHeight, useTheme, withAlpha } from '../../design';
 import { SUN_GRADIENT, useHomePalette } from './palette';
 import type { HomeVM } from './viewModels';
@@ -11,6 +11,47 @@ type Props = {
   onOpenCard: () => void;
   onMore: () => void;
 };
+
+const FADE_FROM = 0.62;
+const FADE_STEPS = 16;
+
+/**
+ * Image dont le bas se fond dans le décor (le canevas la masque de 62 % à 100 %). RN n'a pas de masque d'image :
+ * on empile des bandes d'opacité décroissante, ce qui rend le même fondu sans dégradé de couleur de fond.
+ */
+function FadedImage({ id, label, width, height, top }: { id: string; label: string; width: number; height: number; top: number }) {
+  const solid = Math.round(height * FADE_FROM);
+  const stripH = (height - solid) / FADE_STEPS;
+  if (Platform.OS === 'web') {
+    // Aperçu web : vrai masque CSS, identique au canevas.
+    const mask = `linear-gradient(to bottom, #000 ${FADE_FROM * 100}%, rgba(0,0,0,0) 100%)`;
+    return (
+      <View
+        style={{ position: 'absolute', left: 0, top, width, height, WebkitMaskImage: mask, maskImage: mask } as object}
+        accessible
+        accessibilityRole="image"
+        accessibilityLabel={label}
+      >
+        <VignetteImage id={id} style={{ width, height }} />
+      </View>
+    );
+  }
+  return (
+    <View style={{ position: 'absolute', left: 0, top, width, height }} accessible accessibilityRole="image" accessibilityLabel={label}>
+      <View style={{ position: 'absolute', top: 0, left: 0, width, height: solid, overflow: 'hidden' }}>
+        <VignetteImage id={id} style={{ width, height }} />
+      </View>
+      {Array.from({ length: FADE_STEPS }, (_, i) => (
+        <View
+          key={i}
+          style={{ position: 'absolute', top: solid + i * stripH, left: 0, width, height: stripH + 0.5, overflow: 'hidden', opacity: 1 - (i + 0.5) / FADE_STEPS }}
+        >
+          <VignetteImage id={id} style={{ position: 'absolute', top: -(solid + i * stripH), left: 0, width, height }} />
+        </View>
+      ))}
+    </View>
+  );
+}
 
 /** « Soir de famille » : l'affiche du moment recommandé, fondue dans le fond de la page (canevas K, 676 pt). */
 export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Props) {
@@ -28,10 +69,21 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
         blurRadius={34}
         style={{ position: 'absolute', top: -60, left: -60, width: width + 120, height: H + 120, opacity: p.heroBlurOpacity }}
       />
-      <VignetteImage
-        id={hero.vignetteId}
-        accessibilityLabel={hero.vignetteLabel}
-        style={{ position: 'absolute', left: 0, top: 52, width, height: 396 }}
+      <FadedImage id={hero.vignetteId} label={hero.vignetteLabel} width={width} height={396} top={52} />
+      {/* Fondu de l'image (le canevas la masque : bas 62 → 100 %, côtés 12 %) : dégradés vers le fond de la page. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[p.bg, clear]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', left: 0, top: 52, width: width * 0.12, height: 396 }}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={[clear, p.bg]}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={{ position: 'absolute', right: 0, top: 52, width: width * 0.12, height: 396 }}
       />
       <LinearGradient
         pointerEvents="none"
@@ -41,7 +93,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
       />
 
       {banner ? (
-        <View pointerEvents="none" style={{ position: 'absolute', top: Math.max(110, navH + 8), left: 0, right: 0, alignItems: 'center' }}>
+        <View pointerEvents="none" style={{ position: 'absolute', top: navH + 2, left: 0, right: 0, alignItems: 'center' }}>
           <View
             accessible
             accessibilityLabel={banner.label}

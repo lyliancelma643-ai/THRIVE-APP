@@ -127,6 +127,6 @@ export type MomentVM = {
 export type CarnetVM = {
   firstName: string;
   earned: { id: string; label: string; detail: string; glyph: IconName }[];
-  kept: { id: string; vignetteId: string; title: string; detail: string; phrase: string | null }[];
+  kept: { id: string; activityId: string; vignetteId: string; title: string; detail: string; phrase: string | null }[];
   objects: { id: string; label: string; glyph: IconName; got: boolean }[];
 };

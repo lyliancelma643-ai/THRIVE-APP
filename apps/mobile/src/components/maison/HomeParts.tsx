@@ -29,7 +29,7 @@ export function HomePoster({ poster, onPress }: { poster: PosterVM; onPress: () 
           ) : null}
         </View>
       </View>
-      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: 0, color: p.ink }}>
+      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: -0.35, color: p.ink }}>
         {poster.title}
       </ThemedText>
       <ThemedText variant="foot" numberOfLines={1} style={{ marginTop: 2, fontSize: 13, lineHeight: 17, letterSpacing: 0, color: p.muted }}>

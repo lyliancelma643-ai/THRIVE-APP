@@ -96,7 +96,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
               style={({ pressed }) => [doorCard, { width: '48.6%', flexGrow: 1, opacity: pressed ? 0.75 : 1 }]}
             >
               {badge(d.glyph)}
-              <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: 0, color: p.ink }}>{d.label}</ThemedText>
+              <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3, color: p.ink }}>{d.label}</ThemedText>
             </Pressable>
           ))}
           <Pressable
@@ -106,7 +106,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
             style={[doorCard, { width: '100%', minHeight: 64, paddingVertical: 10, opacity: 0.75 }]}
           >
             {badge('video')}
-            <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: 0, color: p.ink }}>Les séances vidéo de 20 min</ThemedText>
+            <ThemedText variant="sub" weight={600} style={{ flex: 1, fontSize: 15, lineHeight: 19, letterSpacing: -0.3, color: p.ink }}>Les séances vidéo de 20 min</ThemedText>
             <View style={{ height: 24, paddingHorizontal: 10, borderRadius: 12, backgroundColor: p.soonBg, justifyContent: 'center' }}>
               <ThemedText variant="cap" weight={600} style={{ color: p.soonInk, letterSpacing: 0 }}>Bientôt</ThemedText>
             </View>
@@ -214,10 +214,10 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
                   key={m.id}
                   style={[
                     { borderRadius: 20, padding: 16, backgroundColor: p.paper, transform: [{ rotate: `${TILT[i % TILT.length]}deg` }] },
-                    { shadowColor: '#000000', shadowOpacity: 0.3, shadowRadius: 17, shadowOffset: { width: 0, height: 12 }, overflow: 'hidden' },
+                    { shadowColor: '#000000', shadowOpacity: 0.16, shadowRadius: 14, shadowOffset: { width: 0, height: 10 } },
                   ]}
                 >
-                  <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0 }}>
+                  <View pointerEvents="none" style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, borderRadius: 20, overflow: 'hidden' }}>
                     {Array.from({ length: 30 }, (_, k) => (
                       <View key={k} style={{ position: 'absolute', left: 0, right: 0, top: k * 4, height: 1, backgroundColor: PAPER_RULE }} />
                     ))}

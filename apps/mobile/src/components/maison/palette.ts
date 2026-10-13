@@ -56,7 +56,7 @@ const CREAM = '#F7F5F2';
 export const HOME_PALETTES: Record<StyleKey, HomePalette> = {
   natif: {
     bg: CREAM, ink: NAVY, body: '#33454F', muted: '#56626B', card: '#FFFEFB', cardBorder: 'rgba(0,49,76,0.12)',
-    cardShadow: { shadowColor: '#00314C', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 10 } },
+    cardShadow: { shadowColor: '#00314C', shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 8 } },
     link: '#46695F', badgeBg: 'rgba(167,196,188,0.15)',
     chipBg: 'rgba(0,49,76,0.06)', chipBorder: 'rgba(0,49,76,0.12)', chipInk: NAVY, chipOnBg: NAVY, chipOnInk: CREAM,
     glassBg: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(0,49,76,0.20)', glassInk: NAVY,
@@ -69,7 +69,7 @@ export const HOME_PALETTES: Record<StyleKey, HomePalette> = {
   nuit: {
     bg: NAVY, ink: CREAM, body: 'rgba(247,245,242,0.84)', muted: 'rgba(247,245,242,0.68)', card: '#00314C',
     cardBorder: 'rgba(247,245,242,0.10)',
-    cardShadow: { shadowColor: '#000000', shadowOpacity: 0.4, shadowRadius: 16, shadowOffset: { width: 0, height: 10 } },
+    cardShadow: { shadowColor: '#000000', shadowOpacity: 0.3, shadowRadius: 12, shadowOffset: { width: 0, height: 8 } },
     link: '#A7C4BC', badgeBg: 'rgba(167,196,188,0.15)',
     chipBg: 'rgba(247,245,242,0.07)', chipBorder: 'rgba(247,245,242,0.10)', chipInk: CREAM, chipOnBg: CREAM, chipOnInk: NAVY,
     glassBg: 'rgba(247,245,242,0.10)', glassBorder: 'rgba(247,245,242,0.18)', glassInk: CREAM,
@@ -81,7 +81,7 @@ export const HOME_PALETTES: Record<StyleKey, HomePalette> = {
   },
   carnet: {
     bg: CREAM, ink: NAVY, body: '#33454F', muted: '#56626B', card: '#FFFEFB', cardBorder: 'rgba(0,49,76,0.12)',
-    cardShadow: { shadowColor: '#00314C', shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 10 } },
+    cardShadow: { shadowColor: '#00314C', shadowOpacity: 0.1, shadowRadius: 12, shadowOffset: { width: 0, height: 8 } },
     link: '#46695F', badgeBg: 'rgba(167,196,188,0.15)',
     chipBg: 'rgba(0,49,76,0.06)', chipBorder: 'rgba(0,49,76,0.12)', chipInk: NAVY, chipOnBg: NAVY, chipOnInk: CREAM,
     glassBg: 'rgba(255,255,255,0.7)', glassBorder: 'rgba(0,49,76,0.20)', glassInk: NAVY,
