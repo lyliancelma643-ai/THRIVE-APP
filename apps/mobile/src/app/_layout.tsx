@@ -51,6 +51,8 @@ function RootLayout() {
   // Redirection selon la session et le rôle (app_metadata, non falsifiable).
   useEffect(() => {
     if (isLoading) return;
+    // Galerie de contrôle des primitives (dev uniquement) : accessible sans session.
+    if (__DEV__ && segments[0] === '__design') return;
     const inAuthGroup = segments[0] === '(auth)';
     const inWelcome = segments[0] === 'welcome';
 

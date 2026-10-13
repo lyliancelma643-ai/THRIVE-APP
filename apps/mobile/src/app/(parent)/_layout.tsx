@@ -1,5 +1,4 @@
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 import {
   FloatingTabBar,
   HIDDEN_FROM_BAR,
@@ -42,15 +41,18 @@ function ParentTabBar({ state, navigation }: BarProps) {
   const { tabs, prominent } = tabLayoutFor(style);
   const activeRoute = state.routes[state.index]?.name as ParentRoute | undefined;
   const go = (route: string) => navigation.navigate(route);
+  // Onglet Prominent : teinté selon le style (Natif = quand Coach est ouvert, Nuit calme = toujours, Carnet = jamais).
+  const promActive = activeRoute === prominent.route && prominent.tone === 'auto';
   return (
     <FloatingTabBar
-      tabs={tabs.map((t) => ({ key: t.route, label: t.label, icon: t.icon as keyof typeof Ionicons.glyphMap }))}
-      activeKey={activeRoute ?? ''}
+      tabs={tabs.map((t) => ({ key: t.route, label: t.label, glyph: t.glyph }))}
+      activeKey={activeRoute === prominent.route && prominent.tone === 'auto' ? '' : activeRoute ?? ''}
       onSelect={go}
       prominent={{
         key: 'prominent',
         label: prominent.label,
-        icon: prominent.icon as keyof typeof Ionicons.glyphMap,
+        glyph: prominent.glyph,
+        tinted: prominent.tone === 'tinted' || promActive,
         onPress: () => go(prominent.route),
       }}
     />

@@ -1,8 +1,7 @@
 import { useRef, useState } from 'react';
 import { PanResponder, View, type LayoutChangeEvent } from 'react-native';
-import { GlassSurface } from './GlassSurface';
 import { useTheme } from './ThemeProvider';
-import { SHADOW_THUMB, SPACING } from './tokens';
+import { CANVAS, SHADOW_THUMB, SPACING } from './tokens';
 
 export type SliderProps = {
   value: number;
@@ -15,10 +14,13 @@ export type SliderProps = {
   valueText?: (v: number) => string;
 };
 
-const THUMB_W = 40;
-const THUMB_H = 28;
+const THUMB_W = 44;
+const THUMB_H = 30;
 
-/** Curseur Liquid Glass : piste `fill`, remplissage `tint`, pouce en verre. Cible 44 pt de haut. */
+/**
+ * `.slider` : piste 8 pt `fill`, remplissage `tint`, pouce Liquid Glass 44 × 30 (blanc 55 %, reflet haut).
+ * Hauteur tactile 44 pt ; le pouce reste dans la piste (pas de débord aux extrêmes).
+ */
 export function Slider({ value, onChange, min = 0, max = 10, step = 1, accessibilityLabel, valueText }: SliderProps) {
   const { colors } = useTheme();
   const [width, setWidth] = useState(0);
@@ -68,11 +70,20 @@ export function Slider({ value, onChange, min = 0, max = 10, step = 1, accessibi
       }}
       style={{ height: SPACING.touchMin, justifyContent: 'center' }}
     >
-      <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.fill, overflow: 'hidden' }}>
-        <View style={{ width: THUMB_W / 2 + ratio * travel, height: 6, backgroundColor: colors.tint }} />
-      </View>
-      <View pointerEvents="none" style={[{ position: 'absolute', left: ratio * travel, width: THUMB_W, height: THUMB_H }, SHADOW_THUMB, { borderRadius: THUMB_H / 2 }]}>
-        <GlassSurface strong style={{ width: THUMB_W, height: THUMB_H }} />
+      <View style={{ height: 34 }}>
+        <View style={{ position: 'absolute', left: 0, right: 0, top: 13, height: 8, borderRadius: 4, backgroundColor: colors.fill, overflow: 'hidden' }}>
+          <View style={{ width: THUMB_W / 2 + ratio * travel, height: 8, backgroundColor: colors.tint }} />
+        </View>
+        <View
+          pointerEvents="none"
+          style={[
+            {
+              position: 'absolute', top: 2, left: ratio * travel, width: THUMB_W, height: THUMB_H, borderRadius: THUMB_H / 2,
+              backgroundColor: CANVAS.thumbFill, borderWidth: 1, borderColor: CANVAS.thumbEdge, borderTopColor: CANVAS.thumbSpec,
+            },
+            SHADOW_THUMB,
+          ]}
+        />
       </View>
     </View>
   );

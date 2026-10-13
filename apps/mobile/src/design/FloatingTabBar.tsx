@@ -2,44 +2,59 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassSurface } from './GlassSurface';
+import { Icon, type IconName } from './icons';
 import { useTheme } from './ThemeProvider';
 import { ThemedText } from './ThemedText';
-import { RADIUS, SPACING } from './tokens';
+import { SPACING } from './tokens';
 
-export type FloatingTab = { key: string; label: string; icon: keyof typeof Ionicons.glyphMap };
+export type FloatingTab = {
+  key: string;
+  label: string;
+  /** Icône du canevas (`icons.tsx`) : à préférer. */
+  glyph?: IconName;
+  /** Ancien : nom Ionicons (compatibilité). */
+  icon?: keyof typeof Ionicons.glyphMap;
+};
 
 export type FloatingTabBarProps = {
   tabs: readonly FloatingTab[];
   activeKey: string;
   onSelect: (key: string) => void;
-  prominent?: FloatingTab & { onPress: () => void };
+  /**
+   * Onglet Prominent (`.prom`) : rond de 62 pt détaché, icône seule (le libellé ne sert qu'à VoiceOver).
+   * `tinted` = `.glass.tinted` (action active) ; sinon `.glass.plainglass` (verre neutre).
+   */
+  prominent?: FloatingTab & { onPress: () => void; tinted?: boolean };
 };
 
 /** Hauteur à réserver sous le contenu : barre + marge basse (hors zone sûre). */
 export const TAB_BAR_INSET = SPACING.tabbarH + SPACING.space6;
 
 /**
- * Barre d'onglets flottante : capsule de verre à 3 onglets + onglet Prominent rond et teinté.
- * Onglet actif : fond `fill3`, icône et libellé `tint`. Rendue dans le flux (pas en absolu).
+ * `.tabbar` : capsule de verre de 62 pt (`.tabs`, padding 4) à 3 onglets + onglet Prominent rond détaché.
+ * Onglet actif (`.tab.on`) : fond `tabOn`, icône et libellé `tintText` ; inactifs : encre `label`.
+ * Rendue dans le flux (pas en absolu) : le contenu s'arrête au-dessus ; le fond reprend `bgGrouped`.
  */
 export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: FloatingTabBarProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
+  const draw = (t: FloatingTab, color: string, size: number) =>
+    t.glyph ? <Icon name={t.glyph} size={size} color={color} /> : t.icon ? <Ionicons name={t.icon} size={size} color={color} /> : null;
   return (
     <View
       style={{
-        flexDirection: 'row', alignItems: 'center', gap: SPACING.space2,
-        paddingHorizontal: SPACING.space4,
+        flexDirection: 'row', alignItems: 'flex-end', gap: 10,
+        paddingHorizontal: 16,
         paddingTop: SPACING.space2,
-        paddingBottom: Math.max(insets.bottom, SPACING.space2),
+        paddingBottom: insets.bottom > 0 ? Math.max(insets.bottom - 9, 8) : 25,
         backgroundColor: colors.bgGrouped,
       }}
     >
-      <GlassSurface radius={RADIUS.full} style={{ flex: 1 }}>
-        <View accessibilityRole="tabbar" style={{ flexDirection: 'row', height: SPACING.tabbarH, padding: 4 }}>
+      <GlassSurface radius={31} style={{ flex: 1 }}>
+        <View accessibilityRole="tabbar" style={{ flexDirection: 'row', height: SPACING.tabbarH - 2, padding: 4 }}>
           {tabs.map((t) => {
             const active = t.key === activeKey;
-            const color = active ? colors.tint : colors.label2;
+            const color = active ? colors.tintText : colors.label;
             return (
               <Pressable
                 key={t.key}
@@ -49,13 +64,14 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
                 accessibilityLabel={t.label}
                 accessibilityState={{ selected: active }}
                 style={{
-                  flex: 1, minHeight: SPACING.touchMin, borderRadius: RADIUS.full,
-                  alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: active ? colors.fill3 : 'transparent',
+                  flex: 1, borderRadius: 27, gap: 1, alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: active ? colors.tabOn : 'transparent',
                 }}
               >
-                <Ionicons name={t.icon} size={22} color={color} />
-                <ThemedText variant="caption2" numberOfLines={1} style={{ color }}>{t.label}</ThemedText>
+                {draw(t, color, 24)}
+                <ThemedText variant="cap2" numberOfLines={1} style={{ color, fontSize: 10, lineHeight: 12, letterSpacing: 0.1 }}>
+                  {t.label}
+                </ThemedText>
               </Pressable>
             );
           })}
@@ -63,16 +79,17 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
       </GlassSurface>
       {prominent ? (
         <Pressable
+          testID="tab-prominent"
           onPress={prominent.onPress}
           accessibilityRole="button"
           accessibilityLabel={prominent.label}
-          style={{
-            width: SPACING.tabbarH, height: SPACING.tabbarH, borderRadius: RADIUS.full,
-            backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center',
-          }}
+          style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
         >
-          <Ionicons name={prominent.icon} size={22} color={colors.tintInk} />
-          <ThemedText variant="caption2" numberOfLines={1} style={{ color: colors.tintInk }}>{prominent.label}</ThemedText>
+          <GlassSurface interactive tinted={prominent.tinted} radius={31} style={{ width: SPACING.tabbarH, height: SPACING.tabbarH }}>
+            <View style={{ width: SPACING.tabbarH - 2, height: SPACING.tabbarH - 2, alignItems: 'center', justifyContent: 'center' }}>
+              {draw(prominent, prominent.tinted ? colors.tintInk : colors.label, 25)}
+            </View>
+          </GlassSurface>
         </Pressable>
       ) : null}
     </View>

@@ -1,13 +1,18 @@
 import type { TextStyle } from 'react-native';
-import { FONT_FAMILIES, TYPE, type TextStyleName } from './tokens';
+import { DEFAULT_STYLE, FONT_FAMILIES, typeSpec, type StyleKey, type TextSpec, type TextStyleName } from './tokens';
 
 /**
  * Traduit un style de texte en TextStyle RN. Tant que les polices ne sont pas
  * chargées (ou si le chargement échoue), on retombe sur la police système.
- * Les chiffres sont toujours tabulaires.
+ * Les chiffres sont toujours tabulaires. `style` (défaut natif) sélectionne les variantes Carnet (Fraunces).
  */
-export function resolveTextStyle(name: TextStyleName, fontsLoaded: boolean): TextStyle {
-  const spec = TYPE[name];
+export function resolveTextStyle(
+  name: TextStyleName,
+  fontsLoaded: boolean,
+  style: StyleKey = DEFAULT_STYLE,
+  weight?: TextSpec['weight'],
+): TextStyle {
+  const spec = { ...typeSpec(name, style), ...(weight ? { weight } : null) };
   const base: TextStyle = {
     fontSize: spec.fontSize,
     lineHeight: spec.lineHeight,
