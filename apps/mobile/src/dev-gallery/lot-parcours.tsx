@@ -80,7 +80,7 @@ export const screens: GalleryScreen[] = [
   { id: 'O', title: 'Bientôt disponible', tab: null, render: () => <Phone><ComingSoon /></Phone> },
   {
     id: 'P',
-    title: 'Prêt avec Léo ?',
+    title: `Prêt avec ${DEMO_CHILD} ?`,
     tab: null,
     render: () => (
       <Phone>
@@ -99,7 +99,7 @@ export const screens: GalleryScreen[] = [
   },
   { id: 'Q', title: 'Question en pause', tab: null, render: () => <Phone><Question /></Phone> },
   { id: 'R', title: 'Après la séance', tab: null, render: () => <Phone><Done /></Phone> },
-  { id: 'W', title: 'Questionnaire de Léo', tab: null, render: () => <Phone><Epoch /></Phone> },
+  { id: 'W', title: `Questionnaire de ${DEMO_CHILD}`, tab: null, render: () => <Phone><Epoch /></Phone> },
   {
     id: 'Z',
     title: 'Fin de parcours',
