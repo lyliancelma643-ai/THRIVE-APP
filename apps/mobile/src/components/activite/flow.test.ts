@@ -497,3 +497,27 @@ describe('aucune donnée de démo', () => {
     for (const demo of ['Léo', 'Camille', 'Alex', 'ACT-0802', 'cabane']) expect(src).not.toContain(demo);
   });
 });
+
+describe('D3 : lettre scellée puis « Non » à « Enregistrer ce moment ? »', () => {
+  const letterCtx = ctx({ isLetter: true });
+  const at = Date.UTC(2026, 9, 13, 18, 0, 0);
+  const sealed: FlowEvent[] = [
+    { t: 'letter.edit', text: 'Bonjour' }, { t: 'letter.review' }, { t: 'letter.seal' }, { t: 'letter.sealed', at },
+  ];
+
+  it('le moment n’est pas compté (aucun effet d’enregistrement) et la lettre reste scellée', () => {
+    const r = play([...sealed, { t: 'quit.request' }, { t: 'quit.answer', answer: 'non', now: at + 1 }], letterCtx);
+    expect(r.effects.filter((e) => e.type === 'seal-letter')).toHaveLength(1); // le scellement d’origine, pas un second
+    expect(r.effects.filter((e) => e.type === 'record')).toEqual([]);
+    expect(r.state.recorded).toBe(false);
+    expect(r.state.letter).toEqual({ step: 'sealed', text: '', sealedAt: at }); // jamais effacée ni rouverte
+  });
+
+  it('la phrase sous le titre de M17 est celle de la décision D3', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { join } = await import('node:path');
+    const src = readFileSync(join(__dirname, 'QuitSheet.tsx'), 'utf8');
+    expect(src).toContain("export const LETTER_STAYS_SEALED = 'Ta lettre reste scellée.'");
+    expect(src).toMatch(/letterSealed \? <ThemedText[^>]*>\{LETTER_STAYS_SEALED\}/);
+  });
+});

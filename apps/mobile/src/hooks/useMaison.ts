@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useChildren, useFamily, supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '../stores/auth.store';
 import { ageFromBirthDate, bandForAge, p3Pool, type Duration, type Moment } from '../lib/p3';
+import { insertMoment, maisonMomentPayload } from '../components/activite/persist';
 
 export type MaisonMoment = Moment & {
   week: number | null;
@@ -68,15 +69,7 @@ export async function recordMoment(input: {
   outcome: 'ACCROCHE' | 'MOYEN' | 'PAS_CE_SOIR';
   keptPhrase?: string;
 }) {
-  // Insert sans relecture (le texte gardé n'est ni relu ni journalisé côté client).
-  const { error } = await supabase.from('p3_moments').insert({
-    child_id: input.childId,
-    activity_id: input.activityId,
-    week: input.week,
-    duration_chosen: input.duration,
-    place: 'maison',
-    outcome: input.outcome,
-    kept_phrase: input.keptPhrase?.trim() || null,
-  });
-  if (error) throw error;
+  // Un seul écrivain de p3_moments : components/activite/persist.ts. Mêmes colonnes et mêmes valeurs qu'avant (lieu « maison »,
+  // aucune durée réelle, aucun check-in, débrief, capture ni note) ; insert sans relecture, le texte gardé n'est ni relu ni journalisé.
+  await insertMoment(input.childId, maisonMomentPayload(input));
 }

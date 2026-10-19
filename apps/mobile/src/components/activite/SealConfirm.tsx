@@ -1,8 +1,33 @@
 import { View } from 'react-native';
-import { Button, ThemedText } from '../../design';
+import Svg, { Path } from 'react-native-svg';
+import { Button, Icon, Paper, ThemedText, Velvet, useTheme } from '../../design';
 import { Display, Ghost } from './parts';
 
 export type SealStep = 'confirm' | 'sealing' | 'sealed' | 'paper';
+
+/**
+ * M16b / M16c · L'enveloppe fermée : papier vergé, rabat dessiné, cachet de velours avec un cadenas. Elle accompagne
+ * « Lettre scellée » (M16b) et le repli papier (M16c) ; le texte de la lettre n'y figure jamais.
+ */
+export function SealedEnvelope() {
+  const { colors } = useTheme();
+  return (
+    <View style={{ alignItems: 'center', marginTop: 6, marginBottom: 2 }} accessible accessibilityRole="image" accessibilityLabel="Une enveloppe fermée">
+      <Paper laid radius={12} style={{ width: 220, height: 140 }}>
+        <View style={{ width: 220, height: 140 }}>
+          <Svg width={220} height={140} style={{ position: 'absolute', left: 0, top: 0 }} pointerEvents="none">
+            <Path d="M2 4 L110 78 L218 4" fill="none" stroke="rgba(2,37,57,0.22)" strokeWidth={1.5} />
+          </Svg>
+          <Velvet radius={20} style={{ position: 'absolute', left: 90, top: 62, width: 40, height: 40 }}>
+            <View style={{ width: 40, height: 40, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="lock" size={18} color={colors.sage} />
+            </View>
+          </Velvet>
+        </View>
+      </Paper>
+    </View>
+  );
+}
 
 /**
  * M16 · Sceller : irréversible, avec confirmation. « Une fois scellée, personne ne pourra la lire avant le … , pas
@@ -24,11 +49,15 @@ export function SealPanel({
         </>
       ) : step === 'sealed' ? (
         <>
+          <SealedEnvelope />
+          <View style={{ height: 18 }} />
           <Display size={25} lineHeight={32}>{`Lettre scellée. Elle te reviendra par courriel le ${openDate}.`}</Display>
           <View style={{ marginTop: 26 }}><Button variant="accent" label="Continuer" onPress={onDone} /></View>
         </>
       ) : (
         <>
+          <SealedEnvelope />
+          <View style={{ height: 18 }} />
           <ThemedText variant="body" style={{ fontSize: 17, lineHeight: 26 }}>
             {`Pour ce soir, la lettre se garde sur papier : dans une enveloppe fermée, avec la date du ${openDate} dessus.`}
           </ThemedText>
