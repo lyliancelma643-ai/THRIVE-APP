@@ -6,7 +6,7 @@ import { epochPalette } from './palette';
 
 // W · Questionnaire de l'enfant (EPOCH, boutons 1 à 5). L'enfant n'a ni compte ni mot de passe.
 // Écran de présentation seulement : la soumission (verrou 1 test/séance, migrations 047/053) reste
-// côté appelant via `onAnswer`. [À COMPLÉTER] brancher sur la route/lien à jeton existante (aucune route mobile aujourd'hui).
+// côté appelant via `onAnswer`. Routé par `app/(parent)/questionnaire-enfant.tsx` (lien à jeton, RPC questionnaire_get / _submit).
 export type QuestionsLang = 'fr' | 'en';
 
 const SCALE: Record<QuestionsLang, string[]> = {
@@ -45,6 +45,10 @@ export type QuestionsScreenProps = {
   total?: number;
   selected?: number | null;
   onAnswer?: (value: number) => void;
+  /** Libellés des cinq réponses (l'échelle dépend du questionnaire : EPOCH ou LSSS). Absent : l'échelle EPOCH d'origine. */
+  scale?: readonly string[];
+  /** Sous la carte : navigation, bouton d'envoi, message d'erreur (fournis par l'appelant). */
+  footer?: React.ReactNode;
 };
 
 /**
@@ -52,7 +56,7 @@ export type QuestionsScreenProps = {
  * sélecteur FR/EN, accueil, progression, une question par carte avec cinq gros boutons 1 à 5, note de confidentialité.
  */
 export default function QuestionsScreen({
-  firstName, lang = 'fr', onLangChange, dimension, question, index = 1, total = 1, selected = null, onAnswer,
+  firstName, lang = 'fr', onLangChange, dimension, question, index = 1, total = 1, selected = null, onAnswer, scale, footer,
 }: QuestionsScreenProps) {
   const { styleKey } = useTheme();
   const insets = useSafeAreaInsets();
@@ -133,7 +137,7 @@ export default function QuestionsScreen({
           ) : null}
           <ThemedText variant="title3" style={{ marginTop: 6, color: p.ink }}>{question}</ThemedText>
           <View style={{ marginTop: 16, gap: 8 }}>
-            {SCALE[lang].map((label, i) => {
+            {(scale ?? SCALE[lang]).map((label, i) => {
               const on = selected === i + 1;
               const ink = on ? p.selectedInk : p.ink;
               return (
@@ -156,6 +160,8 @@ export default function QuestionsScreen({
           </View>
         </View>
       ) : null}
+
+      {footer ? <View style={{ marginTop: 14, paddingHorizontal: 16 }}>{footer}</View> : null}
 
       <View style={{ marginTop: 14, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, opacity: 0.75 }}>
         <Icon name="eye" size={14} color={p.ink} />

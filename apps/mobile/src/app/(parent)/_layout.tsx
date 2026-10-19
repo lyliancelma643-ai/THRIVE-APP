@@ -34,10 +34,11 @@ const HIDDEN = [
   'quand-consulter',
   'appel',
   'video/[step]',
+  'questionnaire-enfant',
 ];
 
 // Écrans plein écran du canevas (fiche moment, moment en cours, séance vidéo) : sans barre d'onglets.
-const FULL_SCREEN = new Set(['activite/[activityId]', 'moment/[activityId]', 'video/[step]']);
+const FULL_SCREEN = new Set(['activite/[activityId]', 'moment/[activityId]', 'video/[step]', 'questionnaire-enfant']);
 
 type BarProps = {
   state: { index: number; routes: { name: string }[] };

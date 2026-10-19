@@ -32,8 +32,8 @@ export type SubscriptionViewProps = {
 
 /**
  * X2 · Mon abonnement (Maison). Vue pure : l'état (programme inclus / essai / actif / offert / aucun) est déjà traduit
- * en texte par `buildSubscriptionModel`. Anti-steering : payé ailleurs = message neutre, aucun lien ; la seule mention
- * de Stripe est la ligne « Programme réglé par Stripe · aucun abonnement séparé » d'un accès venant d'un pack.
+ * en texte par `buildSubscriptionModel`. Anti-steering : payé ailleurs = message neutre, aucun lien ; aucune mention de
+ * Stripe côté Maison : un accès venant d'un pack affiche « Inclus avec ton programme · aucun abonnement séparé » (D2).
  */
 export function SubscriptionView({ model, storeName, deviceLabel, embedded, restoring, onManage, onRestore, onDiscover }: SubscriptionViewProps) {
   const { colors, styleKey } = useTheme();
@@ -82,7 +82,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
               leading={<IconBadge glyph="tray" bg={BRAND.stripe} ink={CANVAS.white} />}
               leadingInset={60}
               title="Payé avec ton programme"
-              subtitle="Programme réglé par Stripe · aucun abonnement séparé"
+              subtitle="Inclus avec ton programme · aucun abonnement séparé"
             />
           ) : null}
         </List>

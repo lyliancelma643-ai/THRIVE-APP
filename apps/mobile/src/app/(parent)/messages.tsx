@@ -3,7 +3,7 @@ import { ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useConversations } from '@thrive/shared';
 import { OfflineState } from '../../components/OfflineState';
-import { LockedScreen } from '../../components/access/LockedSection';
+import { LockedSection } from '../../components/access/LockedSection';
 import { MessagesListView } from '../../components/bilan/MessagesListView';
 import { useSubscriptionStore } from '../../stores/subscription.store';
 import { sectionView } from '../../services/access';
@@ -38,14 +38,7 @@ export default function ParentMessagesScreen() {
 
   const noCoachAccess = !!access && !access.isStaff && sectionView(access, 'bilan') === 'locked' && sectionView(access, 'seances') === 'locked';
   if (conversations.length === 0 && noCoachAccess) {
-    return (
-      <LockedScreen
-        kind="messages"
-        onOffers={() => router.push('/(parent)/offres')}
-        onCall={() => router.push('/(parent)/appel')}
-        onBack={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison'))}
-      />
-    );
+    return <LockedSection section="messages" />;
   }
 
   return (

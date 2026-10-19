@@ -7,6 +7,11 @@
 -- coach_validated restent protégés par les gardes 018 et 066). Lecture : policy
 -- profiles_select_policy (le parent lit déjà sa propre ligne).
 --
+-- Écriture : le chemin prévu est la RPC set_ui_style (normalisation des anciennes
+-- valeurs, ligne de l'appelant seulement). La policy profiles_update_own (066)
+-- autorise aussi un UPDATE direct de sa propre ligne ; il reste borné par la
+-- contrainte profiles_ui_style_check (lin | veillee) et les gardes de rôle.
+--
 -- Compatibilité : les valeurs du GO 3 (natif, carnet, nuit) sont converties
 -- (natif|carnet → lin, nuit → veillee), à la fois dans les données déjà
 -- présentes (base où la version GO 3 de 083 aurait tourné) et dans la RPC, pour
@@ -46,7 +51,7 @@ begin
 end $$;
 
 comment on column public.profiles.ui_style is
-  'Style visuel choisi dans l''app mobile (lin, veillee). NULL = défaut de l''app (lin). Écrit uniquement via public.set_ui_style.';
+  'Style visuel choisi dans l''app mobile (lin, veillee). NULL = défaut de l''app (lin). Écrit via public.set_ui_style (chemin prévu) ; un UPDATE direct de sa propre ligne reste permis par profiles_update_own, borné par la contrainte lin|veillee.';
 
 create or replace function public.set_ui_style(p_style text)
 returns text
