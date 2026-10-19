@@ -1,12 +1,13 @@
 import { Pressable, View } from 'react-native';
 import { Button, GlassButton, Icon, ThemedText, useTheme } from '../../design';
-import type { P3Activity, StepTimer } from '../../lib/p3';
+import type { P3Activity, StepTimer, VisualId } from '../../lib/p3';
 import { TONE_BG } from './PlayTimer';
 import {
   EXT_LABELS, allRevealed, extensionPlanned, extensionVisible, frTypo, nextIsNewStep, revealedBeatsOfStep, timerSummary, secondsLabel,
   visibleStepIndex, type ExtState, type FlatBeat,
 } from './flow';
 import { Disclosure, Display, Eyebrow, Frame, Ghost, InlineMd, type Chrome } from './parts';
+import { VisualButton } from './visuals/VisualButton';
 
 type Props = {
   chrome: Chrome;
@@ -27,6 +28,8 @@ type Props = {
   onNote: () => void;
   onOpenExt: (index: number) => void;
   onLaunchTimer: (timer: StepTimer) => void;
+  /** MV : ouvre le visuel d'une étape (« Montrer : … »). Absent : le bouton n'est pas affiché. */
+  onShowVisual?: (id: VisualId) => void;
 };
 
 /** « Dis » : la phrase à dire, en bulle ; la dernière affichée est mise en avant (filet sauge). */
@@ -81,7 +84,7 @@ function StepTimerCard({ timer, onLaunch }: { timer: StepTimer; onLaunch: () => 
  * puis « Terminer l'activité ». Le temps vit dans la barre du haut (anneau) ; vue purement présentationnelle.
  */
 export function DerouleView({
-  chrome, steps, guide, flat, revealed, extensions, ext, baseDuration, noteLabel, onNext, onPrev, onFinish, onNote, onOpenExt, onLaunchTimer,
+  chrome, steps, guide, flat, revealed, extensions, ext, baseDuration, noteLabel, onNext, onPrev, onFinish, onNote, onOpenExt, onLaunchTimer, onShowVisual,
 }: Props) {
   const { colors } = useTheme();
   const total = flat.length;
@@ -139,6 +142,7 @@ export function DerouleView({
                 );
               })}
             </View>
+            {g.visual && onShowVisual ? <VisualButton id={g.visual} onOpen={onShowVisual} /> : null}
             {g.help ? (
               <Disclosure title="Si ça bloque">
                 <InlineMd text={g.help} variant="callout" color="label2" />

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { Button, ThemedText, resolveTextStyle, useTheme } from '../../design';
-import { DEBRIEF } from '../../lib/p3';
+import { DEBRIEF, type VisualId } from '../../lib/p3';
 import { frTypo } from './flow';
 import { Display, Eyebrow, Frame, Ghost, type Chrome } from './parts';
+import { VisualButton } from './visuals/VisualButton';
 
 type Question = { kind: keyof typeof DEBRIEF.labels; question: string };
 
@@ -18,10 +19,13 @@ type Props = {
   onAnswer: (index: number, text: string) => void;
   /** « Question suivante » / « Continuer » / « Passer » : la même progression. */
   onNext: () => void;
+  /** MV : les visuels de la fiche (`activity.visuals`), montrés sous les questions. */
+  visuals?: VisualId[];
+  onShowVisual?: (id: VisualId) => void;
 };
 
 /** M8 · Débrief : les questions s'ajoutent l'une sous l'autre, une à la fois ; réponse d'un tap (facultative). */
-export function DebriefView({ chrome, questions, shown, answers, week1, onAnswer, onNext }: Props) {
+export function DebriefView({ chrome, questions, shown, answers, week1, onAnswer, onNext, visuals = [], onShowVisual }: Props) {
   const { colors, fontsLoaded } = useTheme();
   const [open, setOpen] = useState<Record<number, boolean>>({});
   const last = shown >= questions.length;
@@ -75,6 +79,11 @@ export function DebriefView({ chrome, questions, shown, answers, week1, onAnswer
         })}
       </View>
       {last && week1 ? <ThemedText variant="sub" color="label2" style={{ marginTop: 24 }}>{DEBRIEF.week1Note}</ThemedText> : null}
+      {onShowVisual && visuals.length > 0 ? (
+        <View style={{ marginTop: 8 }}>
+          {visuals.map((v) => <VisualButton key={v} id={v} onOpen={onShowVisual} />)}
+        </View>
+      ) : null}
     </Frame>
   );
 }

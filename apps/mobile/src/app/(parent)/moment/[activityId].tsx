@@ -19,6 +19,9 @@ import { RecallView } from '../../../components/activite/RecallView';
 import { SynthesisView } from '../../../components/activite/SynthesisView';
 import { useNow, type Chrome } from '../../../components/activite/parts';
 import { insertLetter, insertMoment } from '../../../components/activite/persist';
+import { useActivityKeepAwake } from '../../../components/activite/visuals/keepAwake';
+import { VisualSheet } from '../../../components/activite/visuals/VisualSheet';
+import { useVisualNotes } from '../../../components/activite/visuals/useVisualNotes';
 import {
   buildMomentPayload, counterSteps, elapsedSeconds, flattenGuide, flowReduce, initialFlow, letterOpensAt, minutesPlayed, parsePlaceChoice,
   playedDuration, prideLine, quitSubtitle, summarizeAfter, type EndSummary, type FlowCtx, type FlowEffect, type FlowEvent, type FlowState,
@@ -26,14 +29,15 @@ import {
 import { vignetteIdFor } from '../../../lib/vignettes';
 import {
   PILLAR_PLAIN, PRIDE_LINES, REWARDS, activitiesOfWeek, fill, formatFullDate, getActivity, getWeek, p3Pool, recallLine, renderCaptureLabel,
-  resolveActivity, type AgeBand, type Duration, type Moment, type P3Activity, type StepTimer,
+  resolveActivity, type AgeBand, type Duration, type Moment, type P3Activity, type StepTimer, type VisualId,
 } from '../../../lib/p3';
 
 // M1…M17 · Mode activité. Un flot d'écrans où CHAQUE TAP AJOUTE le contenu suivant en dessous, un pas à la fois, jamais
 // automatiquement (logique pure et testée : components/activite/flow.ts). Toujours sur le fond marine de Veillée, quel
 // que soit le style choisi (<ThemeScope style="veillee" fill>). La route ne fait que brancher les données (enfant,
 // moments vécus, lieu) et exécuter les effets du réducteur : enregistrer le moment, sceller la lettre, sortir.
-// `expo-keep-awake` n'est pas installé : l'écran peut donc se mettre en veille pendant le minuteur (aucune dépendance ajoutée).
+// E1 : l'écran reste allumé tant que la route est ouverte (expo-keep-awake, relâché à la sortie). MV / VI1–VI8 : les supports
+// visuels (« Montrer : … ») s'ouvrent en feuille plein écran par-dessus le déroulé ou le débrief.
 
 type FlowProps = {
   activity: P3Activity;
@@ -46,6 +50,7 @@ type FlowProps = {
 function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   const router = useRouter();
   const { reduceMotion } = useTheme();
+  useActivityKeepAwake();
   const { child, moments, doneIds, reload, childrenLoading, isLoading } = useMaisonContext(childId);
   const view = useMemo(() => resolveActivity(activity, duration, band)!, [activity, duration, band]);
   const firstName = child?.first_name ?? 'votre enfant';
@@ -78,6 +83,8 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   const [shownCount, setShownCount] = useState<number | null>(null);
   const [rewardsHidden, setRewardsHidden] = useState(false);
   const [playTimer, setPlayTimer] = useState<StepTimer | null>(null);
+  const [visual, setVisual] = useState<VisualId | null>(null);
+  const visualNotes = useVisualNotes(childId, visual === 'outils');
   const [boostFlash, setBoostFlash] = useState(false);
   // On n'attend le chargement des moments qu'une seule fois : un rechargement après l'enregistrement ne doit pas masquer la fin.
   const [ready, setReady] = useState(false);
@@ -255,6 +262,7 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           onNote={() => dispatch({ t: 'note.open' })}
           onOpenExt={(index) => dispatch({ t: 'ext.open', index })}
           onLaunchTimer={setPlayTimer}
+          onShowVisual={setVisual}
         />
       );
       break;
@@ -271,6 +279,8 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           week1={activity.week === 1}
           onAnswer={(index, text) => dispatch({ t: 'debrief.answer', index, text })}
           onNext={() => dispatch({ t: 'debrief.next' })}
+          visuals={activity.visuals}
+          onShowVisual={setVisual}
         />
       );
       break;
@@ -362,11 +372,13 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           onBack={() => dispatch({ t: 'letter.back' })}
         />
       ) : null}
+      <VisualSheet id={visual} notes={visualNotes} onClose={() => setVisual(null)} />
       {playTimer ? <PlayTimer timer={playTimer} onClose={() => setPlayTimer(null)} /> : null}
       <SaveFailedSheet visible={state.saveFailed} onRetry={() => dispatch({ t: 'record.retry' })} onLeave={() => dispatch({ t: 'record.leave' })} />
       <QuitSheet
         visible={state.quitAsk}
         subtitle={quitSubtitle(minutesPlayed(elapsedS), firstName)}
+        letterSealed={sealedAt !== null}
         onYes={() => dispatch({ t: 'quit.answer', answer: 'oui', now: Date.now() })}
         onNo={() => dispatch({ t: 'quit.answer', answer: 'non', now: Date.now() })}
         onCancel={() => dispatch({ t: 'quit.cancel' })}
