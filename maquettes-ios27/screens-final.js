@@ -931,6 +931,172 @@
         <p style="margin:8px 0 0;font:400 15px/21px var(--sf);color:var(--label2)">18 minutes avec Léo, jusqu’ici.</p>
         <div style="margin-top:22px;display:flex;flex-direction:column;gap:10px">${sunBtn('Oui')}${grayBtn('Non')}</div></div>` });
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // 02 ter · CE QUE L'APP FAIT DÉJÀ, HABILLÉ — les morceaux de l'UX actuelle
+  // (web : Visuals.tsx, ActivityMode.tsx, RewardView.tsx, quand-il-dit-non,
+  // quand-consulter) qui n'avaient pas encore de maquette. Mêmes textes, mêmes
+  // gestes ; seule l'enveloppe change. Les visuels et la lettre vivent dans le
+  // mode activité : toujours Veillée (`vig`). Les objets et les deux pages
+  // d'aide vivent dans Maison : ils suivent le style choisi.
+  // ═══════════════════════════════════════════════════════════════════════
+
+  // ── Barre du haut du mode activité, titre libre ─────────────────────────
+  const topBarT = (title) => navbar({ edge: true, left: gb('x', { label: 'Quitter le mode activité' }), title: `<span class="fr" style="display:block;max-width:128px;overflow:hidden;text-overflow:ellipsis;font:500 15px/20px var(--display);color:var(--label2);font-variation-settings:'SOFT' 100;white-space:nowrap">${title}</span>`, right: timerPill(640, 1200) });
+
+  // Glyphes dessinés (pas d'emoji : même trait que le check-in M1)
+  const G2 = {
+    joie: GLYPH.joie,
+    frustration: GLYPH.frustration,
+    nervosite: GLYPH.nervosite,
+    peur: GL(face('#9CC3DB', `<circle cx="16.5" cy="20" r="4" fill="#F7F5F2" stroke="${D2}" stroke-width="1.8"/><circle cx="31.5" cy="20" r="4" fill="#F7F5F2" stroke="${D2}" stroke-width="1.8"/><circle cx="16.5" cy="20.5" r="1.7" fill="${D2}"/><circle cx="31.5" cy="20.5" r="1.7" fill="${D2}"/><ellipse cx="24" cy="33" rx="4" ry="5" fill="${D2}"/>`)),
+    colere: GL(face('#7FA6C2', `<path d="M12 14 L21 19 M36 14 L27 19" ${gst} stroke-width="2.6"/>${eyes(22)}<path d="M16 35 Q24 28 32 35" ${gst}/>`)),
+    fierte: GL(face('#A7C4BC', `<path d="M13 21 Q16.5 17 20 21 M28 21 Q31.5 17 35 21" ${gst}/><path d="M15 29 Q24 37 33 29" ${gst}/><path d="M33 9 l1.5 3 3 .4-2.2 2.1.6 3-2.9-1.5-2.9 1.5.6-3-2.2-2.1 3-.4z" fill="#F7F5F2" stroke="${D2}" stroke-width="1.2"/>`)),
+  };
+  const EMO = [['joie', 'La joie', '#F9EB50'], ['peur', 'La peur', '#9CC3DB'], ['colere', 'La colère', '#7FA6C2'], ['frustration', 'La frustration', '#67A4C9'], ['fierte', 'La fierté', '#A7C4BC'], ['nervosite', 'La nervosité', '#C9DCD6']];
+  const big72 = (svg) => svg.replace('width="30" height="30"', 'width="96" height="96"');
+  const glyph = (svg, s) => svg.replace('width="30" height="30"', `width="${s}" height="${s}"`);
+
+  // Le bouton « Montrer : … » (dans une étape, ou sous le débrief)
+  const showBtn = (icon, label) => `<div style="margin-top:16px;display:flex;align-items:center;gap:14px;min-height:64px;padding:12px 14px;border-radius:22px;background:var(--fill4);box-shadow:inset 0 0 0 1.5px rgba(167,196,188,.55)">
+      <span class="ibadge lg" style="width:44px;height:44px;flex:none">${ic(icon, 22)}</span>
+      <span style="flex:1;min-width:0"><span style="display:block;font:600 16px/21px var(--sf);color:var(--label)">Montrer : ${label}</span><span style="display:block;font:400 13px/18px var(--sf);color:var(--label2)">À l’écran, pour qu’il montre du doigt</span></span>
+      <span style="color:var(--label2);line-height:0">${ic('chevR', 18, { sw: 2.3 })}</span></div>`;
+
+  // MV — une étape avec son visuel (activité de la semaine 4, « Mettre un mot »)
+  const W4 = 'Le mot sur la boule';
+  const mvBody = `${stepSection(0, false, [['faire', 'Rejoue avec lui le moment du match qu’il a choisi : le tir, la passe, le banc.']]).replace('Étape 1 sur 5', 'Étape 1 sur 3').replace(imd(ACT.steps[0]), 'Revenir sur le moment')}
+      <section style="margin-top:36px;padding-top:30px;border-top:1px solid var(--sep)">${nc('Étape 2 sur 3')}
+      <p class="fr" style="margin:8px 0 0;font:400 28px/34px var(--display);font-variation-settings:'SOFT' 100;color:var(--label);text-wrap:balance">Mettre un mot sur ce qu’il a senti</p>
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:12px">${beatHtml('dire', '« Quand le tir est parti à côté, c’était quoi, dans ton ventre ? »', false)}${beatHtml('faire', 'Laisse-le chercher. S’il ne trouve pas le mot, montre-lui le visuel : il pointe du doigt.', true)}</div>
+      ${showBtn('sparkle', 'Les six émotions')}${helpRow()}</section>`;
+  S.MV = () => ({ vig: true, dark: true, html: `${page(mvBody, { shift: 150, bottom: 230 })}${topBarT(W4)}${actionBar()}` });
+
+  // Feuille plein écran d'un visuel (grand détent, sur le déroulé assombri)
+  const visual = (title, hint, body, o = {}) => `<div class="scroll" style="z-index:0">${S.MV().html.replace(/^<div class="scroll">/, '<div>')}</div><div class="dim" style="background:rgba(0,0,0,.5)"></div>
+      <div class="sheet" style="top:${o.top ?? 58}px;bottom:0;background:var(--bg2);overflow:hidden"><div class="grabber"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px 0 20px"><p class="fr" style="margin:0;font:600 23px/28px var(--display);font-variation-settings:'SOFT' 100;color:var(--label)">${title}</p>${gb('x', { label: 'Fermer le visuel', size: 19 })}</div>
+        <p style="margin:8px 20px 0;font:400 14px/20px var(--sf);color:var(--label2)">${hint}</p>
+        <div style="padding:18px 20px 0">${body}</div>
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(to bottom,transparent,var(--bg2) 55%)"></div>
+        <div style="position:absolute;left:20px;right:20px;bottom:34px"><span class="btn gray" style="height:52px">Revenir à l’activité</span></div></div>`;
+
+  // VI1 — Les six émotions (une choisie, mise en avant)
+  S.VI1 = () => {
+    const pick = EMO[3];
+    const hero = `<div style="padding:16px;border-radius:26px;text-align:center;background:color-mix(in srgb,${pick[2]} 24%,transparent);box-shadow:inset 0 0 0 1px color-mix(in srgb,${pick[2]} 55%,transparent)"><div style="line-height:0">${glyph(G2[pick[0]], 84)}</div><p class="fr" style="margin:8px 0 0;font:600 32px/36px var(--display);font-variation-settings:'SOFT' 100;color:var(--label)">${pick[1]}</p></div>`;
+    const tiles = EMO.map(([k, l, c]) => `<div style="min-height:112px;border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;${k === pick[0] ? `transform:scale(1.03);background:color-mix(in srgb,${c} 18%,transparent);box-shadow:inset 0 0 0 2px ${c}` : 'background:var(--fill4);box-shadow:inset 0 0 0 1.5px var(--sep)'}"><span style="line-height:0">${glyph(G2[k], 52)}</span><span style="font:600 16px/1 var(--sf);color:var(--label)">${l}</span></div>`).join('');
+    return { vig: true, dark: true, html: visual('Les six émotions', 'Il montre du doigt l’émotion. Touche-la pour l’agrandir.', `${hero}<div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px">${tiles}</div>`) };
+  };
+
+  // VI2 — Le thermomètre (1 tout calme → 10 ça déborde)
+  S.VI2 = () => {
+    const sel = 6;
+    const bars = Array.from({ length: 10 }, (_, i) => 10 - i).map((n) => {
+      const hue = 150 - (n - 1) * 15;
+      return `<div style="height:44px;border-radius:13px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:hsl(${hue} 52% ${n === sel ? 52 : 44}%);color:#fff;font:700 18px/1 var(--sf);${n === sel ? 'transform:scaleX(1.04);box-shadow:0 0 0 3px #F7F5F2' : ''}"><span class="num">${n}</span><span style="font:600 13px/1 var(--sf);opacity:.92">${n === 1 ? 'tout calme' : n === 10 ? 'ça déborde' : ''}</span></div>`;
+    }).join('');
+    return { vig: true, dark: true, html: visual('Le thermomètre', 'Il montre son chiffre, de 1 (tout calme) à 10 (ça déborde).', `<div style="display:flex;gap:16px;align-items:stretch"><div style="flex:1;display:flex;flex-direction:column;gap:6px">${bars}</div><div style="width:84px;display:grid;place-items:center"><span class="fr num" style="font:600 72px/1 var(--display);color:var(--label)">${sel}</span></div></div>`) };
+  };
+
+  // VI3 — Les deux colonnes (exemple volontairement sur un autre sujet)
+  const cloud = `<svg viewBox="0 0 48 48" width="34" height="34" aria-hidden="true"><path d="M14 34h21a8 8 0 0 0 0-16 11 11 0 0 0-21 3 6.5 6.5 0 0 0 0 13z" fill="#C9DCD6" stroke="${D2}" stroke-width="2.2" stroke-linejoin="round"/><path d="M18 39l-2 4M25 39l-2 4M32 39l-2 4" stroke="#9CC3DB" stroke-width="2.4" stroke-linecap="round"/></svg>`;
+  const col = (on, head, icon, items) => `<div style="padding:16px;border-radius:22px;${on ? 'box-shadow:inset 0 0 0 2px #A7C4BC;background:rgba(167,196,188,.08)' : 'box-shadow:inset 0 0 0 1.5px var(--sep)'}"><div style="line-height:0;color:var(--sage)">${icon}</div><p style="margin:10px 0 0;font:600 17px/22px var(--sf);color:var(--label)">${head}</p><div style="margin-top:12px;display:flex;flex-direction:column;gap:7px">${items.map((t) => `<span style="font:400 15px/20px var(--sf);color:var(--label2)">${t}</span>`).join('')}</div></div>`;
+  S.VI3 = () => ({ vig: true, dark: true, html: visual('Les deux colonnes', 'Le modèle à recopier sur une feuille. L’exemple est volontairement sur un autre sujet.', `<p style="margin:0 0 12px;font:500 14px/1 var(--sf);color:var(--label2)">Exemple : réussir un gâteau</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">${col(true, 'Ça dépend de moi', ic('hand', 32), ['Suivre la recette', 'Bien mesurer', 'Demander de l’aide'])}${col(false, 'Ça ne dépend pas de moi', cloud, ['Le four qui chauffe mal', 'Les goûts des invités'])}</div>`) });
+
+  // VI4 — L'escalier (le seul geste émail de la feuille : l'objectif)
+  S.VI4 = () => {
+    const steps = ['La plus facile', 'Un peu plus dure', 'Encore un peu plus', 'Ton objectif'];
+    const rows = steps.map((s, i) => `<div style="padding-left:${i * 17}%"><div class="${i === 3 ? 'enamel' : ''}" style="display:flex;align-items:center;gap:10px;min-height:54px;padding:0 16px;border-radius:16px;font:600 16px/1 var(--sf);${i === 3 ? 'color:#022539' : 'background:var(--fill4);box-shadow:inset 0 0 0 1px var(--sep);color:var(--label)'}"><span class="num" style="opacity:.6">${i + 1}</span>${i === 3 ? ic('target', 18) : ''}${s}</div></div>`).reverse().join('');
+    return { vig: true, dark: true, html: visual('L’escalier', 'Le modèle à dessiner : son objectif tout en haut, la marche la plus facile en bas.', `<div style="margin-top:8px;display:flex;flex-direction:column;gap:10px">${rows}</div>`) };
+  };
+
+  // VI5 — La carte de ses personnes
+  S.VI5 = () => {
+    const around = ['Prénom — pour quoi ?', 'Prénom — pour quoi ?', 'Prénom — pour quoi ?', 'Hors de la maison ?'];
+    const pos = ['top:0;left:50%;transform:translateX(-50%)', 'top:50%;right:0;transform:translateY(-50%)', 'bottom:0;left:50%;transform:translateX(-50%)', 'top:50%;left:0;transform:translateY(-50%)'];
+    return { vig: true, dark: true, html: visual('La carte de ses personnes', 'Le modèle à dessiner : lui au milieu, ses personnes autour.', `<div style="position:relative;width:330px;height:330px;margin:10px auto 0">
+      <svg width="330" height="330" style="position:absolute;inset:0" aria-hidden="true"><path d="M165 112V60M218 165h52M165 218v52M112 165H60" stroke="rgba(167,196,188,.5)" stroke-width="2" stroke-dasharray="3 5"/></svg>
+      <div class="velvet" style="position:absolute;inset:34%;border-radius:50%;display:grid;place-items:center;box-shadow:inset 0 0 0 2px #A7C4BC"><span class="fr" style="font:600 26px/1 var(--display);color:#F7F5F2">Toi</span></div>
+      ${around.map((a, i) => `<div style="position:absolute;${pos[i]};width:104px;height:104px;border-radius:50%;display:grid;place-items:center;text-align:center;padding:10px;box-shadow:inset 0 0 0 2px rgba(247,245,242,.3);border:0;background:var(--fill4);font:500 12.5px/16px var(--sf);color:var(--label2)">${a}</div>`).join('')}</div>`) };
+  };
+
+  // VI6 / VI7 — listes à pointer (une ligne choisie = bord crème)
+  const listVis = (items, sel) => `<div style="display:flex;flex-direction:column;gap:12px">${items.map(([icon, t, s], i) => `<div style="display:flex;align-items:center;gap:16px;min-height:84px;padding:14px 16px;border-radius:22px;${i === sel ? 'transform:scale(1.02);background:rgba(247,245,242,.08);box-shadow:inset 0 0 0 2px #F7F5F2' : 'background:var(--fill4);box-shadow:inset 0 0 0 1.5px var(--sep)'}"><span class="ibadge lg" style="width:48px;height:48px;flex:none">${ic(icon, 24)}</span><span><span class="fr" style="display:block;font:600 23px/28px var(--display);font-variation-settings:'SOFT' 100;color:var(--label)">${t}</span><span style="display:block;margin-top:2px;font:400 15px/20px var(--sf);color:var(--label2)">${s}</span></span></div>`).join('')}</div>`;
+  S.VI6 = () => ({ vig: true, dark: true, html: visual('Les trois sens', 'Une question à la fois, dans cet ordre.', listVis([['eye', 'Tu vois quoi ?', 'Les couleurs, les gens, l’endroit.'], ['wave', 'Tu entends quoi ?', 'Les bruits, les voix, le silence.'], ['hand', 'Tu sens quoi ?', 'Dans tes mains, tes pieds, ton ventre.']], 1)) });
+  S.VI7 = () => ({ vig: true, dark: true, html: visual('Trois endroits', 'Pour chaque outil, un usage à chaque endroit.', listVis([['book', 'L’école', 'En classe, en examen, à la récré.'], ['people', 'Les amis', 'Au sport, dehors, en ligne.'], ['house', 'La maison', 'Les devoirs, les disputes, le coucher.']], -1)) });
+
+  // VI8 — Ses outils (les 11 outils des 13 semaines, avec ses mots quand il les a notés)
+  S.VI8 = () => {
+    const T = [['bolt', 'Mes forces', 'Ce que je fais bien, avec la preuve.', 'Je n’abandonne pas.'], ['hand', 'Ce qui dépend de moi', 'Les deux colonnes : je m’occupe de ma colonne.', ''], ['chart', 'Mon escalier', 'Une marche à la fois, la plus petite d’abord.', ''], ['target', 'Un cran au-dessus', 'Le défi que je réussis une fois sur trois.', ''], ['bubble', 'Mettre un mot', 'Je nomme mon émotion quand elle arrive.', 'C’était de la frustration.'], ['wave', 'Le ballon', 'Je gonfle mon ventre sur 4, je dégonfle sur 8.', ''], ['quote', 'Ma phrase', 'Ce que je me dis pour recommencer.', 'Je reviens au jeu.']];
+    const open = 5;
+    const rows = T.map(([icon, n, w, his], i) => `<div style="padding:13px 14px;border-radius:20px;${i === open ? 'box-shadow:inset 0 0 0 2px #F7F5F2;background:rgba(247,245,242,.06)' : 'box-shadow:inset 0 0 0 1.5px var(--sep)'}"><div style="display:flex;align-items:center;gap:12px"><span class="ibadge" style="width:36px;height:36px;flex:none">${ic(icon, 18)}</span><span style="min-width:0"><span style="display:block;font:600 16px/21px var(--sf);color:var(--label)">${n}</span><span style="display:block;font:400 13.5px/18px var(--sf);color:var(--label2)">${w}</span></span></div>${his ? `<div style="margin-top:8px;font:400 13.5px/18px var(--sf);color:var(--sage)">Dans ses mots : « ${his} »</div>` : ''}${i === open ? `<div style="margin-top:10px;padding:12px;border-radius:14px;background:var(--fill3);font:400 15.5px/21px var(--sf);color:var(--label)">Demande : « Ton ballon, tu pourrais t’en servir où ? »</div>` : ''}</div>`).join('');
+    return { vig: true, dark: true, html: visual('Ses outils', 'S’il ne se souvient plus, pointe un outil : « Celui-là, tu pourrais l’utiliser où ? »', `<div style="display:flex;flex-direction:column;gap:9px">${rows}</div>`) };
+  };
+
+  // M16b / M16c — après « Sceller » : scellée, ou repli papier si l'enregistrement échoue
+  const envelope = `<div style="display:flex;justify-content:center;margin:6px 0 2px"><div class="paper laid" style="position:relative;width:220px;height:140px;border-radius:12px"><svg width="220" height="140" style="position:absolute;inset:0" aria-hidden="true"><path d="M2 4 L110 78 L218 4" fill="none" stroke="rgba(2,37,57,.22)" stroke-width="1.5"/></svg><span class="velvet" style="position:absolute;left:50%;top:62px;transform:translateX(-50%);width:40px;height:40px;border-radius:50%;display:grid;place-items:center;color:#A7C4BC">${ic('lock', 18)}</span></div></div>`;
+  S.M16b = () => ({ vig: true, dark: true, html: letterShell(400, `${envelope}<p class="fr" style="margin:18px 0 0;font:400 23px/30px var(--display);font-variation-settings:'SOFT' 100;color:var(--label)">Lettre scellée. Elle te reviendra par courriel le 13 octobre 2027.</p>
+      <div style="margin-top:24px">${sunBtn('Continuer')}</div>`) });
+  S.M16c = () => ({ vig: true, dark: true, html: letterShell(400, `${envelope}<p style="margin:18px 0 0;font:400 17px/25px var(--sf);color:var(--label)">Pour ce soir, la lettre se garde sur papier : dans une enveloppe fermée, avec la date du 13 octobre 2027 dessus.</p>
+      <div style="margin-top:24px">${sunBtn('Continuer')}</div>`) });
+
+  // ── Maison : les objets du carnet (suivent le style choisi) ─────────────
+  const objActions = `<div class="sec" style="margin-top:16px"><div class="list">${rowi({ icon: 'doc', t: 'Imprimer', chev: false })}${rowi({ icon: 'arrowUp', t: 'Enregistrer en image', chev: false })}</div></div>`;
+  const starMark = `<span class="star-on" style="width:62px;height:62px;margin-top:22px">${ic('star', 28, { sw: 1.7 }).replace('<svg', '<svg fill="currentColor"')}</span>`;
+  const block = (label, lines) => `<div style="margin-top:18px"><div class="eyebrow">${label}</div><div style="margin-top:8px;display:flex;flex-direction:column;gap:6px">${lines.map((l) => `<span style="font:400 17px/24px var(--sf);color:#022539">${l}</span>`).join('')}</div></div>`;
+  const objNav = navbar({ edge: true, left: gbt('Le carnet', { icon: 'chevL' }), right: gb('share', { label: 'Partager' }) });
+
+  S.N2 = () => ({ auto: true, html: `<div class="scroll"><div style="padding:108px 0 40px">
+      <div class="sec"><div class="paper laid" style="border-radius:26px;padding:10px"><div class="frame" style="border-radius:18px;padding:24px 22px 26px">
+        <p class="fr" style="margin:0;font:500 30px/36px var(--display);font-variation-settings:'SOFT' 100;color:#022539;text-wrap:balance">La Fiche Identité de ${K.prenom}</p>
+        ${block('Ses trois forces', ['Il n’abandonne pas', 'Il aide Noah', 'Il rit fort'])}
+        ${block('Ce qu’il choisit quand il choisit', ['Le hockey, même quand il pleut'])}
+        ${block('Son rêve de l’année, dans ses mots', ['« Marquer un but en tournoi, devant mamie. »'])}
+        <p style="margin:22px 0 0;font:italic 400 15px/21px var(--sf);color:#33454F">À garder. On y revient en semaine 13.</p>${starMark}</div></div></div>
+      ${objActions}<div class="sec-f" style="margin-top:10px">Assemblée depuis le carnet le jour où la semaine 1 s’est complétée. Elle ne change plus.</div></div></div>${objNav}` });
+
+  S.N3 = () => {
+    const card = (eyebrow, lines, small) => `<div class="paper" style="border-radius:18px;padding:18px 18px 16px;aspect-ratio:85/55;display:flex;flex-direction:column"><div class="eyebrow">${eyebrow}</div><div style="margin-top:8px;display:flex;flex-direction:column;gap:4px">${lines.map((l) => `<span style="font:400 ${small ? 14 : 15.5}px/20px var(--sf);color:${small ? '#33454F' : '#022539'}">${l}</span>`).join('')}</div><span style="margin-top:auto;align-self:flex-end;font:600 11px/1 var(--sf);letter-spacing:.08em;color:#46695F">THRIVE MAISON</span></div>`;
+    return { auto: true, html: `<div class="scroll"><div style="padding:108px 0 40px"><div class="largetitle" style="font-size:30px;line-height:36px">La Boîte à Outils de ${K.prenom}</div><div class="subtitle-nav">Format carte de portefeuille, recto et verso.</div>
+      <div class="sec-h small"><h4>Recto</h4></div><div class="sec">${card(`La Boîte à Outils de ${K.prenom}`, ['Le ballon : 4 dedans, 8 dehors', 'Ma phrase : « Je reviens au jeu »', 'Spaghetti cuit avant le match'])}</div>
+      <div class="sec-h small"><h4>Verso</h4></div><div class="sec">${card('Et aussi', ['Mes deux colonnes', 'Mon escalier, une marche à la fois', 'Mes personnes : maman, Coach, Noah', 'Mon mot : « Calme »'], true)}</div>
+      ${objActions}<div class="sec-f" style="margin-top:10px">À imprimer en 85 × 55 mm et à glisser dans son sac de sport.</div></div></div>${objNav}` };
+  };
+
+  S.N4 = () => ({ auto: true, html: `<div class="scroll"><div style="padding:108px 0 40px">
+      <div class="sec"><div class="paper" style="border-radius:26px;padding:10px"><div class="frame" style="border-radius:18px;padding:26px 20px 24px;text-align:center;display:flex;flex-direction:column;align-items:center">
+        <div class="eyebrow">Certificat THRIVE Maison</div>
+        <p class="fr" style="margin:12px 0 0;font:500 48px/52px var(--display);font-variation-settings:'SOFT' 100;color:#022539">${K.prenom}</p>
+        <p style="margin:8px 0 0;font:400 16px/22px var(--sf);color:#33454F">a terminé les 13 semaines du programme THRIVE Maison</p>
+        <div style="margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;text-align:left">
+          ${[['Ses forces en semaine 1', ['Il n’abandonne pas', 'Il aide', 'Il rit fort']], ['Ses forces en semaine 13', ['Il revient au jeu', 'Il demande de l’aide', 'Il encourage']]].map(([l, ls]) => `<div style="padding:12px;border-radius:14px;background:rgba(0,49,76,.05);box-shadow:inset 0 0 0 1px rgba(0,49,76,.1)"><div class="eyebrow" style="font-size:10.5px;line-height:14px">${l}</div><div style="margin-top:6px;display:flex;flex-direction:column;gap:3px">${ls.map((x) => `<span style="font:400 14.5px/19px var(--sf);color:#022539">${x}</span>`).join('')}</div></div>`).join('')}</div>
+        <p class="fr" style="margin:18px 0 0;font:italic 400 19px/25px var(--display);color:#022539">« Une erreur, ce n’est pas la fin du match. »</p>
+        <p style="margin:12px 0 0;font:400 13px/1 var(--sf);color:#46695F">13 janvier 2027</p>${starMark}</div></div></div>
+      ${objActions}</div></div>${objNav}` });
+
+  // ── Maison : les deux pages d'aide (« Quand il dit non », « Quand consulter ») ──
+  const dashList = (items) => `<div class="list">${items.map((t) => `<div class="rowi"><div class="main"><div class="t" style="font-weight:400">${t}</div></div></div>`).join('')}</div>`;
+  S.K4 = () => ({ auto: true, html: `<div class="scroll"><div style="padding:108px 0 40px"><div class="largetitle">Quand il dit non</div>
+      <div class="sec" style="margin-top:10px"><p style="margin:0;font:400 17px/25px var(--sf);color:var(--label2)">Il va dire non. Tous les enfants disent non, et ce n’est pas un échec — ni le sien, ni le vôtre.</p></div>
+      <div class="sec" style="margin-top:18px"><div class="card" style="padding:18px"><div class="kick">${K.tranche}</div><p style="margin:8px 0 0;font:400 16px/24px var(--sf);color:var(--label)">À cet âge, le non est souvent un besoin de contrôle : il veut décider de quelque chose. Donnez-lui le choix de l’activité, ou du moment.</p></div>
+        <div style="margin-top:8px;min-height:44px;display:flex;align-items:center;gap:6px;font:600 15px/1 var(--sf);color:var(--tint-text)">Les autres âges${ic('chevD', 15, { sw: 2.4 })}</div></div>
+      <div class="sec-h small"><h4>Ce qui aggrave</h4></div><div class="sec">${dashList(['Insister ou négocier.', 'Transformer le moment en obligation.', 'Le lui reprocher plus tard.'])}</div>
+      <div class="sec-h small"><h4>Ce qui marche</h4></div><div class="sec">${dashList(['Laisser la porte ouverte, sans condition.', 'Faire l’activité seul, devant lui, sans rien lui demander.', 'Reproposer un autre jour, sans rappeler le refus.'])}</div>
+      <div class="sec" style="margin-top:26px"><div class="paper" style="border-radius:24px;padding:22px"><div class="eyebrow">La phrase à dire</div><p class="fr" style="margin:10px 0 0;font:400 27px/34px var(--display);font-variation-settings:'SOFT' 100;color:#022539">« Pas de souci. Je te le reproposerai. »</p><p style="margin:10px 0 0;font:400 14.5px/20px var(--sf);color:#33454F">Et tenez-vous-y : reproposez, un autre jour, sans mentionner le refus.</p></div></div>
+      <div class="sec" style="margin-top:18px"><div class="list"><div class="rowi ico-lg">${vimg('ACT-0302', 48, { r: 14 })}<div class="main"><div class="t">Une activité qui marche même quand il dit non</div><div class="d">10 min · rien à préparer</div></div><span class="chev">${ic('chevR', 16, { sw: 2.4 })}</span></div></div></div>
+      </div></div>${navbar({ edge: true, left: gbt('Maison', { icon: 'chevL' }) })}` });
+
+  S.K5 = () => ({ auto: true, html: `<div class="scroll"><div style="padding:108px 0 40px"><div class="largetitle">Quand consulter</div>
+      <div class="sec" style="margin-top:10px"><p style="margin:0;font:400 16px/24px var(--sf);color:var(--label2)">THRIVE Maison est un programme d’activités parent-enfant. Ce n’est ni un soin, ni une évaluation, ni un suivi psychologique. Certaines situations demandent l’avis d’un professionnel.</p></div>
+      <div class="sec" style="margin-top:18px"><div class="card" style="padding:16px 18px;box-shadow:inset 0 0 0 1.5px color-mix(in srgb,var(--bad) 45%,transparent),var(--shadow-card)"><div class="flex items-c gap10"><span style="color:var(--bad);line-height:0">${ic('phone', 20)}</span><span class="t-headline">Sans attendre</span></div><p style="margin:8px 0 0;font:400 15.5px/22px var(--sf);color:var(--label)">Si votre enfant parle de mourir, de se faire du mal, ou si vous craignez pour sa sécurité :</p>
+        <div class="flex gap10" style="margin-top:12px"><span class="btn gray md" style="flex:1;height:48px">Appeler 9-8-8</span><span class="btn gray md" style="flex:1;height:48px">Texto 9-8-8</span></div><p style="margin:10px 0 0;font:400 13.5px/19px var(--sf);color:var(--label2)">Ou le 9-1-1 en cas de danger immédiat.</p></div></div>
+      <div class="sec-h small"><h4>Parlez-en à un professionnel si, depuis plus de deux semaines, votre enfant :</h4></div>
+      <div class="sec">${dashList(['est triste, irritable ou vide la plupart du temps ;', 'ne prend plus plaisir à ce qu’il aimait ;', 'dort ou mange très différemment de d’habitude ;', 'se retire de ses amis ou refuse d’aller à l’école ;', 'a des crises de colère ou d’angoisse qui augmentent ;', 'se plaint souvent de maux de ventre ou de tête sans cause trouvée.'])}</div>
+      <div class="sec-h small"><h4>Vers qui se tourner, au Québec</h4></div>
+      <div class="sec"><div class="list">${[['Info-Social 811, option 2', 'Un professionnel psychosocial, 24 h/24'], ['Médecin de famille, CLSC', 'Ou le professionnel de l’école'], ['Tel-jeunes', 'Pour votre enfant · 1 800 263-2266'], ['Jeunesse, J’écoute', '1 800 668-6868 · texte PARLER au 686868'], ['Ligne parents', '1 800 361-5085']].map(([t, d]) => rowi({ icon: 'phone', t, d, chev: false })).join('')}</div>
+        <div class="sec-f">Aucune activité de l’app ne mesure, ne diagnostique ni n’évalue votre enfant.</div></div>
+      </div></div>${navbar({ edge: true, left: gbt('Maison', { icon: 'chevL' }) })}` });
+
   // Sélecteur de style de l'app : deux ambiances, un seul produit
   const styleTile = (key, name, d, on) => {
     const m = key === 'v4'
@@ -1110,6 +1276,24 @@
       ['M15', 'Lettre à moi-même', 'Séance 13 : la lettre sur papier vergé, à ouvrir dans un an.'],
       ['M16', 'Sceller la lettre', 'Une fois scellée, personne ne pourra la lire avant la date, pas même toi.'],
       ['M17', 'Quitter', '« Enregistrer ce moment ? » : Oui compte les minutes, Non quitte sans rien garder.'],
+    ]],
+    ['02 ter', 'Ce que l’app fait déjà, habillé', 'Les morceaux de l’UX actuelle qui n’avaient pas encore de maquette : les visuels à montrer du doigt, la lettre une fois scellée, les objets du carnet, les deux pages d’aide. Mêmes textes, mêmes gestes.', [
+      ['MV', 'Une étape avec son visuel', 'Dans le déroulé (et sous le débrief), le bouton « Montrer : … » ouvre le visuel : le parent tend le téléphone, l’enfant pointe du doigt.'],
+      ['VI1', 'Visuel · Les six émotions', 'Toucher une émotion la met en avant pour que les deux voient la même chose.'],
+      ['VI2', 'Visuel · Le thermomètre', 'De 1 (tout calme) à 10 (ça déborde) ; le chiffre choisi en grand.'],
+      ['VI3', 'Visuel · Les deux colonnes', 'Le modèle à recopier ; l’exemple est volontairement sur un autre sujet.'],
+      ['VI4', 'Visuel · L’escalier', 'L’objectif en haut (le seul geste émail), la marche la plus facile en bas.'],
+      ['VI5', 'Visuel · La carte de ses personnes', 'Lui au milieu, ses personnes autour.'],
+      ['VI6', 'Visuel · Les trois sens', 'Une question à la fois ; la ligne choisie prend le bord crème.'],
+      ['VI7', 'Visuel · Trois endroits', 'L’école, les amis, la maison.'],
+      ['VI8', 'Visuel · Ses outils', 'Les outils des 13 semaines, avec « dans ses mots » quand il les a notés ; toucher un outil donne la question à poser.'],
+      ['M16b', 'Lettre scellée', 'Après « Sceller » : elle reviendra par courriel dans un an.'],
+      ['M16c', 'Lettre sur papier', 'Si l’enregistrement échoue : la lettre se garde dans une enveloppe fermée, datée.'],
+      ['N2', 'Objet · La Fiche Identité', 'Ouvert depuis le carnet ou depuis « Voir » (M13). Papier vergé à double cadre, Imprimer, Enregistrer en image.'],
+      ['N3', 'Objet · La Boîte à Outils', 'Carte de portefeuille 85 × 55 mm, recto et verso.'],
+      ['N4', 'Objet · Certificat THRIVE Maison', 'Semaine 13 : forces de la semaine 1 et de la semaine 13, la phrase gardée, l’étoile.'],
+      ['K4', 'Quand il dit non', 'La tranche d’âge de l’enfant d’abord, ce qui aggrave, ce qui marche, la phrase à dire, une activité qui marche quand même.'],
+      ['K5', 'Quand consulter', 'Sans attendre (9-8-8, 9-1-1), les signaux, vers qui se tourner au Québec. Ni soin ni évaluation.'],
     ]],
     ['03', 'Bilan & passeport', 'Ouvert par le coach dans un programme', [
       ['G', 'Bilan · la page complète', 'Toutes les cartes d’origine, dans l’ordre : % du programme, passeport, Compétences de vie, EPOCH, parcours des 13 séances, boîte à outils, étapes, puis « Mes outils THRIVE ». Écran long, déroulé.'],
