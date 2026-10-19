@@ -8,3 +8,6 @@ export { ageFromBirthDate, p3Pool } from '../../../web/src/lib/p3-moments/app';
 export { CHECKIN, CLOSING_SCREEN, DEBRIEF, OVERTIME_LINE, PILLAR_PLAIN, PRIDE_LINES, SYNTHESIS } from '../../../web/src/lib/p3-moments/guide';
 export { PLACE_CHOICES, captureText, fill, formatFullDate, inOneYear } from '../../../web/src/lib/p3-moments/app';
 export type { P3Checkin, P3Outcome } from '../../../web/src/lib/p3-moments/app';
+// Ajouts rétro-compatibles (GO 5 · pages d'aide K4 / K5) : textes des pages « Quand il dit non » et « Quand consulter ».
+// `pickTonight` est déjà exposé par `export *` ci-dessus. Rien n'est recopié : tout vient du module partagé.
+export { PAGE_CONSULTER, PAGE_NON } from '../../../web/src/lib/p3-moments/guide';

@@ -3,12 +3,17 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { showOffersInvite } from './models';
 
-describe('invitation Offres (K3 · Maison seul)', () => {
-  it('Veillée seulement, jamais pour un abonné accompagné', () => {
-    expect(showOffersInvite({ styleKey: 'veillee', sourceMaison: 'abonnement' })).toBe(true);
-    expect(showOffersInvite({ styleKey: 'veillee', sourceMaison: null })).toBe(true);
-    expect(showOffersInvite({ styleKey: 'veillee', sourceMaison: 'pack' })).toBe(false);
-    expect(showOffersInvite({ styleKey: 'lin', sourceMaison: 'abonnement' })).toBe(false);
+describe('invitation Offres (K3 · Maison seul, D1)', () => {
+  it('affichée en Lin ET en Veillée, jamais pour un abonné accompagné', () => {
+    for (const styleKey of ['lin', 'veillee'] as const) {
+      expect(showOffersInvite({ styleKey, sourceMaison: 'abonnement' })).toBe(true);
+      expect(showOffersInvite({ styleKey, sourceMaison: null })).toBe(true);
+      expect(showOffersInvite({ styleKey, sourceMaison: 'pack' })).toBe(false);
+    }
+  });
+  it('le style n’entre plus dans la décision', () => {
+    expect(showOffersInvite({ sourceMaison: 'abonnement' })).toBe(true);
+    expect(showOffersInvite({ sourceMaison: 'pack' })).toBe(false);
   });
 });
 
