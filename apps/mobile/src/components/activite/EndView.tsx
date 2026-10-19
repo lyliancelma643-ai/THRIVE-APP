@@ -1,3 +1,4 @@
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { View } from 'react-native';
 import { Button, Card, Icon, Star, ThemedText, useTheme } from '../../design';
 import { SYNTHESIS } from '../../lib/p3';
@@ -22,7 +23,8 @@ type Props = {
   rewards: EndReward[];
   weekCompleteLabel: string | null;
   next: { title: string } | null;
-  onViewReward: (id: string) => void;
+  /** @deprecated « Voir » ouvre désormais l’objet lui-même (route `objet/[rewardId]`) : ce rappel n’est plus appelé. */
+  onViewReward?: (id: string) => void;
   onLaterRewards: () => void;
   onNext: () => void;
   onHome: () => void;
@@ -30,9 +32,14 @@ type Props = {
 
 /** M12 · Fin (compteur, trois étoiles de la semaine, fierté, suite, retour Maison) et M13 · objet débloqué. */
 export function EndView({
-  chrome, firstName, count, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onViewReward, onLaterRewards, onNext, onHome,
+  chrome, firstName, count, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onLaterRewards, onNext, onHome,
 }: Props) {
   const { colors } = useTheme();
+  const router = useRouter();
+  const { childId } = useLocalSearchParams<{ childId?: string }>();
+  // M13 · « Voir » ouvre l’objet débloqué (N2–N4, « La lettre »), pour l’enfant de ce moment.
+  const openReward = (rewardId: string) =>
+    router.push({ pathname: '/(parent)/objet/[rewardId]', params: childId ? { rewardId, childId } : { rewardId } });
   const lit = Math.max(0, Math.min(3, weekStars));
   return (
     <Frame chrome={{ ...chrome, timer: null }} padTop={40} padBottom={48}>
@@ -75,7 +82,7 @@ export function EndView({
                 </View>
               </View>
               <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Button variant="gray" size="md" label="Voir" onPress={() => onViewReward(r.id)} accessibilityLabel={`Voir ${r.label}`} />
+                <Button variant="gray" size="md" label="Voir" onPress={() => openReward(r.id)} accessibilityLabel={`Voir ${r.label}`} />
                 <Ghost label="Plus tard" onPress={onLaterRewards} />
               </View>
             </Card>

@@ -1,4 +1,5 @@
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import {
   Card, Enamel, Felt, GlassButton, Icon, Lamp, LargeTitle, List, ListRow, NavBar, Paper, Section, SectionHeader, ThemedText,
   VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
@@ -11,6 +12,11 @@ type Props = {
   onBack: () => void;
   onShare: () => void;
   onOpenActivity: (activityId: string) => void;
+  /**
+   * Ouvre un objet gagné (N2–N4, « La lettre »). Par défaut : la route `objet/[rewardId]` de l’enfant courant,
+   * pour que l’écran-route n’ait rien à câbler.
+   */
+  onOpenObject?: (rewardId: string) => void;
 };
 
 /**
@@ -18,8 +24,13 @@ type Props = {
  * la collection (papier pour les objets acquis, feutre pour ceux qui se débloquent). Il se remplit tout seul ;
  * jamais de manque ni de score. Identique dans Lin et Veillée. Vue présentationnelle.
  */
-export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
+export function CarnetView({ vm, onBack, onShare, onOpenActivity, onOpenObject }: Props) {
   const { colors, styleKey } = useTheme();
+  const router = useRouter();
+  const { childId } = useLocalSearchParams<{ childId?: string }>();
+  const openObject = onOpenObject ?? ((rewardId: string) => {
+    router.push({ pathname: '/(parent)/objet/[rewardId]', params: childId ? { rewardId, childId } : { rewardId } });
+  });
   const { width } = useWindowDimensions();
   const navH = useNavBarHeight();
   const lt = useLargeTitle(40);
@@ -42,8 +53,8 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
             <SectionHeader title="Gagné" />
             <Section style={{ gap: 8 }}>
               {vm.earned.map((e) => (
-                <Card key={e.id}>
-                  <View accessible accessibilityLabel={`${e.label}. ${e.detail}`} style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+                <Card key={e.id} onPress={() => openObject(e.id)} accessibilityLabel={`${e.label}. ${e.detail}`}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
                     <Enamel radius={20}>
                       <View style={{ width: 64, height: 64, alignItems: 'center', justifyContent: 'center' }}>
                         <Icon name={e.glyph} size={30} color={colors.accentInk} />
@@ -53,6 +64,7 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
                       <ThemedText variant="headline">{e.label}</ThemedText>
                       <ThemedText variant="sub" color="label2">{e.detail}</ThemedText>
                     </View>
+                    <Icon name="chevronRight" size={16} color={colors.label3} />
                   </View>
                 </Card>
               ))}
@@ -97,9 +109,11 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity }: Props) {
                 const label = o.got ? `${o.label}, acquis pour toujours` : `${o.label}, se débloque en avançant`;
                 const tile = { width: cell, height: cell, alignItems: 'center' as const, justifyContent: 'center' as const };
                 return o.got ? (
-                  <Paper key={o.id} accessible accessibilityLabel={label} radius={20}>
-                    <View style={tile}><Icon name={o.glyph} size={28} color={colors.sageInk} /></View>
-                  </Paper>
+                  <Pressable key={o.id} accessibilityRole="button" accessibilityLabel={label} onPress={() => openObject(o.id)}>
+                    <Paper radius={20}>
+                      <View style={tile}><Icon name={o.glyph} size={28} color={colors.sageInk} /></View>
+                    </Paper>
+                  </Pressable>
                 ) : (
                   <Felt key={o.id} accessible accessibilityLabel={label} radius={20} color={colors.fill4}>
                     <View style={tile}><Icon name="lock" size={28} color={colors.label4} /></View>
