@@ -5,6 +5,7 @@ import {
   ThemedText, useNavBarHeight, useScrollEdge, useTheme,
 } from '../../design';
 import { InfoSheet } from './InfoSheet';
+import { PHOTO_MESSAGES, pickPassportPhoto, removePassportPhoto, uploadPassportPhoto } from './passportPhoto';
 import { LockedPreview, TrackRow } from './BilanCards';
 import { LOCK_NOTES } from './bilanPage';
 import { LsssCurve } from './Charts';
@@ -152,7 +153,14 @@ export type PersonalizeProps = {
   /** Poste : renseigné par le coach (lecture seule côté parent). */
   position: string | null;
   photoUri?: string | null;
-  /** Absent tant que le choix de photo n'est pas disponible sur mobile : bouton et lien masqués. */
+  /**
+   * Enfant dont on change la photo : active le choix de photo intégré (photothèque, envoi dans le bucket privé
+   * `child-avatars`, comme le web). Sans `childId` ni `onPickPhoto`, bouton et lien sont masqués.
+   */
+  childId?: string;
+  /** Appelé après un envoi ou un retrait réussi (la page relit la fiche). */
+  onPhotoChanged?: () => void;
+  /** Remplace le choix intégré (galerie DEV, tests). */
   onPickPhoto?: () => void;
   onCancel: () => void;
   onSave: () => void;
@@ -166,6 +174,50 @@ export function PersonalizeView(p: PersonalizeProps) {
   const navH = useNavBarHeight();
   const scroll = useScrollEdge();
   const kid = useKidColor(p.accent);
+  const [localPhoto, setLocalPhoto] = useState<string | null | undefined>(undefined); // undefined = rien changé ici
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
+  const shownPhoto = localPhoto === undefined ? p.photoUri ?? null : localPhoto;
+  const { childId, onPhotoChanged } = p;
+
+  // Geste « Changer la photo » : l'accès aux photos n'est demandé qu'ici ; un refus ou une erreur donne une phrase, jamais un plantage.
+  const pickPhoto = childId
+    ? async () => {
+        if (photoBusy) return;
+        setPhotoNote(null);
+        setPhotoBusy(true);
+        try {
+          const r = await pickPassportPhoto();
+          if (r.status === 'denied') setPhotoNote(PHOTO_MESSAGES.denied);
+          else if (r.status === 'error') setPhotoNote(PHOTO_MESSAGES.read);
+          else if (r.status === 'ok') {
+            const up = await uploadPassportPhoto(childId, r.photo);
+            if (up.ok) {
+              setLocalPhoto(r.photo.uri);
+              onPhotoChanged?.();
+            } else setPhotoNote(PHOTO_MESSAGES[up.failure]);
+          }
+        } finally {
+          setPhotoBusy(false);
+        }
+      }
+    : undefined;
+  const removePhoto = childId
+    ? async () => {
+        if (photoBusy) return;
+        setPhotoNote(null);
+        setPhotoBusy(true);
+        try {
+          if (await removePassportPhoto(childId)) {
+            setLocalPhoto(null);
+            onPhotoChanged?.();
+          } else setPhotoNote(PHOTO_MESSAGES.save);
+        } finally {
+          setPhotoBusy(false);
+        }
+      }
+    : undefined;
+  const onPick = p.onPickPhoto ?? pickPhoto;
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} testID="passeport-perso">
       <ScrollView
@@ -176,10 +228,11 @@ export function PersonalizeView(p: PersonalizeProps) {
       >
         <View style={{ alignItems: 'center' }}>
           <View>
-            <JerseyDisc size={118} bg={kid.bg} ink={kid.ink} label={p.jersey.trim() || p.initial} photoUri={p.photoUri} accessibilityLabel={`Passeport de ${p.name}`} />
-            {p.onPickPhoto ? (
+            <JerseyDisc size={118} bg={kid.bg} ink={kid.ink} label={p.jersey.trim() || p.initial} photoUri={shownPhoto} accessibilityLabel={`Passeport de ${p.name}`} />
+            {onPick ? (
               <Pressable
-                onPress={p.onPickPhoto}
+                onPress={onPick}
+                disabled={photoBusy}
                 accessibilityRole="button"
                 accessibilityLabel="Choisir une photo"
                 style={{ position: 'absolute', right: -4, bottom: -2 }}
@@ -192,10 +245,18 @@ export function PersonalizeView(p: PersonalizeProps) {
               </Pressable>
             ) : null}
           </View>
-          {p.onPickPhoto ? (
-            <Pressable onPress={p.onPickPhoto} accessibilityRole="button" accessibilityLabel="Choisir une photo" style={{ marginTop: 12 }}>
-              <ThemedText variant="sub" color="tintText">Choisir une photo</ThemedText>
+          {onPick ? (
+            <Pressable onPress={onPick} disabled={photoBusy} accessibilityRole="button" accessibilityState={{ busy: photoBusy }} style={{ marginTop: 12 }}>
+              <ThemedText variant="sub" color="tintText">{shownPhoto ? 'Changer la photo' : 'Choisir une photo'}</ThemedText>
             </Pressable>
+          ) : null}
+          {removePhoto && shownPhoto ? (
+            <Pressable onPress={removePhoto} disabled={photoBusy} accessibilityRole="button" style={{ marginTop: 6 }}>
+              <ThemedText variant="foot" color="label2">Retirer la photo</ThemedText>
+            </Pressable>
+          ) : null}
+          {photoNote ? (
+            <ThemedText variant="foot" color="label2" accessibilityRole="alert" style={{ marginTop: 8, paddingHorizontal: 24, textAlign: 'center' }}>{photoNote}</ThemedText>
           ) : null}
         </View>
 

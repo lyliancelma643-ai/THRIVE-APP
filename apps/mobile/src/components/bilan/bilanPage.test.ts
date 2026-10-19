@@ -1,7 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  CARD_ORDER, LOCK_NOTES, buildExtras, buildParcours, cardForFocus, certificateState, emptyExtras, isGroupPreview, letterState, programPct, rightsFor,
+  CARD_ORDER, LOCK_NOTES, PACK_TO_PLAN, buildExtras, buildParcours, cardForFocus, certificateState, emptyExtras, isGroupPreview, letterState, programPct, rightsFor,
 } from './bilanPage';
+import { PACK_ORDER, PLAN_FEATURES, type Pack } from '../../lib/packs';
+import type { ProgramPack } from '../../services/programPayments';
 import { CARD_INFO } from './cardInfo';
 
 describe('page Bilan : ordre des cartes (celui de la page web)', () => {
@@ -20,6 +22,26 @@ describe('page Bilan : ordre des cartes (celui de la page web)', () => {
     expect(cardForFocus('perma')).toBe('bienetre');
     expect(cardForFocus('lettre')).toBe('lettre');
     expect(cardForFocus('inconnu')).toBeNull();
+  });
+});
+
+describe('droits d’analyse : non-dérive avec la matrice partagée (lib/packs.ts)', () => {
+  it('chaque forfait vendu correspond à un code de la matrice, et chaque code de la matrice a un forfait', () => {
+    expect(Object.values(PACK_TO_PLAN).sort()).toEqual([...PACK_ORDER].sort());
+  });
+  it.each(Object.entries(PACK_TO_PLAN) as [ProgramPack, Pack][])('%s : rightsFor = PLAN_FEATURES[%s]', (pack, plan) => {
+    expect(rightsFor(pack)).toEqual({
+      skillBreakdown: PLAN_FEATURES[plan].skillBreakdown,
+      wellbeingCurve: PLAN_FEATURES[plan].lsssCurve,
+      emotionWheel: PLAN_FEATURES[plan].emotionWheel,
+    });
+  });
+  it('la matrice partagée reste monotone : Groupe < Individuel = Complet pour ces trois droits', () => {
+    for (const f of ['skillBreakdown', 'lsssCurve', 'emotionWheel'] as const) {
+      expect(PLAN_FEATURES.ESSENTIEL[f]).toBe(false);
+      expect(PLAN_FEATURES.AVANCE[f]).toBe(true);
+      expect(PLAN_FEATURES.PERFORMANCE[f]).toBe(true);
+    }
   });
 });
 

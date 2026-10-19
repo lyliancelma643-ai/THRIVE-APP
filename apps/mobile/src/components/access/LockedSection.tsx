@@ -245,17 +245,22 @@ export function LockedScreen({ kind, childName = null, childInitial = null, onBe
   );
 }
 
-/** Route Bilan / Mes séances verrouillée : boutons internes uniquement (offres de l'app, messagerie). */
-export function LockedSection({ section, childName = null }: { section: 'bilan' | 'seances'; childName?: string | null }) {
+/**
+ * Route Bilan / Mes séances / Messages verrouillée : boutons internes uniquement (offres de l'app, appel, messagerie).
+ * `messages` (U2) : aperçu factice de la conversation + invitation, sans « Écrire à mon coach » (on y est déjà), sans lien de
+ * paiement. L'état d'accès (access_state()) est lu par la route appelante, jamais recalculé ici.
+ */
+export function LockedSection({ section, childName = null }: { section: LockedKind; childName?: string | null }) {
   const router = useRouter();
   return (
     <LockedScreen
       kind={section}
       childName={childName}
       onOffers={() => router.push('/(parent)/offres')}
-      onWrite={() => router.push('/(parent)/messages')}
+      onWrite={section === 'messages' ? undefined : () => router.push('/(parent)/messages')}
       onCall={() => router.push('/(parent)/appel')}
-      onBell={() => router.push('/(parent)/notifications')}
+      onBell={section === 'bilan' ? () => router.push('/(parent)/notifications') : undefined}
+      onBack={section === 'messages' ? () => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison')) : undefined}
     />
   );
 }

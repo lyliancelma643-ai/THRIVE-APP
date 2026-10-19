@@ -14,7 +14,7 @@ import { LOCK_NOTES, WELLBEING_SCALE, type BilanExtras, type NodeState } from '.
 import type { BilanActions, BilanModel } from './BilanView';
 
 // Les cartes de la page Bilan (G), dans l'ordre de la page web. Présentationnel : tout vient de `m` (modèle du passeport),
-// `x` (extras : séances, lettre, certificat, droits) et `a` (actions). Un seul geste soleil sur la page : la barre du programme.
+// `x` (extras : séances, lettre, certificat, droits) et `a` (actions). Un seul geste soleil (émail) principal sur la page : la barre du programme. La règle vise le geste principal, pas les marques d’état (point non lu, coche), qui peuvent porter l’émail sans compter.
 
 type P = { m: BilanModel; x: BilanExtras; a: BilanActions };
 

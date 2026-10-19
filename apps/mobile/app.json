@@ -122,7 +122,15 @@
           "project": "thrive-mobile"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": false,
+          "microphonePermission": false,
+          "photosPermission": "THRIVE a besoin d’accéder à tes photos pour choisir la photo du passeport de ton enfant. Elle reste privée : visible uniquement par la famille, le coach et l’équipe THRIVE."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": false,

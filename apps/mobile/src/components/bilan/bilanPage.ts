@@ -2,6 +2,7 @@
 // Fonctions PURES (testées). Rien n'est recalculé côté client : les mesures (LSSS, bien-être, jauge) viennent des RPC
 // lues par bilanApi.ts ; ici on ne fait que mettre en forme ce que le serveur a déjà décidé.
 import type { ProgramPack } from '../../services/programPayments';
+import { can, type Pack } from '../../lib/packs';
 import { TOTAL_SESSIONS, sessionWhenLabel } from './bilanData';
 import type { Gauge, LsssPoint, PermaPoint } from './bilanData';
 import type { DocRow, NextStepRow, PassportCard } from './bilanApi';
@@ -38,13 +39,19 @@ export type BilanRights = {
   emotionWheel: boolean;
 };
 
+/** Forfait vendu → code interne de la matrice partagée (`lib/packs.ts`, copie conforme du seed SQL de `plans`). */
+export const PACK_TO_PLAN: Record<ProgramPack, Pack> = { groupe: 'ESSENTIEL', individuel: 'AVANCE', complet: 'PERFORMANCE' };
+
 /**
- * Le forfait Groupe n'a que l'essentiel ; Individuel, Complet (et tout accès sans pack : forçage, équipe) ouvrent tout.
+ * Droits d'analyse lus dans la matrice partagée avec le web (aucune copie) : la courbe de bien-être suit `lsssCurve`
+ * (même clé que la page web). Tout accès sans pack (forçage, équipe) ouvre tout.
  * `packPending` : l'accès vient d'un pack mais lequel n'est pas encore lu → fermé (jamais d'ouverture par défaut).
  */
 export function rightsFor(pack: ProgramPack | null, packPending = false): BilanRights {
-  const closed = pack === 'groupe' || packPending;
-  return { skillBreakdown: !closed, wellbeingCurve: !closed, emotionWheel: !closed };
+  if (packPending) return { skillBreakdown: false, wellbeingCurve: false, emotionWheel: false };
+  if (pack === null) return { skillBreakdown: true, wellbeingCurve: true, emotionWheel: true };
+  const plan = PACK_TO_PLAN[pack];
+  return { skillBreakdown: can(plan, 'skillBreakdown'), wellbeingCurve: can(plan, 'lsssCurve'), emotionWheel: can(plan, 'emotionWheel') };
 }
 
 export function isGroupPreview(r: BilanRights): boolean {

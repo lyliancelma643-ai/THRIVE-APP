@@ -242,6 +242,8 @@ export default function BilansScreen() {
           onAccent={setAccent}
           position={card?.position ?? null}
           photoUri={card?.avatarUrl ?? null}
+          childId={child.id}
+          onPhotoChanged={reload}
           onCancel={() => setPerso(false)}
           onSave={onSave}
           saving={saving}
