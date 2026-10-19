@@ -90,3 +90,7 @@ google-play-service-account.json
 
 # Aperçus PNG des maquettes iOS 27 (7 Mo, restent locaux)
 maquettes-ios27/apercus/
+
+# GO 5 : captures brutes du banc de comparaison (régénérables)
+docs/release/go5-captures/ref/
+docs/release/go5-captures/app/
