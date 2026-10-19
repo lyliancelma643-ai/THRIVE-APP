@@ -119,7 +119,7 @@ function MaisonContent() {
     onDoor: (key) => {
       if (key === 'toutes') goParcours({ vue: 'toutes' });
       else if (key === 'programme') goParcours();
-      else if (key === 'refus') goParcours({ filtre: 'refus' });
+      else if (key === 'refus') router.push({ pathname: '/(parent)/quand-il-dit-non', params: { childId: child.id } });
       else if (key === 'carnet') router.push({ pathname: '/(parent)/carnet', params: { childId: child.id } });
       else router.push('/(parent)/videos');
     },

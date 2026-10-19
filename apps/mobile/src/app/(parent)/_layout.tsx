@@ -29,6 +29,9 @@ const HIDDEN = [
   'fin-de-parcours',
   'offres',
   'offres/[pack]',
+  'objet/[rewardId]',
+  'quand-il-dit-non',
+  'quand-consulter',
   'appel',
   'video/[step]',
 ];

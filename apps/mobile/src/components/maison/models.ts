@@ -82,11 +82,12 @@ export function bannerFor(input: { sourceMaison?: string | null; isTrial: boolea
 }
 
 /**
- * Invitation discrète vers l'écran Offres DE L'APP (jamais un paiement web, anti-steering) : style Veillée seulement,
- * et jamais pour un abonné accompagné (`sourceMaison === 'pack'`). Les droits viennent d'access_state() (store), rien n'est recalculé.
+ * Invitation discrète vers l'écran Offres DE L'APP (jamais un paiement web, anti-steering) : affichée en Lin ET en
+ * Veillée (décision D1), et jamais pour un abonné accompagné (`sourceMaison === 'pack'`). Les droits viennent
+ * d'access_state() (store), rien n'est recalculé. `styleKey` est accepté pour compatibilité des appels, mais ignoré.
  */
-export function showOffersInvite(input: { styleKey: 'lin' | 'veillee'; sourceMaison?: string | null }): boolean {
-  return input.styleKey === 'veillee' && input.sourceMaison !== 'pack';
+export function showOffersInvite(input: { styleKey?: 'lin' | 'veillee'; sourceMaison?: string | null }): boolean {
+  return input.sourceMaison !== 'pack';
 }
 
 type HomeInput = {
@@ -292,7 +293,6 @@ export function buildCarnetVM(input: {
       detail: [
         e.reward.trigger.kind === 'week_complete' ? `Semaine ${e.reward.trigger.week} complète.` : null,
         'Acquis pour toujours.',
-        e.reward.bonus ?? null,
       ].filter(Boolean).join(' '),
     })),
     kept: input.kept.slice(0, 30).map((m) => {
