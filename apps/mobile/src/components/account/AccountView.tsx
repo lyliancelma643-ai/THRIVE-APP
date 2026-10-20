@@ -5,6 +5,7 @@ import {
   useTheme, type ThemeStyleKey,
 } from '../../design';
 import { kidAvatarColors } from './kidAvatar';
+import { RoundBadge } from './RoundBadge';
 import { StylePickerView } from './StylePicker';
 
 export type AccountFamilyItem = { id: string; firstName: string; ageLabel: string };
@@ -58,9 +59,9 @@ export function AccountView(p: AccountViewProps) {
 
         <Section style={{ marginTop: 18 }}>
           <List>
-            <ListRow glyph="star" iconColor="sysOrange" title="Mon programme" value={p.programValue} onPress={p.onOpenProgram} chevron />
-            <ListRow glyph="home" iconColor="sysGreen" title="Abonnement Maison" value={p.maisonValue} onPress={p.onOpenMaison} chevron />
-            <ListRow glyph="sparkles" iconColor="tint" title="Offres THRIVE" onPress={p.onOpenOffers} chevron />
+            <ListRow leading={<RoundBadge glyph="star" />} leadingInset={60} title="Mon programme" value={p.programValue} onPress={p.onOpenProgram} chevron />
+            <ListRow leading={<RoundBadge glyph="home" />} leadingInset={60} title="Abonnement Maison" value={p.maisonValue} onPress={p.onOpenMaison} chevron />
+            <ListRow leading={<RoundBadge glyph="sparkles" />} leadingInset={60} title="Offres THRIVE" onPress={p.onOpenOffers} chevron />
           </List>
         </Section>
 
@@ -86,14 +87,14 @@ export function AccountView(p: AccountViewProps) {
                 />
               );
             })}
-            <ListRow glyph="people" iconColor="sysIndigo" title="Mes enfants" onPress={p.onOpenChildren} chevron />
+            <ListRow leading={<RoundBadge glyph="people" />} leadingInset={60} title="Mes enfants" onPress={p.onOpenChildren} chevron />
           </List>
         </Section>
 
         <SectionHeader small title="Préférences" />
         <Section>
           <List>
-            <ListRow glyph="bell" iconColor="sysRed" title="Notifications" onPress={p.onOpenNotifications} chevron />
+            <ListRow leading={<RoundBadge glyph="bell" />} leadingInset={60} title="Notifications" onPress={p.onOpenNotifications} chevron />
           </List>
         </Section>
 
