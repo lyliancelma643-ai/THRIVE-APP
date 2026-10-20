@@ -23,7 +23,7 @@ type Props = {
   rewards: EndReward[];
   weekCompleteLabel: string | null;
   next: { title: string } | null;
-  /** @deprecated « Voir » ouvre désormais l’objet lui-même (route `objet/[rewardId]`) : ce rappel n’est plus appelé. */
+  /** « Voir » : ouvre l’objet `id`. Sans rappel, EndView ouvre lui-même `objet/[rewardId]` (enfant lu dans la route). */
   onViewReward?: (id: string) => void;
   onLaterRewards: () => void;
   onNext: () => void;
@@ -32,7 +32,7 @@ type Props = {
 
 /** M12 · Fin (compteur, trois étoiles de la semaine, fierté, suite, retour Maison) et M13 · objet débloqué. */
 export function EndView({
-  chrome, firstName, count, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onLaterRewards, onNext, onHome,
+  chrome, firstName, count, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onViewReward, onLaterRewards, onNext, onHome,
 }: Props) {
   const { colors } = useTheme();
   const router = useRouter();
@@ -82,7 +82,7 @@ export function EndView({
                 </View>
               </View>
               <View style={{ marginTop: 16, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                <Button variant="gray" size="md" label="Voir" onPress={() => openReward(r.id)} accessibilityLabel={`Voir ${r.label}`} />
+                <Button variant="gray" size="md" label="Voir" onPress={() => (onViewReward ? onViewReward(r.id) : openReward(r.id))} accessibilityLabel={`Voir ${r.label}`} />
                 <Ghost label="Plus tard" onPress={onLaterRewards} />
               </View>
             </Card>

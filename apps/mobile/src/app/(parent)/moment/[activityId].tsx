@@ -331,7 +331,7 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           rewards={rewards}
           weekCompleteLabel={summary?.weekJustDone ? `Semaine ${activity.week} complète.` : null}
           next={next ? { title: next.title } : null}
-          onViewReward={() => router.push({ pathname: '/(parent)/carnet', params: { childId } })}
+          onViewReward={(rewardId) => router.push({ pathname: '/(parent)/objet/[rewardId]', params: { rewardId, childId } })}
           onLaterRewards={() => setRewardsHidden(true)}
           onNext={() => {
             if (next) router.replace({ pathname: '/(parent)/activite/[activityId]', params: { activityId: next.id, childId, band } });
