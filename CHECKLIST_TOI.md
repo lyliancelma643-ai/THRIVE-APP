@@ -222,3 +222,21 @@ Rapport complet : `docs/release/GO4_RAPPORT.md`. Rien n'est poussé ni appliqué
 ### Pousser la branche
 
 - [ ] **Pousser `feature/ios27-lin-veillee`** seulement quand les décisions ci-dessus sont prises, la capture corrigée, et la migration 083 traitée avec le GO 3. Cette branche part de `feature/ios27-ui-paiements` : pousser les deux dans le bon ordre.
+
+---
+
+## GO 5 : finition Lin et Veillée (2026-10-20)
+
+Détail : `docs/release/GO5_RAPPORT.md`. Branche `feature/ios27-lin-veillee` (tête `6dc5cf8`), non poussée.
+
+- [ ] **Fusion dans `main` non faite** (refusée par le classifieur de permissions). Si tu la valides : `git merge --no-ff feature/ios27-lin-veillee -m "feat: nouvelle interface Lin et Veillée (GO 3 à GO 5)"` depuis le dépôt principal, puis `git tag -a ui-lin-veillee-fusion -m "Fusion de la nouvelle interface Lin et Veillée"`.
+- [ ] Archive déjà créée : `archive/ui-avant-ios27` et tag `ui-avant-ios27` sur `3af7908`.
+- [ ] Décider la photo du passeport : enregistrée dès le choix (mobile) ou à « Enregistrer » (web). Recommandation : aligner sur le web.
+- [ ] Faire valider `PAGE_CONSULTER` (statut `A_VALIDER`) par un·e psychologue avant la mise en ligne, ou la masquer.
+- [ ] « Stripe » dans le programme en personne (`ProgrammePaiementView`) : garder ou reformuler.
+- [ ] « 1 mois offert » côté web (`lib/p3-moments/index.ts:259`, `RewardView.tsx:192`) : décider.
+- [ ] Appliquer 081, 082, 083 (modifiée pour `lin|veillee`), après relecture, en préproduction puis en production. Puis `get_advisors`.
+- [ ] Tests manuels sur iPhone (TestFlight ou build de développement) : parcours complet en Lin puis Veillée ; mode activité de bout en bout en Lin (fond marine, écran allumé) ; un visuel montré à l'enfant ; imprimer et enregistrer un objet ; photo du passeport ; Réduire la transparence et les animations ; Dynamic Type ; VoiceOver sur la barre d'onglets ; `pnpm ui:ancienne` puis `pnpm ui:nouvelle`.
+- [ ] Captures iOS des écrans clés (K, G, M, VI1, N2, X, D2) dans les deux styles : NON_VÉRIFIÉ.
+- [ ] Pousser quand tout est validé : `git push origin archive/ui-avant-ios27 ui-avant-ios27 ui-lin-veillee-fusion` puis `git push origin main` (vérifier d'abord la protection de `main`).
+- [ ] Décisions GO 3 encore ouvertes : R1 (programmes payés dans l'app iOS), R2 (taxes), R3 (remboursement), R4 (versement 2), R9 (prix visio, créneaux d'appel).
