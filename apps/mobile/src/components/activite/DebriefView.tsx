@@ -3,7 +3,7 @@ import { Pressable, TextInput, View } from 'react-native';
 import { Button, ThemedText, resolveTextStyle, useTheme } from '../../design';
 import { DEBRIEF, type VisualId } from '../../lib/p3';
 import { frTypo } from './flow';
-import { Display, Eyebrow, Frame, Ghost, type Chrome } from './parts';
+import { Display, Eyebrow, Frame, Ghost, NO_FOCUS_RING, type Chrome } from './parts';
 import { VisualButton } from './visuals/VisualButton';
 
 type Question = { kind: keyof typeof DEBRIEF.labels; question: string };
@@ -63,6 +63,7 @@ export function DebriefView({ chrome, questions, shown, answers, week1, onAnswer
                   style={[
                     resolveTextStyle('body', fontsLoaded),
                     { marginTop: 14, minHeight: 64, padding: 14, borderRadius: 20, color: colors.label, backgroundColor: colors.fill4, borderWidth: 1, borderColor: colors.separator, textAlignVertical: 'top' },
+                    NO_FOCUS_RING,
                   ]}
                 />
               ) : (

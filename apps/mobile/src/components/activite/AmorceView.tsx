@@ -21,7 +21,7 @@ type Props = {
 export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, opener, minutes, onStart }: Props) {
   const { colors } = useTheme();
   return (
-    <Frame chrome={chrome} padTop={12} padBottom={56}>
+    <Frame chrome={chrome} padTop={16} padBottom={56}>
       <View style={{ alignItems: 'center', marginBottom: 28 }}>
         <Arch width={240} height={268} source={VIGNETTE_SOURCES[vignetteId] ?? VIGNETTE_SOURCES[BASE_VIGNETTE_ID]} accessibilityLabel={vignetteLabel} />
       </View>

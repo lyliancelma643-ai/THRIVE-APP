@@ -15,7 +15,7 @@ type Props = {
 /** M2 · La fois d'avant : une grande phrase, un seul bouton. */
 export function RecallView({ chrome, opening, recall, onContinue }: Props) {
   return (
-    <Frame chrome={chrome} padTop={34} cta={<Button variant="accent" label="Continuer" flex onPress={onContinue} />}>
+    <Frame chrome={chrome} padTop={54} cta={<Button variant="accent" label="Continuer" flex onPress={onContinue} />}>
       <ThemedText variant="numeralHero" color="sageText" accessibilityElementsHidden importantForAccessibility="no" style={{ height: 54, opacity: 0.55 }}>“</ThemedText>
       {opening ? (
         <View>

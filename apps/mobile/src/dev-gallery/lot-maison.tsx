@@ -3,9 +3,9 @@ import { View } from 'react-native';
 import { CarnetView } from '../components/maison/CarnetView';
 import { FicheView } from '../components/maison/FicheView';
 import { HomeView } from '../components/maison/HomeView';
-import { MomentView } from '../components/maison/MomentView';
 import { ParcoursView } from '../components/maison/ParcoursView';
-import { HOME_ACTIONS, carnetFixture, ficheFixture, homeFixture, momentFixture, parcoursFixture } from './fixtures/maison';
+import { HOME_ACTIONS, carnetFixture, ficheFixture, homeFixture, parcoursFixture } from './fixtures/maison';
+import { screens as activite } from './lot-activite';
 import type { GalleryScreen } from './types';
 
 /**
@@ -26,14 +26,14 @@ const K = () => <Phone><HomeView vm={homeFixture('included')} actions={HOME_ACTI
 const K3 = () => <Phone><HomeView vm={homeFixture('trial')} actions={HOME_ACTIONS} /></Phone>;
 const K2 = () => <Phone><ParcoursView vm={parcoursFixture()} onBack={noop} onOpen={noop} /></Phone>;
 const L = () => <Phone><FicheView vm={ficheFixture()} onBack={noop} onDuration={noop} onStart={noop} /></Phone>;
-const M = () => <Phone><MomentView vm={momentFixture()} onClose={noop} onPrev={noop} onNext={noop} onToggle={noop} onStop={noop} /></Phone>;
 const N = () => <Phone><CarnetView vm={carnetFixture()} onBack={noop} onShare={noop} onOpenActivity={noop} /></Phone>;
 
 export const screens: GalleryScreen[] = [
   { id: 'K', title: 'Maison', tab: 'maison', render: () => <K /> },
   { id: 'K2', title: 'Tout le parcours', tab: null, render: () => <K2 /> },
   { id: 'L', title: 'Fiche moment', tab: null, render: () => <L /> },
-  { id: 'M', title: 'Moment en cours', tab: null, render: () => <M /> },
   { id: 'N', title: 'Le carnet', tab: null, render: () => <N /> },
   { id: 'K3', title: 'Maison seul', tab: 'maison', render: () => <K3 /> },
+  // M, M1–M17, MV, VI1–VI8 : le mode activité (toujours Veillée), voir lot-activite.tsx.
+  ...activite,
 ];

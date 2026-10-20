@@ -1,5 +1,5 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Button, Card, Icon, Star, ThemedText, useTheme } from '../../design';
 import { SYNTHESIS } from '../../lib/p3';
 import { countLine } from './flow';
@@ -42,7 +42,7 @@ export function EndView({
     router.push({ pathname: '/(parent)/objet/[rewardId]', params: childId ? { rewardId, childId } : { rewardId } });
   const lit = Math.max(0, Math.min(3, weekStars));
   return (
-    <Frame chrome={{ ...chrome, timer: null }} padTop={40} padBottom={48}>
+    <Frame chrome={{ ...chrome, timer: null }} padTop={rewards.length > 0 ? 28 : 60} padBottom={48}>
       <View accessibilityLiveRegion="polite">
         <Display size={38} lineHeight={44} weight={600}>{countLine(count, firstName)}</Display>
       </View>
@@ -93,18 +93,24 @@ export function EndView({
       <View style={{ marginTop: 30 }}>
         {weekCompleteLabel ? <ThemedText variant="callout" weight={500} style={{ marginBottom: 14 }}>{weekCompleteLabel}</ThemedText> : null}
         {next ? (
-          <Card onPress={onNext} padding={0} accessibilityLabel={`La suite : ${next.title}`}>
-            <View style={{ minHeight: 60, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-              <ThemedText variant="callout" color="label2" style={{ flex: 1 }}>
-                {'La suite : '}
-                <ThemedText variant="callout" weight={600}>{next.title}</ThemedText>
-              </ThemedText>
-              <Icon name="chevronRight" size={19} color={colors.label2} strokeWidth={2.2} />
-            </View>
-          </Card>
+          <Pressable
+            onPress={onNext}
+            accessibilityRole="button"
+            accessibilityLabel={`La suite : ${next.title}`}
+            style={({ pressed }) => ({
+              minHeight: 60, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+              borderRadius: 22, backgroundColor: colors.fill4, borderWidth: 1, borderColor: colors.separator, opacity: pressed ? 0.8 : 1,
+            })}
+          >
+            <ThemedText variant="foot" color="label2" style={{ flex: 1, fontSize: 15, lineHeight: 21 }}>
+              {'La suite : '}
+              <ThemedText variant="foot" weight={600} style={{ fontSize: 15, lineHeight: 21 }}>{next.title}</ThemedText>
+            </ThemedText>
+            <Icon name="chevronRight" size={19} color={colors.label2} strokeWidth={2.2} />
+          </Pressable>
         ) : null}
-        <View style={{ marginTop: 16, alignSelf: 'flex-start' }}>
-          <Button variant="plainglass" label="Retour à Maison" onPress={onHome} style={{ paddingHorizontal: 32 }} />
+        <View style={{ marginTop: 16, width: 180 }}>
+          <Button variant="plainglass" label="Retour à Maison" onPress={onHome} style={{ alignSelf: 'stretch' }} />
         </View>
       </View>
     </Frame>

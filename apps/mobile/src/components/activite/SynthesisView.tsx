@@ -1,7 +1,7 @@
 import { Pressable, TextInput, View } from 'react-native';
-import { Button, Chip, Icon, resolveTextStyle, useTheme } from '../../design';
+import { Button, Icon, ThemedText, resolveTextStyle, useTheme } from '../../design';
 import { SYNTHESIS, type P3Outcome } from '../../lib/p3';
-import { Eyebrow, Frame, Ghost, type Chrome } from './parts';
+import { Eyebrow, Frame, Ghost, NO_FOCUS_RING, type Chrome } from './parts';
 
 type Props = {
   chrome: Chrome;
@@ -53,9 +53,24 @@ export function SynthesisView({ chrome, rating, outcome, kept, saving, onRating,
 
       <Eyebrow style={{ marginTop: 30 }}>{SYNTHESIS.outcome.question}</Eyebrow>
       <View style={{ marginTop: 12, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        {SYNTHESIS.outcome.options.map((o) => (
-          <Chip key={o.id} tall label={o.label} on={outcome === o.id} onPress={() => onOutcome(outcome === o.id ? null : (o.id as P3Outcome))} />
-        ))}
+        {SYNTHESIS.outcome.options.map((o) => {
+          const on = outcome === o.id;
+          return (
+            <Pressable
+              key={o.id}
+              onPress={() => onOutcome(on ? null : (o.id as P3Outcome))}
+              accessibilityRole="button"
+              accessibilityLabel={o.label}
+              accessibilityState={{ selected: on }}
+              style={({ pressed }) => ({
+                minHeight: 52, paddingHorizontal: 14, borderRadius: 26, alignItems: 'center', justifyContent: 'center',
+                backgroundColor: on ? colors.cream : colors.fill4, borderWidth: on ? 0 : 1, borderColor: colors.separator, opacity: pressed ? 0.8 : 1,
+              })}
+            >
+              <ThemedText variant="callout" weight={500} style={{ fontSize: 16, color: on ? colors.navy900 : colors.label }}>{o.label}</ThemedText>
+            </Pressable>
+          );
+        })}
       </View>
 
       <Eyebrow style={{ marginTop: 30 }}>{SYNTHESIS.kept}</Eyebrow>
@@ -71,6 +86,7 @@ export function SynthesisView({ chrome, rating, outcome, kept, saving, onRating,
         style={[
           resolveTextStyle('body', fontsLoaded),
           { marginTop: 14, minHeight: 78, padding: 16, borderRadius: 20, color: colors.label, backgroundColor: colors.fill4, borderWidth: 1, borderColor: colors.separator, textAlignVertical: 'top' },
+          NO_FOCUS_RING,
         ]}
       />
     </Frame>

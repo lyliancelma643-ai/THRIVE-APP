@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { View } from 'react-native';
 import Svg, { Circle, Ellipse, Path } from 'react-native-svg';
 import { Icon, useTheme } from '../../../design';
 import type { VisualId } from '../../../lib/p3';
@@ -57,9 +58,9 @@ function ExtraFace({ id, size }: { id: 'peur' | 'colere' | 'fierte'; size: numbe
     ));
   }
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {kids}
-    </Svg>
+    <View style={{ width: size, height: size }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} viewBox="0 0 48 48">{kids}</Svg>
+    </View>
   );
 }
 
@@ -86,9 +87,11 @@ export function ListIcon({ id, size = 24, color }: { id: string; size?: number; 
 export function CloudRain({ size = 34 }: { size?: number }) {
   const { colors } = useTheme();
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Path d="M14 34h21a8 8 0 0 0 0-16 11 11 0 0 0-21 3 6.5 6.5 0 0 0 0 13z" fill={FACE.cloud} stroke={colors.navy900} strokeWidth={2.2} strokeLinejoin="round" />
-      <Path d="M18 39l-2 4M25 39l-2 4M32 39l-2 4" stroke={FACE.sky} strokeWidth={2.4} strokeLinecap="round" />
-    </Svg>
+    <View style={{ width: size, height: size }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} viewBox="0 0 48 48">
+        <Path d="M14 34h21a8 8 0 0 0 0-16 11 11 0 0 0-21 3 6.5 6.5 0 0 0 0 13z" fill={FACE.cloud} stroke={colors.navy900} strokeWidth={2.2} strokeLinejoin="round" />
+        <Path d="M18 39l-2 4M25 39l-2 4M32 39l-2 4" stroke={FACE.sky} strokeWidth={2.4} strokeLinecap="round" />
+      </Svg>
+    </View>
   );
 }

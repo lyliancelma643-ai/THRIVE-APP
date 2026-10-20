@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { View } from 'react-native';
 import Svg, { Circle, Ellipse, Path, Rect } from 'react-native-svg';
 import { useTheme } from '../../design';
 
@@ -76,8 +77,10 @@ export function CheckinGlyph({ id, size = 30 }: { id: string; size?: number }) {
   const { colors } = useTheme();
   const g = glyphs({ D: colors.navy900, K: colors.cream, S: colors.sun });
   return (
-    <Svg width={size} height={size} viewBox="0 0 48 48" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {g[id] ?? <Ellipse cx={24} cy={24} rx={18} ry={18} fill={colors.sage} stroke={colors.navy900} strokeWidth={2.2} />}
-    </Svg>
+    <View style={{ width: size, height: size }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size} viewBox="0 0 48 48">
+        {g[id] ?? <Ellipse cx={24} cy={24} rx={18} ry={18} fill={colors.sage} stroke={colors.navy900} strokeWidth={2.2} />}
+      </Svg>
+    </View>
   );
 }

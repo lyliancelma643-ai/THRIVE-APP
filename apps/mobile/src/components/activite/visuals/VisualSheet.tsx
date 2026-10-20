@@ -179,9 +179,11 @@ function Carte() {
   ];
   return (
     <View style={{ width: '100%', maxWidth: 330, aspectRatio: 1, alignSelf: 'center', marginTop: 10 }}>
-      <Svg width="100%" height="100%" viewBox="0 0 330 330" style={{ position: 'absolute' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-        <Path d="M165 112V60M218 165h52M165 218v52M112 165H60" stroke={withAlpha(colors.sage, 0.5)} strokeWidth={2} strokeDasharray="3 5" />
-      </Svg>
+      <View style={{ position: 'absolute', width: '100%', height: '100%' }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <Svg width="100%" height="100%" viewBox="0 0 330 330">
+          <Path d="M165 112V60M218 165h52M165 218v52M112 165H60" stroke={withAlpha(colors.sage, 0.5)} strokeWidth={2} strokeDasharray="3 5" />
+        </Svg>
+      </View>
       <View
         style={{
           position: 'absolute', top: '34%', left: '34%', right: '34%', bottom: '34%', borderRadius: 999, alignItems: 'center', justifyContent: 'center',
@@ -196,7 +198,7 @@ function Carte() {
           style={[
             {
               position: 'absolute', width: '31.5%', aspectRatio: 1, borderRadius: 999, alignItems: 'center', justifyContent: 'center', padding: 10,
-              backgroundColor: colors.fill4, borderWidth: 2, borderStyle: 'dashed', borderColor: withAlpha(colors.label, 0.3),
+              backgroundColor: colors.fill4, borderWidth: 2, borderColor: withAlpha(colors.label, 0.3),
             },
             spots[i],
           ]}
@@ -259,14 +261,14 @@ function Outils({ notes }: { notes: Record<string, string> }) {
                 <ToolIcon id={t.id} color={colors.sage} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <ThemedText variant="headline" weight={600}>{t.name}</ThemedText>
-                <ThemedText variant="sub" color="label2">{t.what}</ThemedText>
+                <ThemedText variant="callout" weight={600}>{t.name}</ThemedText>
+                <ThemedText variant="foot" color="label2" style={{ fontSize: 13.5 }}>{t.what}</ThemedText>
               </View>
             </View>
-            {words ? <ThemedText variant="sub" color="sageText" style={{ marginTop: 8 }}>{frTypo(words)}</ThemedText> : null}
+            {words ? <ThemedText variant="foot" color="sageText" style={{ marginTop: 8, fontSize: 13.5 }}>{frTypo(words)}</ThemedText> : null}
             {open ? (
               <View style={{ marginTop: 10, padding: 12, borderRadius: 14, backgroundColor: colors.fill3 }}>
-                <ThemedText variant="body">{frTypo(toolAskLine(t.ask))}</ThemedText>
+                <ThemedText variant="callout" style={{ fontSize: 15.5, lineHeight: 21 }}>{frTypo(toolAskLine(t.ask))}</ThemedText>
               </View>
             ) : null}
           </Pressable>

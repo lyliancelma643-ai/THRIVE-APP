@@ -1,6 +1,7 @@
 import { ScrollView, TextInput, View } from 'react-native';
 import { Button, Sheet, ThemedText, resolveTextStyle, useTheme } from '../../design';
 import type { P3Activity } from '../../lib/p3';
+import { NO_FOCUS_RING } from './parts';
 
 type Props = {
   visible: boolean;
@@ -19,6 +20,7 @@ export function KeptSheet({ visible, onClose, label, kind, items, text, onItems,
   const input = [
     resolveTextStyle('body', fontsLoaded),
     { padding: 14, borderRadius: 20, color: colors.label, backgroundColor: colors.fill4, borderWidth: 1, borderColor: colors.separator },
+    NO_FOCUS_RING,
   ] as const;
   return (
     <Sheet visible={visible} onClose={onClose} title="À garder" detent="large" scroll={false} dim={0.46}>

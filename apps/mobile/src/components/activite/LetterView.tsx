@@ -1,6 +1,6 @@
 import { ScrollView, TextInput, View } from 'react-native';
 import { Button, Paper, Sheet, ThemedText, resolveTextStyle, useTheme } from '../../design';
-import { Eyebrow, Ghost } from './parts';
+import { Eyebrow, Ghost, NO_FOCUS_RING } from './parts';
 import { SealPanel, type SealStep } from './SealConfirm';
 import type { LetterStep } from './flow';
 
@@ -17,8 +17,9 @@ function LetterField({ value, onChange }: { value: string; onChange: (t: string)
       accessibilityLabel="La lettre"
       selectionColor={colors.paperSage}
       style={[
-        resolveTextStyle('title3', fontsLoaded),
-        { minHeight: 300, color: colors.label, fontSize: 18, lineHeight: 28, fontWeight: '400', textAlignVertical: 'top', padding: 0 },
+        resolveTextStyle('title3', fontsLoaded, undefined, 400),
+        { minHeight: 300, color: colors.label, fontSize: 18, lineHeight: 28, textAlignVertical: 'top', padding: 0 },
+        NO_FOCUS_RING,
       ]}
     />
   );

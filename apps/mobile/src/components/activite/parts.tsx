@@ -11,6 +11,9 @@ import { mmss, ringRatio, splitBold } from './flow';
 // Aucune couleur en dur : tout vient de useTheme().colors. Un seul geste soleil par écran : le bouton principal
 // (<Button variant="accent">) OU l'anneau / l'étoile, jamais les deux jaunes en même temps.
 
+/** Pas de cadre de focus du navigateur autour d'un champ (le web seulement ; RN ne type pas `outlineStyle: 'none'`). */
+export const NO_FOCUS_RING = { outlineStyle: 'none' } as unknown as TextStyle;
+
 export type TimerPillData = {
   elapsedS: number;
   totalS: number;
@@ -31,13 +34,36 @@ export function Ring({ size, stroke, ratio, color, track }: { size: number; stro
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
-    <Svg width={size} height={size} style={{ transform: [{ rotate: '-90deg' }] }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
-      <Circle
-        cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeLinecap="round"
-        strokeDasharray={`${c * Math.max(0.0001, ratio)} ${c}`}
-      />
-    </Svg>
+    <View style={{ width: size, height: size, transform: [{ rotate: '-90deg' }] }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <Svg width={size} height={size}>
+        <Circle cx={size / 2} cy={size / 2} r={r} stroke={track} strokeWidth={stroke} fill="none" />
+        <Circle
+          cx={size / 2} cy={size / 2} r={r} stroke={color} strokeWidth={stroke} fill="none" strokeLinecap="round"
+          strokeDasharray={`${c * Math.max(0.0001, ratio)} ${c}`}
+        />
+      </Svg>
+    </View>
+  );
+}
+
+/**
+ * Titre de l'activité dans la barre du haut : Fraunces 500 15/20 en `label2`, une ligne, tronqué (128 pt quand le minuteur occupe le
+ * côté droit, 220 pt sinon), comme le canevas. Posé par-dessus la barre (NavBar ne sait écrire qu'un titre en Inter 600).
+ */
+function BarTitle({ title, narrow, top }: { title: string; narrow: boolean; top: number }) {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', left: 0, right: 0, top, height: 54, alignItems: 'center', justifyContent: 'center', zIndex: 41 }}>
+      <ThemedText
+        variant="navTitle"
+        color="label2"
+        weight={500}
+        numberOfLines={1}
+        accessibilityRole="header"
+        style={{ maxWidth: narrow ? 128 : 220, fontSize: 15, lineHeight: 20, letterSpacing: 0 }}
+      >
+        {title}
+      </ThemedText>
+    </View>
   );
 }
 
@@ -90,7 +116,7 @@ export function useRevealScroll(revealKey: unknown) {
  * `revealKey` : quand elle change, le contenu défile vers ce qui vient d'être ajouté.
  */
 export function Frame({
-  chrome, children, cta, ctaGlass, revealKey, padTop = 16, padBottom, scroll = true, contentStyle,
+  chrome, children, cta, ctaGlass, revealKey, padTop = 20, padBottom, scroll = true, contentStyle,
 }: {
   chrome: Chrome;
   children?: ReactNode;
@@ -129,9 +155,9 @@ export function Frame({
       <NavBar
         edge={edge}
         left={<GlassButton glyph="close" accessibilityLabel="Quitter le mode activité" onPress={chrome.onClose} />}
-        title={chrome.title}
         right={chrome.timer ? <TimerPill {...chrome.timer} /> : <View style={{ width: 44 }} />}
       />
+      <BarTitle title={chrome.title} narrow={!!chrome.timer} top={insets.top} />
       {cta ? (
         <>
           <FadeBottom height={170} />
