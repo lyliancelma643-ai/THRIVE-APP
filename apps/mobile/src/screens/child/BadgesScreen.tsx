@@ -1,10 +1,13 @@
 import React from 'react';
-import { View, Text } from 'react-native';
+import { View } from 'react-native';
+import { SPACING, ThemedText, useTheme } from '../../design';
 
+// [À COMPLÉTER] contenu : écran sans route, laissé neutre (aucune donnée de démo).
 export default function BadgesScreen() {
+  const { colors } = useTheme();
   return (
-    <View className="flex-1 items-center justify-center">
-      <Text className="text-2xl font-bold">Mes Badges 🏅</Text>
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space4, backgroundColor: colors.bgGrouped }}>
+      <ThemedText variant="title2" style={{ color: colors.label }} accessibilityRole="header">Mes badges</ThemedText>
     </View>
   );
 }

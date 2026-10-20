@@ -15,7 +15,11 @@
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
-    "prepare": "husky"
+    "prepare": "husky",
+    "ui:etat": "bash scripts/ui/basculer-ui.sh etat",
+    "ui:ancienne": "bash scripts/ui/basculer-ui.sh ancienne",
+    "ui:nouvelle": "bash scripts/ui/basculer-ui.sh nouvelle",
+    "ui:voir-ancienne": "bash scripts/ui/basculer-ui.sh voir-ancienne"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.0.0",

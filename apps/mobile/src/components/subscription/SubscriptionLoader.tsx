@@ -1,13 +1,13 @@
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Animated, StyleSheet, Text } from 'react-native';
-import { C } from './theme';
+import { ActivityIndicator, Animated, View } from 'react-native';
+import { ThemedText, useTheme } from '../../design';
 
 /**
- * Écran de chargement pendant que RevenueCat vérifie l'abonnement : fond
- * identique à l'app et apparition en fondu, pour éviter tout clignotement
- * « verrouillé → déverrouillé » au lancement.
+ * Écran de chargement pendant que RevenueCat vérifie l'abonnement : fond du style de l'app et apparition en fondu,
+ * pour éviter tout clignotement « verrouillé → déverrouillé » au lancement.
  */
 export function SubscriptionLoader({ label = 'Un instant…' }: { label?: string }) {
+  const { colors } = useTheme();
   const opacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -18,14 +18,15 @@ export function SubscriptionLoader({ label = 'Un instant…' }: { label?: string
   }, [opacity]);
 
   return (
-    <Animated.View style={[styles.container, { opacity }]} accessibilityRole="progressbar" accessibilityLabel={label}>
-      <ActivityIndicator size="large" color={C.accent} />
-      <Text style={styles.label}>{label}</Text>
-    </Animated.View>
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      <Animated.View
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 14, opacity }}
+        accessibilityRole="progressbar"
+        accessibilityLabel={label}
+      >
+        <ActivityIndicator size="large" color={colors.sageText} />
+        <ThemedText variant="callout" color="label2">{label}</ThemedText>
+      </Animated.View>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: C.bg, alignItems: 'center', justifyContent: 'center', gap: 14 },
-  label: { color: C.muted, fontSize: 15 },
-});

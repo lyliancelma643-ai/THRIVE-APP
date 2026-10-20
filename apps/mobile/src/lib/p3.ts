@@ -3,3 +3,14 @@
 // le résout grâce à `watchFolders` sur la racine du monorepo (metro.config.js).
 export * from '../../../web/src/lib/p3-moments/index';
 export { ageFromBirthDate, p3Pool } from '../../../web/src/lib/p3-moments/app';
+// Ajouts rétro-compatibles (GO 4 · mode activité) : textes d'accompagnement du mode activité (check-in, débrief,
+// synthèse, clôture), gabarits et dates, choix du lieu. Rien n'est renommé ni retiré.
+export { CHECKIN, CLOSING_SCREEN, DEBRIEF, OVERTIME_LINE, PILLAR_PLAIN, PRIDE_LINES, SYNTHESIS } from '../../../web/src/lib/p3-moments/guide';
+export { PLACE_CHOICES, captureText, fill, formatFullDate, inOneYear } from '../../../web/src/lib/p3-moments/app';
+export type { P3Checkin, P3Outcome } from '../../../web/src/lib/p3-moments/app';
+// Ajouts rétro-compatibles (GO 5 · pages d'aide K4 / K5) : textes des pages « Quand il dit non » et « Quand consulter ».
+// `pickTonight` est déjà exposé par `export *` ci-dessus. Rien n'est recopié : tout vient du module partagé.
+export { PAGE_CONSULTER, PAGE_NON } from '../../../web/src/lib/p3-moments/guide';
+// Ajouts rétro-compatibles (GO 5 · objets du carnet) : charge utile des récompenses, telle que le web l'écrit dans `p3_rewards`.
+export { buildRewardPayload } from '../../../web/src/lib/p3-moments/app';
+export type { P3MomentRow } from '../../../web/src/lib/p3-moments/app';

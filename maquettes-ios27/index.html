@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>THRIVE iOS 27 — Sommaire</title>
+<link rel="stylesheet" href="ios27.css">
+<style>
+  .vers { max-width: 1480px; margin: 0 auto; padding: 24px 32px 16px; display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+  .vcard { display: grid; gap: 12px; padding: 24px; border-radius: 28px; text-decoration: none; color: inherit; border: 1px solid var(--canvas-line); background: rgba(255,255,255,.72); }
+  .vcard:hover { background: #fff; }
+  .sw { display: flex; gap: 6px; } .sw i { width: 28px; height: 28px; border-radius: 14px; border: 1px solid rgba(0,0,0,.12); }
+  .vcard h2 { margin: 0; font: 700 26px/1.15 var(--sf-display); letter-spacing: -.3px; }
+  .vcard p { margin: 0; font-size: 15px; line-height: 1.5; color: #3a3a3c; }
+  .vcard ul { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #3a3a3c; }
+  .vcard .go { font-weight: 600; color: #004E7A; }
+  table { width: 100%; border-collapse: collapse; font-size: 14px; background: rgba(255,255,255,.72); border-radius: 20px; overflow: hidden; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--canvas-line); vertical-align: top; }
+  th { font-weight: 600; background: rgba(255,255,255,.6); }
+  .tbl { max-width: 1480px; margin: 0 auto; padding: 16px 32px 64px; overflow-x: auto; }
+  @media (max-width: 520px) { .vers, .tbl { padding-left: 16px; padding-right: 16px; } }
+</style>
+</head>
+<body>
+<header class="deck-head">
+  <nav class="crumbs"><a href="index.html" aria-current="page">Sommaire</a><a href="v1.html">Natif</a><a href="v2.html">Nuit calme</a><a href="v3.html">Carnet de saison</a><a href="v4.html">Lin</a><a href="v5.html">Veillée</a></nav>
+  <h1>THRIVE × iOS 27 — la section client, de A à Z</h1>
+  <p><b>Deux versions finales</b> (4 · Lin, 5 · Veillée) mélangent la structure iOS 27 des versions 1 à 3 avec l’identité d’origine de l’app (« Soir de famille ») : mêmes écrans, mêmes parcours, mêmes textes — seule l’interface change. Les versions 1 à 3 restent là comme étapes de travail. Trois versions complètes de l’espace parent (et du questionnaire de l’enfant), chacune en 26 écrans — de « Bienvenue » (A) à « Fin de parcours » (Z). Toutes suivent la grammaire du kit Apple iOS and iPadOS 27 ; elles diffèrent par l’ambiance, la structure des onglets et ce qui accueille le parent à l’ouverture. Maquettes uniquement : le code de l’app n’a pas été touché.</p>
+</header>
+
+<section class="vers">
+  <a class="vcard" href="v1.html">
+    <div class="sw"><i style="background:#F2F2F7"></i><i style="background:#fff"></i><i style="background:#004E7A"></i><i style="background:#F9EB50"></i></div>
+    <h2>1 · Natif</h2>
+    <p>Au plus près d’Apple. L’app se lit comme Santé ou Réglages : rien à apprendre, confiance immédiate.</p>
+    <ul><li>Ouvre sur le Passeport (grand titre au prénom)</li><li>Onglets : Passeport · Maison · Séances</li><li>Onglet Prominent : le coach (messages)</li></ul>
+    <span class="go">Voir les 26 écrans →</span>
+  </a>
+  <a class="vcard" href="v2.html">
+    <div class="sw"><i style="background:#000"></i><i style="background:#1C1C1E"></i><i style="background:#F9EB50"></i><i style="background:#A7C4BC"></i></div>
+    <h2>2 · Nuit calme</h2>
+    <p>Esprit Forme : noir, anneaux, accent soleil. Prolonge l’ambiance « Nuit calme » de l’app actuelle, pensée pour le soir.</p>
+    <ul><li>Ouvre sur « Aujourd’hui » et trois anneaux</li><li>Onglets : Aujourd’hui · Parcours · Maison</li><li>Onglet Prominent : lancer la prochaine vidéo</li><li>Montre les états verrouillés (forfait Avancé)</li></ul>
+    <span class="go">Voir les 26 écrans →</span>
+  </a>
+  <a class="vcard" href="v3.html">
+    <div class="sw"><i style="background:#F7F5F2"></i><i style="background:#022539"></i><i style="background:#B9503A"></i><i style="background:#46695F"></i></div>
+    <h2>3 · Carnet de saison</h2>
+    <p>Plus éditoriale et plus « marque » : crème, titres Fraunces, le passeport devient un objet à la couleur de l’enfant.</p>
+    <ul><li>Ouvre sur « Ce soir » : un seul moment proposé</li><li>Onglets : Ce soir · Passeport · Séances</li><li>Onglet Prominent : la recherche (iOS 27)</li></ul>
+    <span class="go">Voir les 26 écrans →</span>
+  </a>
+  <a class="vcard" href="v4.html" style="border-color:#46695F;border-width:2px">
+    <div class="sw"><i style="background:#F7F5F2"></i><i style="background:#004E7A"></i><i style="background:#F9EB50"></i><i style="background:#46695F"></i></div>
+    <h2>4 · Lin <span style="font:600 13px var(--sf);color:#46695F">version finale · jour</span></h2>
+    <p>Le mélange parfait en ambiance claire : arche de lin pour la mascotte, papier vergé, feutre marine, velours, émail soleil — dans la structure Apple.</p>
+    <ul><li>Un seul geste soleil par écran</li><li>Onglets : Maison · Bilan · Mes séances + Coach</li><li>Chapitre 09 : états « Maison seul » (verrouillés)</li></ul>
+    <span class="go">Voir les écrans →</span>
+  </a>
+  <a class="vcard" href="v5.html" style="border-color:#46695F;border-width:2px">
+    <div class="sw"><i style="background:#022539"></i><i style="background:#0f4563"></i><i style="background:#F9EB50"></i><i style="background:#A7C4BC"></i></div>
+    <h2>5 · Veillée <span style="font:600 13px var(--sf);color:#46695F">version finale · nuit</span></h2>
+    <p>Les mêmes écrans à la lampe : marine profond, halo, velours, papier crème, jaune réservé au geste principal.</p>
+    <ul><li>Onglet Prominent : « Ce soir »</li><li>Persona : programme Complet</li><li>Chapitre 09 : états « Maison seul »</li></ul>
+    <span class="go">Voir les écrans →</span>
+  </a>
+</section>
+
+<section class="tbl">
+  <table>
+    <thead><tr><th>Règle du kit iOS 27</th><th>Comment elle est appliquée</th></tr></thead>
+    <tbody>
+      <tr><td>Liquid Glass à bords définis</td><td>Boutons de barre, tab bar, feuilles flottantes et menus : bord plus net, reflet en haut, pas d’ombre portée.</td></tr>
+      <tr><td>Scroll edge effect « dur »</td><td>Barres de navigation qui défilent : flou net + filet bas (Personnaliser, Bilan, Messages, Compte…).</td></tr>
+      <tr><td>Tab bar + rôle Prominent</td><td>Capsule flottante de 3 onglets + un rond détaché : Coach (V1), Lancer (V2), Rechercher (V3).</td></tr>
+      <tr><td>Slider Liquid Glass</td><td>L’effort ressenti après la séance vidéo (écran R).</td></tr>
+      <tr><td>Feuilles, détents, menus d’actions</td><td>Compétences de vie (grand détent), Comprendre l’outil (feuille flottante), choix du sport (menu).</td></tr>
+      <tr><td>Styles SF Pro, cibles ≥ 44 pt</td><td>Large Title 34/41, Headline 17, Body 17, Footnote 13 ; boutons de barre 44 pt, boutons capsule 52 pt.</td></tr>
+      <tr><td>Contraste (jaune, orange corrigés)</td><td>Le jaune soleil n’est jamais du texte sur fond clair ; il porte du texte foncé. Couleur d’enfant assombrie quand elle porte du blanc.</td></tr>
+    </tbody>
+  </table>
+</section>
+</body>
+</html>

@@ -1,150 +1,63 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Alert, TextInput, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { PremiumGate } from '../../../components/subscription/PremiumGate';
-import { recordMoment } from '../../../hooks/useMaison';
-import { getActivity, resolveActivity, type AgeBand, type Duration } from '../../../lib/p3';
+import { Button, Chip, Chips, SPACING, SectionHeader, Section, ThemedText, useTheme } from '../../../design';
+import { FicheView } from '../../../components/maison/FicheView';
+import { MomentClose } from '../../../components/maison/MomentClose';
+import { buildFicheVM } from '../../../components/maison/models';
+import { PLACE_CHOICES, getActivity, resolveActivity, type AgeBand, type Duration } from '../../../lib/p3';
+import { type PlaceChoice } from '../../../components/activite/flow';
 
-const OUTCOMES = [
-  { id: 'ACCROCHE', label: 'Ça a accroché' },
-  { id: 'MOYEN', label: 'Moyen' },
-  { id: 'PAS_CE_SOIR', label: 'Pas ce soir' },
-] as const;
+// L « Fiche moment » : vignette, objectif, durée, ce qu’on dit pour commencer, les étapes, niveau de preuve, puis la barre
+// « Pas ce soir / Commencer ». « C’est fait ? » reste en bas de page pour noter un moment vécu sans minuteur.
+// Le rendu vit dans FicheView ; la route ne fait que brancher les données et la navigation.
 
 function ActivityContent() {
   const router = useRouter();
+  const { colors } = useTheme();
   const { activityId, childId, band } = useLocalSearchParams<{ activityId: string; childId: string; band: AgeBand }>();
   const activity = getActivity(activityId ?? '');
   const durations = (activity?.durations ?? [10]) as Duration[];
   const [duration, setDuration] = useState<Duration>(durations[0]);
-  const [keptPhrase, setKeptPhrase] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [place, setPlace] = useState<PlaceChoice>('maison');
 
   const view = activity && band ? resolveActivity(activity, duration, band) : null;
 
   // childId absent (lien profond incomplet) : on ne peut rien enregistrer → écran « indisponible ».
   if (!activity || !view || activity.week === null || !childId) {
     return (
-      <View className="flex-1 items-center justify-center px-6" accessibilityRole="alert">
-        <Text className="text-gray-500 text-center">Cette activité n’est pas disponible.</Text>
-        <Pressable className="mt-4" onPress={() => router.back()} accessibilityRole="button" hitSlop={8}>
-          <Text className="underline">Retour</Text>
-        </Pressable>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space6, backgroundColor: colors.bgGrouped }} accessibilityRole="alert">
+        <ThemedText variant="body" color="label2" style={{ textAlign: 'center' }}>Cette activité n’est pas disponible.</ThemedText>
+        <Button variant="gray" size="md" label="Retour" onPress={() => router.back()} style={{ marginTop: SPACING.space4 }} />
       </View>
     );
   }
 
-  const save = async (outcome: (typeof OUTCOMES)[number]['id']) => {
-    setSaving(true);
-    try {
-      await recordMoment({
-        childId,
-        activityId: activity.id,
-        week: activity.week!,
-        duration: view.duration,
-        outcome,
-        keptPhrase,
-      });
-      router.back();
-    } catch {
-      Alert.alert('Enregistrement impossible', 'Vérifiez votre connexion et réessayez.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const steps = view.screen_steps?.length ? view.screen_steps : view.steps;
+  const start = () =>
+    router.push({
+      pathname: '/(parent)/moment/[activityId]',
+      params: { activityId: activity.id, childId, band: band!, duration: String(view.duration), lieu: place },
+    });
 
   return (
-    <ScrollView className="flex-1 bg-gray-50" contentContainerStyle={{ paddingBottom: 48 }}>
-      <View className="px-6 pt-16 pb-6 bg-black">
-        <Pressable onPress={() => router.back()} accessibilityRole="button" accessibilityLabel="Retour" hitSlop={8} className="mb-4">
-          <Text className="text-gray-300">‹ Retour</Text>
-        </Pressable>
-        <Text className="text-gray-400 text-xs mb-1">{view.subtitle}</Text>
-        <Text className="text-white text-2xl font-bold">{view.title}</Text>
-        <Text className="text-gray-300 text-sm mt-2">{view.objective}</Text>
-      </View>
-
-      <View className="px-6 py-6">
-        {durations.length > 1 && (
-          <View className="flex-row mb-5">
-            {durations.map((d) => (
-              <Pressable
-                key={d}
-                onPress={() => setDuration(d)}
-                className={`rounded-full px-4 py-2 mr-2 ${d === duration ? 'bg-black' : 'bg-white border border-gray-200'}`}
-                accessibilityRole="button"
-                accessibilityState={{ selected: d === duration }}
-              >
-                <Text className={d === duration ? 'text-white font-semibold' : 'text-gray-700'}>{d} min</Text>
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-xs font-semibold mb-2">POUR COMMENCER, DITES</Text>
-          <Text className="text-base">{view.opener}</Text>
-        </View>
-
-        <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-xs font-semibold mb-2">ÉTAPES</Text>
-          {steps.map((s, i) => (
-            <Text key={i} className="text-base mb-2">
-              {i + 1}. {s}
-            </Text>
-          ))}
-          {view.extensions.map((e, i) => (
-            <Text key={`x${i}`} className="text-base mb-2 text-gray-600">
-              + {e.text}
-            </Text>
-          ))}
-        </View>
-
-        {view.variant && (
-          <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-            <Text className="text-gray-500 text-xs font-semibold mb-2">À CET ÂGE</Text>
-            <Text className="text-base">{view.variant}</Text>
-          </View>
-        )}
-
-        <View className="bg-white rounded-2xl p-5 border border-gray-100 mb-4">
-          <Text className="text-gray-500 text-xs font-semibold mb-2">À ÉVITER</Text>
-          {view.donts.map((d, i) => (
-            <Text key={i} className="text-base mb-1">• {d}</Text>
-          ))}
-          {activity.safety ? <Text className="text-sm text-gray-600 mt-2">{activity.safety}</Text> : null}
-        </View>
-
-        <Text className="text-gray-500 text-xs font-semibold mb-2">UNE PHRASE À GARDER (FACULTATIF)</Text>
-        <TextInput
-          className="bg-white border border-gray-200 rounded-2xl px-4 py-3 mb-5 text-base"
-          placeholder="Ce qu’il ou elle a dit, ce que vous voulez retenir"
-          value={keptPhrase}
-          onChangeText={setKeptPhrase}
-          maxLength={500}
-          multiline
-          accessibilityLabel="Une phrase à garder, facultatif"
-        />
-
-        <Text className="text-gray-500 text-xs font-semibold mb-2">C’EST FAIT ? COMMENT ÇA S’EST PASSÉ</Text>
-        {saving ? (
-          <ActivityIndicator accessibilityLabel="Enregistrement en cours" />
-        ) : (
-          OUTCOMES.map((o) => (
-            <Pressable
-              key={o.id}
-              className="bg-black rounded-2xl py-4 items-center mb-2"
-              onPress={() => save(o.id)}
-              accessibilityRole="button"
-            >
-              <Text className="text-white font-semibold">{o.label}</Text>
-            </Pressable>
-          ))
-        )}
-      </View>
-    </ScrollView>
+    <FicheView
+      vm={buildFicheVM(activity, view)}
+      onBack={() => router.back()}
+      onDuration={(d) => setDuration(d as Duration)}
+      onStart={start}
+    >
+      <SectionHeader small title="Où ?" />
+      <Chips style={{ paddingHorizontal: 16, marginBottom: SPACING.space4 }}>
+        {PLACE_CHOICES.map((p) => (
+          <Chip key={p.id} tall label={p.label} on={place === p.id} onPress={() => setPlace(p.id)} />
+        ))}
+      </Chips>
+      <SectionHeader small title="C’est fait ?" />
+      <Section>
+        <MomentClose activity={activity} childId={childId} duration={view.duration} onSaved={() => router.back()} />
+      </Section>
+    </FicheView>
   );
 }
 

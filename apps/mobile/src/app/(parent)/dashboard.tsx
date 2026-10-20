@@ -1,115 +1,90 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, ScrollView, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { useFamily, useChildren, useSessions } from '@thrive/shared';
 import { OfflineState } from '../../components/OfflineState';
 import { BillingIssueBanner } from '../../components/BillingIssueBanner';
+import {
+  Avatar, Card, LargeTitle, List, ListRow, NavBar, Section, SectionHeader, ThemedText, useLargeTitle, useNavBarHeight, useTheme,
+} from '../../design';
 
+// Tableau de bord (masqué de la barre, joignable) : mêmes données qu'avant, rhabillé aux primitives du canevas.
 export default function ParentDashboard() {
+  const { colors } = useTheme();
+  const navH = useNavBarHeight();
+  const lt = useLargeTitle(34);
   const { user } = useAuthStore();
   const router = useRouter();
   const { family, error: familyError, refetch: refetchFamily } = useFamily(user?.id);
   const { children, isLoading: childrenLoading, error: childrenError, refetch: refetchChildren } = useChildren(family?.id);
 
   const upcomingSessions = useSessions({ childId: children[0]?.id });
-  const nextSessions = upcomingSessions.sessions
-    .filter((s) => s.status === 'SCHEDULED')
-    .slice(0, 3);
+  const nextSessions = upcomingSessions.sessions.filter((s) => s.status === 'SCHEDULED').slice(0, 3);
 
   if ((familyError || childrenError) && !family && children.length === 0) {
     return <OfflineState onRetry={() => Promise.all([refetchFamily(), refetchChildren()])} />;
   }
 
   return (
-    <ScrollView className="flex-1 bg-gray-50">
-      {/* Header */}
-      <View className="px-6 pt-16 pb-8 bg-black">
-        <Text className="text-white text-sm mb-1">Bonjour 👋</Text>
-        <Text className="text-white text-2xl font-bold">{user?.firstName ?? 'Parent'}</Text>
-        {family && <Text className="text-gray-400 text-sm mt-1">Famille {family.name}</Text>}
-      </View>
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
+      <ScrollView onScroll={lt.onScroll} scrollEventThrottle={lt.scrollEventThrottle} contentContainerStyle={{ paddingTop: navH, paddingBottom: 40 }}>
+        <LargeTitle subtitle={family ? `Famille ${family.name}` : undefined}>{user?.firstName ?? 'Parent'}</LargeTitle>
+        <Section style={{ marginTop: 14 }}>
+          <BillingIssueBanner />
+        </Section>
 
-      <View className="px-6 py-6">
-        <BillingIssueBanner />
-        {/* Mes enfants */}
-        <View className="flex-row justify-between items-center mb-3">
-          <Text className="text-xl font-bold">Mes enfants</Text>
-          <Pressable onPress={() => router.push('/(parent)/children')}>
-            <Text className="text-gray-500 text-sm">Voir tout</Text>
-          </Pressable>
-        </View>
+        <SectionHeader title="Mes enfants" action={{ label: 'Voir tout', onPress: () => router.push('/(parent)/children') }} />
+        <Section>
+          {childrenLoading ? (
+            <ActivityIndicator />
+          ) : children.length === 0 ? (
+            <List>
+              <ListRow glyph="plus" iconColor="tint" title="Ajouter un enfant" onPress={() => router.push('/(parent)/children')} />
+            </List>
+          ) : (
+            <List>
+              {children.map((child) => (
+                <ListRow
+                  key={child.id}
+                  leading={<Avatar label={(child.first_name ?? '?')[0]} size={44} />}
+                  leadingInset={72}
+                  title={child.first_name}
+                />
+              ))}
+            </List>
+          )}
+        </Section>
 
-        {childrenLoading ? (
-          <ActivityIndicator />
-        ) : children.length === 0 ? (
-          <Pressable
-            className="bg-white border-2 border-dashed border-gray-200 rounded-2xl p-5 mb-6 items-center"
-            onPress={() => router.push('/(parent)/children')}
-          >
-            <Text className="text-3xl mb-2">👶</Text>
-            <Text className="text-gray-500 text-sm">Ajouter un enfant</Text>
-          </Pressable>
-        ) : (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mb-6">
-            {children.map((child) => (
-              <View key={child.id} className="bg-white rounded-2xl p-4 mr-3 w-36 shadow-sm border border-gray-100">
-                <Text className="text-3xl mb-2">🧒</Text>
-                <Text className="font-bold">{child.first_name}</Text>
-                <Text className="text-gray-500 text-xs">{child.last_name}</Text>
-              </View>
-            ))}
-          </ScrollView>
-        )}
+        <SectionHeader title="Prochaines séances" />
+        <Section>
+          {nextSessions.length === 0 ? (
+            <Card>
+              <ThemedText variant="sub" color="label2" style={{ textAlign: 'center' }}>Aucune séance planifiée</ThemedText>
+            </Card>
+          ) : (
+            <List>
+              {nextSessions.map((session) => (
+                <ListRow
+                  key={session.id}
+                  glyph="calendar"
+                  iconColor="sysBlue"
+                  title={session.title}
+                  subtitle={`Séance ${session.session_number}${session.scheduled_at ? ` · ${new Date(session.scheduled_at).toLocaleDateString('fr-CA')}` : ''}`}
+                />
+              ))}
+            </List>
+          )}
+        </Section>
 
-        {/* Prochaines séances */}
-        <View className="flex-row justify-between items-center mb-3">
-          <Text className="text-xl font-bold">Prochaines séances</Text>
-        </View>
-
-        {nextSessions.length === 0 ? (
-          <View className="bg-white rounded-2xl p-5 items-center border border-gray-100">
-            <Text className="text-gray-500 text-sm">Aucune séance planifiée</Text>
-          </View>
-        ) : (
-          nextSessions.map((session) => (
-            <View key={session.id} className="bg-white rounded-2xl p-4 mb-3 border border-gray-100">
-              <Text className="font-semibold">{session.title}</Text>
-              <Text className="text-gray-500 text-xs mt-1">Séance {session.session_number}</Text>
-              {session.scheduled_at && (
-                <Text className="text-gray-400 text-xs">
-                  {new Date(session.scheduled_at).toLocaleDateString('fr-CA')}
-                </Text>
-              )}
-            </View>
-          ))
-        )}
-
-        {/* Raccourci Maison */}
-        <Pressable
-          className="bg-white rounded-2xl p-5 mt-4 border border-gray-100 flex-row justify-between items-center"
-          onPress={() => router.push('/(parent)/maison')}
-          accessibilityRole="button"
-        >
-          <View className="flex-1">
-            <Text className="font-bold text-base">Le moment qui compte</Text>
-            <Text className="text-gray-500 text-sm">Votre activité de 10 minutes ce soir</Text>
-          </View>
-          <Text className="text-xl">›</Text>
-        </Pressable>
-
-        {/* Raccourci programmes */}
-        <Pressable
-          className="bg-black rounded-2xl p-5 mt-4 flex-row justify-between items-center"
-          onPress={() => router.push('/(parent)/programs')}
-        >
-          <View>
-            <Text className="text-white font-bold text-base">Programmes THRIVE</Text>
-            <Text className="text-gray-400 text-sm">Découvrir les programmes</Text>
-          </View>
-          <Text className="text-white text-xl">🏆</Text>
-        </Pressable>
-      </View>
-    </ScrollView>
+        <Section style={{ marginTop: 22 }}>
+          <List>
+            <ListRow glyph="home" iconColor="sysOrange" title="Le moment qui compte" subtitle="Votre activité de 10 minutes ce soir" onPress={() => router.push('/(parent)/maison')} />
+            <ListRow glyph="medal" iconColor="sysIndigo" title="Programmes THRIVE" subtitle="Découvrir les programmes" onPress={() => router.push('/(parent)/programs')} />
+          </List>
+        </Section>
+      </ScrollView>
+      <NavBar title={user?.firstName ?? 'Parent'} titleVisible={lt.titleVisible} edge={lt.edge} />
+    </View>
   );
 }

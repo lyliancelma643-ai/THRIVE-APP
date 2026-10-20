@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { Button, Field, GlassButton, List, NavBar, Section, ThemedText, useNavBarHeight, useTheme } from '../../design';
 
 // Mot de passe oublié : le lien reçu par courriel ouvre la page web
 // /reset-password (universal link si l'app est installée), où le nouveau mot de
@@ -10,6 +11,8 @@ const RESET_URL = 'https://app.thrivesportpositive.com/reset-password';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
+  const { colors } = useTheme();
+  const navH = useNavBarHeight();
   const [email, setEmail] = useState('');
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
@@ -30,36 +33,46 @@ export default function ForgotPasswordScreen() {
     }
   };
 
+  const back = () => (router.canGoBack() ? router.back() : router.replace('/(auth)/login'));
+
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-      <View className="flex-1 justify-center px-6">
-        <Text className="text-3xl font-bold mb-2">Mot de passe oublié</Text>
+    <KeyboardAvoidingView style={{ flex: 1, backgroundColor: colors.bgGrouped }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: navH + 12, paddingBottom: 40 }}>
+        <View style={{ paddingHorizontal: 16 }}>
+          <ThemedText variant="title1" accessibilityRole="header">Mot de passe oublié</ThemedText>
+          {sent ? (
+            <ThemedText variant="body" color="label2" accessibilityRole="alert" style={{ marginTop: 6 }}>
+              Si un compte existe pour cette adresse, un courriel vient de partir avec un lien pour choisir un nouveau mot de passe.
+            </ThemedText>
+          ) : (
+            <ThemedText variant="body" color="label2" style={{ marginTop: 6 }}>
+              Entre ton courriel : on t’envoie un lien pour en choisir un nouveau.
+            </ThemedText>
+          )}
+        </View>
         {sent ? (
-          <Text className="text-gray-600 mb-8" accessibilityRole="alert">
-            Si un compte existe pour cette adresse, un courriel vient de partir avec un lien pour choisir un nouveau mot de passe.
-          </Text>
+          <Section style={{ marginTop: 28 }}>
+            <Button label="Retour à la connexion" onPress={() => router.replace('/(auth)/login')} />
+          </Section>
         ) : (
           <>
-            <Text className="text-gray-500 mb-8">Entre ton courriel : on t’envoie un lien pour en choisir un nouveau.</Text>
-            <TextInput
-              className="border border-gray-200 rounded-2xl px-4 py-4 mb-4 text-base"
-              placeholder="Email"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-            />
-            {!!error && <Text className="text-red-500 mb-4 text-sm">{error}</Text>}
-            <Pressable className="bg-black rounded-2xl py-4 items-center mb-4" onPress={submit} disabled={busy}>
-              <Text className="text-white font-semibold text-base">{busy ? 'Envoi…' : 'Envoyer le lien'}</Text>
-            </Pressable>
+            <Section style={{ marginTop: 22 }}>
+              <List>
+                <Field label="Courriel" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" textContentType="emailAddress" returnKeyType="send" onSubmitEditing={submit} />
+              </List>
+              {error ? (
+                <View accessibilityRole="alert" style={{ paddingTop: 10, paddingHorizontal: 16 }}>
+                  <ThemedText variant="sub" color="sysRed">{error}</ThemedText>
+                </View>
+              ) : null}
+            </Section>
+            <Section style={{ marginTop: 28 }}>
+              <Button label={busy ? 'Envoi…' : 'Envoyer le lien'} onPress={submit} disabled={busy} />
+            </Section>
           </>
         )}
-        <Pressable className="items-center py-3" onPress={() => router.replace('/(auth)/login')}>
-          <Text className="text-gray-500">Retour à la connexion</Text>
-        </Pressable>
-      </View>
+      </ScrollView>
+      <NavBar left={<GlassButton glyph="chevronLeft" accessibilityLabel="Retour" onPress={back} />} />
     </KeyboardAvoidingView>
   );
 }
