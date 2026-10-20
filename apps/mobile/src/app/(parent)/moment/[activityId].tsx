@@ -18,7 +18,7 @@ import { QuitSheet, SaveFailedSheet } from '../../../components/activite/QuitShe
 import { RecallView } from '../../../components/activite/RecallView';
 import { SynthesisView } from '../../../components/activite/SynthesisView';
 import { useNow, type Chrome } from '../../../components/activite/parts';
-import { insertLetter, insertMoment } from '../../../components/activite/persist';
+import { insertMoment, sealLetter } from '../../../components/activite/persist';
 import { flowResetKey, useActivityKeepAwake } from '../../../components/activite/visuals/keepAwake';
 import { VisualSheet } from '../../../components/activite/visuals/VisualSheet';
 import { useVisualNotes } from '../../../components/activite/visuals/useVisualNotes';
@@ -107,8 +107,8 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
       return;
     }
     if (fx.type === 'seal-letter') {
-      insertLetter(childId, fx.body).then(
-        () => dispatch({ t: 'letter.sealed', at: Date.now() }),
+      sealLetter(childId, fx.body).then(
+        (at) => dispatch({ t: 'letter.sealed', at }),
         () => dispatch({ t: 'letter.failed' }),
       );
       return;
@@ -117,7 +117,8 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
     const s = stateRef.current;
     const now = Date.now();
     const payload = buildMomentPayload(s, { activity, debrief: view.debrief, baseDuration: view.duration, place, skipped: fx.skipped, now });
-    insertMoment(childId, payload).then(
+    const sealed = s.letter.sealedAt;
+    insertMoment(childId, payload, { sealedAt: sealed !== null ? new Date(sealed).toISOString() : null }).then(
       () => {
         const after: Moment = { activity_id: activity.id, created_at: new Date(now).toISOString(), duration_chosen: payload.duration_chosen, rating: payload.rating };
         setSummary(
