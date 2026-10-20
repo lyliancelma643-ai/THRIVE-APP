@@ -26,14 +26,14 @@ describe('sélecteur « Style de l’app »', () => {
 });
 
 describe('couleurs d’avatar des enfants', () => {
-  it('1er enfant = couleur kid du style, 2e = sauge, encre lisible', () => {
+  it('1er enfant = couleur kid du style, 2e = bleu de la maquette F, encre lisible', () => {
     const lin = kidAvatarColors(0, COLORS.lin, 'lin');
     expect(lin.background).toBe(COLORS.lin.kid);
-    expect(kidAvatarColors(1, COLORS.lin, 'lin').background).toBe(COLORS.lin.sageInk);
+    expect(kidAvatarColors(1, COLORS.lin, 'lin')).toEqual({ background: COLORS.lin.navy600, ink: COLORS.lin.cream });
     const veillee = kidAvatarColors(0, COLORS.veillee, 'veillee');
     expect(veillee.background).toBe(COLORS.veillee.kid);
     expect(veillee.ink).toBe(COLORS.veillee.tintInk);
-    expect(kidAvatarColors(1, COLORS.veillee, 'veillee').background).toBe(COLORS.veillee.sage);
+    expect(kidAvatarColors(1, COLORS.veillee, 'veillee')).toEqual({ background: '#3380AC', ink: COLORS.veillee.cream });
   });
 
   it('boucle sur la palette au-delà de cinq enfants', () => {

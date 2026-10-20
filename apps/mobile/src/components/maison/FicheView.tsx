@@ -67,7 +67,7 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
           />
           <View style={{ position: 'absolute', left: 20, right: 20, bottom: 6 }}>
             <ThemedText variant="eyebrow" color="sageText">{vm.kicker}</ThemedText>
-            <ThemedText variant="displayLarge" accessibilityRole="header" style={{ marginTop: 6, fontSize: 38, lineHeight: 40, letterSpacing: 0 }}>
+            <ThemedText variant="displayLarge" accessibilityRole="header" style={{ marginTop: 6, fontSize: 38, lineHeight: 40, letterSpacing: -0.43 }}>
               {vm.title}
             </ThemedText>
           </View>
@@ -111,7 +111,7 @@ export function FicheView({ vm, onBack, onDuration, onStart, children }: Props) 
                 accessibilityLabel={`Étape ${i + 1} : ${s}`}
                 leading={
                   <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: colors.badgeBg, alignItems: 'center', justifyContent: 'center' }}>
-                    <ThemedText variant="sectionTitle" color="badgeInk" style={{ fontSize: 16, lineHeight: 20, letterSpacing: 0 }}>{String(i + 1)}</ThemedText>
+                    <ThemedText variant="sectionTitle" color="badgeInk" style={{ fontSize: 16, lineHeight: 20, letterSpacing: -0.43 }}>{String(i + 1)}</ThemedText>
                   </View>
                 }
                 leadingInset={60}

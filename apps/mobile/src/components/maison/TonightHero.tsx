@@ -118,7 +118,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
               <ThemedText
                 variant="cap"
                 weight={600}
-                style={{ fontSize: trial ? 13 : 12, lineHeight: 16, letterSpacing: 0, color: trial ? colors.tintText : colors.sageText }}
+                style={{ fontSize: trial ? 13 : 12, lineHeight: 16, letterSpacing: -0.43, color: trial ? colors.tintText : colors.sageText }}
               >
                 {banner.label}
               </ThemedText>
@@ -146,11 +146,11 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
           variant="displayLarge"
           weight={500}
           accessibilityRole="header"
-          style={{ marginTop: 12, fontSize: 40, lineHeight: 42, letterSpacing: 0 }}
+          style={{ marginTop: 12, fontSize: 40, lineHeight: 42, letterSpacing: -0.43 }}
         >
           {hero.title}
         </ThemedText>
-        <ThemedText variant="callout" weight={500} color="label2" style={{ marginTop: 10, fontSize: 16, lineHeight: 22, letterSpacing: 0 }}>
+        <ThemedText variant="callout" weight={500} color="label2" style={{ marginTop: 10, fontSize: 16, lineHeight: 22, letterSpacing: -0.43 }}>
           {hero.reason}
         </ThemedText>
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 }}>
@@ -163,7 +163,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
               }}
             >
               <Icon name={c.glyph} size={14} color={colors.label} strokeWidth={2.2} />
-              <ThemedText variant="sub" weight={600} numberOfLines={1} style={{ fontSize: 13, lineHeight: 16, letterSpacing: 0 }}>
+              <ThemedText variant="sub" weight={600} numberOfLines={1} style={{ fontSize: 13, lineHeight: 16, letterSpacing: -0.43 }}>
                 {c.label}
               </ThemedText>
             </View>
@@ -180,7 +180,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
             <Enamel radius={28}>
               <View style={{ height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
                 <Icon name="play" size={18} color={colors.accentInk} />
-                <ThemedText variant="headline" weight={700} style={{ letterSpacing: 0 }}>
+                <ThemedText variant="headline" weight={700} style={{ letterSpacing: -0.43 }}>
                   {`Lancer · ${hero.minutes} min`}
                 </ThemedText>
               </View>
@@ -194,7 +194,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
           >
             <GlassSurface radius={28} interactive>
               <View style={{ height: 56, alignItems: 'center', justifyContent: 'center' }}>
-                <ThemedText variant="headline" weight={600} style={{ fontSize: 16, letterSpacing: 0 }}>Voir la fiche</ThemedText>
+                <ThemedText variant="headline" weight={600} style={{ fontSize: 16, letterSpacing: -0.43 }}>Voir la fiche</ThemedText>
               </View>
             </GlassSurface>
           </Pressable>

@@ -3,6 +3,7 @@ import {
   Arch, Button, Field, GlassButton, Lamp, List, ListRow, NavBar, Section, SectionFooter, ThemedText, useNavBarHeight,
   useTheme,
 } from '../../design';
+import { RoundBadge } from './RoundBadge';
 
 export type LoginViewProps = {
   email: string;
@@ -87,7 +88,7 @@ export function LoginView({
 
         <Section style={{ marginTop: 14 }}>
           <List>
-            <ListRow glyph="shieldCheck" iconColor="sysGreen" title="Double authentification" subtitle="Code à 6 chiffres demandé si activée" />
+            <ListRow leading={<RoundBadge glyph="shieldCheck" />} leadingInset={60} title="Double authentification" subtitle="Code à 6 chiffres demandé si activée" />
           </List>
         </Section>
 

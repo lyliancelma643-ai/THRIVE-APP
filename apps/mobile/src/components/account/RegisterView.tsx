@@ -1,9 +1,10 @@
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Button, Field, GlassButton, GlassSurface, Icon, Lamp, List, ListRow, NavBar, ProgressBar, Section, SectionFooter, SectionHeader,
+  Button, Field, GlassButton, GlassSurface, Icon, Lamp, List, ListRow, NavBar, Section, SectionFooter, SectionHeader,
   ThemedText, useNavBarHeight, useTheme,
 } from '../../design';
+import { StepBar } from './StepBar';
 
 export type RegisterViewProps = {
   firstName: string;
@@ -50,7 +51,7 @@ export function RegisterView(p: RegisterViewProps) {
       <Lamp />
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: navH + 8, paddingBottom: 140 }}>
         <Section>
-          <ProgressBar value={0.5} accessibilityLabel="Étape 1 sur 2" valueText="1 sur 2" />
+          <StepBar value={0.5} accessibilityLabel="Étape 1 sur 2" valueText="1 sur 2" />
         </Section>
         <View style={{ marginTop: 22, paddingHorizontal: 16 }}>
           <ThemedText variant="title2" accessibilityRole="header">D’abord, toi</ThemedText>

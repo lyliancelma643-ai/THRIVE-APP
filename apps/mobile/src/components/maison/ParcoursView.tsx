@@ -54,7 +54,7 @@ function Cell({ poster, size, onPress }: { poster: PosterVM; size: number; onPre
 export function ParcoursView({ vm, onBack, onOpen }: Props) {
   const { width } = useWindowDimensions();
   const navH = useNavBarHeight();
-  const { colors, styleKey } = useTheme();
+  const { colors } = useTheme();
   const lt = useLargeTitle(40);
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState('');
@@ -86,7 +86,7 @@ export function ParcoursView({ vm, onBack, onOpen }: Props) {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
-      {styleKey === 'veillee' ? <Lamp /> : null}
+      <Lamp />
       <ScrollView
         onScroll={lt.onScroll}
         scrollEventThrottle={lt.scrollEventThrottle}

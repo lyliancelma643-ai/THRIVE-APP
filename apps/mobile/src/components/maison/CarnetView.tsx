@@ -25,7 +25,7 @@ type Props = {
  * jamais de manque ni de score. Identique dans Lin et Veillée. Vue présentationnelle.
  */
 export function CarnetView({ vm, onBack, onShare, onOpenActivity, onOpenObject }: Props) {
-  const { colors, styleKey } = useTheme();
+  const { colors } = useTheme();
   const router = useRouter();
   const { childId } = useLocalSearchParams<{ childId?: string }>();
   const openObject = onOpenObject ?? ((rewardId: string) => {
@@ -39,7 +39,7 @@ export function CarnetView({ vm, onBack, onShare, onOpenActivity, onOpenObject }
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
-      {styleKey === 'veillee' ? <Lamp /> : null}
+      <Lamp />
       <ScrollView
         onScroll={lt.onScroll}
         scrollEventThrottle={lt.scrollEventThrottle}

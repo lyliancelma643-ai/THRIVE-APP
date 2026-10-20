@@ -58,12 +58,12 @@ export function WelcomeView(props: Props) {
             accessible={false}
             style={{ width: 44, height: 44, borderRadius: 11 }}
           />
-          <View style={{ marginTop: 24 }}>
+          <View style={{ marginTop: 20 }}>
             <Arch width={226} height={252} />
           </View>
         </View>
         <View style={{ marginTop: 26, paddingHorizontal: 24, alignItems: 'center' }}>
-          <SloganDuo variant="largetitle" color="label" dotColor="sageText" align="center" textStyle={{ lineHeight: 40, letterSpacing: -0.4 }} />
+          <SloganDuo variant="largetitle" color="label" dotColor="tint" align="center" minTextHeight={120} textStyle={{ fontSize: 35, lineHeight: 40, letterSpacing: -0.4 }} />
           <ThemedText variant="body" color="label2" style={{ marginTop: 16, textAlign: 'center' }}>
             Un moment par soir avec ton enfant. Un coach quand tu veux aller plus loin.
           </ThemedText>

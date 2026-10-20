@@ -29,10 +29,10 @@ export function HomePoster({ poster, onPress }: { poster: PosterVM; onPress: () 
           ) : null}
         </View>
       </View>
-      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: -0.35 }}>
+      <ThemedText variant="sub" weight={600} numberOfLines={2} style={{ marginTop: 8, fontSize: 15, lineHeight: 19, letterSpacing: -0.43 }}>
         {poster.title}
       </ThemedText>
-      <ThemedText variant="foot" color="label2" numberOfLines={1} style={{ marginTop: 2, lineHeight: 17, letterSpacing: 0 }}>
+      <ThemedText variant="foot" color="label2" numberOfLines={1} style={{ marginTop: 2, lineHeight: 17, letterSpacing: -0.43 }}>
         {poster.durations}
       </ThemedText>
     </Pressable>
@@ -44,7 +44,7 @@ export function HomeSectionHeader({ title, actionLabel, onAction }: { title: str
   const { colors } = useTheme();
   return (
     <View style={{ marginHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <ThemedText variant="sectionTitle" accessibilityRole="header" style={{ lineHeight: 27, letterSpacing: 0 }}>
+      <ThemedText variant="sectionTitle" accessibilityRole="header" style={{ lineHeight: 27, letterSpacing: -0.43 }}>
         {title}
       </ThemedText>
       {actionLabel && onAction ? (
@@ -55,7 +55,7 @@ export function HomeSectionHeader({ title, actionLabel, onAction }: { title: str
           hitSlop={10}
           style={{ minHeight: 44, flexDirection: 'row', alignItems: 'center', gap: 4 }}
         >
-          <ThemedText variant="sub" weight={600} color="sageText" style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0 }}>{actionLabel}</ThemedText>
+          <ThemedText variant="sub" weight={600} color="sageText" style={{ fontSize: 14, lineHeight: 18, letterSpacing: -0.43 }}>{actionLabel}</ThemedText>
           <Icon name="chevronRight" size={14} color={colors.sageText} strokeWidth={2.4} />
         </Pressable>
       ) : null}
@@ -69,7 +69,7 @@ function HomeChipPill({ chip, on, onPress }: { chip: HomeChip; on: boolean; onPr
   const felt = on && styleKey === 'lin';
   const ink = on ? (felt ? colors.cream : colors.navy900) : colors.label;
   const label = (
-    <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 18, letterSpacing: 0, color: ink }}>{chip.label}</ThemedText>
+    <ThemedText variant="sub" weight={600} style={{ fontSize: 14, lineHeight: 18, letterSpacing: -0.23, color: ink }}>{chip.label}</ThemedText>
   );
   const box = { height: 40, paddingHorizontal: 16, justifyContent: 'center' as const };
   return (

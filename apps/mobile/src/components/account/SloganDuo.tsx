@@ -17,6 +17,8 @@ type Props = {
   dotColor?: keyof ColorTokens;
   align?: 'left' | 'center';
   textStyle?: TextStyle;
+  /** Hauteur minimale de la cellule des slogans (la maquette A réserve trois lignes). */
+  minTextHeight?: number;
 };
 
 // Même découpage que la maquette (sloganDuo) : 0-44 % premier slogan, 50-94 % second.
@@ -27,7 +29,7 @@ const T = [0, 0.44, 0.5, 0.94, 1];
  * « Réduire les animations » : seul le premier est affiché, sans animation.
  * Le flou de la maquette n'a pas d'équivalent fiable en RN : fondu + glissement seulement.
  */
-export function SloganDuo({ variant = 'title1', color = 'label', dotColor = 'accent', align = 'left', textStyle }: Props) {
+export function SloganDuo({ variant = 'title1', color = 'label', dotColor = 'accent', align = 'left', textStyle, minTextHeight = 0 }: Props) {
   const { reduceMotion, colors } = useTheme();
   const p = useSharedValue(0);
   // La cellule prend la hauteur du plus haut des deux slogans (grille `.thr-sl` du canevas) : la mise en page ne saute pas.
@@ -73,14 +75,14 @@ export function SloganDuo({ variant = 'title1', color = 'label', dotColor = 'acc
 
   return (
     <View accessible accessibilityLabel={`${SLOGAN_A} ${SLOGAN_B}`}>
-      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={{ minHeight: Math.max(hA, hB) }}>
+      <View importantForAccessibility="no-hide-descendants" accessibilityElementsHidden style={{ minHeight: Math.max(hA, hB, minTextHeight) }}>
         <Animated.View style={aStyle} onLayout={(e) => setHA(e.nativeEvent.layout.height)}>{text(SLOGAN_A)}</Animated.View>
         <Animated.View style={[{ position: 'absolute', left: 0, right: 0, top: 0 }, bStyle]} onLayout={(e) => setHB(e.nativeEvent.layout.height)}>{text(SLOGAN_B)}</Animated.View>
       </View>
       <View
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
-        style={{ flexDirection: 'row', gap: 6, marginTop: 14, justifyContent: align === 'center' ? 'center' : 'flex-start' }}
+        style={{ flexDirection: 'row', gap: 6, marginTop: 16, justifyContent: align === 'center' ? 'center' : 'flex-start' }}
       >
         <Animated.View style={[{ height: 6, borderRadius: 3, backgroundColor: colors[dotColor] }, dotA]} />
         <Animated.View style={[{ height: 6, borderRadius: 3, backgroundColor: colors[dotColor] }, dotB]} />

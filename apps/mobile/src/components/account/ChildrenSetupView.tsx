@@ -2,9 +2,10 @@ import { useRef, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
-  Button, Field, GlassButton, GlassSurface, Icon, List, MenuPopover, NavBar, ProgressBar, Section, SectionFooter,
+  Button, Field, GlassButton, GlassSurface, Icon, List, MenuPopover, NavBar, Section, SectionFooter,
   ThemedText, useNavBarHeight, useTheme,
 } from '../../design';
+import { StepBar } from './StepBar';
 
 export const AGE_MIN = 8;
 export const AGE_MAX = 17;
@@ -84,7 +85,7 @@ export function ChildrenSetupView(p: ChildrenSetupViewProps) {
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingTop: navH + 8, paddingBottom: 140 }}>
         {p.step ? (
           <Section>
-            <ProgressBar value={p.step.index / p.step.total} accessibilityLabel={`Étape ${p.step.index} sur ${p.step.total}`} valueText={`${p.step.index} sur ${p.step.total}`} />
+            <StepBar value={p.step.index / p.step.total} accessibilityLabel={`Étape ${p.step.index} sur ${p.step.total}`} valueText={`${p.step.index} sur ${p.step.total}`} />
           </Section>
         ) : null}
         <View style={{ marginTop: p.step ? 22 : 4, paddingHorizontal: 16 }}>
