@@ -240,3 +240,16 @@ Détail : `docs/release/GO5_RAPPORT.md`. Branche `feature/ios27-lin-veillee` (t�
 - [ ] Captures iOS des écrans clés (K, G, M, VI1, N2, X, D2) dans les deux styles : NON_VÉRIFIÉ.
 - [ ] Pousser quand tout est validé : `git push origin archive/ui-avant-ios27 ui-avant-ios27 ui-lin-veillee-fusion` puis `git push origin main` (vérifier d'abord la protection de `main`).
 - [ ] Décisions GO 3 encore ouvertes : R1 (programmes payés dans l'app iOS), R2 (taxes), R3 (remboursement), R4 (versement 2), R9 (prix visio, créneaux d'appel).
+
+### Aperçu web de la nouvelle interface (thrive-ios27-apercu) — à faire dans Vercel
+
+La connexion Vercel de l'assistant est en lecture seule, donc ces trois réglages sont pour toi. Projet **thrive-ios27-apercu** :
+
+- [ ] Settings → General → **Root Directory** = `apps/mobile`, et cocher **Include source files outside of the Root Directory**.
+- [ ] Settings → Environment Variables (Production et Preview), ajouter :
+  - `EXPO_PUBLIC_SUPABASE_URL` = `https://kkdcgzvdmipmrgkawnky.supabase.co`
+  - `EXPO_PUBLIC_SUPABASE_ANON_KEY` = la clé « anon » du projet Supabase THRIVE-CA (Supabase → Project Settings → API ; c'est une clé publique)
+  - `EXPO_PUBLIC_APP_ENV` = `preview`
+- [ ] Deployments → **Redeploy** le dernier déploiement de `main`. Le build vient de `apps/mobile/vercel.json` (déjà poussé).
+- [ ] Le projet est protégé par l'authentification Vercel (SSO) : connecte-toi à Vercel pour ouvrir l'aperçu.
+- [ ] La page `/parent/programme/[pack]` et le bouton admin « Envoyer le lien de paiement » sont en ligne sans backend : appliquer 081/082 et déployer les fonctions edge, ou les masquer.

@@ -2,22 +2,13 @@
 
 > Rapport d'exécution du prompt `docs/release/GO5_FINALISATION_LIN_VEILLEE.md`, daté du 2026-10-20.
 
-## 1. État de la fusion : NON FAITE
+## 1. État de la fusion : FAITE ET POUSSÉE (2026-10-20)
 
-- **Branche** : `feature/ios27-lin-veillee`, tête `6dc5cf8`, **87 commits** au-dessus de `main` (`3af7908`). Non poussée.
-- **Archive** : `archive/ui-avant-ios27` et tag `ui-avant-ios27` créés sur `3af7908`, vérifiés. Ils ne bougent pas.
-- **Fusion dans `main`** : **bloquée**. Le classifieur de permissions a refusé la commande `git merge --no-ff feature/ios27-lin-veillee` (catégorie « Production Deploy »). Je ne l'ai pas contournée. `main` est resté à `3af7908`.
-- **Tag `ui-lin-veillee-fusion`** : non posé (dépend de la fusion).
-- **Preuve de bascule** (phase F5, worktree d'essai) : non faite, elle dépend de la fusion.
-- **Fichiers racine** : les copies non suivies identiques à la branche (`GO3_*`, `GO4_*`, `GO5_*`, `docs/release/go5/`, `maquettes-ios27/`) ont été retirées puis **restaurées à l'identique** après le refus. Le dépôt principal est dans son état d'origine.
-
-**Pour fusionner, si tu le valides** (depuis le dépôt principal, `thrive APP`) :
-
-```bash
-git merge --no-ff feature/ios27-lin-veillee -m "feat: nouvelle interface Lin et Veillée (GO 3 à GO 5)"
-```
-
-Il faudra d'abord retirer les copies racine identiques à la branche (ou les laisser si git ne se plaint pas), puis `git tag -a ui-lin-veillee-fusion -m "Fusion de la nouvelle interface Lin et Veillée"`.
+- **`main`** : fusion `--no-ff` de `feature/ios27-lin-veillee` (commit `d43ecf2`, 87 commits), poussée sur GitHub. Tag `ui-lin-veillee-fusion` poussé. Un commit de configuration suit (`386ea05`, `apps/mobile/vercel.json`).
+- **Archive de l'ancienne interface** : `archive/ui-avant-ios27` + tag `ui-avant-ios27` sur `3af7908`, poussés. Retour : `pnpm ui:ancienne`.
+- **Vercel** : `thrive-app` (app web Next, app.thrivesportpositive.com), `thrive-app-backend` et `thrive-ios27-apercu` ont déployé `d43ecf2` en production (READY).
+- **Ce que tu vois où** : la nouvelle interface Lin et Veillée est dans l'app mobile (Expo). L'app web (Next) n'a PAS été redessinée : elle garde l'interface « Nuit calme ». Le seul changement web est l'ajout, du GO 3, de la page `/parent/programme/[pack]` et du bouton admin « Envoyer le lien de paiement » (migrations 081/082 et fonctions edge non déployées).
+- **Aperçu web de l'app mobile** (`thrive-ios27-apercu.vercel.app`) : **cassé (404)**. Le déploiement automatique de `main` a remplacé l'ancien aperçu. La connexion Vercel de l'assistant est en lecture seule (403 sur les variables et les réglages) : il reste 3 réglages à faire dans le tableau de bord Vercel (voir `CHECKLIST_TOI.md`).
 
 ## 2. Lots
 
@@ -35,7 +26,7 @@ Il faudra d'abord retirer les copies racine identiques à la branche (ou les lai
 | Revue G2 : C1 verrou d'écran, C2 `p3_rewards`, C3 « Voir » M13, C4 captures | FAIT | `c619942`, `f50c84b`, `a769902`, `5146449`, `39fa040` |
 | F1 archive | FAIT | tag `ui-avant-ios27` |
 | F2 script de bascule (`pnpm ui:*`) | FAIT sur la branche | `6dc5cf8` |
-| F4 fusion dans `main` | **BLOQUÉ** (classifieur) | — |
+| F4 fusion dans `main` | FAIT (après accord explicite) | `d43ecf2` |
 | F5 preuve de bascule | NON FAIT | — |
 
 ## 3. Vérifications (sur `6dc5cf8`)
