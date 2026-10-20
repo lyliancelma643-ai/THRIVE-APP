@@ -47,7 +47,7 @@ export type ComingSoonViewProps = {
 export function ComingSoonView({
   childName, notify, onNotifyChange, onBackToHome, onBack, onMore, onSegmentChange, upcoming, totalSessions = 13, bottomInset = 130,
 }: ComingSoonViewProps) {
-  const { colors } = useTheme();
+  const { colors, styleKey } = useTheme();
   const navH = useNavBarHeight();
   const scroll = useScrollEdge();
   const who = childName?.trim() ? childName.trim() : 'votre enfant';
@@ -113,7 +113,7 @@ export function ComingSoonView({
               }}
             >
               <ThemedText variant="sectionTitle" accessibilityRole="header">Ce qui viendra</ThemedText>
-              <ThemedText variant="body" color="tintText">{`${totalSessions} séances`}</ThemedText>
+              <ThemedText variant="body" color={styleKey === 'lin' ? 'sageText' : 'label2'}>{`${totalSessions} séances`}</ThemedText>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 16, gap: 12 }}>
               {strip.map((s) => (

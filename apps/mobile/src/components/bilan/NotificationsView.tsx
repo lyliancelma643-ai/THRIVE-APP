@@ -70,7 +70,7 @@ function NotifRow({ n, bucket, last, onOpen, onDelete }: { n: NotifItem; bucket:
         </View>
         <View style={{ flex: 1, minWidth: 0, paddingVertical: 11 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
-            <ThemedText variant="body" weight={n.is_read ? 400 : 700} numberOfLines={1} style={{ flex: 1 }}>{n.title}</ThemedText>
+            <ThemedText variant="body" weight={n.is_read ? 400 : 600} numberOfLines={1} style={{ flex: 1 }}>{n.title}</ThemedText>
             <ThemedText variant="foot" color="label2">{notifStamp(n.created_at, bucket)}</ThemedText>
           </View>
           {n.body ? <ThemedText variant="sub" color="label2" numberOfLines={2}>{n.body}</ThemedText> : null}

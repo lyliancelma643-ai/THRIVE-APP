@@ -2,7 +2,6 @@ import { ActivityIndicator, View } from 'react-native';
 import {
   Button,
   Card,
-  CANVAS,
   List,
   ListRow,
   ProgressBar,
@@ -12,7 +11,6 @@ import {
   ThemedText,
   useTheme,
 } from '../../design';
-import { BRAND } from '../offres/brand';
 import { IconBadge, Packshot } from '../offres/parts';
 import type { SubscriptionModel } from './subscriptionModel';
 
@@ -36,7 +34,7 @@ export type SubscriptionViewProps = {
  * Stripe côté Maison : un accès venant d'un pack affiche « Inclus avec ton programme · aucun abonnement séparé » (D2).
  */
 export function SubscriptionView({ model, storeName, deviceLabel, embedded, restoring, onManage, onRestore, onDiscover }: SubscriptionViewProps) {
-  const { colors, styleKey } = useTheme();
+  const { colors } = useTheme();
   const m = model;
   return (
     <View style={{ marginHorizontal: 16, marginBottom: 16, gap: 12 }}>
@@ -59,7 +57,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
               <ThemedText variant="sub" weight={600} style={{ flexShrink: 1, textAlign: 'right' }}>{m.detail.value}</ThemedText>
             </View>
             {typeof m.detail.progress === 'number' ? (
-              <ProgressBar value={m.detail.progress} color={styleKey === 'lin' ? 'tint' : 'sage'} accessibilityLabel="Avancement de l’essai" style={{ marginTop: 8 }} />
+              <ProgressBar value={m.detail.progress} accessibilityLabel="Avancement de l’essai" style={{ marginTop: 8 }} />
             ) : null}
           </>
         ) : null}
@@ -71,7 +69,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
           <ListRow leading={<IconBadge glyph="people" />} leadingInset={60} title="Partagé avec ton co-parent" subtitle="Un seul accès pour la famille" />
           {m.storeRow ? (
             <ListRow
-              leading={<IconBadge glyph="phone" bg={BRAND.applePay} ink={CANVAS.white} />}
+              leading={<IconBadge glyph="phone" />}
               leadingInset={60}
               title={`Payé via ${storeName}`}
               subtitle={deviceLabel}
@@ -79,7 +77,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
           ) : null}
           {m.programRow ? (
             <ListRow
-              leading={<IconBadge glyph="tray" bg={BRAND.stripe} ink={CANVAS.white} />}
+              leading={<IconBadge glyph="tray" />}
               leadingInset={60}
               title="Payé avec ton programme"
               subtitle="Inclus avec ton programme · aucun abonnement séparé"

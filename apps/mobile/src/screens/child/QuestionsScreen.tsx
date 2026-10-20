@@ -135,7 +135,7 @@ export default function QuestionsScreen({
               {dimension}
             </ThemedText>
           ) : null}
-          <ThemedText variant="title3" style={{ marginTop: 6, color: p.ink }}>{question}</ThemedText>
+          <ThemedText variant="title3" weight={400} style={{ marginTop: 6, color: p.ink, fontSize: 21, lineHeight: 28 }}>{question}</ThemedText>
           <View style={{ marginTop: 16, gap: 8 }}>
             {(scale ?? SCALE[lang]).map((label, i) => {
               const on = selected === i + 1;
@@ -153,7 +153,7 @@ export default function QuestionsScreen({
                   }}
                 >
                   <ThemedText variant="headline" style={{ color: ink }}>{label}</ThemedText>
-                  <ThemedText variant="headline" weight={800} style={{ color: ink }}>{String(i + 1)}</ThemedText>
+                  <ThemedText variant="displayQuote" weight={600} style={{ color: ink, fontSize: 15, lineHeight: 20 }}>{String(i + 1)}</ThemedText>
                 </Pressable>
               );
             })}

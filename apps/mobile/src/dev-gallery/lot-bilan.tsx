@@ -12,6 +12,8 @@ import { NotificationsView } from '../components/bilan/NotificationsView';
 import { DEMO_CHILD, LEO_EXTRAS, LEO_EXTRAS_GROUPE } from './fixtures/bilanPage';
 import { CoachDetailSheet, type CoachDetailKind } from '../components/bilan/CoachDetailSheet';
 import { InfoSheet } from '../components/bilan/InfoSheet';
+import { ObjectView } from '../components/maison/objets/ObjectView';
+import { OBJET_CERTIFICAT, OBJET_IDENTITE, OBJET_OUTILS } from './fixtures/objets';
 import { BASELINES, BY_SKILL, LEO, LSSS, NOTIFS, REPORT, SEANCES, THREAD } from './fixtures/bilan';
 
 /** Écrans du lot « bilan » (G H I J S T U V) rendus avec des fixtures (DEV uniquement). */
@@ -65,9 +67,14 @@ const JScreen = () => {
   );
 };
 
+const ObjetScreen = ({ model }: { model: typeof OBJET_IDENTITE }) => (
+  <ObjectView model={model} cardRef={{ current: null }} onBack={noop} onHome={noop} onPrint={noop} onSaveImage={noop} onShare={noop} />
+);
+
 const SOpen = () => <SeancesView m={SEANCES} a={{ onOpenReport: noop, onSelectChild: noop }} />;
 const SLocked = () => <LockedScreen kind="seances" childName={DEMO_CHILD.name} onOffers={noop} onWrite={noop} onCall={noop} onCalendar={noop} />;
-const SMaquette = () => (useTheme().styleKey === 'veillee' ? <SLocked /> : <SOpen />);
+/** V4 (Lin) et V5 (Veillée) montrent S ouvert ; le verrou est l'écran S2. */
+const SMaquette = () => <SOpen />;
 
 const TScreen = () => <SessionReportView m={REPORT} onBack={noop} onShare={noop} />;
 
@@ -75,7 +82,8 @@ const UOpen = () => (
   <ThreadView title="Coach Lylian" initial="L" messages={THREAD} input="" onInput={noop} onSend={noop} onBack={noop} />
 );
 const ULocked = () => <LockedScreen kind="messages" onOffers={noop} onCall={noop} onBack={noop} />;
-const UMaquette = () => (useTheme().styleKey === 'veillee' ? <ULocked /> : <UOpen />);
+/** V4 et V5 montrent U ouvert ; le verrou est l'écran U2. */
+const UMaquette = () => <UOpen />;
 
 const VScreen = () => (
   <NotificationsView items={NOTIFS} unreadCount={2} pushEnabled onTogglePush={noop} onBack={noop} onReadAll={noop} onOpen={noop} onDelete={noop} />
@@ -85,17 +93,23 @@ export const screens: GalleryScreen[] = [
   { id: 'G', title: 'Bilan (état de la maquette)', tab: 'bilans', render: () => <GMaquette /> },
   { id: 'G-ouvert', title: 'Bilan ouvert', tab: 'bilans', render: () => <GOpen /> },
   { id: 'G-verrou', title: 'Bilan verrouillé (G2)', tab: 'bilans', render: () => <GLocked /> },
+  { id: 'G2', title: 'Bilan verrouillé (G2)', tab: 'bilans', render: () => <GLocked /> },
   { id: 'G11', title: 'Bilan forfait Groupe', tab: 'bilans', render: () => <GGroupe /> },
   ...DETAILS.map(([id, title, kind]): GalleryScreen => ({ id, title, tab: null, render: () => <SheetScreen kind={kind} /> })),
   { id: 'H', title: 'Compétences de vie', tab: null, render: () => <HScreen /> },
   { id: 'I', title: 'Comprendre cette carte', tab: null, render: () => <Behind><InfoSheet visible onClose={noop} cardKey="competences" /></Behind> },
   { id: 'J', title: 'Personnaliser', tab: null, render: () => <JScreen /> },
+  { id: 'N2', title: 'Objet · Fiche Identité', tab: null, render: () => <ObjetScreen model={OBJET_IDENTITE} /> },
+  { id: 'N3', title: 'Objet · Boîte à Outils', tab: null, render: () => <ObjetScreen model={OBJET_OUTILS} /> },
+  { id: 'N4', title: 'Objet · Certificat', tab: null, render: () => <ObjetScreen model={OBJET_CERTIFICAT} /> },
   { id: 'S', title: 'Mes séances (état de la maquette)', tab: 'seances', render: () => <SMaquette /> },
   { id: 'S-ouvert', title: 'Mes séances ouvert', tab: 'seances', render: () => <SOpen /> },
   { id: 'S-verrou', title: 'Mes séances verrouillé', tab: 'seances', render: () => <SLocked /> },
+  { id: 'S2', title: 'Mes séances verrouillé (S2)', tab: 'seances', render: () => <SLocked /> },
   { id: 'T', title: 'Bilan du coach', tab: null, render: () => <TScreen /> },
   { id: 'U', title: 'Messages (état de la maquette)', tab: 'messages', render: () => <UMaquette /> },
   { id: 'U-ouvert', title: 'Messages ouvert', tab: 'messages', render: () => <UOpen /> },
   { id: 'U-verrou', title: 'Messages verrouillé', tab: 'messages', render: () => <ULocked /> },
+  { id: 'U2', title: 'Messages verrouillé (U2)', tab: 'messages', render: () => <ULocked /> },
   { id: 'V', title: 'Notifications', tab: null, render: () => <VScreen /> },
 ];

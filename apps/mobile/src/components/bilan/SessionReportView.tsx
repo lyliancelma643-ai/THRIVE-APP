@@ -91,7 +91,7 @@ export function SessionReportView({ m, onBack, onShare }: { m: SessionReportMode
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: m.observations.length >= 4 ? 'space-between' : 'flex-start', rowGap: 12, columnGap: 8 }}>
                   {m.observations.map(([label, value]) => (
                     <View key={label} style={{ width: 76, alignItems: 'center', gap: 4 }} accessible accessibilityLabel={`${label} : ${fmtNote(value)} sur 5`}>
-                      <Ring size={58} stroke={7} value={value / 5} color={value >= 4 ? 'sysGreen' : 'sysOrange'}>
+                      <Ring size={58} stroke={7} value={value / 5} color={value >= 4 ? 'ok' : 'warn'}>
                         <ThemedText variant="sub" weight={700}>{fmtNote(value)}</ThemedText>
                       </Ring>
                       <ThemedText variant="cap" color="label2" style={{ textAlign: 'center', lineHeight: 14 }}>{label}</ThemedText>

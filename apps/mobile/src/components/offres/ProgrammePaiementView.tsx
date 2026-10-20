@@ -86,7 +86,7 @@ export function ProgrammePaiementView({ program, mode, onModeChange, cohort, bus
     >
       <PackHero id={PACK_IMAGE[program.pack]} />
 
-      <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+      <View style={{ paddingHorizontal: 16, marginTop: 7 }}>
         {program.featured ? <AmberTag label="Programme phare" /> : null}
         <ThemedText variant="title1" weight={600} accessibilityRole="header" style={{ marginTop: 8, fontSize: 34, lineHeight: 38 }}>{`THRIVE ${program.name}`}</ThemedText>
         <ThemedText variant="sub" color="label2">{program.summary}</ThemedText>
