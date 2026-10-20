@@ -115,13 +115,6 @@
           "backgroundColor": "#004e7a"
         }
       ],
-      [
-        "@sentry/react-native/expo",
-        {
-          "url": "https://sentry.io/",
-          "project": "thrive-mobile"
-        }
-      ],
       "expo-web-browser",
       [
         "expo-image-picker",
