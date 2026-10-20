@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useFocusEffect } from 'expo-router';
 import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
 
 // E1 · L'écran reste allumé pendant tout le mode activité (le téléphone est posé, tendu à l'enfant, ou sert de minuteur) et
@@ -31,7 +31,20 @@ export function holdScreenAwake(api: KeepAwakeApi = native, tag: string = ACTIVI
   };
 }
 
-/** À appeler une fois dans la route du mode activité. */
+/** Effet de focus : verrou pris à la prise de focus, rendu à la perte de focus et au démontage. Fonction stable (pas de useCallback). */
+export function activityFocusEffect(): () => void {
+  return holdScreenAwake();
+}
+
+/**
+ * À appeler une fois dans la route du mode activité. Le moment est un onglet (Tabs) : quitter l'écran change d'onglet SANS le
+ * démonter, donc le verrou suit le FOCUS (useFocusEffect), pas le montage.
+ */
 export function useActivityKeepAwake(): void {
-  useEffect(() => holdScreenAwake(), []);
+  useFocusEffect(activityFocusEffect);
+}
+
+/** Clé de réinitialisation du flot : change à chaque nouvelle entrée (retour de focus) ou quand les paramètres du moment changent. */
+export function flowResetKey(entry: number, params: Array<string | undefined>): string {
+  return [entry, ...params.map((p) => p ?? '')].join('|');
 }

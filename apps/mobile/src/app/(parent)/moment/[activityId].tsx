@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { PremiumGate } from '../../../components/subscription/PremiumGate';
 import { Button, SPACING, ThemeScope, ThemedText, useTheme } from '../../../design';
 import { useMaisonContext } from '../../../hooks/useMaison';
@@ -19,7 +19,7 @@ import { RecallView } from '../../../components/activite/RecallView';
 import { SynthesisView } from '../../../components/activite/SynthesisView';
 import { useNow, type Chrome } from '../../../components/activite/parts';
 import { insertLetter, insertMoment } from '../../../components/activite/persist';
-import { useActivityKeepAwake } from '../../../components/activite/visuals/keepAwake';
+import { flowResetKey, useActivityKeepAwake } from '../../../components/activite/visuals/keepAwake';
 import { VisualSheet } from '../../../components/activite/visuals/VisualSheet';
 import { useVisualNotes } from '../../../components/activite/visuals/useVisualNotes';
 import {
@@ -131,13 +131,16 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   };
 
   // Android : le bouton retour ouvre « Enregistrer ce moment ? » au lieu de quitter d'un coup.
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      dispatch({ t: 'quit.request' });
-      return true;
-    });
-    return () => sub.remove();
-  }, [dispatch]);
+  // Lié au FOCUS (le moment est un onglet : le quitter ne le démonte pas) — sinon un moment caché capterait le retour d'ailleurs.
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+        dispatch({ t: 'quit.request' });
+        return true;
+      });
+      return () => sub.remove();
+    }, [dispatch]),
+  );
 
   // Le temps ne tourne que pendant l'activité (jamais avant « C'est dit, on commence », jamais après « Terminer »).
   const running = state.startedAt !== null && state.endedAt === null;
@@ -397,6 +400,22 @@ function MomentContent() {
   const declared = (Number(duration) || activity?.base_duration || 10) as Duration;
   const view = activity && band ? resolveActivity(activity, declared, band) : null;
 
+  // Le moment est un onglet : il reste monté quand on le quitte. Chaque retour de focus après une sortie est une NOUVELLE entrée
+  // (le flot repart de zéro) ; un changement de paramètres (autre fiche, autre enfant, autre lieu) l'est aussi.
+  const [entry, setEntry] = useState(0);
+  const left = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      if (left.current) {
+        left.current = false;
+        setEntry((n) => n + 1);
+      }
+      return () => {
+        left.current = true;
+      };
+    }, []),
+  );
+
   if (!activity || !view || activity.week === null || !childId) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space6, backgroundColor: colors.bgGrouped }} accessibilityRole="alert">
@@ -409,7 +428,7 @@ function MomentContent() {
   // Le mode activité est TOUJOURS sur le fond marine de Veillée, même si le parent a choisi Lin.
   return (
     <ThemeScope style="veillee" fill>
-      <ActivityFlow activity={activity} duration={view.duration} childId={childId} band={band} place={parsePlaceChoice(lieu)} />
+      <ActivityFlow key={flowResetKey(entry, [activityId, childId, band, duration, lieu])} activity={activity} duration={view.duration} childId={childId} band={band} place={parsePlaceChoice(lieu)} />
     </ThemeScope>
   );
 }
