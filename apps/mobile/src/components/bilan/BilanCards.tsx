@@ -45,11 +45,17 @@ function BCard({ label, onPress, hint = true, children, style }: { label: string
 }
 
 /** En-tête d'atelier : titre Fraunces + statut à droite (retour à la ligne sous le titre si trop long). */
-function ToolHead({ title, badge, done, pad = 16 }: { title: string; badge: string; done?: boolean; pad?: number }) {
+function ToolHead({ title, badge, done, pad = 16, ink }: { title: string; badge: string; done?: boolean; pad?: number; ink?: string }) {
+  const { colors } = useTheme();
+  // Renseigné : coche + vert d'état ; à venir : gris discret (sur papier, encre explicite passée par `ink`).
+  const tone = ink ?? (done ? colors.ok : colors.label3);
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', columnGap: 10, rowGap: 4, marginBottom: pad, paddingRight: 26 }}>
-      <ThemedText variant="title3" accessibilityRole="header">{title}</ThemedText>
-      <ThemedText variant="foot" weight={600} color={done ? 'tintText' : 'label2'}>{badge}</ThemedText>
+      <ThemedText variant="title3" weight={600} accessibilityRole="header">{title}</ThemedText>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+        {done ? <Icon name="check" size={13} color={tone} strokeWidth={3} /> : null}
+        <ThemedText variant="foot" weight={600} style={{ color: tone }}>{badge}</ThemedText>
+      </View>
     </View>
   );
 }
@@ -59,11 +65,11 @@ export function TrackRow({ label, value, labelWidth }: { label: string; value: n
   const v = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <ThemedText variant={labelWidth ? 'foot' : 'sub'} color="label2" numberOfLines={1} style={labelWidth ? { width: labelWidth } : { flex: 1 }}>{label}</ThemedText>
+      <ThemedText variant={labelWidth ? 'foot' : 'sub'} color="label2" numberOfLines={labelWidth ? undefined : 1} style={labelWidth ? { width: labelWidth } : { flex: 1 }}>{label}</ThemedText>
       <View style={[{ height: 6, borderRadius: 3, backgroundColor: colors.fill, overflow: 'hidden' }, labelWidth ? { flex: 1 } : { width: 88 }]}>
         <View style={{ width: `${v}%`, height: '100%', borderRadius: 3, backgroundColor: colors.sage }} />
       </View>
-      <ThemedText variant="sub" weight={600} style={{ width: 26, textAlign: 'right' }}>{v}</ThemedText>
+      <ThemedText variant="title3" weight={600} style={{ width: 26, textAlign: 'right', fontSize: labelWidth ? 13 : 15, lineHeight: labelWidth ? 16 : 18 }}>{v}</ThemedText>
     </View>
   );
 }
@@ -72,7 +78,7 @@ export function TrackRow({ label, value, labelWidth }: { label: string; value: n
 function LockNote({ text }: { text: string }) {
   const { colors } = useTheme();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 12, borderRadius: 14, backgroundColor: colors.bgGrouped2, borderWidth: 1, borderColor: colors.separator }}>
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, paddingVertical: 12, paddingHorizontal: 14, borderRadius: 16, backgroundColor: colors.tintSoft, borderWidth: 1, borderColor: colors.separator }}>
       <View style={{ marginTop: 2 }}><Icon name="lock" size={16} color={colors.tintText} /></View>
       <ThemedText variant="sub" color="label2" style={{ flex: 1 }}>
         <ThemedText variant="sub" weight={700}>Contenu réservé. </ThemedText>
@@ -103,7 +109,7 @@ function ReminderCard({ icon, title, body, onPress }: { icon: IconName; title: s
   return (
     <Card padding={14} style={{ backgroundColor: colors.badgeBg }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-        <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: colors.bgGrouped2, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.fill, alignItems: 'center', justifyContent: 'center' }}>
           <Icon name={icon} size={20} color={colors.tintText} />
         </View>
         <View style={{ flex: 1 }}>
@@ -129,7 +135,7 @@ export function Reminders({ m, x, a }: P) {
       ) : null}
       {w ? (
         <ReminderCard
-          icon="sparkles" title={`Questionnaire bien-être à compléter${w.sessionNumber ? ` — séance ${w.sessionNumber}` : ''}`}
+          icon="pulse" title={`Questionnaire bien-être à compléter${w.sessionNumber ? ` — séance ${w.sessionNumber}` : ''}`}
           body={`${m.firstName} a un court questionnaire de bien-être (${WELLBEING_SCALE}) à remplir avec toi.`}
           onPress={() => a.onWellbeingQuestionnaire?.()}
         />
@@ -146,7 +152,7 @@ export function ProgrammeHeader({ x, a }: Pick<P, 'x' | 'a'>) {
     <Pressable onPress={() => a.onInfo?.('programme')} accessibilityRole="button" accessibilityLabel={`Programme complété : ${x.pct} %. Comprendre cette carte`} style={{ paddingHorizontal: 4 }}>
       <Eyebrow>Programme complété</Eyebrow>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6, marginTop: 4 }}>
-        <ThemedText variant="numeralHero" style={{ fontSize: 96, lineHeight: 96 }}>{String(x.pct)}</ThemedText>
+        <ThemedText variant="numeralHero" style={{ fontSize: 104, lineHeight: 96 }}>{String(x.pct)}</ThemedText>
         <ThemedText variant="title1" color="label3" style={{ fontSize: 32, lineHeight: 36 }}>%</ThemedText>
       </View>
       <ThemedText variant="sub" color="label2" weight={500} style={{ marginTop: 12 }}>
@@ -176,7 +182,12 @@ export function PassportRow({ m, a }: Pick<P, 'm' | 'a'>) {
           style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 12, minHeight: 64 }}
         >
           <View>
-            <JerseyDisc size={44} bg={kid.bg} ink={kid.ink} label={m.jersey != null ? String(m.jersey) : m.initial} photoUri={m.photoUri} accessibilityLabel={`Passeport de ${m.firstName}`} />
+            <JerseyDisc size={44} bg={kid.bg} ink={kid.ink} label={m.initial} photoUri={m.photoUri} accessibilityLabel={`Passeport de ${m.firstName}`} />
+            {m.jersey != null ? (
+              <View style={{ position: 'absolute', right: -6, bottom: -5, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 7, backgroundColor: colors.sage, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: '#FFFEFB' }}>
+                <ThemedText variant="cap2" weight={800} style={{ color: colors.navy900, fontSize: 10, lineHeight: 12 }}>{String(m.jersey)}</ThemedText>
+              </View>
+            ) : null}
           </View>
           <View style={{ flex: 1, minWidth: 0 }}>
             <ThemedText variant="title3" numberOfLines={1} style={{ fontSize: 18, lineHeight: 22 }}>{name}</ThemedText>
@@ -193,7 +204,7 @@ export function PassportRow({ m, a }: Pick<P, 'm' | 'a'>) {
         onPress={a.onPersonalize}
         accessibilityRole="button"
         accessibilityLabel="Personnaliser le passeport"
-        style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: colors.fill3, alignItems: 'center', justifyContent: 'center' }}
+        style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: colors.bgGrouped2, borderWidth: 1, borderColor: colors.separator, alignItems: 'center', justifyContent: 'center' }}
       >
         <Icon name="pencil" size={19} color={colors.label} />
       </Pressable>
@@ -258,8 +269,8 @@ export function WellbeingCard({ x, a }: Pick<P, 'x' | 'a'>) {
         pts.length ? (
           <>
             <View style={{ flexDirection: 'row', gap: 8, marginTop: 14 }}>
-              <View style={{ width: 34, justifyContent: 'space-between', paddingTop: 4, paddingBottom: 24 }}>
-                {['Élevé', 'Moyen', 'Bas'].map((t) => <ThemedText key={t} variant="cap2" color="label2" style={{ textAlign: 'right' }}>{t}</ThemedText>)}
+              <View style={{ width: 40, justifyContent: 'space-between', paddingTop: 4, paddingBottom: 24 }}>
+                {['Élevé', 'Moyen', 'Bas'].map((t) => <ThemedText key={t} variant="cap2" weight={400} color="label3" numberOfLines={1} style={{ textAlign: 'right' }}>{t}</ThemedText>)}
               </View>
               <View style={{ flex: 1, minWidth: 0 }}><WellbeingCurve points={pts} /></View>
             </View>
@@ -302,7 +313,7 @@ function PillarEmpty({ label }: { label: string }) {
 
 function Node({ n, state, sub }: { n: number; state: NodeState; sub: string }) {
   const { colors } = useTheme();
-  const base = { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' } as const;
+  const base = { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' } as const;
   const look =
     state === 'done' ? { backgroundColor: colors.sage }
     : state === 'current' ? { backgroundColor: colors.tint, borderWidth: 3, borderColor: withAlpha(colors.tint, 0.3) }
@@ -312,9 +323,9 @@ function Node({ n, state, sub }: { n: number; state: NodeState; sub: string }) {
   return (
     <View style={{ width: `${100 / 7}%`, alignItems: 'center', gap: 6, marginBottom: 12 }}>
       <View style={[base, look]}>
-        <ThemedText variant="callout" weight={600} style={{ color: ink }}>{String(n)}</ThemedText>
+        <ThemedText variant="title3" weight={600} style={{ color: ink, fontSize: 15, lineHeight: 18 }}>{String(n)}</ThemedText>
       </View>
-      <ThemedText variant="cap2" color={state === 'current' ? 'tintText' : 'label2'} numberOfLines={1} style={{ fontSize: 10 }}>{sub}</ThemedText>
+      <ThemedText variant="cap2" color={state === 'current' ? 'tintText' : state === 'done' ? 'label2' : 'label3'} numberOfLines={1} style={{ fontSize: 10, lineHeight: 12 }}>{sub}</ThemedText>
     </View>
   );
 }
@@ -327,7 +338,7 @@ export function ParcoursCard({ x, a }: Pick<P, 'x' | 'a'>) {
     <BCard label="Parcours des 13 séances" onPress={() => a.onInfo?.('parcours')}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'baseline', justifyContent: 'space-between', gap: 6, paddingRight: 30 }}>
         <ThemedText variant="eyebrow" color="label2">Parcours des 13 séances</ThemedText>
-        <ThemedText variant="callout" weight={600} color="tintText">{`${p.doneCount}/${TOTAL_SESSIONS}`}</ThemedText>
+        <ThemedText variant="title3" weight={600} color="tintText" style={{ fontSize: 15, lineHeight: 18 }}>{`${p.doneCount}/${TOTAL_SESSIONS}`}</ThemedText>
       </View>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 16 }} accessible accessibilityLabel={`${p.doneCount} séances terminées sur ${TOTAL_SESSIONS}`}>
         {p.nodes.map((nd) => <Node key={nd.n} n={nd.n} state={nd.state} sub={nd.sub} />)}
@@ -362,7 +373,7 @@ export function ToolboxCard({ x, a }: Pick<P, 'x' | 'a'>) {
     <BCard label="Boîte à outils" onPress={() => a.onRow('boite')}>
       <Eyebrow style={{ paddingRight: 30 }}>Boîte à outils</Eyebrow>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 8 }}>
-        <ThemedText variant="numeralHero" style={{ fontSize: 44, lineHeight: 48 }}>{String(tools.length)}</ThemedText>
+        <ThemedText variant="numeralHero" style={{ fontSize: 44, lineHeight: 54 }}>{String(tools.length)}</ThemedText>
         <ThemedText variant="sub" color="label2" weight={500}>/ 6 outils collectés</ThemedText>
       </View>
       <ProgressBar value={Math.min(tools.length, 6) / 6} color="sage" accessibilityLabel="Outils collectés" valueText={`${tools.length} sur 6`} style={{ marginVertical: 14, height: 7, borderRadius: 3.5 }} />
@@ -371,9 +382,9 @@ export function ToolboxCard({ x, a }: Pick<P, 'x' | 'a'>) {
           {tools.map((t) => (
             <View key={t.tool} style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
               <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: colors.sage, marginTop: 8 }} />
-              <ThemedText variant="sub" style={{ flex: 1 }}>
+              <ThemedText variant="sub" style={{ flex: 1, lineHeight: 20 }}>
                 {t.tool}
-                {t.context ? <ThemedText variant="sub" color="label2">{` — ${t.context}`}</ThemedText> : null}
+                {t.context ? <ThemedText variant="sub" color="label3">{` — ${t.context}`}</ThemedText> : null}
               </ThemedText>
             </View>
           ))}
@@ -381,7 +392,7 @@ export function ToolboxCard({ x, a }: Pick<P, 'x' | 'a'>) {
       ) : null}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 16, paddingVertical: 13, paddingHorizontal: 16, borderRadius: 16, backgroundColor: colors.tintSoft }}>
         <ThemedText variant="foot" color="label2">Focus word</ThemedText>
-        <ThemedText variant="title3" color="tintText" style={{ marginLeft: 'auto', flexShrink: 1, letterSpacing: 0.8 }}>{focus ?? '—'}</ThemedText>
+        <ThemedText variant="title3" weight={600} color="tintText" style={{ marginLeft: 'auto', flexShrink: 1, letterSpacing: 0.8, fontSize: 19, lineHeight: 22 }}>{focus ?? '—'}</ThemedText>
       </View>
     </BCard>
   );
@@ -432,8 +443,8 @@ export function StepsCard({ x, a }: Pick<P, 'x' | 'a'>) {
 export function ToolsTitle({ x }: { x: BilanExtras }) {
   return (
     <View style={{ marginTop: 22, marginBottom: 4, marginHorizontal: 4 }}>
-      <ThemedText variant="title2" accessibilityRole="header">Mes outils THRIVE</ThemedText>
-      <ThemedText variant="sub" color="label2" style={{ marginTop: 4 }}>Les livrables construits séance après séance — chacun son atelier.</ThemedText>
+      <ThemedText variant="title2" weight={600} accessibilityRole="header" style={{ fontSize: 28, lineHeight: 33 }}>Mes outils THRIVE</ThemedText>
+      <ThemedText variant="sub" color="label2" style={{ marginTop: 4, lineHeight: 21 }}>Les livrables construits séance après séance — chacun son atelier.</ThemedText>
       <ThemedText variant="foot" weight={600} color="tintText" style={{ marginTop: 6 }}>{`8 ateliers · ${x.toolsFilled} renseignés`}</ThemedText>
     </View>
   );
@@ -446,17 +457,17 @@ export function IdentityCard({ x, a }: Pick<P, 'x' | 'a'>) {
   return (
     <Paper laid radius={26}>
       <Pressable onPress={() => a.onRow('identite')} accessibilityRole="button" accessibilityLabel="Voir le détail : Fiche Identité Athlète" style={{ padding: CARD_PAD }}>
-        <ToolHead title="Fiche Identité Athlète" badge={filled ? 'S1 · renseigné' : 'S1 · à venir'} done={filled} />
+        <ToolHead title="Fiche Identité Athlète" badge={filled ? 'S1 · renseigné' : 'S1 · à venir'} done={filled} ink={filled ? '#33543F' : '#5A6C73'} />
         <ThemedText variant="eyebrow" color="label2" style={{ marginBottom: 6 }}>Histoire sportive</ThemedText>
         {x.sportStory ? (
-          <ThemedText variant="body" style={{ marginBottom: 16 }}>{x.sportStory}</ThemedText>
+          <ThemedText variant="title3" weight={400} style={{ marginBottom: 16, fontSize: 16, lineHeight: 24 }}>{x.sportStory}</ThemedText>
         ) : (
           <ThemedText variant="sub" color="label2" style={{ marginBottom: 16 }}>À renseigner avec le coach.</ThemedText>
         )}
         {c?.seasonDream ? (
           <View style={{ padding: 14, borderRadius: 16, backgroundColor: 'rgba(0,78,122,0.07)', marginBottom: 16 }}>
             <ThemedText variant="eyebrow" color="tintText" style={{ marginBottom: 4 }}>Rêve de saison</ThemedText>
-            <ThemedText variant="displayQuote" style={{ fontStyle: 'italic' }}>{`« ${c.seasonDream} »`}</ThemedText>
+            <ThemedText variant="title3" weight={400} style={{ fontStyle: 'italic', fontSize: 18, lineHeight: 25 }}>{`« ${c.seasonDream} »`}</ThemedText>
           </View>
         ) : null}
         <ThemedText variant="eyebrow" color="label2" style={{ marginBottom: 10 }}>Forces (VIA)</ThemedText>
@@ -493,8 +504,8 @@ export function SmartChips() {
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 7 }}>
       {SMART.map(([l, t]) => (
         <View key={l} style={{ flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 7, paddingHorizontal: 11, borderRadius: 12, backgroundColor: colors.fill4 }}>
-          <ThemedText variant="foot" weight={700} color="tintText">{l}</ThemedText>
-          <ThemedText variant="foot" color="label2">{t}</ThemedText>
+          <ThemedText variant="title3" weight={600} color="tintText" style={{ fontSize: 13, lineHeight: 16 }}>{l}</ThemedText>
+          <ThemedText variant="foot" weight={500} color="label2" style={{ lineHeight: 16 }}>{t}</ThemedText>
         </View>
       ))}
     </View>
@@ -509,7 +520,7 @@ export function ObjectifCard({ x, a }: Pick<P, 'x' | 'a'>) {
     <BCard label="Fiche Objectif THRIVE" onPress={() => a.onRow('objectif')}>
       <ToolHead title="Fiche Objectif THRIVE" badge={filled ? 'S2 · renseigné' : 'S2 · à venir'} done={filled} />
       <View style={{ padding: 14, borderRadius: 16, backgroundColor: colors.badgeBg, marginBottom: 16 }}>
-        <ThemedText variant="displayQuote">{c?.smartGoal ?? 'Objectif SMART à co-construire avec le coach.'}</ThemedText>
+        <ThemedText variant="title3" weight={500} style={{ fontSize: 19, lineHeight: 26 }}>{c?.smartGoal ?? 'Objectif SMART à co-construire avec le coach.'}</ThemedText>
       </View>
       {c?.lifeSkillGoal ? (
         <>
@@ -533,7 +544,7 @@ export function ObjectifCard({ x, a }: Pick<P, 'x' | 'a'>) {
       <View style={{ marginBottom: 16 }}><SmartChips /></View>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 10 }}>
         <ThemedText variant="sub" color="label2">Progression du parcours</ThemedText>
-        <ThemedText variant="callout" weight={600} color="tintText">{`${x.pct} %`}</ThemedText>
+        <ThemedText variant="title3" weight={600} color="tintText" style={{ fontSize: 16, lineHeight: 18 }}>{`${x.pct} %`}</ThemedText>
       </View>
       <ProgressBar value={x.pct / 100} color="tint" accessibilityLabel="Progression du parcours" valueText={`${x.pct} %`} style={{ height: 7, borderRadius: 3.5 }} />
     </BCard>
@@ -547,8 +558,8 @@ export function FocusCard({ x, a }: Pick<P, 'x' | 'a'>) {
     <Velvet radius={26}>
       <Pressable onPress={() => a.onRow('focus')} accessibilityRole="button" accessibilityLabel={`Voir le détail : Focus Word${word ? ` ${word}` : ''}`} style={{ paddingVertical: 24, paddingHorizontal: 20, alignItems: 'center', gap: 6 }}>
         <ThemedText variant="eyebrow" color="label2">Focus Word · S9</ThemedText>
-        <ThemedText variant="largeTitle" style={{ fontSize: 44, lineHeight: 50, letterSpacing: 2.4, textAlign: 'center', marginTop: 8 }}>{word ? word.toUpperCase() : '—'}</ThemedText>
-        <ThemedText variant="eyebrow" color="sageText" style={{ marginTop: 8 }}>{word ? 'Mot-ancre actif' : 'À définir en séance 9'}</ThemedText>
+        <ThemedText variant="largeTitle" weight={600} style={{ fontSize: 46, lineHeight: 50, letterSpacing: 2.8, textAlign: 'center', marginTop: 8 }}>{word ? word.toUpperCase() : '—'}</ThemedText>
+        <ThemedText variant="eyebrow" color="label2" style={{ marginTop: 8, fontSize: 12, lineHeight: 12 }}>{word ? 'Mot-ancre actif' : 'À définir en séance 9'}</ThemedText>
       </Pressable>
       <Hint />
     </Velvet>
@@ -558,7 +569,7 @@ export function FocusCard({ x, a }: Pick<P, 'x' | 'a'>) {
 const WHEEL = ['#A7C4BC', '#6FA8B0', '#CDBF78', '#8FB3C4']; // illustration de la roue (canevas), pas un token de thème
 
 export function EmotionWheel({ size = 150, children }: { size?: number; children?: ReactNode }) {
-  const stroke = 30;
+  const stroke = 27;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
@@ -618,7 +629,7 @@ export function RoutineSteps({ focusWord, big }: { focusWord: string | null; big
               i === 0 ? { backgroundColor: colors.tint } : i === 3 ? { backgroundColor: colors.bgGrouped2, borderWidth: 1, borderColor: colors.label3 } : { backgroundColor: colors.sage },
             ]}
           >
-            <ThemedText variant="callout" weight={700} style={{ color: i === 0 ? colors.tintInk : i === 3 ? colors.label : colors.navy900 }}>{String(i + 1)}</ThemedText>
+            <ThemedText variant="title3" weight={600} style={{ fontSize: big ? 16 : 14, lineHeight: 18, color: i === 0 ? colors.tintInk : i === 3 ? colors.label : colors.navy900 }}>{String(i + 1)}</ThemedText>
           </View>
           <ThemedText variant={big ? 'body' : 'sub'} weight={i === 3 ? 700 : 500} style={{ flex: 1 }}>{t}</ThemedText>
         </View>
@@ -649,7 +660,7 @@ export function ContratCard({ m, x, a }: P) {
           <View key={role} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10, paddingVertical: 12, borderBottomWidth: i < rows.length - 1 ? 1 : 0, borderBottomColor: colors.separator }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <ThemedText variant="cap2" color="label2" style={{ textTransform: 'uppercase', letterSpacing: 1 }}>{role}</ThemedText>
-              <ThemedText variant="title3" style={{ fontStyle: 'italic', fontWeight: '400' }}>{val}</ThemedText>
+              <ThemedText variant="title3" weight={400} style={{ fontStyle: 'italic', fontSize: 18, lineHeight: 24 }}>{val}</ThemedText>
             </View>
             <View style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: colors.badgeBg, alignItems: 'center', justifyContent: 'center' }}>
               <Icon name="check" size={14} color={colors.ok} strokeWidth={2.6} />
@@ -688,9 +699,9 @@ export function LettreCard({ m, x, a }: P) {
     <Paper laid radius={26}>
       <View style={{ padding: CARD_PAD }}>
         <Pressable onPress={() => a.onRow('lettre')} accessibilityRole="button" accessibilityLabel="Voir le détail : Lettre à moi-même">
-          <ToolHead title="Lettre à moi-même dans 1 an" badge={sealed ? 'S13 · scellée' : 'S13 · à venir'} done={sealed} />
+          <ToolHead title="Lettre à moi-même dans 1 an" badge={sealed ? 'S13 · scellée' : 'S13 · à venir'} done={sealed} ink={sealed ? '#33543F' : '#5A6C73'} />
           <View style={{ borderRadius: 16, backgroundColor: 'rgba(0,49,76,0.05)', padding: 18 }}>
-            <ThemedText variant="callout" color="label2" style={{ fontStyle: 'italic', marginBottom: 14 }}>{`Chère ${m.firstName},`}</ThemedText>
+            <ThemedText variant="title3" weight={400} color="label2" style={{ fontStyle: 'italic', marginBottom: 14, fontSize: 16, lineHeight: 20 }}>{`Chère ${m.firstName},`}</ThemedText>
             <LetterLines />
           </View>
           {!(sealed && doc) ? (

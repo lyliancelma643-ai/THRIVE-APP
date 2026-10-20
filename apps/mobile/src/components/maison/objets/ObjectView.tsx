@@ -1,4 +1,4 @@
-import type { ReactNode, RefObject } from 'react';
+import { useState, type ReactNode, type RefObject } from 'react';
 import { ScrollView, View } from 'react-native';
 import {
   Button, GlassButton, Lamp, List, ListRow, NavBar, Paper, Section, SectionFooter, Star, ThemedText,
@@ -118,9 +118,11 @@ function Sheet({ model, cardRef }: { model: SheetModel; cardRef: RefObject<View 
 
 function WalletCard({ eyebrow, lines, small }: { eyebrow: string; lines: string[]; small?: boolean }) {
   const { colors } = useTheme();
+  // Format carte de portefeuille 85 × 55 mm : la hauteur suit la largeur mesurée, « THRIVE MAISON » reste en bas.
+  const [width, setWidth] = useState(0);
   return (
-    <Paper radius={18} style={{ aspectRatio: 85 / 55 }}>
-      <View style={{ flex: 1, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 16 }}>
+    <Paper radius={18} onLayout={(e) => setWidth(e.nativeEvent.layout.width)}>
+      <View style={{ minHeight: width > 0 ? (width * 55) / 85 : undefined, paddingTop: 18, paddingHorizontal: 18, paddingBottom: 16 }}>
         <ThemedText variant="eyebrow" color="sageText">{eyebrow}</ThemedText>
         <View style={{ marginTop: 8, gap: 4 }}>
           {lines.map((l, i) => (

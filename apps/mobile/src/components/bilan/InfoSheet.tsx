@@ -17,8 +17,8 @@ export function InfoSheet({ visible, onClose, cardKey }: InfoSheetProps) {
       {info ? (
         <View style={{ gap: 10, paddingTop: 2 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 2 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name="info" size={22} color={colors.tintInk} />
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.fill, borderWidth: 1, borderColor: colors.separator, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name="info" size={22} color={colors.sageText} />
             </View>
             <Tag label={info.badge} />
           </View>
@@ -29,9 +29,9 @@ export function InfoSheet({ visible, onClose, cardKey }: InfoSheetProps) {
               <ThemedText variant="eyebrow" color="sageText" style={{ marginBottom: 6 }}>{s.label}</ThemedText>
               {s.text ? <ThemedText variant="sub">{s.text}</ThemedText> : null}
               {s.bullets ? (
-                <View style={{ gap: 6 }}>
+                <View style={s.bullets.length >= 6 ? { flexDirection: 'row', flexWrap: 'wrap', columnGap: 8, rowGap: 10 } : { gap: 6 }}>
                   {s.bullets.map((b) => (
-                    <View key={b} style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
+                    <View key={b} style={[{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }, s.bullets && s.bullets.length >= 6 ? { width: '48%' } : null]}>
                       <View style={{ marginTop: 5 }}><Icon name="sparkles" size={11} color={colors.tintText} /></View>
                       <ThemedText variant="foot" style={{ flex: 1 }}>{b}</ThemedText>
                     </View>

@@ -68,7 +68,7 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
         <>
           {total != null ? (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16, paddingTop: 18, paddingHorizontal: 20 }}>
-              <ThemedText variant="title1" style={{ fontSize: 56, lineHeight: 60 }}>{total}</ThemedText>
+              <ThemedText variant="title1" weight={600} style={{ fontSize: 56, lineHeight: 60 }}>{total}</ThemedText>
               <View style={{ flex: 1 }}>
                 {delta != null ? (
                   <ThemedText variant="headline" style={{ color: colors.ok }}>
@@ -105,11 +105,11 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
           <SectionHeader small title={`${skills.length} compétences${Object.keys(baselines).length ? ' · trait = départ' : ''}`} />
           <Section>
             <List>
-              {skills.map(([k, v]) => {
+              {skills.map(([k, v], idx) => {
                 const base = baselines[k];
                 const diff = base != null ? Math.round(v - base) : null;
                 return (
-                  <View key={k} style={{ minHeight: 58, paddingHorizontal: 16, paddingVertical: 11, justifyContent: 'center' }}>
+                  <View key={k} style={{ minHeight: 58, paddingHorizontal: 16, paddingVertical: 11, justifyContent: 'center', borderBottomWidth: idx < skills.length - 1 ? 1 : 0, borderBottomColor: colors.separator }}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
                       <ThemedText variant="sub">{skillLabel(k)}</ThemedText>
                       <ThemedText variant="sub">
@@ -118,7 +118,7 @@ export function LifeSkillsSheet({ visible, onClose, lsss, gauge, baselines, onIn
                       </ThemedText>
                     </View>
                     <View style={{ height: 8, borderRadius: 4, backgroundColor: colors.fill, marginTop: 7 }}>
-                      <View style={{ position: 'absolute', left: 0, top: 0, height: 8, width: `${Math.min(100, Math.max(0, v))}%`, borderRadius: 4, backgroundColor: colors.tint }} />
+                      <View style={{ position: 'absolute', left: 0, top: 0, height: 8, width: `${Math.min(100, Math.max(0, v))}%`, borderRadius: 4, backgroundColor: colors.sage }} />
                       {base != null ? (
                         <View style={{ position: 'absolute', top: -3, left: `${Math.min(100, Math.max(0, base))}%`, marginLeft: -1, width: 2, height: 14, borderRadius: 1, backgroundColor: colors.label2 }} />
                       ) : null}

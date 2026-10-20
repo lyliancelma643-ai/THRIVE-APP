@@ -51,7 +51,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
     return (
       <>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginBottom: 16 }}>
-          <ThemedText variant="numeralHero" style={{ fontSize: 44, lineHeight: 48 }}>{String(tools.length)}</ThemedText>
+          <ThemedText variant="numeralHero" style={{ fontSize: 44, lineHeight: 54 }}>{String(tools.length)}</ThemedText>
           <ThemedText variant="sub" color="label2">/6 outils collectés</ThemedText>
         </View>
         {tools.length ? (
@@ -98,20 +98,20 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
         <View style={{ flexDirection: 'row', gap: 8, marginBottom: 18 }}>
           {cells.map(([l, v]) => (
             <View key={l} style={{ flex: 1, padding: 11, borderRadius: 14, backgroundColor: colors.fill4 }}>
-              <ThemedText variant="cap2" color="label2" style={{ textTransform: 'uppercase', marginBottom: 3 }}>{l}</ThemedText>
+              <ThemedText variant="cap2" color="label3" style={{ textTransform: 'uppercase', marginBottom: 3, fontSize: 10, letterSpacing: 1 }}>{l}</ThemedText>
               <ThemedText variant="sub" weight={700} numberOfLines={2}>{v}</ThemedText>
             </View>
           ))}
         </View>
         <Label>Histoire sportive</Label>
-        <View style={{ marginBottom: 18 }}>{x.sportStory ? <ThemedText variant="body">{x.sportStory}</ThemedText> : empty('À renseigner avec le coach.')}</View>
+        <View style={{ marginBottom: 18 }}>{x.sportStory ? <ThemedText variant="title3" weight={400} style={{ fontSize: 16, lineHeight: 24 }}>{x.sportStory}</ThemedText> : empty('À renseigner avec le coach.')}</View>
         <Label>Forces (VIA)</Label>
         <View style={{ marginBottom: 18 }}>
           {c && c.strengths.length ? (
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {c.strengths.map((s) => (
                 <View key={s} style={{ paddingVertical: 9, paddingHorizontal: 15, borderRadius: 12, backgroundColor: colors.badgeBg }}>
-                  <ThemedText variant="callout" weight={600} style={{ color: colors.badgeInk }}>{s}</ThemedText>
+                  <ThemedText variant="sub" weight={500} style={{ color: colors.badgeInk }}>{s}</ThemedText>
                 </View>
               ))}
             </View>
@@ -120,7 +120,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
         {c?.seasonDream ? (
           <View style={{ padding: 16, borderRadius: 16, backgroundColor: colors.tintSoft }}>
             <ThemedText variant="eyebrow" color="tintText" style={{ marginBottom: 4 }}>Rêve de saison</ThemedText>
-            <ThemedText variant="displayQuote" style={{ fontStyle: 'italic' }}>{`« ${c.seasonDream} »`}</ThemedText>
+            <ThemedText variant="title3" weight={400} style={{ fontStyle: 'italic', fontSize: 18, lineHeight: 25 }}>{`« ${c.seasonDream} »`}</ThemedText>
           </View>
         ) : null}
       </>
@@ -131,7 +131,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
       <>
         <View style={{ padding: 18, borderRadius: 16, backgroundColor: colors.badgeBg, marginBottom: 18 }}>
           <Label>Objectif SMART</Label>
-          <ThemedText variant="title3" style={{ fontSize: 21, lineHeight: 28 }}>{c?.smartGoal ?? 'Objectif SMART à co-construire avec le coach.'}</ThemedText>
+          <ThemedText variant="title3" weight={500} style={{ fontSize: 19, lineHeight: 26 }}>{c?.smartGoal ?? 'Objectif SMART à co-construire avec le coach.'}</ThemedText>
         </View>
         {c?.lifeSkillGoal ? (
           <View style={{ marginBottom: 18 }}><Label>Objectif life skill</Label><ThemedText variant="body">{c.lifeSkillGoal}</ThemedText></View>
@@ -152,7 +152,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
         <View style={{ marginBottom: 18 }}><SmartChips /></View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
           <ThemedText variant="sub" color="label2">Progression du parcours</ThemedText>
-          <ThemedText variant="callout" weight={600} color="tintText">{`${x.pct} %`}</ThemedText>
+          <ThemedText variant="title3" weight={600} color="tintText" style={{ fontSize: 16, lineHeight: 18 }}>{`${x.pct} %`}</ThemedText>
         </View>
         <ProgressBar value={x.pct / 100} color="tint" accessibilityLabel="Progression du parcours" valueText={`${x.pct} %`} style={{ height: 10, borderRadius: 5 }} />
       </>
@@ -164,7 +164,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
       <View style={{ alignItems: 'center', paddingTop: 20, gap: 18 }}>
         <Velvet radius={26} style={{ alignSelf: 'stretch' }}>
           <View style={{ paddingVertical: 34, paddingHorizontal: 20, alignItems: 'center', gap: 14 }}>
-            <ThemedText variant="largeTitle" style={{ fontSize: 52, lineHeight: 58, letterSpacing: 3, textAlign: 'center' }}>{w.toUpperCase()}</ThemedText>
+            <ThemedText variant="largeTitle" weight={600} style={{ fontSize: 52, lineHeight: 58, letterSpacing: 3, textAlign: 'center' }}>{w.toUpperCase()}</ThemedText>
             <ThemedText variant="eyebrow" color="label2">{`Mot-ancre actif de ${firstName}`}</ThemedText>
           </View>
         </Velvet>
@@ -191,7 +191,7 @@ function Body({ kind, firstName, x, onOpenDoc }: { kind: CoachDetailKind; firstN
       <>
         <Paper laid radius={22}>
           <View style={{ padding: 22 }}>
-            <ThemedText variant="callout" color="label2" style={{ fontStyle: 'italic', marginBottom: 14 }}>{`Chère ${firstName},`}</ThemedText>
+            <ThemedText variant="title3" weight={400} color="label2" style={{ fontStyle: 'italic', marginBottom: 14, fontSize: 16, lineHeight: 20 }}>{`Chère ${firstName},`}</ThemedText>
             <LetterLines lines={[92, 100, 84, 96, 60]} gap={11} />
             {sealed ? (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 16 }}>
@@ -248,11 +248,11 @@ export function CoachDetailSheet({ kind, onClose, firstName, x, onOpenDoc }: Pro
       {kind && meta ? (
         <View style={{ paddingTop: 6 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-            <View style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: colors.tint, alignItems: 'center', justifyContent: 'center' }}>
-              <Icon name={meta.icon} size={24} color={colors.tintInk} />
+            <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.fill, borderWidth: 1, borderColor: colors.separator, alignItems: 'center', justifyContent: 'center' }}>
+              <Icon name={meta.icon} size={22} color={colors.sageText} />
             </View>
             <View style={{ flex: 1 }}>
-              <ThemedText variant="title2" accessibilityRole="header" style={{ fontSize: 22, lineHeight: 26 }}>{meta.title}</ThemedText>
+              <ThemedText variant="title2" weight={600} accessibilityRole="header" style={{ fontSize: 22, lineHeight: 26 }}>{meta.title}</ThemedText>
               <ThemedText variant="foot" color="label2">{`${firstName} · ${meta.session}`}</ThemedText>
             </View>
           </View>

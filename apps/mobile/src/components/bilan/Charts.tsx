@@ -58,7 +58,7 @@ export function LsssCurve({ points }: { points: LsssPoint[] }) {
           </React.Fragment>
         ))}
         {filled.length > 1 ? (
-          <Path d={filled.map((s, i) => `${i ? 'L' : 'M'}${SLOT_X[s.i]} ${yFor(s.p!.value)}`).join(' ')} fill="none" stroke={colors.tint} strokeWidth={3} strokeLinecap="round" />
+          <Path d={filled.map((s, i) => `${i ? 'L' : 'M'}${SLOT_X[s.i]} ${yFor(s.p!.value)}`).join(' ')} fill="none" stroke={colors.sageText} strokeWidth={3} strokeLinecap="round" />
         ) : null}
         {next && filled.length > 0 ? (
           <>
@@ -73,7 +73,7 @@ export function LsssCurve({ points }: { points: LsssPoint[] }) {
           <React.Fragment key={s.m}>
             {s.p ? (
               <>
-                <Circle cx={SLOT_X[s.i]} cy={yFor(s.p.value)} r={6} fill={colors.tint} stroke={colors.bgGrouped2} strokeWidth={2.5} />
+                <Circle cx={SLOT_X[s.i]} cy={yFor(s.p.value)} r={6} fill={colors.sageText} stroke={colors.bgGrouped2} strokeWidth={2.5} />
                 <SvgText fontFamily={fontFamily} x={SLOT_X[s.i]} y={yFor(s.p.value) - 13} textAnchor="middle" fontSize={13} fontWeight="600" fill={colors.label}>{String(s.p.value)}</SvgText>
               </>
             ) : null}
@@ -108,10 +108,16 @@ export function WellbeingCurve({ points }: { points: PermaPoint[] }) {
         {[20, 58, 96].map((y) => (
           <Line key={y} x1={0} x2={338} y1={y} y2={y} stroke={colors.separator} strokeDasharray="2 4" />
         ))}
-        {pts.length > 1 ? <Path d={d} fill="none" stroke={colors.tint} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /> : null}
+        {pts.length > 1 && last ? (
+          <Path
+            d={`${d} L${wellbeingX(last.session_number).toFixed(1)} ${H - 20} L${wellbeingX(pts[0].session_number).toFixed(1)} ${H - 20}Z`}
+            fill={colors.sage} opacity={0.16}
+          />
+        ) : null}
+        {pts.length > 1 ? <Path d={d} fill="none" stroke={colors.sageText} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" /> : null}
         {pts.map((p, i) => {
           const isLast = i === pts.length - 1;
-          return <Circle key={p.session_number} cx={wellbeingX(p.session_number)} cy={wellbeingY(p.value)} r={isLast ? 6 : 3.4} fill={isLast ? colors.tint : colors.bgGrouped2} stroke={colors.tint} strokeWidth={2.2} />;
+          return <Circle key={p.session_number} cx={wellbeingX(p.session_number)} cy={wellbeingY(p.value)} r={isLast ? 6.5 : 3} fill={isLast ? colors.tint : colors.bgGrouped2} stroke={isLast ? colors.bgGrouped2 : colors.sageText} strokeWidth={isLast ? 2.5 : 2} />;
         })}
         {last ? (
           <SvgText
@@ -120,7 +126,7 @@ export function WellbeingCurve({ points }: { points: PermaPoint[] }) {
           >{`S${last.session_number} · ${Math.round(last.value)}`}</SvgText>
         ) : null}
         {[1, 3, 5, 7, 9, 11, 13].map((s) => (
-          <SvgText key={s} fontFamily={fontFamily} x={wellbeingX(s)} y={H - 6} textAnchor="middle" fontSize={11} fill={colors.label2}>{`S${s}`}</SvgText>
+          <SvgText key={s} fontFamily={fontFamily} x={wellbeingX(s)} y={H - 6} textAnchor="middle" fontSize={11} fill={colors.label3}>{`S${s}`}</SvgText>
         ))}
       </Svg>
     </View>
