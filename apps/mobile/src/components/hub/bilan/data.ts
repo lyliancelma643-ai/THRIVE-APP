@@ -147,23 +147,31 @@ export function useBilanData(childId: string | null) {
 }
 
 /** Forfait de la famille de l'enfant (families.pack) : pilote les sections analytiques (aperçu si fermé). */
-export function usePack(childId: string | null): { pack: Pack; can: (f: PlanFeature) => boolean } {
+export function usePack(childId: string | null): { pack: Pack; loaded: boolean; can: (f: PlanFeature) => boolean } {
   const [pack, setPack] = useState<Pack>('ESSENTIEL');
+  const [loaded, setLoaded] = useState(false);
   useEffect(() => {
-    if (!childId) return;
+    if (!childId) {
+      setLoaded(true);
+      return;
+    }
+    setLoaded(false);
     let ok = true;
     Promise.resolve(supabase.from('children').select('family_id, family:families (id, pack)').eq('id', childId).maybeSingle())
       .then(({ data }) => {
         const rel = (data as { family?: { pack?: string } | { pack?: string }[] } | null)?.family;
         const fam = Array.isArray(rel) ? rel[0] : rel;
-        if (ok) setPack(asPack(fam?.pack));
+        if (ok) {
+          setPack(asPack(fam?.pack));
+          setLoaded(true);
+        }
       })
-      .catch(() => {});
+      .catch(() => ok && setLoaded(true));
     return () => {
       ok = false;
     };
   }, [childId]);
-  return { pack, can: (f) => can(pack, f) };
+  return { pack, loaded, can: (f) => can(pack, f) };
 }
 
 /** Couleur du passeport (préréglages de lib/avatar.ts du web). */

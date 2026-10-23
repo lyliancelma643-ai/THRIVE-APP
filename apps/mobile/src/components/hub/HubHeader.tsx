@@ -181,7 +181,7 @@ export function HubHeader() {
       </Sheet>
 
       {/* Notifications : le panneau déroulant de la cloche du web. */}
-      <Popover visible={menu === 'notifs'} onClose={() => setMenu(null)} top={top} left={12} right={12} width={undefined} accessibilityLabel="Notifications" style={{ maxHeight: 520 }}>
+      <Popover visible={menu === 'notifs'} onClose={() => setMenu(null)} top={top} left={12} right={12} accessibilityLabel="Notifications" style={{ maxHeight: 520 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
           <WText size={12} weight={700} tracking={0.12} upper tone="faint">
             Notifications

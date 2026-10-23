@@ -28,7 +28,7 @@ const formatTime = (dateStr: string | null) => {
 export default function ParentMessagesScreen() {
   const router = useRouter();
   const child = useSelectedChild();
-  const { can } = usePack(child?.id ?? null);
+  const { can, loaded: packLoaded } = usePack(child?.id ?? null);
   const canCoach = can('coachMessaging');
   const { conversations, isLoading, error, refetch, openCoachConversation, openSupportConversation } = useConversations();
   const { refresh: refreshBadges } = useHub();
@@ -37,6 +37,7 @@ export default function ParentMessagesScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    if (!packLoaded) return;
     let cancelled = false;
     (async () => {
       const support = await openSupportConversation().catch(() => null);
@@ -53,7 +54,7 @@ export default function ParentMessagesScreen() {
       cancelled = true;
     };
     // Les deux RPC sont stables pour un même compte : on ne rouvre que si l'enfant ou le droit change.
-  }, [child?.id, canCoach]);
+  }, [child?.id, canCoach, packLoaded]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

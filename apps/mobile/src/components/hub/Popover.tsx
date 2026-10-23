@@ -37,7 +37,7 @@ export function Popover({
         accessibilityLabel={accessibilityLabel}
         style={[
           {
-            position: 'absolute', top, right: left === undefined ? right : undefined, left, width,
+            position: 'absolute', top, right, left, width,
             opacity: v,
             borderRadius: 18,
             shadowColor: '#000A14', shadowOpacity: w.isNight ? 0.5 : 0.18, shadowRadius: 25, shadowOffset: { width: 0, height: 18 }, elevation: 12,

@@ -66,7 +66,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const access = useSubscriptionStore((s) => s.access);
   const view = access ? sectionView(access, 'bilan') : null;
   const { data, reload } = useBilanData(child && view && view !== 'locked' ? child.id : null);
-  const { can } = usePack(child?.id ?? null);
+  const { can, loaded: packLoaded } = usePack(child?.id ?? null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [infoKey, setInfoKey] = useState<string | null>(null);
   const [detailKey, setDetailKey] = useState<DetailKey | null>(null);
@@ -197,7 +197,8 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
       </View>
     );
   }
-  if (!data || !html) return <BilanSkeleton />;
+  // Le gabarit attend le forfait : jamais de « Contenu réservé » affiché un instant à tort.
+  if (!data || !html || !packLoaded) return <BilanSkeleton />;
 
   const identity = data.identity;
   return (
