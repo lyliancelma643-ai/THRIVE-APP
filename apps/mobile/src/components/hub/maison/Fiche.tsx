@@ -5,7 +5,6 @@
 
 import { useState } from 'react';
 import { Pressable, View, useWindowDimensions } from 'react-native';
-import * as Clipboard from 'expo-clipboard';
 import { Paper } from '../../../design';
 import { BackLink, Eyebrow, LaunchButton, NcCard, NcRow, Tap, WIcon, WSection, WText, useWeb, type WIconName } from '../../../design/web';
 import { frTypo, timerSummary } from '../../activite/flow';
@@ -62,6 +61,8 @@ function FicheBody({
 
   const copy = async () => {
     try {
+      // Chargé au toucher seulement : jamais au lancement de l'app.
+      const Clipboard = await import('expo-clipboard');
       await Clipboard.setStringAsync(r.opener.replace(/^«\s*|\s*»$/g, ''));
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);

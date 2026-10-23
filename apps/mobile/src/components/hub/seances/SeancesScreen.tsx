@@ -6,7 +6,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { LayoutAnimation, Platform, RefreshControl, UIManager, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import * as Calendar from 'expo-calendar';
 import Svg, { Circle } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { supabaseClient as supabase } from '@thrive/shared';
@@ -232,6 +231,8 @@ function NextSessionCard({ session, fallbackTitle, childName, coachName }: { ses
     const start = new Date(session.scheduled_at);
     const end = new Date(start.getTime() + (session.duration_minutes || 60) * 60_000);
     try {
+      // Chargé au toucher seulement : jamais au lancement de l'app.
+      const Calendar = await import('expo-calendar');
       const r = await Calendar.createEventInCalendarAsync({
         title: `THRIVE · ${title} (${childName})`,
         startDate: start,
