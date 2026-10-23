@@ -8,6 +8,7 @@ import {
   type ParentRoute,
 } from '../../design';
 import { useTrialReminder } from '../../hooks/useTrialReminder';
+import { HubProvider } from '../../components/hub/HubProvider';
 
 // Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
 // déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
@@ -25,6 +26,9 @@ const HIDDEN = [
   'moment/[activityId]',
   'parcours',
   'carnet',
+  'toutes',
+  'programme',
+  'sources',
   'videos',
   'fin-de-parcours',
   'offres',
@@ -38,7 +42,7 @@ const HIDDEN = [
 ];
 
 // Écrans plein écran du canevas (fiche moment, moment en cours, séance vidéo) : sans barre d'onglets.
-const FULL_SCREEN = new Set(['activite/[activityId]', 'moment/[activityId]', 'video/[step]', 'questionnaire-enfant']);
+const FULL_SCREEN = new Set(['moment/[activityId]', 'video/[step]', 'questionnaire-enfant']);
 
 type BarProps = {
   state: { index: number; routes: { name: string }[] };
@@ -72,6 +76,7 @@ export default function ParentLayout() {
   // Rappel local à J-3 de la fin du mois gratuit (Maison), sans lien ni prix.
   useTrialReminder();
   return (
+    <HubProvider>
     <Tabs
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}
@@ -83,6 +88,7 @@ export default function ParentLayout() {
         <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}
     </Tabs>
+    </HubProvider>
   );
 }
 

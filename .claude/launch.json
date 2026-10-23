@@ -16,7 +16,7 @@
       "runtimeExecutable": "sh",
       "runtimeArgs": [
         "-c",
-        "cd apps/mobile && CI=1 npx expo start --web --port 8081"
+        "cd apps/mobile && npx expo start --web --port 8081"
       ],
       "port": 8081
     }

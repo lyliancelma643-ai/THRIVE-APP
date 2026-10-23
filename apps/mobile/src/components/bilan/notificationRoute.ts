@@ -21,9 +21,18 @@ export function mobileTargetForPath(path: unknown): MobileTarget | null {
       return { pathname: '/(parent)/bilans', params };
     }
     case '/parent/messages':
-      return { pathname: '/(parent)/messages' };
+      // ?c=<conversation> : ouvre le BON fil (coach ou support), comme le web.
+      return q.c ? { pathname: '/(parent)/chat/[conversationId]', params: { conversationId: q.c } } : { pathname: '/(parent)/messages' };
     case '/parent/my-sessions':
       return { pathname: '/(parent)/seances' };
+    case '/parent/fitness':
+      return { pathname: '/(parent)/maison' };
+    case '/parent/fitness/carnet':
+      return { pathname: '/(parent)/carnet' };
+    case '/parent/fitness/programme':
+      return { pathname: '/(parent)/programme' };
+    case '/parent/fitness/toutes':
+      return { pathname: '/(parent)/toutes' };
     default:
       return null;
   }

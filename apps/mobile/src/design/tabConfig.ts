@@ -36,11 +36,12 @@ const MAIN_TABS = [
 export const TAB_LAYOUTS: Record<StyleKey, TabLayout> = {
   lin: {
     tabs: MAIN_TABS,
-    prominent: { route: 'messages', label: 'Coach', glyph: 'chat', tone: 'felt' },
+    prominent: { route: 'messages', label: 'Messages : coach et support', glyph: 'chat', tone: 'felt' },
   },
+  // Le rond détaché mène toujours à la messagerie (coach et support THRIVE), dans les deux styles.
   veillee: {
     tabs: MAIN_TABS,
-    prominent: { route: 'maison', label: 'Ce soir', glyph: 'play', tone: 'felt' },
+    prominent: { route: 'messages', label: 'Messages : coach et support', glyph: 'chat', tone: 'felt' },
   },
 };
 

@@ -123,6 +123,13 @@
           "microphonePermission": false,
           "photosPermission": "THRIVE a besoin d’accéder à tes photos pour choisir la photo du passeport de ton enfant. Elle reste privée : visible uniquement par la famille, le coach et l’équipe THRIVE."
         }
+      ],
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "THRIVE ajoute la séance de ton enfant à ton calendrier quand tu le demandes. Rien d’autre n’est lu ni modifié.",
+          "remindersPermission": false
+        }
       ]
     ],
     "experiments": {

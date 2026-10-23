@@ -1,21 +1,22 @@
-// Fiches « Comprendre cette carte » (écran I) : textes du produit, repris de la page web (card-info.tsx,
-// « LA MÉTHODE THRIVE : PROTOCOLE » v1.0). Contenu pédagogique, pas de donnée d’enfant. Apostrophes typographiques.
+// Fiches « Comprendre cette carte » (écran I) : COPIE EXACTE de CARD_INFO de la page web
+// (apps/web/src/app/parent/(hub)/bilans/card-info.tsx), régénérée depuis le web. Contenu pédagogique, pas de donnée d’enfant.
 export type InfoSection = { label: string; text?: string; bullets?: string[] };
-export type CardInfo = { badge: string; title: string; tagline: string; sections: InfoSection[]; tip?: string };
+export type CardInfo = { icon?: string; badge: string; title: string; tagline: string; sections: InfoSection[]; tip?: string };
 
 export const CARD_INFO: Record<string, CardInfo> = {
   "passeport": {
+    "icon": "◷",
     "badge": "Séance 1",
     "title": "Passeport athlète",
-    "tagline": "La carte d’identité sportive de ton enfant, construite dès la première rencontre.",
+    "tagline": "La carte d'identité sportive de ton enfant, construite dès la première rencontre.",
     "sections": [
       {
-        "label": "C’est quoi ?",
-        "text": "Le résumé de qui est ton enfant en tant qu’athlète : son sport, son poste, son club, son coach et sa force n°1. Il est rempli avec le coach lors de la séance 1, puis mis à jour tout au long du parcours."
+        "label": "C'est quoi ?",
+        "text": "Le résumé de qui est ton enfant en tant qu'athlète : son sport, son poste, son club, son coach et sa force n°1. Il est rempli avec le coach lors de la séance 1, puis mis à jour tout au long du parcours."
       },
       {
         "label": "Pourquoi c’est important ?",
-        "text": "THRIVE commence par apprendre à connaître le jeune — pas à l’évaluer. À la première séance : aucun chrono, aucune note, aucune évaluation. Le coach observe, écoute et découvre. C’est cette relation de confiance qui rend tout le reste possible."
+        "text": "THRIVE commence par apprendre à connaître le jeune — pas à l'évaluer. À la première séance : aucun chrono, aucun score, aucune note. Le coach observe, écoute et découvre. C'est cette relation de confiance qui rend tout le reste possible."
       },
       {
         "label": "Ce que le coach y note",
@@ -29,13 +30,14 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Demande à ton enfant : « C’est quoi ta plus grande force sur la glace ? » Sa réponse vient directement de ce travail avec le coach."
   },
   "programme": {
+    "icon": "★",
     "badge": "S1 → S13",
     "title": "Programme complété",
     "tagline": "Le chemin parcouru sur les 13 séances de la méthode THRIVE.",
     "sections": [
       {
-        "label": "C’est quoi ?",
-        "text": "Cette jauge montre combien de séances sont terminées sur les 13 du programme. Chaque séance combine un exercice sur la glace, un moment d’apprentissage de 10 à 15 minutes et une discussion pour relier le tout à la vraie vie."
+        "label": "C'est quoi ?",
+        "text": "Cette jauge montre combien de séances sont terminées sur les 13 du programme. Chaque séance combine un exercice sur la glace, un moment d'apprentissage de 10 à 15 minutes et une discussion pour relier le tout à la vraie vie."
       },
       {
         "label": "Les 3 phases du parcours",
@@ -47,18 +49,19 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Pourquoi 13 séances ?",
-        "text": "Assez long pour créer de vrais changements durables, assez court pour garder la motivation intacte. Chaque séance s’appuie sur la précédente, comme les marches d’un escalier."
+        "text": "Assez long pour créer de vrais changements durables, assez court pour garder la motivation intacte. Chaque séance s'appuie sur la précédente, comme les marches d'un escalier."
       }
     ],
     "tip": "La régularité compte plus que la vitesse : mieux vaut une séance par semaine bien ancrée que trois séances pressées."
   },
   "perma": {
+    "icon": "☀️",
     "badge": "Après chaque séance",
     "title": "Progression du bien-être",
     "tagline": "La météo du bien-être de ton enfant, séance après séance.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "EPOCH est une échelle scientifique de bien-être validée pour les 10–18 ans (Kern, Benson, Steinberg & Steinberg, 2016). Après chaque séance, ton enfant répond à un court questionnaire sur son bien-être."
       },
       {
@@ -73,18 +76,19 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Comment ça marche ?",
-        "text": "La mesure est prise après chaque séance : la courbe suit l’évolution du bien-être tout au long des 13 séances. Chaque point est la moyenne des 5 dimensions (20 questions, échelle de « presque jamais » à « presque toujours »)."
+        "text": "La mesure est prise après chaque séance : la courbe suit l'évolution du bien-être tout au long des 13 séances. Chaque point est la moyenne des 5 dimensions (20 questions, échelle de « presque jamais » à « presque toujours »)."
       }
     ],
     "tip": "Le bien-être et la performance vont ensemble : un enfant qui se sent bien apprend et progresse mieux."
   },
   "lsss": {
+    "icon": "⤢",
     "badge": "Mesuré S1 · S7 · S13",
     "title": "Progression des compétences de vie",
     "tagline": "La courbe scientifique qui montre ce que le sport apprend… pour la vie.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "LSSS veut dire « Life Skills Scale for Sport » : une échelle scientifique validée par des chercheurs (Cronin & Allen, 2017). Ton enfant répond à des phrases qui commencent toutes par : « Ce sport m’a appris à… »."
       },
       {
@@ -98,18 +102,19 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Comment ça marche ?",
-        "text": "La mesure est prise 3 fois : au départ (S1), à mi-parcours (S7) et à la fin (S13). Si la courbe monte, les compétences grandissent — pas seulement au hockey, partout. Le questionnaire est adapté à l’âge : pour les 8–11 ans, c’est le coach qui observe avec une grille."
+        "text": "La mesure est prise 3 fois : au départ (S1), à mi-parcours (S7) et à la fin (S13). Si la courbe monte, les compétences grandissent — pas seulement au hockey, partout. Le questionnaire est adapté à l'âge : pour les 8–11 ans, c'est le coach qui observe avec une grille."
       }
     ],
     "tip": "La « zone cible » sur le graphique montre le niveau qu’on veut atteindre ensemble d’ici la fin du programme."
   },
   "parcours": {
+    "icon": "▦",
     "badge": "13 étapes",
     "title": "Parcours des 13 séances",
     "tagline": "La carte du voyage THRIVE, pastille par pastille.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Chaque pastille représente une séance. Les dorées sont des étapes clés : S1 (le grand départ et la première mesure), S4 (le travail sur les émotions commence), S7 (le bilan de mi-parcours, où le parent est rencontré)."
       },
       {
@@ -122,19 +127,20 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "La règle d’or",
-        "text": "La difficulté vient toujours de l’exercice, jamais du coach. Un coach THRIVE ne critique pas pour « endurcir » : la recherche montre que ça produit l’effet inverse chez les jeunes."
+        "text": "La difficulté vient toujours de l'exercice, jamais du coach. Un coach THRIVE ne critique pas pour « endurcir » : la recherche montre que ça produit l'effet inverse chez les jeunes."
       }
     ],
     "tip": "Après chaque séance, demande plutôt « Qu’est-ce que tu as appris ? » que « As-tu gagné ? »."
   },
   "competences": {
-    "badge": "Vue d’ensemble",
+    "icon": "✓",
+    "badge": "Score global",
     "title": "Compétences de vie",
     "tagline": "Le niveau global des habiletés utiles partout — pas juste sur la glace.",
     "sections": [
       {
-        "label": "C’est quoi ?",
-        "text": "Un repère qui résume où en est ton enfant dans ses « life skills » : les compétences qu’on apprend par le sport mais qu’on utilise dans toute la vie — à l’école, à la maison, avec les amis."
+        "label": "C'est quoi ?",
+        "text": "Un score qui résume où en est ton enfant dans ses « life skills » : les compétences qu’on apprend par le sport mais qu’on utilise dans toute la vie — à l’école, à la maison, avec les amis."
       },
       {
         "label": "Les 8 familles mesurées",
@@ -151,18 +157,19 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Pourquoi c’est le vrai but ?",
-        "text": "THRIVE n’est pas un programme pour former un meilleur joueur de hockey — c’est un programme pour former un jeune plus solide, qui utilise le hockey comme terrain d’entraînement. Le repère qui monte, c’est ça, la victoire."
+        "text": "THRIVE n'est pas un programme pour former un meilleur joueur de hockey — c'est un programme pour former un jeune plus solide, qui utilise le hockey comme terrain d'entraînement. Le score qui monte, c'est ça, la victoire."
       }
     ],
     "tip": "Cette jauge suit les mesures LSSS (S1 · S7 · S13) : elle avance au rythme des vraies évaluations, pas des impressions."
   },
   "boite": {
+    "icon": "◎",
     "badge": "Séance 11",
     "title": "Boîte à outils",
     "tagline": "Les outils mentaux collectés séance après séance — et gardés pour la vie.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Au fil du programme, ton enfant construit des outils concrets : la respiration qui calme, le focus word, la routine pré-tir, l’auto-encouragement… À la séance 11, il remplit sa « Carte Ma Boîte à Outils » : c’est lui qui nomme ses 6 outils et explique quand il les utilise en dehors du sport."
       },
       {
@@ -177,12 +184,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "La carte des 6 outils lui appartient : il la garde après le programme. Affichez-la quelque part à la maison !"
   },
   "etapes": {
+    "icon": "⊟",
     "badge": "À venir",
     "title": "Prochaines étapes",
     "tagline": "Ce qui s’en vient dans le parcours — pour ne rien manquer.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Le radar des prochaines actions : la séance à programmer, les prochains outils à débloquer et les grandes étapes du parcours (bilan LSSS, boîte à outils, lettre finale)."
       },
       {
@@ -201,12 +209,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Ta présence est attendue à deux moments clés : le bilan de mi-parcours (S7) et la célébration finale (S13)."
   },
   "identite": {
+    "icon": "◈",
     "badge": "Séance 1",
     "title": "Fiche Identité Athlète",
     "tagline": "Le portrait de départ : forces, histoire et rêve de saison.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Le tout premier document du parcours, rempli pendant la séance 1. Il contient l’histoire sportive de ton enfant, ses forces de caractère et son rêve de saison en une phrase."
       },
       {
@@ -225,12 +234,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Relisez le rêve de saison ensemble de temps en temps : « On en est où, par rapport à ton rêve ? »"
   },
   "objectif": {
+    "icon": "◎",
     "badge": "Séance 2",
     "title": "Fiche Objectif THRIVE",
     "tagline": "Deux objectifs choisis par ton enfant — un pour le sport, un pour la vie.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "À la séance 2, ton enfant formule lui-même — pas le coach, pas le parent ! — deux objectifs pour la saison : un objectif sportif technique et un objectif de compétence de vie."
       },
       {
@@ -251,12 +261,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Cette méthode marche aussi à l’école : propose-lui de formuler un objectif SMART avant son prochain examen."
   },
   "focus": {
+    "icon": "✦",
     "badge": "Séance 9",
     "title": "Focus Word",
     "tagline": "Un seul mot, choisi par ton enfant, pour ramener sa tête au bon endroit.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Un mot court — 1 à 3 syllabes — que ton enfant a choisi lui-même : « glisse », « calme », « bâton »… Il se le dit juste avant un moment difficile pour concentrer son attention sur le geste, pas sur la peur de rater."
       },
       {
@@ -271,12 +282,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Ton enfant a une petite carte avec son mot (format billet de métro). Elle marche aussi avant un exposé ou un devoir — glisse-la dans son agenda."
   },
   "emotions": {
+    "icon": "◍",
     "badge": "Séances 4 · 5",
     "title": "Roue des Émotions",
     "tagline": "D’abord reconnaître ce qu’on ressent, ensuite savoir quoi en faire.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Un outil visuel avec 6 émotions fréquentes dans le sport : frustration, peur, colère, joie, fierté, nervosité. En S4, ton enfant apprend à reconnaître et nommer l’émotion pendant l’action. En S5, il apprend à agir dessus."
       },
       {
@@ -298,12 +310,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Après un match ou une grosse journée : « T’étais où sur la roue, aujourd’hui ? » — une question simple qui ouvre de vraies conversations."
   },
   "routine": {
+    "icon": "◷",
     "badge": "Séance 6",
     "title": "Routine pré-tir",
     "tagline": "3 étapes, toujours les mêmes, pour rester calme sous pression.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Une mini-séquence que ton enfant exécute toujours de la même façon avant une action sous pression : ① respirer (expirer lentement, sentir le ventre), ② sentir ses appuis (« Sens tes pieds sur la glace, tes mains sur le bâton — ici, maintenant »), ③ dire son mot-ancre et y aller."
       },
       {
@@ -312,23 +325,24 @@ export const CARD_INFO: Record<string, CardInfo> = {
       },
       {
         "label": "Apprise sous vraie pression",
-        "text": "La routine est entraînée pendant des tirs chronométrés, devant tout le monde — une pression réelle mais bienveillante. Une technique apprise seulement au calme ne fonctionne pas le jour du match : c’est pour ça que THRIVE l’entraîne en situation."
+        "text": "La routine est entraînée pendant des tirs chronométrés avec score visible — une pression réelle mais bienveillante. Une technique apprise seulement au calme ne fonctionne pas le jour du match : c’est pour ça que THRIVE l’entraîne en situation."
       }
     ],
     "tip": "Ton enfant a une carte plastifiée des 3 étapes dans son sac de hockey. La même routine marche avant un contrôle ou un exposé."
   },
   "contrat": {
+    "icon": "✎",
     "badge": "Séance 1",
     "title": "Contrat de confiance",
     "tagline": "Un engagement signé à trois : l’athlète, le coach… et toi.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Dès la première séance, les trois parties signent un engagement mutuel : l’enfant s’engage à essayer, le coach à accompagner sans juger, le parent à soutenir le parcours."
       },
       {
         "label": "Pourquoi c’est fondamental ?",
-        "text": "La recherche est formelle : ce qui fait le plus progresser un jeune, c’est la qualité du lien de confiance avec la personne qui l’accompagne — ce qu’on appelle l’« alliance ». Toute la séance 1 y est consacrée : zéro évaluation, zéro chrono, zéro note."
+        "text": "La recherche est formelle : ce qui fait le plus progresser un jeune, c’est la qualité du lien de confiance avec la personne qui l’accompagne — ce qu’on appelle l’« alliance ». Toute la séance 1 y est consacrée : zéro évaluation, zéro chrono, zéro score."
       },
       {
         "label": "L’engagement du parent",
@@ -342,12 +356,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Le mot d’ordre du coach en S1 : « Mon seul travail aujourd’hui, c’est d’apprendre qui tu es. »"
   },
   "lettre": {
+    "icon": "✉",
     "badge": "Séance 13",
     "title": "Lettre à moi-même dans 1 an",
     "tagline": "Une capsule temporelle écrite par ton enfant, pour ton enfant.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "À la dernière séance, ton enfant écrit (ou dicte) une lettre à la personne qu’il sera dans un an : ce qu’il a appris, ce qu’il veut continuer, ce qu’il veut devenir. La lettre est scellée dans une enveloppe — interdiction de l’ouvrir avant 12 mois !"
       },
       {
@@ -362,12 +377,13 @@ export const CARD_INFO: Record<string, CardInfo> = {
     "tip": "Notez ensemble la date d’ouverture au calendrier et faites-en un petit événement familial, lui et toi."
   },
   "certificat": {
+    "icon": "◈",
     "badge": "Séance 13",
     "title": "Certificat THRIVE",
     "tagline": "La reconnaissance officielle d’un parcours accompli — et personnalisée.",
     "sections": [
       {
-        "label": "C’est quoi ?",
+        "label": "C'est quoi ?",
         "text": "Le certificat est remis à la 13e et dernière séance, lors d’une célébration à laquelle le parent est invité pour les 10 dernières minutes. Il est personnalisé : il mentionne les 3 forces signatures identifiées dès la première séance."
       },
       {
