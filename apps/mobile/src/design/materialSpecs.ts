@@ -20,18 +20,21 @@ export const TEXTURE_FILES: Record<TextureName, string> = {
   ribs: 'ribs.png',
 };
 
-/** Poids maximal d'une tuile (octets). */
-export const TEXTURE_MAX_BYTES = 20 * 1024;
+/** Poids maximal d'une tuile (octets) : tuiles en pleine qualité, double résolution (scripts/design/bake-textures.mjs). */
+export const TEXTURE_MAX_BYTES = 120 * 1024;
 
-/** Mélange CSS `background-blend-mode` : doux pour feutre/émail/grain, normal pour papier, lin, vergé, côtes. */
+/**
+ * Mélange de pose. Feutre, émail et grain sont en « lumière douce » sur le web : leurs tuiles sont PRÉCUITES pour
+ * ce rendu (bake-textures.mjs), elles se posent donc toutes en mélange normal — même relief sur iPhone, Android et web.
+ */
 export type TextureBlend = 'soft-light' | 'normal';
 
 export const TEXTURE_BLEND: Record<TextureName, TextureBlend> = {
-  grain: 'soft-light',
+  grain: 'normal',
   grainSoft: 'normal',
-  felt: 'soft-light',
-  feltStrong: 'soft-light',
-  enamel: 'soft-light',
+  felt: 'normal',
+  feltStrong: 'normal',
+  enamel: 'normal',
   paper: 'normal',
   linen: 'normal',
   laid: 'normal',

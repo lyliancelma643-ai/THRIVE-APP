@@ -125,12 +125,11 @@ export function Felt({ strong, raised, color, radius = 26, padding = 0, style, c
       >
         <View style={{ borderRadius: radius, overflow: 'hidden', padding }}>
           <Texture name={spec.texture} />
+          {/* inset 0 -3px 8px rgba(0,0,0,.22) du web : une ombre de 11 pt au pied, quelle que soit la hauteur. */}
           <LinearGradient
             pointerEvents="none"
             colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.22)']}
-            start={{ x: 0, y: 0.7 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 11 }}
           />
           <View
             pointerEvents="none"
@@ -183,9 +182,7 @@ export function Velvet({ radius = 26, padding = 0, style, children, ...rest }: V
           <LinearGradient
             pointerEvents="none"
             colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.25)']}
-            start={{ x: 0, y: 0.75 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 34 }}
           />
           <View
             pointerEvents="none"

@@ -3,8 +3,8 @@
 // fois validée, anneau qui respire sur la séance en cours) et le bilan du coach déplié sous la séance (RPC filtré
 // `session_report`, migration 039 : le serveur n'envoie jamais le contenu réservé).
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, LayoutAnimation, Platform, RefreshControl, UIManager, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { LayoutAnimation, Platform, RefreshControl, UIManager, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as Calendar from 'expo-calendar';
 import Svg, { Circle } from 'react-native-svg';
@@ -189,16 +189,9 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
   );
 }
 
-/** Pastille du numéro : l'anneau d'accent respire sur la séance en cours (om-ring, 2,6 s). */
+/** Pastille du numéro : sauge cochée (validée), jaune plein (en cours, sans anneau autour), contour (à venir). */
 function NumberBadge({ n, state }: { n: number; state: 'done' | 'current' | 'off' | 'todo' }) {
   const w = useWeb();
-  const ring = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (state !== 'current' || w.reduceMotion) return;
-    const loop = Animated.loop(Animated.timing(ring, { toValue: 1, duration: 2600, easing: Easing.inOut(Easing.ease), useNativeDriver: true }));
-    loop.start();
-    return () => loop.stop();
-  }, [state, ring, w.reduceMotion]);
   const base = { width: 34, height: 34, borderRadius: 17, alignItems: 'center' as const, justifyContent: 'center' as const };
   if (state === 'done') {
     return (
@@ -209,22 +202,10 @@ function NumberBadge({ n, state }: { n: number; state: 'done' | 'current' | 'off
   }
   if (state === 'current') {
     return (
-      <View>
-        <Animated.View
-          style={[
-            base,
-            {
-              position: 'absolute', backgroundColor: 'rgba(249,235,80,0.34)',
-              opacity: ring.interpolate({ inputRange: [0, 0.5, 1], outputRange: [0.9, 0, 0.9] }),
-              transform: [{ scale: ring.interpolate({ inputRange: [0, 0.5, 1], outputRange: [1, 1.42, 1] }) }],
-            },
-          ]}
-        />
-        <View style={[base, { backgroundColor: w.accent }]}>
-          <WText display size={15} weight={600} color="#06222A" lh={18}>
-            {String(n)}
-          </WText>
-        </View>
+      <View style={[base, { backgroundColor: w.accent }]}>
+        <WText display size={15} weight={600} color="#06222A" lh={18}>
+          {String(n)}
+        </WText>
       </View>
     );
   }

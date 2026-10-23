@@ -37,6 +37,8 @@ html,body{margin:0;padding:0;background:transparent;-webkit-text-size-adjust:100
 .bilan-host [data-info]:active,.bilan-host [data-href]:active,.bilan-host [data-doc]:active,.bilan-host [data-action]:active{transform:scale(.985);transition:transform .12s ease;}
 @keyframes b-flashC{0%,100%{box-shadow:0 0 0 0 rgba(249,235,80,0)}30%{box-shadow:0 0 0 3px rgba(249,235,80,.55)}}
 .bilan-host .b-flash{animation:b-flashC 1.6s ease 2;}
+/* Pas d'anneau qui grossit autour de la pastille jaune de la séance en cours : la pastille seule. */
+.bilan-host [style*="b-ring"]{animation:none!important;box-shadow:none!important;}
 `;
 
 export default function BilanDom({ html, vars, focus, hideUpgrade, onAction, onFocusOffset }: Props) {

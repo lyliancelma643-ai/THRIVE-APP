@@ -324,34 +324,16 @@ export function IconBtn({
 }
 
 /**
- * `.maison-launch` : l'émail jaune (le seul geste soleil) avec son halo qui respire (3,4 s).
+ * `.maison-launch` : l'émail jaune (le seul geste soleil). Le bouton seul, sans halo autour : il ne grossit pas,
+ * seule la pression iOS l'enfonce légèrement.
  */
 export function LaunchButton({
   label, onPress, icon = 'play', height = 56, style, accessibilityLabel, fontSize = 17,
 }: { label: string; onPress: () => void; icon?: WIconName | null; height?: number; style?: StyleProp<ViewStyle>; accessibilityLabel?: string; fontSize?: number }) {
   const w = useWeb();
-  const halo = useRef(new Animated.Value(0)).current;
-  useEffect(() => {
-    if (w.reduceMotion) return;
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(halo, { toValue: 1, duration: 1700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(halo, { toValue: 0, duration: 1700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [halo, w.reduceMotion]);
   const r = height / 2;
   return (
     <Tap onPress={onPress} accessibilityRole="button" accessibilityLabel={accessibilityLabel ?? label} style={style}>
-      <Animated.View
-        pointerEvents="none"
-        style={{
-          position: 'absolute', top: -8, left: -8, right: -8, bottom: -8, borderRadius: r + 8, borderWidth: 8, borderColor: 'rgba(249,235,80,0.3)',
-          opacity: halo, transform: [{ scale: halo.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] }) }],
-        }}
-      />
       <Enamel radius={r}>
         <View style={{ height, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 18 }}>
           {icon ? <WIcon name={icon} size={18} color={w.onAccent} /> : null}
