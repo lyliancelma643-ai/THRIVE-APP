@@ -37,6 +37,14 @@
         "EXPO_PUBLIC_APP_ENV": "production",
         "EXPO_PUBLIC_OFFRES_PROGRAMMES_IN_APP": "false"
       }
+    },
+    "simulator": {
+      "extends": "production",
+      "distribution": "internal",
+      "autoIncrement": false,
+      "ios": {
+        "simulator": true
+      }
     }
   },
   "submit": {
