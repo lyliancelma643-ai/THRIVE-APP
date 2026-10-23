@@ -11,6 +11,7 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { sectionView } from '../../../services/access';
+import { OFFRES_PROGRAMMES_IN_APP } from '../../../lib/offresFlags';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import BilanDom, { type BilanAction } from './BilanDom';
@@ -72,6 +73,8 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const [editOpen, setEditOpen] = useState(false);
   const [docError, setDocError] = useState(false);
   const [focus, setFocus] = useState<string | null>(null);
+  const [domFailed, setDomFailed] = useState(false);
+  const [domKey, setDomKey] = useState(0);
   const top = useRef(0);
 
   // Glisser vers le bas : relecture du dossier.
@@ -222,19 +225,40 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
         </View>
       ) : null}
 
-      <View onLayout={(e) => (top.current = e.nativeEvent.layout.y)}>
-        <BilanDom
-          html={html}
-          vars={vars}
-          focus={focus}
-          onAction={onAction}
-          onFocusOffset={async (y) => {
-            scrollRef.current?.scrollTo({ y: Math.max(0, top.current + y - 120), animated: false });
-            setFocus(null);
-          }}
-          dom={{ matchContents: true, scrollEnabled: false, useExpoDOMWebView: true, style: { backgroundColor: 'transparent' } }}
-        />
-      </View>
+      {domFailed ? (
+        <View style={{ alignItems: 'center', paddingVertical: 48, gap: 16 }} accessibilityRole="alert">
+          <WText size={15} tone="soft" center>
+            La carte d’identité n’a pas pu s’afficher. Vérifie ta connexion, puis réessaie.
+          </WText>
+          <AccentButton
+            label="Réessayer"
+            height={44}
+            onPress={() => {
+              setDomFailed(false);
+              setDomKey((k) => k + 1);
+            }}
+          />
+        </View>
+      ) : (
+        <View onLayout={(e) => (top.current = e.nativeEvent.layout.y)}>
+          <BilanDom
+            key={domKey}
+            html={html}
+            vars={vars}
+            focus={focus}
+            hideUpgrade={!OFFRES_PROGRAMMES_IN_APP}
+            onAction={onAction}
+            onFocusOffset={async (y) => {
+              scrollRef.current?.scrollTo({ y: Math.max(0, top.current + y - 120), animated: false });
+              setFocus(null);
+            }}
+            dom={{
+              matchContents: true, scrollEnabled: false, useExpoDOMWebView: true, style: { backgroundColor: 'transparent' },
+              onError: () => setDomFailed(true),
+            }}
+          />
+        </View>
+      )}
 
       <DetailSheet
         detailKey={detailKey}

@@ -18,6 +18,8 @@ type Props = {
   vars: Record<string, string>;
   /** Carte à mettre en évidence à l'arrivée (notification ?focus=…). */
   focus?: string | null;
+  /** Anti-steering (Apple 3.1.1) : sans offre de programme dans l'app, les liens « Voir les forfaits » disparaissent. */
+  hideUpgrade?: boolean;
   onAction: (a: BilanAction) => Promise<void>;
   /** Position de la carte visée (px depuis le haut du gabarit), pour que l'app y fasse défiler. */
   onFocusOffset?: (y: number) => Promise<void>;
@@ -37,7 +39,7 @@ html,body{margin:0;padding:0;background:transparent;-webkit-text-size-adjust:100
 .bilan-host .b-flash{animation:b-flashC 1.6s ease 2;}
 `;
 
-export default function BilanDom({ html, vars, focus, onAction, onFocusOffset }: Props) {
+export default function BilanDom({ html, vars, focus, hideUpgrade, onAction, onFocusOffset }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,7 +75,9 @@ export default function BilanDom({ html, vars, focus, onAction, onFocusOffset }:
 
   return (
     <div className="bilan-host" style={vars as React.CSSProperties}>
-      <style dangerouslySetInnerHTML={{ __html: FONTS + BASE + DESIGN_CSS }} />
+      <style
+        dangerouslySetInnerHTML={{ __html: FONTS + BASE + DESIGN_CSS + (hideUpgrade ? '.bilan-host [data-href="/parent/upgrade"]{display:none!important}' : '') }}
+      />
       <div ref={ref} onClick={onClick} dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   );

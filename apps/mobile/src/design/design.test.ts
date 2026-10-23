@@ -165,22 +165,19 @@ describe('VignetteImage — résolution', () => {
 });
 
 describe('barre d’onglets du parent', () => {
-  it('Lin : Maison · Bilan · Mes séances + Coach (messages)', () => {
-    const l = TAB_LAYOUTS.lin;
-    expect(l.tabs.map((t) => t.label)).toEqual(['Maison', 'Bilan', 'Mes séances']);
-    expect(l.prominent).toMatchObject({ label: 'Coach', route: 'messages' });
-  });
-  it('Veillée : mêmes trois onglets + Prominent « Ce soir » vers maison', () => {
-    const l = TAB_LAYOUTS.veillee;
-    expect(l.tabs.map((t) => t.label)).toEqual(['Maison', 'Bilan', 'Mes séances']);
-    expect(l.prominent).toMatchObject({ label: 'Ce soir', route: 'maison' });
+  it('Lin et Veillée : Maison · Bilan · Mes séances + le rond Messages (coach et support)', () => {
+    for (const l of [TAB_LAYOUTS.lin, TAB_LAYOUTS.veillee]) {
+      expect(l.tabs.map((t) => t.label)).toEqual(['Maison', 'Bilan', 'Mes séances']);
+      expect(l.prominent).toMatchObject({ label: 'Messages : coach et support', route: 'messages', glyph: 'chat' });
+    }
   });
   it('les routes visibles et masquées couvrent les six routes sans doublon', () => {
     const visible = TAB_LAYOUTS.lin.tabs.map((t) => t.route);
     expect([...visible, ...HIDDEN_FROM_BAR].sort()).toEqual(['bilans', 'dashboard', 'maison', 'messages', 'profile', 'seances']);
   });
-  it('onglet actif : la route du Prominent seule (Coach) n’allume aucun onglet ; Ce soir laisse Maison actif', () => {
+  it('onglet actif : la route du rond seule (Messages) n’allume aucun onglet', () => {
     expect(activeTabKey(TAB_LAYOUTS.lin, 'messages')).toBe('');
+    expect(activeTabKey(TAB_LAYOUTS.veillee, 'messages')).toBe('');
     expect(activeTabKey(TAB_LAYOUTS.lin, 'bilans')).toBe('bilans');
     expect(activeTabKey(TAB_LAYOUTS.veillee, 'maison')).toBe('maison');
     expect(activeTabKey(TAB_LAYOUTS.lin, undefined)).toBe('');

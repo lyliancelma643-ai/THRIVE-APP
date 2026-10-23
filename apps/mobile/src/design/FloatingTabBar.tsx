@@ -26,7 +26,7 @@ export type FloatingTabBarProps = {
    * Onglet Prominent (`.prom`) : rond de 62 pt détaché, icône seule (le libellé ne sert qu'à VoiceOver).
    * Toujours en feutre (marine #004E7A en Lin, #0B3C59 cerclé en Veillée) : jamais de jaune.
    */
-  prominent?: FloatingTab & { onPress: () => void };
+  prominent?: FloatingTab & { onPress: () => void; badge?: number };
 };
 
 /** Hauteur à réserver sous le contenu : barre + marge basse (hors zone sûre). */
@@ -87,7 +87,7 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
           testID="tab-prominent"
           onPress={prominent.onPress}
           accessibilityRole="button"
-          accessibilityLabel={prominent.label}
+          accessibilityLabel={prominent.badge ? `${prominent.label}, ${prominent.badge} non lu${prominent.badge > 1 ? 's' : ''}` : prominent.label}
           style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
         >
           <Felt raised radius={SPACING.tabbarH / 2} style={{ width: SPACING.tabbarH, height: SPACING.tabbarH }}>
@@ -95,6 +95,18 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
               {draw(prominent, colors.cream, 25)}
             </View>
           </Felt>
+          {prominent.badge && prominent.badge > 0 ? (
+            <View
+              style={{
+                position: 'absolute', top: -2, right: -2, minWidth: 20, height: 20, paddingHorizontal: 5, borderRadius: 10,
+                backgroundColor: colors.accent, borderWidth: 2, borderColor: colors.bgGrouped, alignItems: 'center', justifyContent: 'center',
+              }}
+            >
+              <ThemedText variant="cap2" weight={700} style={{ color: colors.accentInk, fontSize: 10, lineHeight: 12 }}>
+                {prominent.badge > 9 ? '9+' : String(prominent.badge)}
+              </ThemedText>
+            </View>
+          ) : null}
         </Pressable>
       ) : null}
     </View>

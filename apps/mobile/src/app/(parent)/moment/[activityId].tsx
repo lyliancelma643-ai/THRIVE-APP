@@ -27,6 +27,7 @@ import {
   playedDuration, prideLine, quitSubtitle, summarizeAfter, type EndSummary, type FlowCtx, type FlowEffect, type FlowEvent, type FlowState,
 } from '../../../components/activite/flow';
 import { vignetteIdFor } from '../../../lib/vignettes';
+import { pushWeekDone } from '../../../components/hub/session';
 import {
   PILLAR_PLAIN, PRIDE_LINES, REWARDS, activitiesOfWeek, fill, formatFullDate, getActivity, getWeek, p3Pool, recallLine, renderCaptureLabel,
   resolveActivity, type AgeBand, type Duration, type Moment, type P3Activity, type StepTimer, type VisualId,
@@ -121,9 +122,10 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
     insertMoment(childId, payload, { sealedAt: sealed !== null ? new Date(sealed).toISOString() : null }).then(
       () => {
         const after: Moment = { activity_id: activity.id, created_at: new Date(now).toISOString(), duration_chosen: payload.duration_chosen, rating: payload.rating };
-        setSummary(
-          summarizeAfter({ before: moments, after, activity, now: new Date(now), skipped: fx.skipped, rating: s.rating, outcome: s.outcome, kept: s.kept }),
-        );
+        const sum = summarizeAfter({ before: moments, after, activity, now: new Date(now), skipped: fx.skipped, rating: s.rating, outcome: s.outcome, kept: s.kept });
+        setSummary(sum);
+        // L'accueil Maison (copie du web) affichera « Semaine N complète. » à son retour.
+        if (sum.weekJustDone && activity.week !== null) pushWeekDone(childId, activity.week);
         dispatch({ t: 'record.done' });
         void reload();
       },
@@ -417,7 +419,7 @@ function MomentContent() {
     }, []),
   );
 
-  if (!activity || !view || activity.week === null || !childId) {
+  if (!activity || !view || !childId) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space6, backgroundColor: colors.bgGrouped }} accessibilityRole="alert">
         <ThemedText variant="body" color="label2" style={{ textAlign: 'center' }}>Cette activité n’est pas disponible.</ThemedText>

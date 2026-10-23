@@ -27,18 +27,15 @@ const MAIN_TABS = [
 ] as const satisfies readonly TabSpec[];
 
 /**
- * Barre d'onglets du parent par style, relevée sur les écrans K, G, S, U de v4.html / v5.html :
- * - Lin : Maison · Bilan · Mes séances + Coach (bulle, route `messages`).
- * - Veillée : mêmes trois onglets + « Ce soir » (lecture, route `maison`).
- * Le libellé du Prominent n'est lu que par VoiceOver. « Ce soir » n'a pas d'écran dédié : il ramène à Maison,
- * où vit l'affiche du soir.
+ * Barre d'onglets du parent (identique dans les deux styles) : Maison · Bilan · Mes séances, plus le rond détaché
+ * « Messages » (bulle, route `messages`) qui mène directement aux fils du coach et du Support THRIVE.
+ * Le libellé du rond n'est lu que par VoiceOver ; une pastille y montre les messages non lus.
  */
 export const TAB_LAYOUTS: Record<StyleKey, TabLayout> = {
   lin: {
     tabs: MAIN_TABS,
     prominent: { route: 'messages', label: 'Messages : coach et support', glyph: 'chat', tone: 'felt' },
   },
-  // Le rond détaché mène toujours à la messagerie (coach et support THRIVE), dans les deux styles.
   veillee: {
     tabs: MAIN_TABS,
     prominent: { route: 'messages', label: 'Messages : coach et support', glyph: 'chat', tone: 'felt' },

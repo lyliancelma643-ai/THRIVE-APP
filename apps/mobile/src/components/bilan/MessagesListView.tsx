@@ -11,6 +11,8 @@ export type ConversationItem = {
   preview: string;
   stamp: string;
   unread: number;
+  /** Fil pas encore ouvrable (coach pas encore attribué, ou hors forfait) : la ligne explique pourquoi. */
+  disabled?: boolean;
 };
 
 export type MessagesListViewProps = {
@@ -62,8 +64,8 @@ export function MessagesListView({ items, totalUnread, onOpen, onRefresh, refres
                       <ThemedText variant="cap2" style={{ color: colors.badgeInk }}>{c.unread}</ThemedText>
                     </View>
                   ) : undefined}
-                  chevron
-                  onPress={() => onOpen(c)}
+                  chevron={!c.disabled}
+                  onPress={c.disabled ? undefined : () => onOpen(c)}
                   accessibilityLabel={`Conversation avec ${c.name}${c.unread > 0 ? `, ${c.unread} non lu${c.unread > 1 ? 's' : ''}` : ''}`}
                 />
               ))}

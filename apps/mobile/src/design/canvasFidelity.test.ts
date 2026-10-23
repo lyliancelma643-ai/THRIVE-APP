@@ -179,9 +179,10 @@ describe('échelle typographique', () => {
 });
 
 describe('barres d’onglets relevées sur les écrans K, G, S, U de v4.html / v5.html', () => {
-  it('Lin : Coach (bulle, messages) ; Veillée : Ce soir (lecture, maison) ; feutre dans les deux cas', () => {
-    expect(TAB_LAYOUTS.lin.prominent).toMatchObject({ label: 'Coach', glyph: 'chat', route: 'messages', tone: 'felt' });
-    expect(TAB_LAYOUTS.veillee.prominent).toMatchObject({ label: 'Ce soir', glyph: 'play', route: 'maison', tone: 'felt' });
+  it('le rond détaché mène à la messagerie (bulle, feutre) dans les deux styles', () => {
+    for (const s of STYLE_KEYS) {
+      expect(TAB_LAYOUTS[s].prominent).toMatchObject({ glyph: 'chat', route: 'messages', tone: 'felt' });
+    }
   });
   it('Maison · Bilan · Mes séances (maison, étincelles, calendrier) dans les deux styles', () => {
     for (const s of STYLE_KEYS) {

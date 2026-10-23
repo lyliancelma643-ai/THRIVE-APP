@@ -500,7 +500,8 @@ export function buildCapture(
 
 export type MomentPayload = {
   activityId: string;
-  week: number;
+  /** null pour un bonus (hors semaine), comme sur le web. */
+  week: number | null;
   duration_chosen: Duration;
   duration_real_s: number | null;
   place: PlaceChoice;
@@ -532,7 +533,7 @@ export function buildMomentPayload(
     .filter((d) => d.answer);
   return {
     activityId: input.activity.id,
-    week: input.activity.week as number,
+    week: input.activity.week,
     duration_chosen: playedDuration(input.baseDuration, s.ext.extraMinutes),
     duration_real_s:
       s.startedAt !== null ? Math.min(MAX_REAL_DURATION_S, Math.max(0, Math.round(((s.endedAt ?? input.now) - s.startedAt) / 1000))) : null,

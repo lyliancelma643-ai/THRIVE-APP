@@ -8,7 +8,7 @@ import {
   type ParentRoute,
 } from '../../design';
 import { useTrialReminder } from '../../hooks/useTrialReminder';
-import { HubProvider } from '../../components/hub/HubProvider';
+import { HubProvider, useHub } from '../../components/hub/HubProvider';
 
 // Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
 // déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
@@ -51,6 +51,7 @@ type BarProps = {
 
 function ParentTabBar({ state, navigation }: BarProps) {
   const { styleKey } = useTheme();
+  const { unreadMessages } = useHub();
   const layout = tabLayoutFor(styleKey);
   const { tabs, prominent } = layout;
   const activeRoute = state.routes[state.index]?.name as ParentRoute | undefined;
@@ -67,6 +68,7 @@ function ParentTabBar({ state, navigation }: BarProps) {
         label: prominent.label,
         glyph: prominent.glyph,
         onPress: () => go(prominent.route),
+        badge: prominent.route === 'messages' ? unreadMessages : 0,
       }}
     />
   );
