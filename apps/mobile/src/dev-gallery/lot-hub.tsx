@@ -4,6 +4,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { HubScreen } from '../components/hub/HubScreen';
 import { UpgradeProvider } from '../components/hub/UpgradeSheet';
+import { HubStaticProvider, type HubNotif } from '../components/hub/HubProvider';
+
+const DEMO_NOTIFS: HubNotif[] = [
+  { id: 'n1', type: 'QUESTIONNAIRE_PENDING', title: 'Questionnaire bien-être à compléter — séance 8', body: 'Léo a un court questionnaire de bien-être (EPOCH) à remplir avec toi.', data: null, is_read: false, created_at: new Date(Date.now() - 12 * 60e3).toISOString() },
+  { id: 'n2', type: 'REPORT_READY', title: 'Le bilan de la séance 7 est prêt', body: 'Sophie a partagé ses observations sur Léo.', data: null, is_read: false, created_at: new Date(Date.now() - 5 * 3600e3).toISOString() },
+  { id: 'n3', type: 'SESSION_REMINDER', title: 'Séance demain à 15 h', body: 'Demander de l’aide, avec Sophie Gagnon.', data: null, is_read: true, created_at: new Date(Date.now() - 30 * 3600e3).toISOString() },
+];
 import { HubLocked } from '../components/hub/HubLocked';
 import { MaisonFrame } from '../components/hub/maison/MaisonFrame';
 import { MaisonWelcome } from '../components/hub/maison/MaisonHome';
@@ -127,7 +134,7 @@ function Phone({ children }: { children: ReactNode }) {
   }, []);
   return (
     <SafeAreaInsetsContext.Provider value={{ top: 54, bottom: 34, left: 0, right: 0 }}>
-      <View style={{ flex: 1 }}>{ready ? <UpgradeProvider>{children}</UpgradeProvider> : null}</View>
+      <View style={{ flex: 1 }}>{ready ? <HubStaticProvider notifications={DEMO_NOTIFS}><UpgradeProvider>{children}</UpgradeProvider></HubStaticProvider> : null}</View>
     </SafeAreaInsetsContext.Provider>
   );
 }

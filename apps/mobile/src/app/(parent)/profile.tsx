@@ -54,6 +54,7 @@ export default function ProfileScreen() {
       onOpenChild={(childId) => router.push({ pathname: '/(parent)/badges', params: { childId } })}
       onOpenChildren={() => router.push('/(parent)/children')}
       onOpenNotifications={() => router.push('/(parent)/notifications')}
+      onOpenFavorites={ent.isStaff ? undefined : () => router.push('/(parent)/favoris')}
       onDone={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/maison'))}
       onSignOut={handleSignOut}
       top={<BillingIssueBanner />}

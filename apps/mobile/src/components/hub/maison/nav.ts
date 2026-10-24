@@ -34,6 +34,7 @@ export function useMaisonNav(ctx: Pick<MaisonCtx, 'child' | 'band' | 'hasChild'>
     toutes: () => router.push('/(parent)/toutes'),
     programme: () => router.push('/(parent)/programme'),
     carnet: () => router.push('/(parent)/carnet'),
+    favoris: () => router.push('/(parent)/favoris'),
     non: () => router.push('/(parent)/quand-il-dit-non'),
     sources: () => router.push('/(parent)/sources'),
     consulter: () => router.push('/(parent)/quand-consulter'),

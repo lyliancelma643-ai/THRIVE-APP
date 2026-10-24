@@ -27,7 +27,7 @@ export function SynthesisView({ chrome, rating, outcome, kept, saving, onRating,
       chrome={chrome}
       cta={
         <>
-          <Button variant="accent" label="Garder ce moment" flex loading={saving} onPress={() => onSave(false)} />
+          <Button size="xl" variant="accent" label="Garder ce moment" flex loading={saving} onPress={() => onSave(false)} />
           <Ghost label={SYNTHESIS.skip} onPress={() => onSave(true)} accessibilityLabel="Passer la synthèse" />
         </>
       }

@@ -191,7 +191,8 @@ export const MATERIALS = {
   /** `.enamel` : le seul geste jaune de l'écran. */
   enamel: {
     color: '#F9EB50', ink: '#022539', highlight: '#FDF7A0', mid: '#F9EB50', low: '#E9D93C',
-    shadow: { color: '#F9EB50', opacity: 0.55 },
+    // Ombre neutre, sans halo jaune autour des boutons (demande produit 2026-10).
+    shadow: { color: '#000000', opacity: 0.18 },
   },
   /** `.star-on` / `.star-off`. */
   star: {

@@ -6,8 +6,9 @@ import {
   EXT_LABELS, allRevealed, extensionPlanned, extensionVisible, frTypo, nextIsNewStep, revealedBeatsOfStep, timerSummary, secondsLabel,
   visibleStepIndex, type ExtState, type FlatBeat,
 } from './flow';
-import { Disclosure, Display, Eyebrow, Frame, Ghost, InlineMd, type Chrome } from './parts';
+import { Disclosure, Display, Eyebrow, Frame, InlineMd, type Chrome } from './parts';
 import { VisualButton } from './visuals/VisualButton';
+import { PlusMenu, type PlusAction } from './PlusMenu';
 
 type Props = {
   chrome: Chrome;
@@ -30,6 +31,8 @@ type Props = {
   onLaunchTimer: (timer: StepTimer) => void;
   /** MV : ouvre le visuel d'une étape (« Montrer : … »). Absent : le bouton n'est pas affiché. */
   onShowVisual?: (id: VisualId) => void;
+  /** Favori / De côté depuis le « + » (mêmes listes que la fiche, réunies dans « Mes favoris »). */
+  saved?: { favori: boolean; deCote: boolean; onToggleFavori: () => void; onToggleDeCote: () => void };
 };
 
 /** « Dis » : la phrase à dire, en bulle ; la dernière affichée est mise en avant (filet sauge). */
@@ -84,7 +87,7 @@ function StepTimerCard({ timer, onLaunch }: { timer: StepTimer; onLaunch: () => 
  * puis « Terminer l'activité ». Le temps vit dans la barre du haut (anneau) ; vue purement présentationnelle.
  */
 export function DerouleView({
-  chrome, steps, guide, flat, revealed, extensions, ext, baseDuration, noteLabel, onNext, onPrev, onFinish, onNote, onOpenExt, onLaunchTimer, onShowVisual,
+  chrome, steps, guide, flat, revealed, extensions, ext, baseDuration, noteLabel, onNext, onPrev, onFinish, onNote, onOpenExt, onLaunchTimer, onShowVisual, saved,
 }: Props) {
   const { colors } = useTheme();
   const total = flat.length;
@@ -92,6 +95,17 @@ export function DerouleView({
   const visible = visibleStepIndex(flat, revealed);
   const extOpened = ext.open.length > 0;
   const newStep = nextIsNewStep(flat, revealed);
+  const plus: PlusAction[] = [
+    // Avant la fin du déroulé, « Terminer maintenant » vit dans le + : le bouton principal garde toute la largeur.
+    ...(!done ? [{ key: 'finish', glyph: 'check' as const, label: 'Terminer l’activité maintenant', onPress: onFinish }] : []),
+    ...(noteLabel ? [{ key: 'note', glyph: 'pencil' as const, label: noteLabel, onPress: onNote }] : []),
+    ...(saved
+      ? [
+          { key: 'fav', glyph: 'star' as const, label: saved.favori ? 'Retirer des favoris' : 'Ajouter aux favoris', on: saved.favori, onPress: saved.onToggleFavori },
+          { key: 'aside', glyph: 'tray' as const, label: saved.deCote ? 'Ne plus mettre de côté' : 'Mettre de côté', on: saved.deCote, onPress: saved.onToggleDeCote },
+        ]
+      : []),
+  ];
 
   return (
     <Frame
@@ -102,15 +116,13 @@ export function DerouleView({
       cta={
         <>
           {revealed > 1 ? <GlassButton glyph="chevronLeft" accessibilityLabel="Revenir d’un cran" onPress={onPrev} /> : null}
-          {noteLabel ? <GlassButton glyph="plus" accessibilityLabel={noteLabel} onPress={onNote} /> : null}
           {done ? (
-            <Button variant="accent" label="Terminer l’activité" flex onPress={onFinish} />
+            <Button size="xl" variant="accent" label="Terminer l’activité" flex onPress={onFinish} />
           ) : (
-            <>
-              <Ghost label="Terminer" onPress={onFinish} accessibilityLabel="Terminer l’activité maintenant" />
-              <Button variant="accent" label={newStep ? 'Étape suivante' : 'Suivant'} flex onPress={onNext} />
-            </>
+            <Button size="xl" variant="accent" label={newStep ? 'Étape suivante' : 'Suivant'} flex onPress={onNext} />
           )}
+          {/* Le « + » en bas à droite : Noter, Favori, Mettre de côté. */}
+          <PlusMenu actions={plus} />
         </>
       }
     >

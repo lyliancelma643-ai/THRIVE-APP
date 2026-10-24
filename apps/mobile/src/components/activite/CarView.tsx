@@ -17,7 +17,7 @@ export function CarReadView({
 }) {
   const { colors } = useTheme();
   return (
-    <Frame chrome={chrome} padTop={20} cta={<Button variant="accent" label="C’est lu" flex onPress={onRead} />} padBottom={150}>
+    <Frame chrome={chrome} padTop={20} cta={<Button size="xl" variant="accent" label="C’est lu" flex onPress={onRead} />} padBottom={150}>
       <Eyebrow>En voiture</Eyebrow>
       <ThemedText variant="body" style={{ marginTop: 12, fontSize: 20, lineHeight: 29 }}>
         Lis les étapes maintenant. Pendant la route, pose le téléphone : tout se fait à voix haute.
@@ -52,7 +52,7 @@ export function CarRoadView({
   const extra = overtimeMinutes(elapsedS, totalS);
   const size = 236;
   return (
-    <Frame chrome={{ ...chrome, timer: null }} scroll={false} cta={<Button variant="gray" label="Terminer" flex onPress={onFinish} />}>
+    <Frame chrome={{ ...chrome, timer: null }} scroll={false} cta={<Button size="xl" variant="gray" label="Terminer" flex onPress={onFinish} />}>
       <View style={{ flex: 1, alignItems: 'center', paddingTop: 84 }}>
         <View
           style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}

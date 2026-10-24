@@ -363,6 +363,7 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
         <Door icon="compass" label="Le programme" onPress={nav.programme} />
         <Door icon="book" label="Le carnet" onPress={nav.carnet} />
         <Door icon="message" label={PAGE_NON.title} onPress={nav.non} />
+        <Door wide icon="star" label="Mes favoris" onPress={nav.favoris} />
         <Door wide icon="video" label="Les séances vidéo de 20 min" tag="Bientôt" onPress={nav.videos} />
       </View>
 

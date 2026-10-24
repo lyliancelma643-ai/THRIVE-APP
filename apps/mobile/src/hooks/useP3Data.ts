@@ -59,8 +59,19 @@ const EMPTY: State = { loading: true, storage: 'remote', moments: [], rewards: [
 /** Banc d'essai DEV (/__ecran) : données de démonstration par enfant, jamais lues en production. */
 export const DEV_P3_FIXTURES = new Map<string, Omit<State, 'loading' | 'storage'>>();
 
+/**
+ * Dernier état lu par enfant, partagé par tous les écrans Maison (fiche, catalogue, carnet, mode activité…) : un
+ * écran déjà visité s'affiche aussitôt, sans squelette ni attente, puis se met à jour en arrière-plan.
+ */
+const P3_CACHE = new Map<string, State>();
+
+/** Déconnexion : rien de la famille précédente ne reste en mémoire. */
+export function clearP3Cache() {
+  P3_CACHE.clear();
+}
+
 export function useP3Data(childId: string | null, dateOfBirth: string | null, firstName: string) {
-  const [state, setState] = useState<State>(EMPTY);
+  const [state, setState] = useState<State>(() => (childId && P3_CACHE.get(childId)) || EMPTY);
   const stateRef = useRef(state);
   stateRef.current = state;
   const [tick, setTick] = useState(0);
@@ -69,6 +80,11 @@ export function useP3Data(childId: string | null, dateOfBirth: string | null, fi
   /** Relit tout (retour sur l'écran après un moment vécu). */
   const reload = useCallback(() => setTick((t) => t + 1), []);
 
+  // Chaque état prêt (lecture, favori basculé…) alimente le cache commun.
+  useEffect(() => {
+    if (childId && !state.loading) P3_CACHE.set(childId, state);
+  }, [childId, state]);
+
   useEffect(() => {
     if (!childId) {
       setState({ ...EMPTY, loading: false });
@@ -76,7 +92,7 @@ export function useP3Data(childId: string | null, dateOfBirth: string | null, fi
     }
     let alive = true;
     // Un rechargement garde l'écran affiché (pas de squelette) : seul un changement d'enfant le remontre.
-    if (loadedFor.current !== childId) setState(EMPTY);
+    if (loadedFor.current !== childId) setState(P3_CACHE.get(childId) ?? EMPTY);
     loadedFor.current = childId;
     const fixture = __DEV__ ? DEV_P3_FIXTURES.get(childId) : undefined;
     if (fixture) {

@@ -105,6 +105,15 @@ export function HubProvider({ children }: { children: ReactNode }) {
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
+/** Banc d'essai (dev) : en-tête alimenté par des notifications de démonstration, sans base. */
+export function HubStaticProvider({ notifications, children }: { notifications: HubNotif[]; children: ReactNode }) {
+  const value = useMemo<HubCtx>(
+    () => ({ notifications, unreadNotifications: notifications.filter((n) => !n.is_read).length, unreadMessages: 1, markRead: async () => {}, refresh: () => {} }),
+    [notifications],
+  );
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
+}
+
 export function useHub(): HubCtx {
   return useContext(Ctx);
 }

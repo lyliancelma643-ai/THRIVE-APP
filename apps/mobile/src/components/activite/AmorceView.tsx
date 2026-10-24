@@ -50,7 +50,7 @@ export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, 
         {`Le minuteur démarre sur ${minutes} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.`}
       </ThemedText>
       <View style={{ marginTop: 30 }}>
-        <Button variant="accent" label="C’est dit, on commence" onPress={onStart} />
+        <Button size="xl" variant="accent" label="C’est dit, on commence" onPress={onStart} />
       </View>
     </Frame>
   );

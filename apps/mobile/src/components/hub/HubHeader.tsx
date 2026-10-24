@@ -149,10 +149,10 @@ export function HubHeader() {
         </List>
       </Sheet>
 
-      {/* Notifications : le panneau déroulant de la cloche du web. */}
-      <Popover visible={notifsOpen} onClose={() => setNotifsOpen(false)} top={top} left={12} right={12} accessibilityLabel="Notifications" style={{ maxHeight: 520 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
-          <WText size={12} weight={700} tracking={0.12} upper tone="faint">
+      {/* Notifications : le panneau déroulant de la cloche, façon iOS 27 — marges de 20 pt, tuiles compactes arrondies. */}
+      <Popover visible={notifsOpen} onClose={() => setNotifsOpen(false)} top={top} left={12} right={12} accessibilityLabel="Notifications" style={{ maxHeight: 540, borderRadius: 26 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 10 }}>
+          <WText size={17} weight={700} tone="ink" lh={22} accessibilityRole="header">
             Notifications
           </WText>
           {unreadNotifications > 0 ? (
@@ -162,39 +162,44 @@ export function HubHeader() {
               hitSlop={10}
               style={{ minHeight: 32, justifyContent: 'center' }}
             >
-              <WText size={12} weight={600} tone="accent">
+              <WText size={13} weight={600} tone="accent">
                 Tout marquer lu
               </WText>
             </Pressable>
           ) : null}
         </View>
         {notifications.length === 0 ? (
-          <WText size={14} tone="faint" style={{ paddingHorizontal: 16, paddingBottom: 16 }}>
+          <WText size={14} tone="faint" style={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: 18 }}>
             Aucune notification pour le moment.
           </WText>
         ) : (
-          <ScrollView style={{ maxHeight: 420 }} contentContainerStyle={{ paddingBottom: 8 }}>
+          <ScrollView style={{ maxHeight: 400 }} contentContainerStyle={{ paddingHorizontal: 10, paddingBottom: 6, gap: 4 }} showsVerticalScrollIndicator={false}>
             {notifications.map((n) => (
               <Pressable
                 key={n.id}
                 onPress={() => openNotif(n)}
                 accessibilityRole="button"
                 accessibilityLabel={`${n.is_read ? '' : 'Non lue : '}${n.title}`}
-                style={({ pressed }) => ({ paddingHorizontal: 16, paddingVertical: 12, minHeight: 56, flexDirection: 'row', gap: 10, backgroundColor: pressed ? w.surfaceSub : 'transparent' })}
+                style={({ pressed }) => ({
+                  borderRadius: 16, paddingLeft: 12, paddingRight: 14, paddingVertical: 10, flexDirection: 'row', gap: 10,
+                  backgroundColor: pressed ? w.surfaceSub : n.is_read ? 'transparent' : w.chip,
+                })}
               >
-                <View style={{ marginTop: 6, width: 8, height: 8, borderRadius: 4, backgroundColor: n.is_read ? 'transparent' : w.accent }} />
+                <View style={{ marginTop: 6, width: 7, height: 7, borderRadius: 4, backgroundColor: n.is_read ? 'transparent' : w.accent }} />
                 <View style={{ flex: 1, minWidth: 0 }}>
-                  <WText size={14} weight={n.is_read ? 500 : 600} tone={n.is_read ? 'body' : 'ink'} numberOfLines={1}>
-                    {n.title}
-                  </WText>
+                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
+                    <WText size={14} weight={n.is_read ? 500 : 600} tone={n.is_read ? 'body' : 'ink'} lh={19} numberOfLines={1} style={{ flex: 1 }}>
+                      {n.title}
+                    </WText>
+                    <WText size={11} tone="faint" lh={15}>
+                      {timeAgo(n.created_at)}
+                    </WText>
+                  </View>
                   {n.body ? (
-                    <WText size={12} tone="soft" numberOfLines={2}>
+                    <WText size={13} tone="soft" lh={17} numberOfLines={2} style={{ marginTop: 1 }}>
                       {n.body}
                     </WText>
                   ) : null}
-                  <WText size={11} tone="faint" style={{ marginTop: 2 }}>
-                    {timeAgo(n.created_at)}
-                  </WText>
                 </View>
               </Pressable>
             ))}
@@ -206,9 +211,12 @@ export function HubHeader() {
             router.push('/(parent)/notifications');
           }}
           accessibilityRole="button"
-          style={({ pressed }) => ({ borderTopWidth: 1, borderTopColor: w.line, minHeight: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: pressed ? w.surfaceSub : 'transparent' })}
+          style={({ pressed }) => ({
+            marginHorizontal: 12, marginTop: 6, marginBottom: 12, height: 44, borderRadius: 22,
+            backgroundColor: pressed ? w.surfaceSub : w.chip, alignItems: 'center', justifyContent: 'center',
+          })}
         >
-          <WText size={13} weight={600} tone="accent">
+          <WText size={14} weight={600} tone="accent">
             Toutes les notifications
           </WText>
         </Pressable>

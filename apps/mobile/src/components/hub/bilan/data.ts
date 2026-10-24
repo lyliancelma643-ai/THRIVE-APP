@@ -133,13 +133,20 @@ export function useBilanData(childId: string | null) {
     void reload();
     if (!childId) return;
     const f = `child_id=eq.${childId}`;
+    // Une rafale de changements (bilan, questionnaire, séance…) ne déclenche qu'UNE relecture.
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const soon = () => {
+      if (t) clearTimeout(t);
+      t = setTimeout(() => void reload(), 400);
+    };
     let channel = supabase.channel(`bilan-${childId}`);
     for (const table of REALTIME_TABLES) {
-      channel = channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: f }, () => void reload());
+      channel = channel.on('postgres_changes', { event: '*', schema: 'public', table, filter: f }, soon);
     }
     channel.subscribe();
     return () => {
       alive.current = false;
+      if (t) clearTimeout(t);
       supabase.removeChannel(channel);
     };
   }, [childId, reload]);

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
 import { supabaseClient as supabase } from '@thrive/shared';
+import { clearP3Cache } from '../hooks/useP3Data';
 
 type AuthStore = IAuthState & {
   hydrate: () => Promise<void>;
@@ -32,7 +33,9 @@ export const useAuthStore = create<AuthStore>((set) => ({
   user: null,
   session: null,
   isAuthenticated: false,
-  isLoading: false,
+  // Vrai jusqu'à la relecture de la session enregistrée (Keychain) : le routeur attend, il n'envoie
+  // jamais un parent déjà connecté sur l'écran Bienvenue au lancement.
+  isLoading: true,
 
   hydrate: async () => {
     set({ isLoading: true });
@@ -70,6 +73,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
   },
 
   signOut: async () => {
+    clearP3Cache();
     await supabase.auth.signOut();
     set({ user: null, session: null, isAuthenticated: false, isLoading: false });
   },

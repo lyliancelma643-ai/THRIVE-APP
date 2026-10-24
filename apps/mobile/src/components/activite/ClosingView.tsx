@@ -7,7 +7,7 @@ import { Display, Frame, type Chrome } from './parts';
 /** M9 · Pour finir : la phrase de clôture, à dire. */
 export function ClosingView({ chrome, closing, onDone }: { chrome: Chrome; closing: string; onDone: () => void }) {
   return (
-    <Frame chrome={chrome} padTop={80} cta={<Button variant="accent" label="C’est dit" flex onPress={onDone} />}>
+    <Frame chrome={chrome} padTop={80} cta={<Button size="xl" variant="accent" label="C’est dit" flex onPress={onDone} />}>
       <ThemedText variant="body" color="label2" style={{ fontSize: 18, lineHeight: 24 }}>Pour finir, dis :</ThemedText>
       <Display size={38} lineHeight={46} style={{ marginTop: 14 }}>{frTypo(closing)}</Display>
     </Frame>

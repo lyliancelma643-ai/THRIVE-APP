@@ -215,7 +215,7 @@ export function Enamel({ radius = 26, padding = 0, style, children, ...rest }: E
         style={[
           {
             borderRadius: radius, backgroundColor: spec.background,
-            shadowColor: m.shadow.color, shadowOpacity: m.shadow.opacity, shadowRadius: 15, shadowOffset: { width: 0, height: 10 }, elevation: 5,
+            shadowColor: m.shadow.color, shadowOpacity: m.shadow.opacity, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3,
           },
           style,
         ]}

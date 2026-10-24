@@ -1,7 +1,9 @@
-import { Redirect } from 'expo-router';
+import { View } from 'react-native';
+import { useTheme } from '../design';
 
-// Racine « / » (surtout pour l'aperçu web) : on passe par Bienvenue ; le layout
-// racine renvoie ensuite un utilisateur connecté vers son espace (homeFor).
+// Racine « / » : un écran neutre le temps de relire la session enregistrée. Le layout racine envoie ensuite
+// un parent connecté directement dans son espace (homeFor), et seulement les autres vers Bienvenue.
 export default function Index() {
-  return <Redirect href="/welcome" />;
+  const { colors } = useTheme();
+  return <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} />;
 }

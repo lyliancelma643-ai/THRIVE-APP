@@ -146,6 +146,65 @@ export function Catalogue({ ctx }: { ctx: MaisonCtx }) {
   );
 }
 
+/* ───────────────────────────── Mes favoris ───────────────────────────── */
+
+/**
+ * « Mes favoris » (depuis le compte et la fiche) : une page à part pour retrouver d'un coup d'œil les activités mises
+ * en Favori ★ et celles Mises de côté ⚑ depuis la fiche (« Lancer · Favori · De côté ») ou pendant l'activité (+).
+ */
+export function Favoris({ ctx }: { ctx: MaisonCtx }) {
+  const nav = useMaisonNav(ctx);
+  const w = useWeb();
+  const { data, firstName } = ctx;
+  const all = useMemo(() => p3Pool().filter((a) => isVisible(a, data.openWeek)).sort(byProgramme), [data.openWeek]);
+  const favoris = all.filter((a) => data.saved.favoris.has(a.id));
+  const deCote = all.filter((a) => data.saved.deCote.has(a.id));
+  const grid = (items: P3Activity[]) => (
+    <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 28 }}>
+      {items.map((a, i) => (
+        <View key={a.id} style={{ width: '48.2%' }}>
+          <PosterCard wide index={i} activity={a} done={data.doneIds.has(a.id)} onPress={() => nav.fiche(a.id)} line={renderOpener(a, a.base_duration, ctx.band)} />
+        </View>
+      ))}
+    </View>
+  );
+  const section = (icon: 'star' | 'flag', title: string, items: P3Activity[], empty: string) => (
+    <View style={{ marginTop: 32 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(249,235,80,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+          <WIcon name={icon} size={18} color={w.accentInk} strokeWidth={2.2} />
+        </View>
+        <WText display size={22} weight={600} tone="ink" accessibilityRole="header" style={{ flex: 1 }}>
+          {title}
+        </WText>
+        <WText size={14} weight={600} tone="soft">
+          {String(items.length)}
+        </WText>
+      </View>
+      {items.length ? (
+        grid(items)
+      ) : (
+        <NcCard style={{ marginTop: 14 }}>
+          <WText size={15} lh={1.5} tone="soft">
+            {empty}
+          </WText>
+        </NcCard>
+      )}
+    </View>
+  );
+  return (
+    <View>
+      <BackLink label="Maison" onPress={nav.back} />
+      <Title>Mes favoris</Title>
+      <WText size={15} tone="soft" style={{ marginTop: 6 }}>
+        {`Les activités que tu veux garder sous la main pour ${firstName}.`}
+      </WText>
+      {section('star', 'Favoris', favoris, 'Touche ☆ Favori sur une fiche, ou le + pendant l’activité, pour la retrouver ici.')}
+      {section('flag', 'Mis de côté', deCote, 'Touche ⚑ De côté pour garder une activité pour plus tard : elle ne te sera plus proposée le soir en attendant.')}
+    </View>
+  );
+}
+
 /* ───────────────────────────── Le programme ───────────────────────────── */
 
 const PHASE_LABEL = { ANCRER: 'Ancrer', DEVELOPPER: 'Développer', INTEGRER: 'Intégrer' } as const;

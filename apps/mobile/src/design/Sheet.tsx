@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { Animated, Easing, Modal, Pressable, ScrollView, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassButton } from './GlassButton';
 import { GlassSurface } from './GlassSurface';
@@ -38,6 +38,19 @@ export function Sheet({
   const insets = useSafeAreaInsets();
   const { height: winH } = useWindowDimensions();
   const floating = detent === 'medium';
+  // Montée / descente animées ici (la Modal ne s'anime plus elle-même) ; démontage à la fin de la descente.
+  const [mounted, setMounted] = useState(visible);
+  const anim = useRef(new Animated.Value(visible ? 1 : 0)).current;
+  useEffect(() => {
+    if (visible) {
+      setMounted(true);
+      Animated.timing(anim, { toValue: 1, duration: 360, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
+    } else {
+      Animated.timing(anim, { toValue: 0, duration: 240, easing: Easing.bezier(0.32, 0, 0.67, 0), useNativeDriver: true }).start(({ finished }) => {
+        if (finished) setMounted(false);
+      });
+    }
+  }, [visible, anim]);
   const close = <GlassButton glyph="close" accessibilityLabel={closeLabel} onPress={onClose} />;
   const spacer = <View style={{ width: 44, height: 44 }} />;
 
@@ -64,14 +77,20 @@ export function Sheet({
   );
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
-      <View style={{ flex: 1, justifyContent: 'flex-end', backgroundColor: `rgba(0,0,0,${dim ?? 0.28})` }}>
+    <Modal visible={mounted} transparent animationType="none" onRequestClose={onClose} statusBarTranslucent>
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        {/* Le voile apparaît en fondu, sur place ; seule la feuille glisse depuis le bas (comme iOS). */}
+        <Animated.View
+          pointerEvents="none"
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: `rgba(0,0,0,${dim ?? 0.28})`, opacity: anim }}
+        />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={closeLabel}
           onPress={onClose}
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         />
+        <Animated.View style={{ transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [winH, 0] }) }] }}>
         {floating ? (
           <View style={{ margin: 8, marginBottom: 8 + insets.bottom / 2 }}>
             <GlassSurface strong heavy radius={RADIUS.sheetFloat}>
@@ -90,6 +109,7 @@ export function Sheet({
             {body}
           </View>
         )}
+        </Animated.View>
       </View>
     </Modal>
   );

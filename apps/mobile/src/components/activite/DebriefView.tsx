@@ -35,7 +35,7 @@ export function DebriefView({ chrome, questions, shown, answers, week1, onAnswer
       revealKey={shown}
       cta={
         <>
-          <Button variant="accent" label={last ? 'Continuer' : 'Question suivante'} flex onPress={onNext} />
+          <Button size="xl" variant="accent" label={last ? 'Continuer' : 'Question suivante'} flex onPress={onNext} />
           <Ghost label="Passer" onPress={onNext} accessibilityLabel="Passer cette question" />
         </>
       }

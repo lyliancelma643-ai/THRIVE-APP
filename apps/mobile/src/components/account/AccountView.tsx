@@ -27,6 +27,8 @@ export type AccountViewProps = {
   onOpenChild: (id: string) => void;
   onOpenChildren: () => void;
   onOpenNotifications: () => void;
+  /** « Mes favoris » : Favoris et Mis de côté (Maison). Absent : rangée masquée. */
+  onOpenFavorites?: () => void;
   onDone: () => void;
   onSignOut: () => void;
   /** Bannière en tête (problème de paiement). */
@@ -90,6 +92,24 @@ export function AccountView(p: AccountViewProps) {
             <ListRow leading={<RoundBadge glyph="people" />} leadingInset={60} title="Mes enfants" onPress={p.onOpenChildren} chevron />
           </List>
         </Section>
+
+        {p.onOpenFavorites ? (
+          <>
+            <SectionHeader small title="Maison" />
+            <Section>
+              <List>
+                <ListRow
+                  leading={<RoundBadge glyph="star" />}
+                  leadingInset={60}
+                  title="Mes favoris"
+                  subtitle="Favoris et activités mises de côté"
+                  onPress={p.onOpenFavorites}
+                  chevron
+                />
+              </List>
+            </Section>
+          </>
+        ) : null}
 
         <SectionHeader small title="Préférences" />
         <Section>

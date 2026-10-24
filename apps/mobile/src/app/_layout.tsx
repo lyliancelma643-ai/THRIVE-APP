@@ -86,6 +86,8 @@ function RootLayout() {
     const inParentGroup = segments[0] === '(parent)';
     const isCoach = user?.role === 'COACH';
     if (inAuthGroup || inWelcome || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
+      // Bienvenue / connexion retirées de la pile : un glissement depuis le bord de l'écran ne peut plus y revenir.
+      if (router.canDismiss()) router.dismissAll();
       router.replace(homeFor(user?.role));
     }
   }, [isAuthenticated, isLoading, segments, user?.role]);
@@ -111,8 +113,9 @@ function RootLayout() {
     <ThemeProvider fontsLoaded={fontsLoaded}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
-        <Stack.Screen name="(parent)" />
-        <Stack.Screen name="(coach)" />
+        {/* Espaces connectés : pas de geste « retour » depuis le bord (on reste dans l'app, sur Maison / Bilan / Séances). */}
+        <Stack.Screen name="(parent)" options={{ gestureEnabled: false, animation: 'fade' }} />
+        <Stack.Screen name="(coach)" options={{ gestureEnabled: false, animation: 'fade' }} />
       </Stack>
     </ThemeProvider>
   );

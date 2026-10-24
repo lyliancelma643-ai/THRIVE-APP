@@ -27,6 +27,7 @@ const HIDDEN = [
   'moment/[activityId]',
   'parcours',
   'carnet',
+  'favoris',
   'toutes',
   'programme',
   'sources',
@@ -86,9 +87,11 @@ export default function ParentLayout() {
       screenOptions={{ headerShown: false, animation: 'shift' }}
       tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}
     >
-      <Tabs.Screen name="maison" options={{ title: 'Maison' }} />
-      <Tabs.Screen name="bilans" options={{ title: 'Bilan' }} />
-      <Tabs.Screen name="seances" options={{ title: 'Mes séances' }} />
+      {/* Les trois onglets sont montés dès l'ouverture puis gardés en vie (TabPager du web) : Bilan et Mes séances
+          sont prêts avant d'être touchés, et la goutte de la barre les traverse sans attente. */}
+      <Tabs.Screen name="maison" options={{ title: 'Maison', lazy: false }} />
+      <Tabs.Screen name="bilans" options={{ title: 'Bilan', lazy: false }} />
+      <Tabs.Screen name="seances" options={{ title: 'Mes séances', lazy: false }} />
       {HIDDEN.map((name) => (
         <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}

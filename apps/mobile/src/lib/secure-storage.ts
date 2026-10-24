@@ -81,7 +81,7 @@ export function createChunkedStorage(store: KeyValueStore, chunkSize = CHUNK_SIZ
  */
 export function createSecureAuthStorage(legacy?: AsyncAuthStorage): AsyncAuthStorage {
   // Import différé : le module reste importable (tests) sans runtime natif.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const SecureStore = require('expo-secure-store') as {
     getItemAsync(k: string): Promise<string | null>;
     setItemAsync(k: string, v: string, o?: object): Promise<void>;

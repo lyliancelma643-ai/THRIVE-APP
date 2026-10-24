@@ -4,6 +4,7 @@ import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { PremiumGate } from '../../../components/subscription/PremiumGate';
 import { Button, SPACING, ThemeScope, ThemedText, useTheme } from '../../../design';
 import { useMaisonContext } from '../../../hooks/useMaison';
+import { useP3Data } from '../../../hooks/useP3Data';
 import { AmorceView } from '../../../components/activite/AmorceView';
 import { CarReadView, CarRoadView } from '../../../components/activite/CarView';
 import { CheckinView } from '../../../components/activite/CheckinView';
@@ -55,6 +56,8 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   const { child, moments, doneIds, reload, childrenLoading, isLoading } = useMaisonContext(childId);
   const view = useMemo(() => resolveActivity(activity, duration, band)!, [activity, duration, band]);
   const firstName = child?.first_name ?? 'votre enfant';
+  // Favori / De côté depuis le « + » du déroulé (cache Maison commun : lecture immédiate).
+  const p3 = useP3Data(child?.id ?? childId, child?.date_of_birth ?? null, firstName);
   const week = getWeek(activity.week);
   const isLetter = activity.capture?.kind === 'lettre';
   const lastKept = moments.find((m) => m.kept_phrase?.trim())?.kept_phrase?.trim() ?? null;
@@ -269,6 +272,12 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           onOpenExt={(index) => dispatch({ t: 'ext.open', index })}
           onLaunchTimer={setPlayTimer}
           onShowVisual={setVisual}
+          saved={{
+            favori: p3.saved.favoris.has(activity.id),
+            deCote: p3.saved.deCote.has(activity.id),
+            onToggleFavori: () => void p3.toggleSaved(activity.id, 'FAVORI'),
+            onToggleDeCote: () => void p3.toggleSaved(activity.id, 'DE_COTE'),
+          }}
         />
       );
       break;

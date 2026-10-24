@@ -3,7 +3,7 @@
 // fois validée, anneau qui respire sur la séance en cours) et le bilan du coach déplié sous la séance (RPC filtré
 // `session_report`, migration 039 : le serveur n'envoie jamais le contenu réservé).
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { LayoutAnimation, Platform, RefreshControl, UIManager, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
@@ -280,11 +280,27 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Une seule lecture à la fois ; l'heure de la dernière sert à espacer les relectures au retour sur l'onglet.
+  const inFlight = useRef<string | null>(null);
+  const lastLoad = useRef(0);
   const load = useCallback(async () => {
     if (!child?.id || !view || view === 'locked') {
       setLoading(false);
       return;
     }
+    // Même enfant déjà en cours de lecture : on n'empile pas (un changement d'enfant, lui, relit toujours).
+    if (inFlight.current === child.id) return;
+    inFlight.current = child.id;
+    lastLoad.current = Date.now();
+    try {
+      await loadNow();
+    } finally {
+      if (inFlight.current === child.id) inFlight.current = null;
+    }
+  }, [child?.id, view]);
+
+  const loadNow = async () => {
+    if (!child?.id) return;
     const fixture = __DEV__ ? DEV_SEANCES_FIXTURES.get(child.id) : undefined;
     if (fixture) {
       setSessions(fixture.sessions);
@@ -315,7 +331,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     const a = (assignmentRes.data ?? [])[0] as { profiles?: CoachInfo | CoachInfo[] } | undefined;
     setCoach((Array.isArray(a?.profiles) ? a?.profiles[0] : a?.profiles) ?? null);
     setLoading(false);
-  }, [child?.id, view]);
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -326,10 +342,11 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     if (refreshTick > 0) void load().finally(onRefreshed);
   }, [refreshTick]);
 
-  // Retour sur l'onglet : relecture silencieuse ; temps réel sur les séances et bilans de l'enfant.
+  // Retour sur l'onglet : relecture silencieuse, au plus toutes les 30 s (le temps réel couvre le reste) ;
+  // l'ouverture est déjà chargée par l'effet ci-dessus.
   useFocusEffect(
     useCallback(() => {
-      void load();
+      if (Date.now() - lastLoad.current > 30_000) void load();
     }, [load]),
   );
   useEffect(() => {

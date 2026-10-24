@@ -29,7 +29,7 @@ export function CheckinView({ chrome, answers, onAnswer, onContinue, onSkip }: P
       revealKey={shown.length}
       cta={
         <>
-          <Button variant={complete ? 'accent' : 'gray'} label="Continuer" flex disabled={!complete} onPress={onContinue} style={complete ? undefined : { opacity: 0.55 }} />
+          <Button size="xl" variant={complete ? 'accent' : 'gray'} label="Continuer" flex disabled={!complete} onPress={onContinue} style={complete ? undefined : { opacity: 0.55 }} />
           <Ghost label={CHECKIN.skip} onPress={onSkip} accessibilityLabel="Passer le check-in" />
         </>
       }

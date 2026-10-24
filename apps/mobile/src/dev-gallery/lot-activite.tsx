@@ -116,6 +116,7 @@ function Deroule({ upTo = 2, ext = EXT_INITIAL, revealedAll = false, timer, acti
         onOpenExt={noop}
         onLaunchTimer={noop}
         onShowVisual={noop}
+        saved={{ favori: true, deCote: false, onToggleFavori: noop, onToggleDeCote: noop }}
       />
     </Phone>
   );
