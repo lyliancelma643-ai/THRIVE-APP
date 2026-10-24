@@ -3,10 +3,11 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { AccentButton, FadeUp, GhostButton, NcCard, WIcon, WText, useWeb } from '../../design/web';
 import { COACH_CALL_URL, PROGRAM_VIDEO_URL } from '../../services/access';
+import { useUpgrade } from './UpgradeSheet';
 
 // Onglet Bilan / Mes séances verrouillé — portage de components/parent/LockedSection.tsx du web : un SQUELETTE FACTICE
-// flouté (aucune donnée réelle n'est chargée), puis la carte « … s'ouvre avec un pack ». Anti-steering Apple 3.1.1 :
-// aucun prix, aucun lien de paiement ni vers le site des packs ; « Rencontrer un coach » = page de rendez-vous configurée,
+// flouté (aucune donnée réelle n'est chargée), puis la carte « … s'ouvre avec un pack ». Parcours coachés = services entre personnes (Apple 3.1.3(d)) :
+// « Choisir un forfait » = panneau UpgradeSheet (équipe THRIVE, site, courriel) ; « Rencontrer un coach » = page de rendez-vous configurée,
 // sinon la messagerie de l'app. La vidéo n'apparaît que si une page vidéo est configurée.
 
 const COPY = {
@@ -49,6 +50,7 @@ function Fake({ section }: { section: 'bilan' | 'seances' }) {
 export function HubLocked({ section }: { section: 'bilan' | 'seances' }) {
   const w = useWeb();
   const router = useRouter();
+  const { openUpgrade } = useUpgrade();
   const copy = COPY[section];
   return (
     <View style={{ minHeight: 520 }} accessibilityLabel={copy.title}>
@@ -69,8 +71,9 @@ export function HubLocked({ section }: { section: 'bilan' | 'seances' }) {
               {copy.body}
             </WText>
             <View style={{ marginTop: 24, gap: 10, width: '100%' }}>
+              <AccentButton label="Choisir un forfait" icon="sparkle" height={52} onPress={openUpgrade} />
               {PROGRAM_VIDEO_URL ? (
-                <AccentButton label="Découvrir le programme" icon="video" onPress={() => Linking.openURL(PROGRAM_VIDEO_URL!)} />
+                <GhostButton label="Découvrir le programme" icon="video" height={48} fontSize={15} onPress={() => Linking.openURL(PROGRAM_VIDEO_URL!)} />
               ) : null}
               <GhostButton
                 label="Rencontrer un coach"

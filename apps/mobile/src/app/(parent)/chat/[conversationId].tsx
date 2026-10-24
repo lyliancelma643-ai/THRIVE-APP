@@ -18,10 +18,11 @@ type RawMessage = {
 };
 
 export default function ParentChatScreen() {
-  const { conversationId, name } = useLocalSearchParams<{ conversationId: string; name?: string }>();
+  const { conversationId, name, draft } = useLocalSearchParams<{ conversationId: string; name?: string; draft?: string }>();
   const router = useRouter();
   const { messages, isLoading, currentUserId, sendMessage } = useMessages(conversationId);
-  const [input, setInput] = useState('');
+  // `draft` : message pré-rempli (ex. demande de changement de forfait), envoyé seulement si le parent touche Envoyer.
+  const [input, setInput] = useState(typeof draft === 'string' ? draft : '');
   const [sending, setSending] = useState(false);
   const [replyTo, setReplyTo] = useState<{ id: string; content: string } | null>(null);
   // `blocked` = j'ai bloqué ce fil (ligne visible par moi seul, RLS) ; `blockedByOther` = envoi refusé par le serveur.

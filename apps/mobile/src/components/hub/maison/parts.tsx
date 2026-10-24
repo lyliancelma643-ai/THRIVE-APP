@@ -36,14 +36,26 @@ export function ActivityArch({ activityId, width, style }: { activityId: string;
   return <Arch size="md" width={width} height={Math.round((width * 348) / 312)} source={src} accessibilityLabel="" style={style} />;
 }
 
-/** La vignette entière, jamais recadrée : les marges sont comblées par la même image floutée. */
+/** Taille explicite : sans elle, une image `require` prend sa taille d'origine (256 pt) et déborde de la case → effet zoomé. */
+const FILL = { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' } as const;
+
+/**
+ * La vignette dans sa case carrée, jamais zoomée : presque carrée (écart < 6 %) → elle remplit la case bord à bord ;
+ * sinon elle est montrée entière et les fines marges sont comblées par la même image floutée (comme le web).
+ */
 function Vignette({ activityId }: { activityId: string }) {
   const src = vignetteSource(activityId);
   if (!src) return null;
+  // iOS : resolveAssetSource ; web (banc) : l'objet de l'asset porte déjà width/height.
+  const meta = (typeof Image.resolveAssetSource === 'function' ? Image.resolveAssetSource(src) : src) as { width?: number; height?: number } | null;
+  const ratio = meta?.width && meta?.height ? meta.width / meta.height : 1;
+  if (Math.abs(ratio - 1) < 0.06) {
+    return <Image source={src} resizeMode="cover" style={FILL} />;
+  }
   return (
-    <View style={StyleSheet.absoluteFill}>
-      <Image source={src} blurRadius={18} resizeMode="cover" style={[StyleSheet.absoluteFill, { transform: [{ scale: 1.1 }] }]} />
-      <Image source={src} resizeMode="contain" style={StyleSheet.absoluteFill} />
+    <View style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+      <Image source={src} blurRadius={18} resizeMode="cover" style={[FILL, { transform: [{ scale: 1.1 }] }]} />
+      <Image source={src} resizeMode="contain" style={FILL} />
     </View>
   );
 }

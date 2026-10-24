@@ -9,6 +9,7 @@ import {
 } from '../../design';
 import { useTrialReminder } from '../../hooks/useTrialReminder';
 import { HubProvider, useHub } from '../../components/hub/HubProvider';
+import { UpgradeProvider } from '../../components/hub/UpgradeSheet';
 
 // Espace parent. Les six routes (dashboard, maison, bilans, seances, messages, profile) restent
 // déclarées et joignables ; la barre flottante n'en montre que trois + l'onglet Prominent,
@@ -79,6 +80,7 @@ export default function ParentLayout() {
   useTrialReminder();
   return (
     <HubProvider>
+    <UpgradeProvider>
     <Tabs
       screenOptions={{ headerShown: false }}
       tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}
@@ -90,6 +92,7 @@ export default function ParentLayout() {
         <Tabs.Screen key={name} name={name} options={{ href: null }} />
       ))}
     </Tabs>
+    </UpgradeProvider>
     </HubProvider>
   );
 }

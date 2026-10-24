@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { HubScreen } from '../components/hub/HubScreen';
+import { UpgradeProvider } from '../components/hub/UpgradeSheet';
 import { MaisonFrame } from '../components/hub/maison/MaisonFrame';
 import { MaisonWelcome } from '../components/hub/maison/MaisonHome';
 import { Carnet, Catalogue, PageNon, Programme, Sources } from '../components/hub/maison/screens';
@@ -125,7 +126,7 @@ function Phone({ children }: { children: ReactNode }) {
   }, []);
   return (
     <SafeAreaInsetsContext.Provider value={{ top: 54, bottom: 34, left: 0, right: 0 }}>
-      <View style={{ flex: 1 }}>{ready ? children : null}</View>
+      <View style={{ flex: 1 }}>{ready ? <UpgradeProvider>{children}</UpgradeProvider> : null}</View>
     </SafeAreaInsetsContext.Provider>
   );
 }

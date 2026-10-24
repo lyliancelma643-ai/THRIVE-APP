@@ -11,7 +11,7 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { sectionView } from '../../../services/access';
-import { OFFRES_PROGRAMMES_IN_APP } from '../../../lib/offresFlags';
+import { useUpgrade } from '../UpgradeSheet';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import { openNotificationTarget } from '../HubProvider';
@@ -60,6 +60,7 @@ function Pending({ tone, title, body, token, onDone }: { tone: 'sun' | 'sage'; t
 
 function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.RefObject<ScrollView | null>; refreshTick: number; onRefreshed: () => void }) {
   const w = useWeb();
+  const { openUpgrade } = useUpgrade();
   const router = useRouter();
   const params = useLocalSearchParams<{ child?: string; focus?: string }>();
   const { children, isLoading: childrenLoading, loaded, selectChild } = useChildStore();
@@ -171,8 +172,8 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
     if (a.type === 'edit') setEditOpen(true);
     else if (a.type === 'doc') void openDoc(a.value);
     else if (a.type === 'href') {
-      // Anti-steering : les forfaits s'ouvrent dans l'écran Offres de l'app ; les séances vidéo = « Bientôt ».
-      if (a.value.startsWith('/parent/upgrade')) router.push('/(parent)/offres');
+      // « Voir les forfaits » des contenus floutés → le panneau « Passer au forfait supérieur » ; les séances vidéo = « Bientôt ».
+      if (a.value.startsWith('/parent/upgrade')) openUpgrade();
       else if (a.value.startsWith('/parent/fitness/seances')) router.push('/(parent)/videos');
       else if (a.value.startsWith('/parent/my-sessions')) router.navigate('/(parent)/seances');
     } else if (isDetailKey(a.value)) setDetailKey(a.value);
@@ -249,7 +250,6 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
             html={html}
             vars={vars}
             focus={focus}
-            hideUpgrade={!OFFRES_PROGRAMMES_IN_APP}
             onAction={onAction}
             onFocusOffset={async (y) => {
               scrollRef.current?.scrollTo({ y: Math.max(0, top.current + y - 120), animated: false });

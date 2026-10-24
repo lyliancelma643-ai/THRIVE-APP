@@ -16,7 +16,7 @@ import type { Pack } from '../../../../../web/src/lib/packs';
 import { useSelectedChild, useChildStore } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { sectionView } from '../../../services/access';
-import { OFFRES_PROGRAMMES_IN_APP } from '../../../lib/offresFlags';
+import { useUpgrade } from '../UpgradeSheet';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import { usePack } from '../bilan/data';
@@ -80,30 +80,28 @@ function ScoreGauge({ note, locked }: { note: number; locked: boolean }) {
   );
 }
 
-/** Note d'upgrade (anti-steering iOS : aucun prix ; « Voir les offres » = écran Offres de l'app, si les programmes y sont proposés). */
+/** Note d'upgrade : cadenas + ce qui s'ouvre, et TOUJOURS le bouton « Passer au forfait … » (panneau UpgradeSheet). */
 function UpgradeHint({ pack }: { pack: Pack }) {
   const w = useWeb();
-  const router = useRouter();
+  const { openUpgrade } = useUpgrade();
   const hint =
     pack === 'AVANCE'
       ? 'Ton forfait Individuel donne accès aux bilans des séances 3, 7 et 13. Le forfait Complet ouvre toutes les séances.'
       : 'Le bilan détaillé et les observations du coach s’ouvrent avec un forfait Individuel ou Complet.';
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(249,235,80,0.28)', backgroundColor: 'rgba(249,235,80,0.07)', paddingHorizontal: 14, paddingVertical: 12 }}>
-      <View style={{ marginTop: 2 }}>
-        <WIcon name="lock" size={16} color={w.accentInk} />
-      </View>
-      <WText size={14} lh={1.5} tone="body" style={{ flex: 1 }}>
-        <WText size={14} weight={600} tone="accent">
-          {'Contenu réservé. '}
-        </WText>
-        {hint}
-        {OFFRES_PROGRAMMES_IN_APP ? (
-          <WText size={14} weight={600} tone="accent" style={{ textDecorationLine: 'underline' }} onPress={() => router.push('/(parent)/offres')}>
-            {' Voir les offres'}
+    <View style={{ borderRadius: 14, borderWidth: 1, borderColor: 'rgba(249,235,80,0.28)', backgroundColor: 'rgba(249,235,80,0.07)', paddingHorizontal: 14, paddingVertical: 12, gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 10 }}>
+        <View style={{ marginTop: 2 }}>
+          <WIcon name="lock" size={16} color={w.accentInk} />
+        </View>
+        <WText size={14} lh={1.5} tone="body" style={{ flex: 1 }}>
+          <WText size={14} weight={600} tone="accent">
+            {'Contenu réservé. '}
           </WText>
-        ) : null}
-      </WText>
+          {hint}
+        </WText>
+      </View>
+      <AccentButton label={pack === 'AVANCE' ? 'Passer au forfait Complet' : 'Débloquer le bilan détaillé'} icon="sparkle" height={46} onPress={openUpgrade} />
     </View>
   );
 }
@@ -164,7 +162,7 @@ function BilanDetails({ bilan, pack }: { bilan: SessionBilan | null; pack: Pack 
       {bilan?.has_observations ? (
         <View>
           <Eyebrow style={{ marginBottom: 10 }}>Observations du coach</Eyebrow>
-          {!premium ? (
+          {!premium && !bilan?.has_bilan ? (
             <View style={{ marginBottom: 12 }}>
               <UpgradeHint pack={pack} />
             </View>
