@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { parseParentAccess, sectionView } from './access';
+import { detailLevelOf, parseParentAccess, sectionView } from './access';
 
 const base = { role: 'PARENT', unlocked: true, is_staff: false };
 
@@ -45,5 +45,18 @@ describe('anti-steering (écrans verrouillés mobile)', () => {
   it('les URL externes ne viennent que de la configuration (vidéo, rendez-vous)', () => {
     const locked = files[0];
     expect(locked).not.toMatch(/https?:\/\//);
+  });
+});
+
+describe('niveau de détail des bilans (forfait)', () => {
+  it('le plus haut entre families.pack et le forfait actif', () => {
+    expect(detailLevelOf('ESSENTIEL', 'INDIVIDUEL')).toBe('AVANCE');
+    expect(detailLevelOf('AVANCE', null)).toBe('AVANCE');
+    expect(detailLevelOf('ESSENTIEL', 'COMPLET')).toBe('PERFORMANCE');
+    expect(detailLevelOf('PERFORMANCE', 'GROUPE')).toBe('PERFORMANCE');
+    expect(detailLevelOf(undefined, undefined)).toBe('ESSENTIEL');
+  });
+  it('lu dans access_state()', () => {
+    expect(parseParentAccess({ role: 'PARENT', bilan_level: 'ESSENTIEL', program_pack: 'COMPLET' })!.detailLevel).toBe('PERFORMANCE');
   });
 });

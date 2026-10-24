@@ -3,6 +3,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabaseClient as supabase, useChildren, useFamily } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
+import { useChildStore } from '../../stores/child.store';
 import { OfflineState } from '../../components/OfflineState';
 import { ChildrenListView } from '../../components/account/ChildrenListView';
 import { AGE_MAX, AGE_MIN, ChildrenSetupView, type ChildDraft } from '../../components/account/ChildrenSetupView';
@@ -34,7 +35,7 @@ export default function ChildrenScreen() {
   const router = useRouter();
   const { colors } = useTheme();
   const { family, isLoading: familyLoading, error: familyError, refetch: refetchFamily, createFamily } = useFamily(user?.id);
-  const { children, isLoading, error: childrenError, refetch: refetchChildren } = useChildren(family?.id);
+  const { children, isLoading, error: childrenError, refetch: refetchChildren, deleteChild } = useChildren(family?.id);
 
   const [adding, setAdding] = useState(false);
   const [drafts, setDrafts] = useState<ChildDraft[]>(() => [newDraft()]);
@@ -60,6 +61,7 @@ export default function ChildrenScreen() {
       const { error: insertError } = await supabase.from('children').insert(rows);
       if (insertError) throw new Error(insertError.message);
       await refetchChildren();
+      if (user?.id) await useChildStore.getState().loadChildren(user.id);
       setDrafts([newDraft()]);
       if (children.length === 0 && !adding) router.replace('/(parent)/maison');
       else setAdding(false);
@@ -94,6 +96,11 @@ export default function ChildrenScreen() {
         onOpen={(childId) => router.push({ pathname: '/(parent)/badges', params: { childId } })}
         onAdd={() => setAdding(true)}
         onBack={goBack}
+        onDelete={async (childId) => {
+          // Archivage (is_active = false, autorisé au parent par la RLS) : l'enfant disparaît de tout l'espace.
+          await deleteChild(childId);
+          if (user?.id) await useChildStore.getState().loadChildren(user.id);
+        }}
       />
     );
   }

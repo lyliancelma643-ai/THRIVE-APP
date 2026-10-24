@@ -31,7 +31,8 @@ export type ButtonProps = {
 };
 
 const SIZES: Record<ButtonSize, { height: number; radius: number; padding: number; full: boolean }> = {
-  lg: { height: 52, radius: 26, padding: 0, full: true },
+  // Pleine largeur : 20 pt de marge intérieure, pour que le texte (et son icône) ne touche jamais les bords.
+  lg: { height: 52, radius: 26, padding: 20, full: true },
   md: { height: 44, radius: 22, padding: 20, full: false },
   sm: { height: 36, radius: 18, padding: 16, full: false },
 };
@@ -66,7 +67,14 @@ export function Button({
   const inner = (
     <>
       {glyph ? <Icon name={glyph} size={size === 'sm' ? 16 : 19} color={palette.ink} /> : null}
-      <ThemedText variant={size === 'sm' ? 'sub' : 'headline'} weight={variant === 'plain' ? 500 : 600} style={{ color: palette.ink }}>
+      <ThemedText
+        variant={size === 'sm' ? 'sub' : 'headline'}
+        weight={variant === 'plain' ? 500 : 600}
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+        style={{ color: palette.ink, flexShrink: 1, textAlign: 'center' }}
+      >
         {loading ? '…' : label}
       </ThemedText>
     </>

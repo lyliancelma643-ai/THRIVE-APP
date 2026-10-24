@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
+import { mobileTargetForPath } from '../bilan/notificationRoute';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
 import { useChildStore } from '../../stores/child.store';
@@ -149,4 +151,33 @@ export function timeAgo(iso: string): string {
   if (s < 3600) return `il y a ${Math.floor(s / 60)} min`;
   if (s < 86400) return `il y a ${Math.floor(s / 3600)} h`;
   return new Date(iso).toLocaleDateString('fr-CA', { day: 'numeric', month: 'short' });
+}
+
+const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
+
+/** Questionnaires ouverts en ce moment (pour ne pas en empiler deux). */
+let questionnaireOpen = false;
+
+/**
+ * Ouvre la destination d'une notification : un questionnaire (/q/<jeton>, page publique du web) dans une feuille
+ * Safari intégrée à l'app, sinon l'écran de l'app correspondant. Sans destination connue : l'écran des notifications.
+ */
+export function openNotificationTarget(router: { push: (href: never) => void }, path: string): Promise<void> {
+  const q = /^\/q\/([^/?#]+)/.exec(path) ?? /^https?:\/\/[^/]+\/q\/([^/?#]+)/.exec(path);
+  if (q) {
+    if (questionnaireOpen) return Promise.resolve();
+    questionnaireOpen = true;
+    return WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${q[1]}`, {
+      presentationStyle: WebBrowser.WebBrowserPresentationStyle.PAGE_SHEET,
+      dismissButtonStyle: 'done',
+      controlsColor: '#004E7A',
+    })
+      .then(() => undefined, () => undefined)
+      .finally(() => {
+        questionnaireOpen = false;
+      });
+  }
+  const t = mobileTargetForPath(path);
+  if (t) router.push({ pathname: t.pathname, params: t.params } as never);
+  return Promise.resolve();
 }

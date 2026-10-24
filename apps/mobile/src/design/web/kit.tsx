@@ -337,7 +337,7 @@ export function LaunchButton({
       <Enamel radius={r}>
         <View style={{ height, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10, paddingHorizontal: 18 }}>
           {icon ? <WIcon name={icon} size={18} color={w.onAccent} /> : null}
-          <WText size={fontSize} weight={700} color={w.onAccent} lh={1.2}>
+          <WText size={fontSize} weight={700} color={w.onAccent} lh={1.2} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={{ flexShrink: 1 }}>
             {label}
           </WText>
         </View>
@@ -361,7 +361,7 @@ export function AccentButton({
       style={[{ height, paddingHorizontal: 20, borderRadius: height / 2, backgroundColor: bg, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }, style]}
     >
       {icon ? <WIcon name={icon} size={16} color={ink} /> : null}
-      <WText size={15} weight={700} color={ink} lh={1.2}>
+      <WText size={15} weight={700} color={ink} lh={1.2} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={{ flexShrink: 1 }}>
         {label}
       </WText>
     </Tap>
@@ -387,7 +387,7 @@ export function GhostButton({
       ]}
     >
       {icon ? <WIcon name={icon} size={18} color={w.text} /> : null}
-      <WText size={fontSize} weight={600} tone="ink" lh={1.2} numberOfLines={1}>
+      <WText size={fontSize} weight={600} tone="ink" lh={1.2} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.85} style={{ flexShrink: 1 }}>
         {label}
       </WText>
     </Tap>

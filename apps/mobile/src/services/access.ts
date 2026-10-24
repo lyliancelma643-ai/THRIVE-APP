@@ -15,7 +15,22 @@ export type ParentAccess = {
   isStaff: boolean;
   packEnd: string | null;
   trialUsed: boolean;
+  /**
+   * Niveau de détail des bilans (matrice des forfaits : ESSENTIEL = Groupe, AVANCE = Individuel, PERFORMANCE = Complet),
+   * le plus haut entre `bilan_level` (families.pack) et le forfait actif `program_pack` (pack_enrollments).
+   */
+  detailLevel: 'ESSENTIEL' | 'AVANCE' | 'PERFORMANCE';
 };
+
+const LEVEL_RANK = { ESSENTIEL: 1, AVANCE: 2, PERFORMANCE: 3 } as const;
+const PACK_LEVEL: Record<string, keyof typeof LEVEL_RANK> = { GROUPE: 'ESSENTIEL', INDIVIDUEL: 'AVANCE', COMPLET: 'PERFORMANCE' };
+
+/** Le plus haut des deux niveaux renvoyés par access_state() ; inconnu = ESSENTIEL. */
+export function detailLevelOf(bilanLevel: unknown, programPack: unknown): ParentAccess['detailLevel'] {
+  const a = typeof bilanLevel === 'string' && bilanLevel.toUpperCase() in LEVEL_RANK ? (bilanLevel.toUpperCase() as keyof typeof LEVEL_RANK) : 'ESSENTIEL';
+  const b = typeof programPack === 'string' ? PACK_LEVEL[programPack.toUpperCase()] ?? 'ESSENTIEL' : 'ESSENTIEL';
+  return LEVEL_RANK[a] >= LEVEL_RANK[b] ? a : b;
+}
 
 const asMode = (v: unknown, open: boolean): SectionMode =>
   v === 'complet' || v === 'lecture' || v === 'verrouille' ? v : open ? 'complet' : 'verrouille';
@@ -39,6 +54,7 @@ export function parseParentAccess(data: unknown): ParentAccess | null {
     isStaff: d.is_staff === true,
     packEnd: typeof d.pack_fin === 'string' ? d.pack_fin : null,
     trialUsed: d.trial_used === true,
+    detailLevel: d.is_staff === true ? 'PERFORMANCE' : detailLevelOf(d.bilan_level, d.program_pack ?? d.pack_actif),
   };
 }
 

@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useNotifications, type AppNotification } from '@thrive/shared/hooks/useNotifications';
 import { OfflineState } from '../../components/OfflineState';
 import { NotificationsView, type NotifItem } from '../../components/bilan/NotificationsView';
-import { mobileTargetForPath } from '../../components/bilan/notificationRoute';
+import { notifWebPath, openNotificationTarget, useHub, type HubNotif } from '../../components/hub/HubProvider';
 
 // V — Notifications du parent, groupées (Aujourd'hui · Cette semaine · Plus tôt). Un toucher marque la notification
 // comme lue puis mène à la bonne page / carte (data.path du serveur, ?focus=…) ; appui long = supprimer.
@@ -27,11 +27,17 @@ export default function ParentNotificationsScreen() {
     };
   }, []);
 
+  const { refresh: refreshBadges } = useHub();
   const open = (n: NotifItem) => {
     const full = notifications.find((x) => x.id === n.id) as AppNotification | undefined;
     if (!n.is_read) markAsRead(n.id);
-    const target = mobileTargetForPath(full?.data?.path);
-    if (target) router.push({ pathname: target.pathname, params: target.params } as never);
+    refreshBadges();
+    // Même routage que la cloche du web : data.path, sinon déduit du type (questionnaire → feuille Safari intégrée).
+    const path = notifWebPath({
+      id: n.id, type: String(full?.type ?? n.type), title: n.title, body: n.body ?? null,
+      data: (full?.data as HubNotif['data']) ?? null, is_read: n.is_read, created_at: n.created_at,
+    });
+    openNotificationTarget(router as never, path);
   };
 
   if (isLoading) return <ActivityIndicator accessibilityLabel="Chargement des notifications" style={{ marginTop: 96 }} />;

@@ -1,22 +1,16 @@
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import * as WebBrowser from 'expo-web-browser';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND_LOGO, Icon, List, ListRow, Sheet, useTheme } from '../../design';
+import { BRAND_LOGO, Icon, List, ListRow, Sheet } from '../../design';
 import { IconBtn, Tap, WIcon, WText, useWeb } from '../../design/web';
 import { useAuthStore } from '../../stores/auth.store';
 import { ageFromDob, useChildStore, useSelectedChild } from '../../stores/child.store';
-import { mobileTargetForPath } from '../bilan/notificationRoute';
-import { notifWebPath, timeAgo, useHub, type HubNotif } from './HubProvider';
+import { notifWebPath, openNotificationTarget, timeAgo, useHub, type HubNotif } from './HubProvider';
 import { Popover } from './Popover';
-
-const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
 
 /** Hauteur de la barre (hors zone sûre) : 12 + 44 + 12. */
 export const HUB_HEADER_ROW = 68;
-
-const ROLE_LABELS: Record<string, string> = { PARENT: 'Parent', ADMIN: 'Administrateur', SUPER_ADMIN: 'Super admin', COACH: 'Coach' };
 
 /** Tranche d'âge du sélecteur web (`ageGroupFromBirthDate`). */
 function ageGroup(dob: string | null): string | null {
@@ -28,68 +22,44 @@ function ageGroup(dob: string | null): string | null {
 }
 
 /**
- * En-tête de l'espace parent, copie de celui du web (app/parent/(hub)/layout.tsx), à même le fond :
- *   gauche — logo THRIVE puis « Léo · 12 ans ⌄ » (feuille iOS pour changer d'enfant) ;
- *   droite — Messagerie (non-lus), Notifications (panneau déroulant), Ambiance soleil/lune, Compte (menu).
+ * En-tête de l'espace parent, allégé :
+ *   gauche — logo THRIVE puis la pastille de l'enfant (initiale · prénom · âge · ⌄), qui ouvre la feuille iOS ;
+ *   droite — Notifications (panneau déroulant) et les initiales, qui ouvrent directement les Paramètres du compte.
+ * La messagerie vit dans le rond en bas à droite ; le choix clair / sombre dans les Paramètres du compte.
  */
 export function HubHeader() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const w = useWeb();
-  const { styleKey, setStyle } = useTheme();
   const user = useAuthStore((s) => s.user);
-  const signOut = useAuthStore((s) => s.signOut);
   const { children, isLoading, loaded, selectChild } = useChildStore();
   const selected = useSelectedChild();
-  const { notifications, unreadNotifications, unreadMessages, markRead } = useHub();
+  const { notifications, unreadNotifications, markRead } = useHub();
   const [childSheet, setChildSheet] = useState(false);
-  const [menu, setMenu] = useState<null | 'notifs' | 'user'>(null);
-  const [signingOut, setSigningOut] = useState(false);
+  const [notifsOpen, setNotifsOpen] = useState(false);
 
   const top = insets.top + HUB_HEADER_ROW - 6;
   const age = ageFromDob(selected?.date_of_birth);
   const initials =
     `${user?.firstName?.[0] ?? ''}${user?.lastName?.[0] ?? ''}`.toUpperCase() || user?.email?.[0]?.toUpperCase() || '·';
-  const fullName = [user?.firstName, user?.lastName].filter(Boolean).join(' ') || 'Mon compte';
-  const isNight = styleKey === 'veillee';
 
-  const go = (path: string) => {
-    if (path.startsWith('/q/')) {
-      void WebBrowser.openBrowserAsync(`${WEB_ORIGIN}${path}`);
-      return;
-    }
-    const t = mobileTargetForPath(path);
-    if (t) router.push({ pathname: t.pathname, params: t.params } as never);
-  };
-
-  const openNotif = async (n: HubNotif) => {
-    setMenu(null);
+  const openNotif = (n: HubNotif) => {
+    setNotifsOpen(false);
     if (!n.is_read) void markRead([n.id]);
-    go(notifWebPath(n));
-  };
-
-  const logout = async () => {
-    setSigningOut(true);
-    setMenu(null);
-    useChildStore.getState().reset();
-    await signOut();
-    router.replace('/(auth)/login');
+    // Laisser le panneau se refermer avant d'ouvrir la page (un questionnaire s'ouvre dans une feuille Safari).
+    setTimeout(() => openNotificationTarget(router, notifWebPath(n)), 320);
   };
 
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: w.bg }}>
-      <View style={{ height: HUB_HEADER_ROW, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <View style={{ flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Pressable
-            onPress={() => router.navigate('/(parent)/maison')}
-            accessibilityRole="button"
-            accessibilityLabel="Accueil THRIVE"
-            hitSlop={6}
-          >
-            <Image source={BRAND_LOGO} accessibilityIgnoresInvertColors style={{ width: 32, height: 32, borderRadius: 7 }} />
-          </Pressable>
+      <View style={{ height: HUB_HEADER_ROW, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+        <Pressable onPress={() => router.navigate('/(parent)/maison')} accessibilityRole="button" accessibilityLabel="Accueil THRIVE" hitSlop={6}>
+          <Image source={BRAND_LOGO} accessibilityIgnoresInvertColors style={{ width: 32, height: 32, borderRadius: 7 }} />
+        </Pressable>
+
+        <View style={{ flex: 1, minWidth: 0, flexDirection: 'row' }}>
           {isLoading && !loaded ? (
-            <View style={{ height: 20, width: 112, borderRadius: 10, backgroundColor: w.chip }} />
+            <View style={{ height: 36, width: 132, borderRadius: 18, backgroundColor: w.chip }} />
           ) : children.length === 0 ? (
             <Tap
               onPress={() => router.push('/(parent)/children')}
@@ -97,50 +67,49 @@ export function HubHeader() {
               accessibilityLabel="Ajouter un enfant"
               style={{ height: 36, paddingHorizontal: 16, borderRadius: 18, backgroundColor: w.accent, justifyContent: 'center' }}
             >
-              <WText size={14} weight={700} color="#022539" numberOfLines={1}>
+              <WText size={14} weight={700} color="#022539" lh={18} numberOfLines={1}>
                 + Ajouter un enfant
               </WText>
             </Tap>
           ) : (
-            <Pressable
+            <Tap
               onPress={() => setChildSheet(true)}
               accessibilityRole="button"
-              accessibilityLabel={`Enfant : ${selected?.first_name ?? ''}. Changer d’enfant`}
-              hitSlop={4}
-              style={({ pressed }) => ({ flexShrink: 1, minWidth: 0, height: 44, flexDirection: 'row', alignItems: 'center', gap: 2, opacity: pressed ? 0.6 : 1 })}
+              accessibilityLabel={`Enfant : ${selected?.first_name ?? ''}${age != null ? `, ${age} ans` : ''}. Changer d’enfant`}
+              style={{
+                flexShrink: 1, minWidth: 0, height: 40, paddingLeft: 4, paddingRight: 12, borderRadius: 20,
+                backgroundColor: w.chip, borderWidth: 1, borderColor: w.line, flexDirection: 'row', alignItems: 'center', gap: 8,
+              }}
             >
-              <WText size={13} weight={600} tone="soft" tracking={0.02} numberOfLines={1} style={{ flexShrink: 1 }}>
-                {`${selected?.first_name ?? ''}${age != null ? ` · ${age} ans` : ''}`}
+              <View style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: w.sage, alignItems: 'center', justifyContent: 'center' }}>
+                <WText size={13} weight={700} color="#06222A" lh={16}>
+                  {(selected?.first_name?.[0] ?? '·').toUpperCase()}
+                </WText>
+              </View>
+              <WText size={15} weight={600} tone="ink" lh={18} numberOfLines={1} style={{ flexShrink: 1 }}>
+                {selected?.first_name ?? ''}
+                {age != null ? (
+                  <WText size={13} weight={500} tone="soft" lh={18}>
+                    {` · ${age} ans`}
+                  </WText>
+                ) : null}
               </WText>
-              <WIcon name="chevron-down" size={16} color={w.text3} />
-            </Pressable>
+              <WIcon name="chevron-down" size={15} color={w.text3} strokeWidth={2.2} />
+            </Tap>
           )}
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <IconBtn
-            icon="mail"
-            label={unreadMessages ? `Messagerie — ${unreadMessages} message(s) non lu(s)` : 'Messagerie : coach et support THRIVE'}
-            onPress={() => router.push('/(parent)/messages')}
-            badge={unreadMessages}
-          />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <IconBtn
             icon="bell"
             label={unreadNotifications ? `Notifications — ${unreadNotifications} non lue(s)` : 'Notifications'}
-            onPress={() => setMenu((m) => (m === 'notifs' ? null : 'notifs'))}
+            onPress={() => setNotifsOpen((o) => !o)}
             badge={unreadNotifications}
           />
-          <IconBtn
-            label={isNight ? 'Passer à l’ambiance Jour clair' : 'Passer à l’ambiance Nuit calme'}
-            onPress={() => setStyle(isNight ? 'lin' : 'veillee')}
-            background={w.surfaceSub}
-          >
-            <WIcon name={isNight ? 'sun' : 'moon'} size={20} color={w.text2} strokeWidth={1.8} />
-          </IconBtn>
           <Tap
-            onPress={() => setMenu((m) => (m === 'user' ? null : 'user'))}
+            onPress={() => router.push('/(parent)/profile')}
             accessibilityRole="button"
-            accessibilityLabel="Menu du compte"
+            accessibilityLabel="Paramètres du compte"
             style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#0E6593', alignItems: 'center', justifyContent: 'center' }}
           >
             <WText size={13} weight={700} color="#FFFFFF" lh={16}>
@@ -171,7 +140,7 @@ export function HubHeader() {
         <List>
           <ListRow
             glyph="people"
-            title="+ Ajouter un enfant ou un parent"
+            title="Gérer mes enfants"
             onPress={() => {
               setChildSheet(false);
               router.push('/(parent)/children');
@@ -181,7 +150,7 @@ export function HubHeader() {
       </Sheet>
 
       {/* Notifications : le panneau déroulant de la cloche du web. */}
-      <Popover visible={menu === 'notifs'} onClose={() => setMenu(null)} top={top} left={12} right={12} accessibilityLabel="Notifications" style={{ maxHeight: 520 }}>
+      <Popover visible={notifsOpen} onClose={() => setNotifsOpen(false)} top={top} left={12} right={12} accessibilityLabel="Notifications" style={{ maxHeight: 520 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 }}>
           <WText size={12} weight={700} tracking={0.12} upper tone="faint">
             Notifications
@@ -233,7 +202,7 @@ export function HubHeader() {
         )}
         <Pressable
           onPress={() => {
-            setMenu(null);
+            setNotifsOpen(false);
             router.push('/(parent)/notifications');
           }}
           accessibilityRole="button"
@@ -241,65 +210,6 @@ export function HubHeader() {
         >
           <WText size={13} weight={600} tone="accent">
             Toutes les notifications
-          </WText>
-        </Pressable>
-      </Popover>
-
-      {/* Menu du compte : identité, abonnement, paramètres (la section Compte de l'app), déconnexion. */}
-      <Popover visible={menu === 'user'} onClose={() => setMenu(null)} top={top} right={12} width={256} accessibilityLabel="Compte">
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: w.line }}>
-          <View style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: '#0E6593', alignItems: 'center', justifyContent: 'center' }}>
-            <WText size={13} weight={700} color="#FFFFFF" lh={16}>
-              {initials}
-            </WText>
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <WText size={14} weight={600} tone="ink" numberOfLines={1}>
-              {fullName}
-            </WText>
-            <WText size={12} tone="faint" numberOfLines={1}>
-              {user?.email ?? ''}
-            </WText>
-            {user?.role ? (
-              <View style={{ alignSelf: 'flex-start', marginTop: 4, paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10, backgroundColor: w.chip }}>
-                <WText size={10} weight={600} tone="soft" upper tracking={0.05} lh={14}>
-                  {ROLE_LABELS[user.role] ?? user.role}
-                </WText>
-              </View>
-            ) : null}
-          </View>
-        </View>
-        {[
-          ...(user?.role === 'PARENT' || !user?.role ? [{ icon: 'star' as const, label: 'Mon abonnement', to: '/(parent)/abonnement' }] : []),
-          { icon: 'settings' as const, label: 'Paramètres du compte', to: '/(parent)/profile' },
-        ].map((it) => (
-          <Pressable
-            key={it.label}
-            onPress={() => {
-              setMenu(null);
-              router.push(it.to as never);
-            }}
-            accessibilityRole="menuitem"
-            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 48, backgroundColor: pressed ? w.chip : 'transparent' })}
-          >
-            <WIcon name={it.icon} size={20} color={w.text2} />
-            <WText size={14} tone="body">
-              {it.label}
-            </WText>
-          </Pressable>
-        ))}
-        <Pressable
-          onPress={logout}
-          disabled={signingOut}
-          accessibilityRole="menuitem"
-          style={({ pressed }) => ({
-            flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 16, minHeight: 48,
-            borderTopWidth: 1, borderTopColor: w.line, backgroundColor: pressed ? 'rgba(239,68,68,0.15)' : 'transparent', opacity: signingOut ? 0.6 : 1,
-          })}
-        >
-          <WIcon name="power" size={20} color={w.dangerInk} />
-          <WText size={14} weight={600} color={w.dangerInk}>
-            {signingOut ? 'Déconnexion…' : 'Se déconnecter'}
           </WText>
         </Pressable>
       </Popover>

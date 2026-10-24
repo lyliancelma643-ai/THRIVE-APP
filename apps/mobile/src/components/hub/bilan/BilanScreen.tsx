@@ -14,11 +14,11 @@ import { sectionView } from '../../../services/access';
 import { OFFRES_PROGRAMMES_IN_APP } from '../../../lib/offresFlags';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
+import { openNotificationTarget } from '../HubProvider';
 import BilanDom, { type BilanAction } from './BilanDom';
 import { DetailSheet, InfoSheet, PassportSheet, isDetailKey, type DetailKey } from './BilanSheets';
 import { accentHex, programPct, resolveAvatarUrl, signedDocUrl, useBilanData, usePack } from './data';
 
-const WEB_ORIGIN = process.env.EXPO_PUBLIC_WEB_URL || 'https://app.thrivesportpositive.com';
 
 function BilanSkeleton() {
   return (
@@ -34,8 +34,9 @@ function BilanSkeleton() {
 }
 
 /** Rappel de questionnaire (même grammaire que les cartes : aplat, un seul accent). */
-function Pending({ tone, title, body, token }: { tone: 'sun' | 'sage'; title: string; body: string; token: string | null }) {
+function Pending({ tone, title, body, token, onDone }: { tone: 'sun' | 'sage'; title: string; body: string; token: string | null; onDone: () => void }) {
   const w = useWeb();
+  const router = useRouter();
   const ring = tone === 'sun' ? 'rgba(249,235,80,0.25)' : 'rgba(167,196,188,0.3)';
   return (
     <View style={{ marginBottom: 12, padding: 16, borderRadius: 18, backgroundColor: w.surface, borderWidth: 1, borderColor: ring, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
@@ -51,7 +52,7 @@ function Pending({ tone, title, body, token }: { tone: 'sun' | 'sage'; title: st
         </WText>
       </View>
       {token ? (
-        <AccentButton label="Ouvrir" height={44} tone={tone === 'sun' ? 'accent' : 'sage'} onPress={() => WebBrowser.openBrowserAsync(`${WEB_ORIGIN}/q/${token}`)} />
+        <AccentButton label="Ouvrir" height={44} tone={tone === 'sun' ? 'accent' : 'sage'} onPress={() => void openNotificationTarget(router as never, `/q/${token}`).then(onDone)} />
       ) : null}
     </View>
   );
@@ -205,7 +206,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
     <View>
       {view === 'readonly' ? <ReadOnlyBanner endedOn={access.packEnd} /> : null}
       {data.pendingLsss ? (
-        <Pending tone="sun" title="Questionnaire LSSS en attente" body={`${child.first_name} a un questionnaire à compléter avec toi.`} token={data.pendingLsss.token} />
+        <Pending tone="sun" title="Questionnaire LSSS en attente" body={`${child.first_name} a un questionnaire à compléter avec toi.`} token={data.pendingLsss.token} onDone={() => void reload()} />
       ) : null}
       {data.pendingPerma ? (
         <Pending
@@ -213,6 +214,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
           title={`Questionnaire bien-être à compléter${data.pendingPerma.session_number ? ` — séance ${data.pendingPerma.session_number}` : ''}`}
           body={`${child.first_name} a un court questionnaire de bien-être (EPOCH) à remplir avec toi.`}
           token={data.pendingPerma.token}
+          onDone={() => void reload()}
         />
       ) : null}
       {docError ? (

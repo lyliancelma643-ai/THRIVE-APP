@@ -1,4 +1,5 @@
-import { ScrollView, View } from 'react-native';
+import { useState } from 'react';
+import { Alert, Pressable, ScrollView, View } from 'react-native';
 import {
   Avatar, Button, GlassButton, LargeTitle, List, ListRow, NavBar, Section, ThemedText, useLargeTitle, useNavBarHeight, useTheme,
 } from '../../design';
@@ -17,11 +18,26 @@ type Props = {
   onOpen: (id: string) => void;
   onAdd: () => void;
   onBack: () => void;
+  /** Suppression (archivage) d'un enfant, après confirmation. */
+  onDelete?: (id: string) => Promise<void>;
 };
 
-/** « Mes enfants » (depuis Compte & famille) : un enfant par rangée, puis « Ajouter un enfant » (même formulaire que D). */
-export function ChildrenListView({ childrenList, onOpen, onAdd, onBack }: Props) {
+/**
+ * « Mes enfants » (depuis Compte & famille) : un enfant par rangée, puis « Ajouter un enfant » (même formulaire que D).
+ * « Modifier » (en haut à droite, geste iOS) montre la pastille rouge de suppression sur chaque enfant.
+ */
+export function ChildrenListView({ childrenList, onOpen, onAdd, onBack, onDelete }: Props) {
   const { colors } = useTheme();
+  const [editing, setEditing] = useState(false);
+  const confirmDelete = (c: ChildListItem) =>
+    Alert.alert(
+      `Supprimer ${c.firstName} ?`,
+      `${c.firstName} disparaîtra de ton espace (Maison, Bilan, Mes séances). Si c’est une erreur, l’équipe THRIVE peut restaurer son profil.`,
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Supprimer', style: 'destructive', onPress: () => void onDelete?.(c.id) },
+      ],
+    );
   const navH = useNavBarHeight();
   const lt = useLargeTitle();
   return (
@@ -36,12 +52,28 @@ export function ChildrenListView({ childrenList, onOpen, onAdd, onBack }: Props)
                 <ListRow
                   key={c.id}
                   large
-                  leading={<Avatar label={c.firstName.slice(0, 1)} size={44} />}
-                  leadingInset={72}
+                  leading={
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                      {editing ? (
+                        <Pressable
+                          onPress={() => confirmDelete(c)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`Supprimer ${c.firstName}`}
+                          hitSlop={10}
+                          style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: colors.sysRed, alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <View style={{ width: 11, height: 2.5, borderRadius: 1.5, backgroundColor: '#FFFFFF' }} />
+                        </Pressable>
+                      ) : null}
+                      <Avatar label={c.firstName.slice(0, 1)} size={44} />
+                    </View>
+                  }
+                  leadingInset={editing ? 108 : 72}
                   title={c.firstName}
                   subtitle={sub || undefined}
                   value={`${c.age} ans`}
-                  onPress={() => onOpen(c.id)}
+                  chevron={!editing}
+                  onPress={() => (editing ? confirmDelete(c) : onOpen(c.id))}
                 />
               );
             })}
@@ -61,6 +93,15 @@ export function ChildrenListView({ childrenList, onOpen, onAdd, onBack }: Props)
         titleVisible={lt.titleVisible}
         edge={lt.edge}
         left={<GlassButton glyph="chevronLeft" accessibilityLabel="Retour" onPress={onBack} />}
+        right={
+          onDelete && childrenList.length > 0 ? (
+            <Pressable onPress={() => setEditing((e) => !e)} accessibilityRole="button" hitSlop={10} style={{ minHeight: 44, paddingHorizontal: 8, justifyContent: 'center' }}>
+              <ThemedText variant="body" weight={editing ? 600 : 400} color="tintText">
+                {editing ? 'OK' : 'Modifier'}
+              </ThemedText>
+            </Pressable>
+          ) : undefined
+        }
       />
     </View>
   );

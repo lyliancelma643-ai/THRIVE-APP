@@ -3,7 +3,8 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { asPack, can, type Pack, type PlanFeature } from '../../../../../web/src/lib/packs';
+import { can, type Pack, type PlanFeature } from '../../../../../web/src/lib/packs';
+import { useSubscriptionStore } from '../../../stores/subscription.store';
 import type { CoachInfo, ParentIdentity } from '../../../../../web/src/app/parent/(hub)/bilans/bilan-html';
 
 export type LsssMoment = 'BASELINE' | 'MID' | 'FINAL';
@@ -146,32 +147,14 @@ export function useBilanData(childId: string | null) {
   return { data, error, loading, reload };
 }
 
-/** Forfait de la famille de l'enfant (families.pack) : pilote les sections analytiques (aperçu si fermé). */
-export function usePack(childId: string | null): { pack: Pack; loaded: boolean; can: (f: PlanFeature) => boolean } {
-  const [pack, setPack] = useState<Pack>('ESSENTIEL');
-  const [loaded, setLoaded] = useState(false);
-  useEffect(() => {
-    if (!childId) {
-      setLoaded(true);
-      return;
-    }
-    setLoaded(false);
-    let ok = true;
-    Promise.resolve(supabase.from('children').select('family_id, family:families (id, pack)').eq('id', childId).maybeSingle())
-      .then(({ data }) => {
-        const rel = (data as { family?: { pack?: string } | { pack?: string }[] } | null)?.family;
-        const fam = Array.isArray(rel) ? rel[0] : rel;
-        if (ok) {
-          setPack(asPack(fam?.pack));
-          setLoaded(true);
-        }
-      })
-      .catch(() => ok && setLoaded(true));
-    return () => {
-      ok = false;
-    };
-  }, [childId]);
-  return { pack, loaded, can: (f) => can(pack, f) };
+/**
+ * Forfait de la famille : niveau de détail calculé par access_state() (le plus haut entre families.pack et le forfait
+ * actif de pack_enrollments). Pilote les sections analytiques (aperçu si fermé). `loaded` = access_state() lu.
+ */
+export function usePack(_childId: string | null): { pack: Pack; loaded: boolean; can: (f: PlanFeature) => boolean } {
+  const access = useSubscriptionStore((s) => s.access);
+  const pack = (access?.detailLevel ?? 'ESSENTIEL') as Pack;
+  return { pack, loaded: access !== null, can: (f) => can(pack, f) };
 }
 
 /** Couleur du passeport (préréglages de lib/avatar.ts du web). */
