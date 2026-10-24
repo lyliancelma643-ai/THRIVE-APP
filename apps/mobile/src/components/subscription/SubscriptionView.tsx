@@ -94,7 +94,7 @@ export function SubscriptionView({ model, storeName, deviceLabel, embedded, rest
             leading={<IconBadge glyph="settings" />}
             leadingInset={60}
             title={`Gérer dans ${storeName}`}
-            subtitle="Changer de formule ou annuler"
+            subtitle="Changer de formule ou résilier l’abonnement"
             onPress={onManage}
           />
           <ListRow

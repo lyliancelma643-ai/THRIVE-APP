@@ -1,3 +1,4 @@
+import React from 'react';
 import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useEffect } from 'react';
 import { Text, View } from 'react-native';
@@ -37,10 +38,9 @@ function Ecran() {
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }} testID={`ecran-${screen.id}`}>
       <View style={{ flex: 1 }}>{screen.render()}</View>
       {screen.tab ? (
-        <FloatingTabBar
+        <BenchTabBar
           tabs={layout.tabs.map((t) => ({ key: t.route, label: t.label, glyph: t.glyph }))}
-          activeKey={screen.tab}
-          onSelect={() => {}}
+          initial={screen.tab}
           prominent={{
             key: 'prominent', label: layout.prominent.label, glyph: layout.prominent.glyph,
             onPress: () => {},
@@ -49,4 +49,10 @@ function Ecran() {
       ) : null}
     </View>
   );
+}
+
+/** Barre du banc : l'onglet suit le toucher / le glissement (sans changer d'écran), pour éprouver la goutte. */
+function BenchTabBar({ initial, ...rest }: Omit<React.ComponentProps<typeof FloatingTabBar>, 'activeKey' | 'onSelect'> & { initial: string }) {
+  const [active, setActive] = React.useState(initial);
+  return <FloatingTabBar {...rest} activeKey={active} onSelect={setActive} />;
 }

@@ -82,7 +82,8 @@ export default function ParentLayout() {
     <HubProvider>
     <UpgradeProvider>
     <Tabs
-      screenOptions={{ headerShown: false }}
+      // « shift » : la page glisse à l'horizontale vers l'onglet choisi (TabPager du web).
+      screenOptions={{ headerShown: false, animation: 'shift' }}
       tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}
     >
       <Tabs.Screen name="maison" options={{ title: 'Maison' }} />

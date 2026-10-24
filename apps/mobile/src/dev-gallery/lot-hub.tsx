@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaInsetsContext } from 'react-native-safe-area-context';
 import { HubScreen } from '../components/hub/HubScreen';
 import { UpgradeProvider } from '../components/hub/UpgradeSheet';
+import { HubLocked } from '../components/hub/HubLocked';
 import { MaisonFrame } from '../components/hub/maison/MaisonFrame';
 import { MaisonWelcome } from '../components/hub/maison/MaisonHome';
 import { Carnet, Catalogue, PageNon, Programme, Sources } from '../components/hub/maison/screens';
@@ -163,6 +164,18 @@ export const screens: GalleryScreen[] = [
     render: () => (
       <Phone>
         <SeancesScreen />
+      </Phone>
+    ),
+  },
+  {
+    id: 'HL',
+    title: 'Bilan verrouillé — abonné Maison seul (web)',
+    tab: 'bilans',
+    render: () => (
+      <Phone>
+        <HubScreen>
+          <HubLocked section="bilan" />
+        </HubScreen>
       </Phone>
     ),
   },

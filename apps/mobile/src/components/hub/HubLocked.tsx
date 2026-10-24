@@ -3,12 +3,13 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { AccentButton, FadeUp, GhostButton, NcCard, WIcon, WText, useWeb } from '../../design/web';
 import { COACH_CALL_URL, PROGRAM_VIDEO_URL } from '../../services/access';
-import { useUpgrade } from './UpgradeSheet';
+import { ProgramCards, openPricing } from './ProgramCards';
+import { useContactTeam } from './UpgradeSheet';
 
-// Onglet Bilan / Mes séances verrouillé — portage de components/parent/LockedSection.tsx du web : un SQUELETTE FACTICE
-// flouté (aucune donnée réelle n'est chargée), puis la carte « … s'ouvre avec un pack ». Parcours coachés = services entre personnes (Apple 3.1.3(d)) :
-// « Choisir un forfait » = panneau UpgradeSheet (équipe THRIVE, site, courriel) ; « Rencontrer un coach » = page de rendez-vous configurée,
-// sinon la messagerie de l'app. La vidéo n'apparaît que si une page vidéo est configurée.
+// Onglet Bilan / Mes séances verrouillé (ex. abonné Maison seul) — la page produit : un aperçu FACTICE flouté (aucune
+// donnée réelle n'est chargée), puis les trois programmes et « Voir les prix et réserver » (page Prix du site : prix,
+// réservation, appel). Aucun paiement dans l'app ; l'équipe active le forfait depuis l'administration. Parcours coachés
+// = services entre personnes (Apple 3.1.3(d)). « Rencontrer un coach » = page de rendez-vous configurée, sinon le fil Support.
 
 const COPY = {
   bilan: {
@@ -49,46 +50,52 @@ function Fake({ section }: { section: 'bilan' | 'seances' }) {
 
 export function HubLocked({ section }: { section: 'bilan' | 'seances' }) {
   const w = useWeb();
-  const router = useRouter();
-  const { openUpgrade } = useUpgrade();
+  const { message } = useContactTeam();
   const copy = COPY[section];
   return (
-    <View style={{ minHeight: 520 }} accessibilityLabel={copy.title}>
-      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ opacity: 0.6 }}>
-        <Fake section={section} />
-        <BlurView intensity={18} tint={w.isNight ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+    <View accessibilityLabel={copy.title}>
+      {/* L'aperçu flouté de ce qui s'ouvre (aucune donnée réelle), sous l'en-tête de la page produit. */}
+      <View style={{ height: 230, overflow: 'hidden', borderRadius: 22 }}>
+        <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ opacity: 0.6 }}>
+          <Fake section={section} />
+          <BlurView intensity={18} tint={w.isNight ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+        </View>
+        <View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }]}>
+          <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(249,235,80,0.14)', alignItems: 'center', justifyContent: 'center' }}>
+            <WIcon name="lock" size={20} color={w.accentInk} />
+          </View>
+          <WText display size={24} weight={600} tone="ink" center style={{ marginTop: 14 }} accessibilityRole="header">
+            {copy.title}
+          </WText>
+          <WText size={15} lh={1.5} tone="soft" center style={{ marginTop: 6 }}>
+            {copy.body}
+          </WText>
+        </View>
       </View>
-      <View style={{ position: 'absolute', top: 40, left: 0, right: 0, alignItems: 'center' }}>
-        <FadeUp style={{ width: '100%', maxWidth: 448 }}>
-          <NcCard style={{ alignItems: 'center', shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 20, shadowOffset: { width: 0, height: 12 } }}>
-            <View style={{ width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(249,235,80,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-              <WIcon name="lock" size={20} color={w.accentInk} />
-            </View>
-            <WText display size={24} weight={600} tone="ink" center style={{ marginTop: 16 }} accessibilityRole="header">
-              {copy.title}
-            </WText>
-            <WText size={15} lh={1.55} tone="soft" center style={{ marginTop: 8 }}>
-              {copy.body}
-            </WText>
-            <View style={{ marginTop: 24, gap: 10, width: '100%' }}>
-              <AccentButton label="Choisir un forfait" icon="sparkle" height={52} onPress={openUpgrade} />
-              {PROGRAM_VIDEO_URL ? (
-                <GhostButton label="Découvrir le programme" icon="video" height={48} fontSize={15} onPress={() => Linking.openURL(PROGRAM_VIDEO_URL!)} />
-              ) : null}
-              <GhostButton
-                label="Rencontrer un coach"
-                icon="mail"
-                height={48}
-                fontSize={15}
-                onPress={() => (COACH_CALL_URL ? Linking.openURL(COACH_CALL_URL) : router.push('/(parent)/messages'))}
-              />
-            </View>
-            <WText size={13} tone="faint" center style={{ marginTop: 12 }}>
-              {PROGRAM_VIDEO_URL ? 'Vidéo de 5 minutes · appel de 15 minutes, sans engagement.' : 'Un premier échange de 15 minutes, sans engagement.'}
-            </WText>
-          </NcCard>
-        </FadeUp>
-      </View>
+
+      <FadeUp style={{ marginTop: 28 }}>
+        <WText size={12} weight={700} upper tracking={0.12} tone="faint" style={{ marginBottom: 12 }}>
+          Nos trois programmes
+        </WText>
+        {/* Section verrouillée = aucun forfait en cours : rien n'est marqué « Ton forfait ». */}
+        <ProgramCards markCurrent={false} />
+        <View style={{ marginTop: 20, gap: 10 }}>
+          <AccentButton label="Voir les prix et réserver" icon="arrow-right" height={52} onPress={() => void openPricing()} />
+          <GhostButton
+            label={COACH_CALL_URL ? 'Rencontrer un coach' : 'Écrire à l’équipe THRIVE'}
+            icon="message"
+            height={48}
+            fontSize={15}
+            onPress={() => (COACH_CALL_URL ? Linking.openURL(COACH_CALL_URL) : void message())}
+          />
+          {PROGRAM_VIDEO_URL ? (
+            <GhostButton label="Découvrir le programme en vidéo" icon="video" height={48} fontSize={15} onPress={() => Linking.openURL(PROGRAM_VIDEO_URL!)} />
+          ) : null}
+        </View>
+        <WText size={13} tone="faint" center style={{ marginTop: 12 }}>
+          Un premier échange de 15 minutes, sans engagement. L’équipe active ensuite ton forfait.
+        </WText>
+      </FadeUp>
     </View>
   );
 }
