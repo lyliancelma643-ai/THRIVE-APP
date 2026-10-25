@@ -19,7 +19,8 @@ import { MaisonSkeleton, Under8, forChild, useMaison, type MaisonCtx } from './M
 import { useMaisonNav } from './nav';
 import { ActivityArch } from './parts';
 import { PillarTag } from './screens';
-import { useWindowDimensions } from '../../../design/layout';
+import { Split } from '../Split';
+import { useLayout, useWindowDimensions } from '../../../design/layout';
 
 const PLACE_LABELS: Record<Place, string> = { maison: 'À la maison', exterieur: 'Dehors', voiture: 'En voiture', partout: 'Partout' };
 const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: 'Transférer' } as const;
@@ -53,6 +54,7 @@ function FicheBody({
   const w = useWeb();
   const nav = useMaisonNav(ctx);
   const { width: screen } = useWindowDimensions();
+  const { wide } = useLayout();
   const [whyLevel, setWhyLevel] = useState(0);
   const [copied, setCopied] = useState(false);
 
@@ -82,7 +84,10 @@ function FicheBody({
   ];
 
   return (
-    <View>
+    <Split
+      ratio={[4, 6]}
+      left={
+        <>
       <Eyebrow style={{ marginTop: 12 }}>
         {activity.programme === 'bonus'
           ? 'Bonus · hors programme'
@@ -105,12 +110,16 @@ function FicheBody({
       ) : null}
 
       {/* L'arche : la vignette de l'activité. L'enfant comprend l'activité sans lire son but. */}
-      <View style={{ alignItems: 'center', marginTop: 24 }}>
-        <ActivityArch activityId={activity.id} width={Math.min(330, Math.round(screen * 0.86))} />
+      <View style={{ alignItems: wide ? 'flex-start' : 'center', marginTop: 24 }}>
+        <ActivityArch activityId={activity.id} width={wide ? 270 : Math.min(330, Math.round(screen * 0.86))} />
       </View>
 
+        </>
+      }
+      right={
+        <>
       {/* Ce qu'on travaille vraiment : l'objectif relié à la séance du coach */}
-      <View style={{ marginTop: 32, transform: [{ rotate: '-0.3deg' }] }} accessibilityLabel="Ce qu’on travaille">
+      <View style={{ marginTop: wide ? 12 : 32, transform: [{ rotate: '-0.3deg' }] }} accessibilityLabel="Ce qu’on travaille">
         <Paper radius={26} padding={24} style={{ paddingBottom: 0 }}>
           <View style={{ paddingBottom: 20 }}>
             <Eyebrow color={w.paperInk}>Ce qu’on travaille</Eyebrow>
@@ -335,7 +344,9 @@ function FicheBody({
           </View>
         ) : null}
       </WSection>
-    </View>
+        </>
+      }
+    />
   );
 }
 

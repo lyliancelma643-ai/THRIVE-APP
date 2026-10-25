@@ -9,7 +9,7 @@ import { Sources } from '../../components/hub/maison/screens';
 export default function SourcesScreen() {
   return (
     <PremiumGate>
-      <HubScreen surface="maison">
+      <HubScreen surface="maison" readingWidth={760}>
         <MaisonFrame>{(ctx) => <Sources ctx={ctx} />}</MaisonFrame>
       </HubScreen>
     </PremiumGate>

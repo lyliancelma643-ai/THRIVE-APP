@@ -9,7 +9,7 @@ import { Programme } from '../../components/hub/maison/screens';
 export default function ProgrammeScreen() {
   return (
     <PremiumGate>
-      <HubScreen surface="maison">
+      <HubScreen surface="maison" readingWidth={760}>
         <MaisonFrame>{(ctx) => <Programme ctx={ctx} />}</MaisonFrame>
       </HubScreen>
     </PremiumGate>

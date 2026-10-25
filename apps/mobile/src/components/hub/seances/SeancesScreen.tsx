@@ -17,6 +17,8 @@ import { useSelectedChild, useChildStore } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { sectionView } from '../../../services/access';
 import { useUpgrade } from '../UpgradeSheet';
+import { Split } from '../Split';
+import { useLayout } from '../../../design/layout';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import { usePack } from '../bilan/data';
@@ -279,6 +281,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { wide } = useLayout();
 
   // Une seule lecture à la fois ; l'heure de la dernière sert à espacer les relectures au retour sur l'onglet.
   const inFlight = useRef<string | null>(null);
@@ -405,6 +408,10 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
 
   return (
     <View>
+      <Split
+        ratio={[4, 6]}
+        left={
+          <>
       {view === 'readonly' ? <ReadOnlyBanner endedOn={access.packEnd} /> : null}
       <FadeUp delay={0.04}>
         <WText display size={34} weight={600} lh={1.1} tone="ink" style={{ marginBottom: 8 }} accessibilityRole="header">
@@ -447,7 +454,11 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
         />
       ) : null}
 
-      <View style={{ marginTop: 32, gap: 8 }}>
+          </>
+        }
+        right={
+          <>
+      <View style={{ marginTop: wide ? 0 : 32, gap: 8 }}>
         {THRIVE_SESSIONS.map((tpl, i) => {
           const s = sessions.find((x) => x.session_number === tpl.num) ?? null;
           const isDone = s?.status === 'COMPLETED';
@@ -507,6 +518,9 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
           );
         })}
       </View>
+          </>
+        }
+      />
     </View>
   );
 }

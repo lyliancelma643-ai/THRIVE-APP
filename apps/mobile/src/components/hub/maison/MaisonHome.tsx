@@ -22,6 +22,8 @@ import {
 } from '../session';
 import type { MaisonCtx } from './MaisonFrame';
 import { useMaisonNav } from './nav';
+import { Split } from '../Split';
+import { useLayout } from '../../../design/layout';
 import { ActivityArch, Door, HeroMenu, LinkRow, PosterRow, ShelfPicker, TonightSettings, WeekCard } from './parts';
 import { useWindowDimensions } from '../../../design/layout';
 
@@ -182,6 +184,7 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
   const w = useWeb();
   const nav = useMaisonNav(ctx);
   const { width: screen } = useWindowDimensions();
+  const { wide } = useLayout();
   const { data, firstName, child } = ctx;
   const [duration, setDuration] = useState<Duration>(10);
   const [place, setPlace] = useState<PlaceChoice>('maison');
@@ -262,6 +265,9 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
 
   return (
     <View>
+      <Split
+        left={
+          <>
       {doneWeek ? (
         <FadeUp style={{ marginBottom: 20 }}>
           <NcCard ring={w.accentLine}>
@@ -358,8 +364,12 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
 
       {evening.refusals >= 2 ? <LinkRow label={PAGE_NON.title} onPress={nav.non} /> : null}
 
+          </>
+        }
+        right={
+          <>
       {/* Les quatre portes — la liberté totale à un tap — et les séances vidéo de 20 min (bientôt). */}
-      <View accessibilityLabel="Parcourir" style={{ marginTop: 32, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
+      <View accessibilityLabel="Parcourir" style={{ marginTop: wide ? 8 : 32, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
         <Door strong icon="grid" label="Toutes les activités" onPress={nav.toutes} />
         <Door icon="compass" label="Le programme" onPress={nav.programme} />
         <Door icon="book" label="Le carnet" onPress={nav.carnet} />
@@ -400,6 +410,10 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
         onOpen={openFiche}
         isDone={isDone}
         more={{ label: 'Le programme', onPress: nav.programme }}
+      />
+
+          </>
+        }
       />
 
       <GhostButton label={`Voir les ${catalogueCount} activités, triées par âge`} icon="grid" chip={false} onPress={nav.toutes} style={{ marginTop: 40 }} />

@@ -9,7 +9,7 @@ import { Carnet } from '../../components/hub/maison/screens';
 export default function CarnetScreen() {
   return (
     <PremiumGate>
-      <HubScreen surface="maison">
+      <HubScreen surface="maison" readingWidth={760}>
         <MaisonFrame>{(ctx) => <Carnet ctx={ctx} />}</MaisonFrame>
       </HubScreen>
     </PremiumGate>

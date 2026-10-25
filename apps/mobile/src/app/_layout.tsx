@@ -31,7 +31,7 @@ function Column({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
   const segments = useSegments() as string[];
   const route = segments[0] === '(parent)' ? segments[1] : undefined;
-  const full = !!route && FULL_WIDTH.has(route);
+  const full = segments[0] === '__ecran' || (!!route && FULL_WIDTH.has(route));
   const bg = route && NIGHT.has(route) ? '#022539' : colors.bgGrouped;
   return (
     <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center' }}>

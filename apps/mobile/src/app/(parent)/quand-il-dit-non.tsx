@@ -9,7 +9,7 @@ import { PageNon } from '../../components/hub/maison/screens';
 export default function QuandIlDitNonScreen() {
   return (
     <PremiumGate>
-      <HubScreen surface="maison">
+      <HubScreen surface="maison" readingWidth={760}>
         <MaisonFrame>{(ctx) => <PageNon ctx={ctx} />}</MaisonFrame>
       </HubScreen>
     </PremiumGate>

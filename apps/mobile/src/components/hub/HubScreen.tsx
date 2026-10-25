@@ -14,10 +14,12 @@ type Props = {
   /** Contenu posé sous la barre défilante (barre d'actions collante d'une fiche…). */
   overlay?: ReactNode;
   contentPaddingBottom?: number;
+  /** Écrans de lecture (programme, sources…) : largeur de colonne de texte sur iPad (défaut : toute la largeur utile). */
+  readingWidth?: number;
   onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 };
 
-function Body({ children, refreshControl, header = true, overlay, contentPaddingBottom = 56, onScroll }: Omit<Props, 'surface'>, ref: React.Ref<ScrollView>) {
+function Body({ children, refreshControl, header = true, overlay, contentPaddingBottom = 56, onScroll, readingWidth }: Omit<Props, 'surface'>, ref: React.Ref<ScrollView>) {
   const w = useWeb();
   const { isTablet } = useLayout();
   const gutter = isTablet ? 32 : 20;
@@ -42,7 +44,7 @@ function Body({ children, refreshControl, header = true, overlay, contentPadding
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: gutter, paddingTop: 4, paddingBottom: contentPaddingBottom, width: '100%', maxWidth: MAX_COLUMN + gutter * 2, alignSelf: 'center' }}
+        contentContainerStyle={{ paddingHorizontal: gutter, paddingTop: 4, paddingBottom: contentPaddingBottom, width: '100%', maxWidth: (readingWidth ?? MAX_COLUMN) + gutter * 2, alignSelf: 'center' }}
       >
         {children}
       </ScrollView>
