@@ -8,6 +8,7 @@ import { useAuthStore } from '../../stores/auth.store';
 import { ageFromDob, useChildStore, useSelectedChild } from '../../stores/child.store';
 import { notifWebPath, openNotificationTarget, timeAgo, useHub, type HubNotif } from './HubProvider';
 import { Popover } from './Popover';
+import { MAX_COLUMN, useLayout } from '../../design/layout';
 
 /** Hauteur de la barre (hors zone sûre) : 12 + 44 + 12. */
 export const HUB_HEADER_ROW = 68;
@@ -31,6 +32,7 @@ export function HubHeader() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const w = useWeb();
+  const { isTablet } = useLayout();
   const user = useAuthStore((s) => s.user);
   const { children, isLoading, loaded, selectChild } = useChildStore();
   const selected = useSelectedChild();
@@ -52,7 +54,7 @@ export function HubHeader() {
 
   return (
     <View style={{ paddingTop: insets.top, backgroundColor: w.bg }}>
-      <View style={{ height: HUB_HEADER_ROW, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <View style={{ height: HUB_HEADER_ROW, paddingHorizontal: isTablet ? 32 : 20, flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', maxWidth: MAX_COLUMN + 64, alignSelf: 'center' }}>
         <Pressable onPress={() => router.navigate('/(parent)/maison')} accessibilityRole="button" accessibilityLabel="Accueil THRIVE" hitSlop={6}>
           <Image source={BRAND_LOGO} accessibilityIgnoresInvertColors style={{ width: 32, height: 32, borderRadius: 7 }} />
         </Pressable>

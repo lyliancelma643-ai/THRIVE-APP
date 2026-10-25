@@ -14,7 +14,8 @@ export type PlusAction = { key: string; glyph: IconName; label: string; on?: boo
 export function PlusMenu({ actions }: { actions: PlusAction[] }) {
   const { colors, reduceMotion } = useTheme();
   const insets = useSafeAreaInsets();
-  const { inset } = useLayout();
+  const { screenWidth } = useLayout();
+  const menuRight = 14 + Math.max(0, (screenWidth - 720) / 2);
   const [open, setOpen] = useState(false);
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -50,7 +51,7 @@ export function PlusMenu({ actions }: { actions: PlusAction[] }) {
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
         <Animated.View
           style={{
-            position: 'absolute', right: 14 + inset, bottom: Math.max(insets.bottom, 16) + 82, minWidth: 236,
+            position: 'absolute', right: menuRight, bottom: Math.max(insets.bottom, 16) + 82, minWidth: 236,
             opacity: v,
             transform: [
               { translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },

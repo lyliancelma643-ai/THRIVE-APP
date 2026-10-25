@@ -9,7 +9,7 @@ import { useAuthStore } from '../stores/auth.store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useRevenueCatIdentity } from '../hooks/useRevenueCatIdentity';
 import { useFonts } from 'expo-font';
-import { FONT_ASSETS, MAX_COLUMN, ThemeProvider, useTheme } from '../design';
+import { FONT_ASSETS, FORM_COLUMN, ThemeProvider, useTheme } from '../design';
 
 // Racine unique de l'app mobile. Expo Router prend `src/app/` dès que ce
 // dossier existe : tout écran doit vivre ici (l'ancien `app/` n'est pas embarqué).
@@ -18,15 +18,24 @@ function homeFor(role: string | undefined) {
   return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/maison';
 }
 
-/**
- * iPad : l'app reste dans une colonne centrée (MAX_COLUMN) ; le reste de l'écran reprend le fond du thème.
- * Sur iPhone la colonne occupe tout l'écran (rien ne change).
- */
+// Écrans de contenu : pleine largeur sur iPad (en-tête, onglets et fond d'un bord à l'autre) ; le centrage du contenu
+// est fait par HubScreen. Tous les autres (compte, enfants, connexion…) restent en colonne de 720 pt, sur le MÊME fond.
+const FULL_WIDTH = new Set([
+  'maison', 'bilans', 'seances', 'toutes', 'programme', 'carnet', 'favoris', 'quand-il-dit-non', 'sources',
+  'quand-consulter', 'videos', 'parcours', 'activite', 'moment', 'video', 'questionnaire-enfant', 'messages',
+]);
+// Mode activité : toujours à la lampe (Veillée), quel que soit le style choisi.
+const NIGHT = new Set(['moment', 'video', 'questionnaire-enfant']);
+
 function Column({ children }: { children: React.ReactNode }) {
   const { colors } = useTheme();
+  const segments = useSegments() as string[];
+  const route = segments[0] === '(parent)' ? segments[1] : undefined;
+  const full = !!route && FULL_WIDTH.has(route);
+  const bg = route && NIGHT.has(route) ? '#022539' : colors.bgGrouped;
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgGrouped, alignItems: 'center' }}>
-      <View style={{ flex: 1, width: '100%', maxWidth: MAX_COLUMN, overflow: 'hidden' }}>{children}</View>
+    <View style={{ flex: 1, backgroundColor: bg, alignItems: 'center' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: full ? undefined : FORM_COLUMN, overflow: 'hidden' }}>{children}</View>
     </View>
   );
 }

@@ -14,7 +14,7 @@ export function WebSheet({
 }: { visible: boolean; onClose: () => void; title?: string; children: ReactNode; accessibilityLabel?: string }) {
   const w = useWeb();
   const insets = useSafeAreaInsets();
-  const { height, inset } = useLayout();
+  const { height, sheetInset: inset } = useLayout();
   const y = useRef(new Animated.Value(height)).current;
   const dim = useRef(new Animated.Value(0)).current;
   const [mounted, setMounted] = useState(visible);

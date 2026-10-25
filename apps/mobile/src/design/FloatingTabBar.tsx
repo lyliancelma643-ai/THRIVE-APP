@@ -195,14 +195,14 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
   return (
     <View
       style={{
-        flexDirection: 'row', alignItems: 'flex-end', gap: 10,
+        flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'center', gap: 10,
         paddingHorizontal: 16,
         paddingTop: SPACING.space2,
         paddingBottom: insets.bottom > 0 ? Math.max(insets.bottom - 9, 8) : 25,
         backgroundColor: colors.bgGrouped,
       }}
     >
-      <GlassSurface radius={31} style={{ flex: 1, overflow: 'visible' }}>
+      <GlassSurface radius={31} style={{ flex: 1, overflow: 'visible', maxWidth: 560 }}>
         <View
           ref={trackRef}
           onLayout={onLayout}

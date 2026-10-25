@@ -145,7 +145,7 @@ export function Frame({
           scrollEventThrottle={32}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[{ paddingTop: navH + padTop, paddingHorizontal: 20, paddingBottom: padBottom ?? bar + 24 }, contentStyle]}
+          contentContainerStyle={[{ paddingTop: navH + padTop, paddingHorizontal: 20, paddingBottom: padBottom ?? bar + 24, width: '100%', maxWidth: 720, alignSelf: 'center' }, contentStyle]}
         >
           {children}
         </ScrollView>
@@ -162,8 +162,9 @@ export function Frame({
         <>
           <FadeBottom height={170} />
           <View
-            style={{ position: 'absolute', left: ctaGlass ? 14 : 20, right: ctaGlass ? 14 : 20, bottom: Math.max(insets.bottom, 16), zIndex: 46 }}
+            style={{ position: 'absolute', left: 0, right: 0, bottom: Math.max(insets.bottom, 16), zIndex: 46, alignItems: 'center' }}
           >
+            <View style={{ width: '100%', maxWidth: 720, paddingHorizontal: ctaGlass ? 14 : 20 }}>
             {ctaGlass ? (
               <GlassSurface strong radius={36}>
                 <View style={{ padding: 7, flexDirection: 'row', alignItems: 'center', gap: 8 }}>{cta}</View>
@@ -171,6 +172,7 @@ export function Frame({
             ) : (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>{cta}</View>
             )}
+            </View>
           </View>
         </>
       ) : null}

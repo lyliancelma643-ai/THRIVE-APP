@@ -37,7 +37,7 @@ export function Sheet({
 }: SheetProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { height: winH, inset } = useLayout();
+  const { height: winH, sheetInset: inset } = useLayout();
   const floating = detent === 'medium';
   // Montée / descente animées ici (la Modal ne s'anime plus elle-même) ; démontage à la fin de la descente.
   const [mounted, setMounted] = useState(visible);

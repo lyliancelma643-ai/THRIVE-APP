@@ -3,6 +3,7 @@ import { ScrollView, View, type NativeScrollEvent, type NativeSyntheticEvent, ty
 import { Lamp } from '../../design';
 import { WebSurfaceProvider, useWeb, type WebSurface } from '../../design/web';
 import { HubHeader } from './HubHeader';
+import { MAX_COLUMN, useLayout } from '../../design/layout';
 
 type Props = {
   surface?: WebSurface;
@@ -18,6 +19,8 @@ type Props = {
 
 function Body({ children, refreshControl, header = true, overlay, contentPaddingBottom = 56, onScroll }: Omit<Props, 'surface'>, ref: React.Ref<ScrollView>) {
   const w = useWeb();
+  const { isTablet } = useLayout();
+  const gutter = isTablet ? 32 : 20;
   const [scrolled, setScrolled] = useState(false);
   return (
     <View style={{ flex: 1, backgroundColor: w.bg }}>
@@ -39,7 +42,7 @@ function Body({ children, refreshControl, header = true, overlay, contentPadding
         }}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 4, paddingBottom: contentPaddingBottom }}
+        contentContainerStyle={{ paddingHorizontal: gutter, paddingTop: 4, paddingBottom: contentPaddingBottom, width: '100%', maxWidth: MAX_COLUMN + gutter * 2, alignSelf: 'center' }}
       >
         {children}
       </ScrollView>

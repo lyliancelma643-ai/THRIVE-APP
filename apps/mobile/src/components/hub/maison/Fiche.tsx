@@ -374,7 +374,8 @@ function FicheOverlay({
     </Tap>
   );
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 14, right: 14, bottom: 10 }}>
+    <View pointerEvents="box-none" style={{ position: 'absolute', left: 14, right: 14, bottom: 10, alignItems: 'center' }}>
+      <View style={{ width: '100%', maxWidth: 560 }}>
       <View
         style={{
           flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, borderRadius: 34, backgroundColor: w.surfaceKind === 'maison' && w.isNight ? 'rgba(0,49,76,0.94)' : w.tab,
@@ -393,6 +394,7 @@ function FicheOverlay({
           excludeTonight(ctx.child.id, activity.id);
           nav.home();
         })}
+      </View>
       </View>
     </View>
   );
