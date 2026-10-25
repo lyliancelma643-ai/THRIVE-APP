@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import {
   CANVAS, Field, GlassButton, Icon, Lamp, LargeTitle, NavBar, Tag, ThemedText, VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
 } from '../../design';
 import { POSTER_BG } from './palette';
 import type { ParcoursVM, PosterVM } from './viewModels';
+import { useWindowDimensions } from '../../design/layout';
 
 type Props = {
   vm: ParcoursVM;

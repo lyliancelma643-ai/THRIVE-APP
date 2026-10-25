@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useEffect, useMemo, useState } from 'react';
-import { Pressable, TextInput, View, useWindowDimensions } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
 import { Paper } from '../../../design';
 import {
   AccentButton, Eyebrow, FadeUp, GhostButton, LaunchButton, MoreLink, NcCard, PillGroup, Tap, WIcon, WText, useWeb,
@@ -23,6 +23,7 @@ import {
 import type { MaisonCtx } from './MaisonFrame';
 import { useMaisonNav } from './nav';
 import { ActivityArch, Door, HeroMenu, LinkRow, PosterRow, ShelfPicker, TonightSettings, WeekCard } from './parts';
+import { useWindowDimensions } from '../../../design/layout';
 
 type PlaceChoice = (typeof PLACE_CHOICES)[number]['id'];
 

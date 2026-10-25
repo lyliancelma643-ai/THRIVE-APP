@@ -1,6 +1,7 @@
 import { Sentry, setSentryUser } from '../lib/sentry';
 import { useEffect } from 'react';
-import { Alert, AppState } from 'react-native';
+import type React from 'react';
+import { Alert, AppState, View } from 'react-native';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Notifications from 'expo-notifications';
@@ -8,13 +9,26 @@ import { useAuthStore } from '../stores/auth.store';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useRevenueCatIdentity } from '../hooks/useRevenueCatIdentity';
 import { useFonts } from 'expo-font';
-import { FONT_ASSETS, ThemeProvider } from '../design';
+import { FONT_ASSETS, MAX_COLUMN, ThemeProvider, useTheme } from '../design';
 
 // Racine unique de l'app mobile. Expo Router prend `src/app/` dès que ce
 // dossier existe : tout écran doit vivre ici (l'ancien `app/` n'est pas embarqué).
 
 function homeFor(role: string | undefined) {
   return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/maison';
+}
+
+/**
+ * iPad : l'app reste dans une colonne centrée (MAX_COLUMN) ; le reste de l'écran reprend le fond du thème.
+ * Sur iPhone la colonne occupe tout l'écran (rien ne change).
+ */
+function Column({ children }: { children: React.ReactNode }) {
+  const { colors } = useTheme();
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.bgGrouped, alignItems: 'center' }}>
+      <View style={{ flex: 1, width: '100%', maxWidth: MAX_COLUMN, overflow: 'hidden' }}>{children}</View>
+    </View>
+  );
 }
 
 function RootLayout() {
@@ -111,12 +125,14 @@ function RootLayout() {
 
   return (
     <ThemeProvider fontsLoaded={fontsLoaded}>
+      <Column>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(auth)" />
         {/* Espaces connectés : pas de geste « retour » depuis le bord (on reste dans l'app, sur Maison / Bilan / Séances). */}
         <Stack.Screen name="(parent)" options={{ gestureEnabled: false, animation: 'fade' }} />
         <Stack.Screen name="(coach)" options={{ gestureEnabled: false, animation: 'fade' }} />
       </Stack>
+      </Column>
     </ThemeProvider>
   );
 }

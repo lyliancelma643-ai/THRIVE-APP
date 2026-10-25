@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import {
   Card, Enamel, Felt, GlassButton, Icon, Lamp, LargeTitle, List, ListRow, NavBar, Paper, Section, SectionHeader, ThemedText,
   VignetteImage, useLargeTitle, useNavBarHeight, useTheme,
 } from '../../design';
 import { POSTER_BG } from './palette';
 import type { CarnetVM } from './viewModels';
+import { useWindowDimensions } from '../../design/layout';
 
 type Props = {
   vm: CarnetVM;

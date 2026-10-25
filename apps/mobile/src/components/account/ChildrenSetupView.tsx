@@ -1,11 +1,12 @@
 import { useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Button, Field, GlassButton, GlassSurface, Icon, List, MenuPopover, NavBar, Section, SectionFooter,
   ThemedText, useNavBarHeight, useTheme,
 } from '../../design';
 import { StepBar } from './StepBar';
+import { useWindowDimensions } from '../../design/layout';
 
 export const AGE_MIN = 8;
 export const AGE_MAX = 17;

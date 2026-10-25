@@ -1,6 +1,7 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useWeb } from '../../design/web';
+import { useLayout } from '../../design/layout';
 
 /**
  * Panneau déroulant de l'en-tête (menu du compte, notifications) : `.animate-menu-in` du web — il naît du coin
@@ -20,6 +21,7 @@ export function Popover({
   accessibilityLabel?: string;
 }) {
   const w = useWeb();
+  const { inset } = useLayout();
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     if (!visible) {
@@ -37,7 +39,7 @@ export function Popover({
         accessibilityLabel={accessibilityLabel}
         style={[
           {
-            position: 'absolute', top, right, left, width,
+            position: 'absolute', top, right: right + inset, left: left === undefined ? undefined : left + inset, width,
             opacity: v,
             borderRadius: 18,
             shadowColor: '#000A14', shadowOpacity: w.isNight ? 0.5 : 0.18, shadowRadius: 25, shadowOffset: { width: 0, height: 18 }, elevation: 12,

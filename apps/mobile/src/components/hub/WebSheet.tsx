@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, Modal, PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Animated, Easing, Modal, PanResponder, Pressable, ScrollView, StyleSheet, View, } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Tap, WIcon, WText, useWeb } from '../../design/web';
+import { useLayout } from '../../design/layout';
 
 /**
  * Feuille du bas de l'espace parent (la `BilanSheet` / `TonightSettings` du web sur téléphone) avec le geste iOS :
@@ -13,7 +14,7 @@ export function WebSheet({
 }: { visible: boolean; onClose: () => void; title?: string; children: ReactNode; accessibilityLabel?: string }) {
   const w = useWeb();
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { height, inset } = useLayout();
   const y = useRef(new Animated.Value(height)).current;
   const dim = useRef(new Animated.Value(0)).current;
   const [mounted, setMounted] = useState(visible);
@@ -58,7 +59,7 @@ export function WebSheet({
         accessibilityViewIsModal
         accessibilityLabel={accessibilityLabel ?? title}
         style={{
-          position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: height * 0.9, transform: [{ translateY: y }],
+          position: 'absolute', left: inset, right: inset, bottom: 0, maxHeight: height * 0.9, transform: [{ translateY: y }],
           borderTopLeftRadius: 28, borderTopRightRadius: 28, backgroundColor: w.surface, borderWidth: 1, borderColor: w.line2,
           shadowColor: '#000A14', shadowOpacity: 0.5, shadowRadius: 25, shadowOffset: { width: 0, height: -18 }, elevation: 16,
         }}

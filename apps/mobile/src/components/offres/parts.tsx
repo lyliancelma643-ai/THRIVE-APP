@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { ScrollView, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
@@ -18,6 +18,7 @@ import {
 } from '../../design';
 import { BRAND } from './brand';
 import type { ProgramPack } from '../../services/programPayments';
+import { useWindowDimensions } from '../../design/layout';
 
 /** Chiffres proportionnels (le canevas n'applique `tabular-nums` qu'aux montants `.num`) : évite des retours à la ligne en plus. */
 export const PROPORTIONAL = { fontVariant: [] as never[] };

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Modal, Pressable, StyleSheet, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useLayout } from '../../design/layout';
 import { GlassSurface, Icon, ThemedText, useTheme, type IconName } from '../../design';
 
 export type PlusAction = { key: string; glyph: IconName; label: string; on?: boolean; onPress: () => void };
@@ -13,6 +14,7 @@ export type PlusAction = { key: string; glyph: IconName; label: string; on?: boo
 export function PlusMenu({ actions }: { actions: PlusAction[] }) {
   const { colors, reduceMotion } = useTheme();
   const insets = useSafeAreaInsets();
+  const { inset } = useLayout();
   const [open, setOpen] = useState(false);
   const v = useRef(new Animated.Value(0)).current;
   useEffect(() => {
@@ -48,7 +50,7 @@ export function PlusMenu({ actions }: { actions: PlusAction[] }) {
         <Pressable accessibilityRole="button" accessibilityLabel="Fermer le menu" onPress={() => setOpen(false)} style={StyleSheet.absoluteFill} />
         <Animated.View
           style={{
-            position: 'absolute', right: 14, bottom: Math.max(insets.bottom, 16) + 82, minWidth: 236,
+            position: 'absolute', right: 14 + inset, bottom: Math.max(insets.bottom, 16) + 82, minWidth: 236,
             opacity: v,
             transform: [
               { translateY: v.interpolate({ inputRange: [0, 1], outputRange: [12, 0] }) },

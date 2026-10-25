@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Animated, Easing, Modal, Pressable, ScrollView, View, useWindowDimensions, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Easing, Modal, Pressable, ScrollView, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassButton } from './GlassButton';
 import { GlassSurface } from './GlassSurface';
 import { useTheme } from './ThemeProvider';
 import { ThemedText } from './ThemedText';
 import { RADIUS } from './tokens';
+import { useLayout } from './layout';
 
 export type SheetProps = {
   visible: boolean;
@@ -36,7 +37,7 @@ export function Sheet({
 }: SheetProps) {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
-  const { height: winH } = useWindowDimensions();
+  const { height: winH, inset } = useLayout();
   const floating = detent === 'medium';
   // Montée / descente animées ici (la Modal ne s'anime plus elle-même) ; démontage à la fin de la descente.
   const [mounted, setMounted] = useState(visible);
@@ -92,7 +93,7 @@ export function Sheet({
         />
         <Animated.View style={{ transform: [{ translateY: anim.interpolate({ inputRange: [0, 1], outputRange: [winH, 0] }) }] }}>
         {floating ? (
-          <View style={{ margin: 8, marginBottom: 8 + insets.bottom / 2 }}>
+          <View style={{ marginTop: 8, marginHorizontal: 8 + inset, marginBottom: 8 + insets.bottom / 2 }}>
             <GlassSurface strong heavy radius={RADIUS.sheetFloat}>
               {header}
               {body}
@@ -101,7 +102,7 @@ export function Sheet({
         ) : (
           <View
             style={{
-              height: Math.max(240, winH - 62), backgroundColor: colors.bgGrouped,
+              height: Math.max(240, winH - 62), backgroundColor: colors.bgGrouped, marginHorizontal: inset,
               borderTopLeftRadius: RADIUS.sheet, borderTopRightRadius: RADIUS.sheet, overflow: 'hidden',
             }}
           >

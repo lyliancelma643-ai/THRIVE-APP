@@ -1,8 +1,9 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { Platform, Pressable, View, useWindowDimensions } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Enamel, GlassSurface, Icon, ThemedText, VignetteImage, useNavBarHeight, useTheme, withAlpha } from '../../design';
 import { useHeroStyle } from './palette';
 import type { HomeVM } from './viewModels';
+import { useWindowDimensions } from '../../design/layout';
 
 type Props = {
   hero: HomeVM['hero'];

@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { Image, Pressable, ScrollView, View } from 'react-native';
 import { Paper } from '../../../design';
+import { cellWidth, useLayout } from '../../../design/layout';
 import {
   BackLink, Eyebrow, FadeUp, LaunchButton, NcCard, NcPill, NcRow, PillGroup, Tap, WIcon, WText, useWeb,
 } from '../../../design/web';
@@ -53,6 +54,7 @@ type Order = 'programme' | 'nouvelles';
 const catalogueMemory = new Map<string, { band: AgeBand; filter: FilterId; order: Order }>();
 
 export function Catalogue({ ctx }: { ctx: MaisonCtx }) {
+  const { columns } = useLayout();
   const nav = useMaisonNav(ctx);
   const { data, firstName } = ctx;
   const mem = catalogueMemory.get(ctx.child.id);
@@ -77,7 +79,7 @@ export function Catalogue({ ctx }: { ctx: MaisonCtx }) {
   const grid = (items: P3Activity[]) => (
     <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 28 }}>
       {items.map((a, i) => (
-        <View key={a.id} style={{ width: '48.2%' }}>
+        <View key={a.id} style={{ width: cellWidth(columns) }}>
           <PosterCard wide index={i} activity={a} done={data.doneIds.has(a.id)} onPress={() => open(a)} line={renderOpener(a, a.base_duration, band)} />
         </View>
       ))}
@@ -153,6 +155,7 @@ export function Catalogue({ ctx }: { ctx: MaisonCtx }) {
  * en Favori ★ et celles Mises de côté ⚑ depuis la fiche (« Lancer · Favori · De côté ») ou pendant l'activité (+).
  */
 export function Favoris({ ctx }: { ctx: MaisonCtx }) {
+  const { columns } = useLayout();
   const nav = useMaisonNav(ctx);
   const w = useWeb();
   const { data, firstName } = ctx;
@@ -162,7 +165,7 @@ export function Favoris({ ctx }: { ctx: MaisonCtx }) {
   const grid = (items: P3Activity[]) => (
     <View style={{ marginTop: 16, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 28 }}>
       {items.map((a, i) => (
-        <View key={a.id} style={{ width: '48.2%' }}>
+        <View key={a.id} style={{ width: cellWidth(columns) }}>
           <PosterCard wide index={i} activity={a} done={data.doneIds.has(a.id)} onPress={() => nav.fiche(a.id)} line={renderOpener(a, a.base_duration, ctx.band)} />
         </View>
       ))}

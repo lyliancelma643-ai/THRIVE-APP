@@ -1,8 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import {
-  Image, Pressable, ScrollView, StyleSheet, View, useWindowDimensions,
-  type NativeScrollEvent, type NativeSyntheticEvent, type StyleProp, type ViewStyle,
-} from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent, type StyleProp, type ViewStyle } from 'react-native';
 import { Arch, Enamel, Felt, Paper, Star, VIGNETTE_IDS, Velvet } from '../../../design';
 import { VIGNETTE_SOURCES } from '../../../design/vignetteSources';
 import {
@@ -10,6 +7,7 @@ import {
 } from '../../../design/web';
 import { PILLAR_PLAIN, type Duration, type P3Activity, type PillarCode } from '../../../lib/p3web';
 import { WebSheet } from '../WebSheet';
+import { useWindowDimensions } from '../../../design/layout';
 
 /* ───────────────────────────── Vignettes ───────────────────────────── */
 

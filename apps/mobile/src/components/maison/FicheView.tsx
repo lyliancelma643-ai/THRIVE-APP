@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState, type ReactNode } from 'react';
-import { ScrollView, View, useWindowDimensions } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   Button, GlassButton, GlassSurface, Icon, Lamp, List, ListRow, NavBar, Paper, Section, SectionHeader, Segmented, Sheet,
@@ -10,6 +10,7 @@ import { copyPhrase, stripQuotes } from './copy';
 import { FadedImage } from './TonightHero';
 import { useHeroStyle } from './palette';
 import type { FicheVM } from './viewModels';
+import { useWindowDimensions } from '../../design/layout';
 
 type Props = {
   vm: FicheVM;

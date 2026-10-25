@@ -4,7 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { useState } from 'react';
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Paper } from '../../../design';
 import { BackLink, Eyebrow, LaunchButton, NcCard, NcRow, Tap, WIcon, WSection, WText, useWeb, type WIconName } from '../../../design/web';
 import { frTypo, timerSummary } from '../../activite/flow';
@@ -19,6 +19,7 @@ import { MaisonSkeleton, Under8, forChild, useMaison, type MaisonCtx } from './M
 import { useMaisonNav } from './nav';
 import { ActivityArch } from './parts';
 import { PillarTag } from './screens';
+import { useWindowDimensions } from '../../../design/layout';
 
 const PLACE_LABELS: Record<Place, string> = { maison: 'À la maison', exterieur: 'Dehors', voiture: 'En voiture', partout: 'Partout' };
 const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: 'Transférer' } as const;

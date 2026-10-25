@@ -1,9 +1,10 @@
-import { Pressable, View, useWindowDimensions } from 'react-native';
+import { Pressable, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CANVAS, Icon, ThemedText, VignetteImage, useTheme } from '../../design';
 import { momentInk } from './palette';
 import type { MomentVM } from './viewModels';
+import { useWindowDimensions } from '../../design/layout';
 
 type Props = {
   vm: MomentVM;
