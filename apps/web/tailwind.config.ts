@@ -105,6 +105,21 @@ const config: Config = {
         // Courbe « iOS » de la marque (entrées) et sortie plus vive.
         brand: 'cubic-bezier(0.22, 0.61, 0.36, 1)',
         exit: 'cubic-bezier(0.4, 0, 1, 1)',
+        'in-out': 'cubic-bezier(0.45, 0, 0.55, 1)',
+        spring: 'cubic-bezier(0.34, 1.56, 0.64, 1)',
+      },
+      keyframes: {
+        // Mouvement : voir packages/shared/src/motion/tokens.ts (mêmes valeurs).
+        rise: { from: { opacity: '0', transform: 'translateY(10px)' }, to: { opacity: '1', transform: 'translateY(0)' } },
+        wave: { '0%,100%': { opacity: '0.45' }, '50%': { opacity: '1' } },
+        pop: { from: { opacity: '0', transform: 'scale(0.8)' }, to: { opacity: '1', transform: 'scale(1)' } },
+        hairline: { '0%': { transform: 'scaleX(0)', opacity: '1' }, '70%': { transform: 'scaleX(1)', opacity: '1' }, '100%': { transform: 'scaleX(1)', opacity: '0' } },
+      },
+      animation: {
+        rise: 'rise 300ms var(--ease-out) backwards',
+        wave: 'wave 1400ms var(--ease-in-out) infinite',
+        pop: 'pop 400ms var(--ease-spring) backwards',
+        hairline: 'hairline 700ms var(--ease-out) forwards',
       },
       transitionDuration: {
         fast: '150ms',

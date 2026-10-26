@@ -25,6 +25,10 @@ import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui';
+import { BreathingBall } from '@/components/motion/BreathingBall';
+import { MicroTip } from '@/components/motion/MicroTip';
+import { Rise } from '@/components/motion/Rise';
+import { SealCaption, SealLetter, useLate, useMinSealing } from '@/components/motion/SealLetter';
 import { Glyph } from './Glyph';
 import { Arch } from './Arch';
 import {
@@ -211,7 +215,11 @@ export function ActivityMode({
   const [unlockDismissed, setUnlockDismissed] = useState(false);
   // Lettre (ACT-1302)
   const [letter, setLetter] = useState('');
-  const [letterStep, setLetterStep] = useState<'write' | 'confirm' | 'sealed' | 'paper'>('write');
+  const [letterStep, setLetterStep] = useState<'write' | 'confirm' | 'sealing' | 'sealed' | 'paper'>('write');
+  // Le rituel de scellement dure au moins 2,4 s, même si le serveur répond avant.
+  const shownLetterStep = useMinSealing(letterStep, 'sealing', 'sealed');
+  const sealLate = useLate(letterStep === 'sealing');
+  const [breathe, setBreathe] = useState(false);
   const [sealedAt, setSealedAt] = useState<Date | null>(null);
   const lastRef = useRef<HTMLElement | null>(null);
   const setLast = useCallback((el: HTMLElement | null) => {
@@ -522,7 +530,14 @@ export function ActivityMode({
       break;
 
     case 'amorce':
-      body = (
+      body = breathe ? (
+        <>
+          <BreathingBall onDone={() => setBreathe(false)} onSkip={() => setBreathe(false)} />
+          <div className="mt-4">
+            <MicroTip context="souffle" />
+          </div>
+        </>
+      ) : (
         <>
           <Arch activityId={activity.id} className="w-[min(260px,68vw)] mx-auto mb-7" />
           <WorkedOn activity={activity} compact />
@@ -544,7 +559,10 @@ export function ActivityMode({
           <p className="mt-6 text-[15px] leading-[1.5] text-soft">
             Le minuteur démarre sur {r.duration} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.
           </p>
-          <div className="mt-8">
+          <button onClick={() => setBreathe(true)} className="mt-5 min-h-11 text-[15px] text-soft underline">
+            Un souffle avant de commencer
+          </button>
+          <div className="mt-3">
             <PrimaryButton onClick={startActivity}>C’est dit, on commence</PrimaryButton>
           </div>
         </>
@@ -778,9 +796,9 @@ export function ActivityMode({
     case 'minutes':
       body = (
         <div className="min-h-[60dvh] grid place-items-center text-center">
-          <BigText>
-            {closingLine(Math.max(1, Math.round(elapsed / 60)), firstName)}
-          </BigText>
+          <Rise>
+            <BigText>{closingLine(Math.max(1, Math.round(elapsed / 60)), firstName)}</BigText>
+          </Rise>
         </div>
       );
       break;
@@ -954,7 +972,20 @@ export function ActivityMode({
         <p className="mt-2 text-[17px] text-ink">{captureLabel}</p>
 
         {isLetter ? (
-          letterStep === 'write' ? (
+          shownLetterStep === 'sealing' || shownLetterStep === 'sealed' ? (
+            <div className="mt-2">
+              <SealLetter phase={shownLetterStep === 'sealed' ? 'sealed' : 'sealing'} waiting={shownLetterStep === 'sealing' && sealLate} />
+              <SealCaption
+                phase={shownLetterStep === 'sealed' ? 'sealed' : sealLate ? 'waiting' : 'sealing'}
+                date={sealedAt ? formatFullDate(inOneYear(sealedAt)) : letterOpenDate}
+              />
+              {shownLetterStep === 'sealed' && (
+                <div className="mt-6 text-center">
+                  <PrimaryButton onClick={() => setCaptureOpen(false)}>Continuer</PrimaryButton>
+                </div>
+              )}
+            </div>
+          ) : letterStep === 'write' ? (
             <>
               <textarea
                 value={letter}
@@ -978,6 +1009,7 @@ export function ActivityMode({
               <div className="mt-6 flex gap-3 flex-wrap">
                 <PrimaryButton
                   onClick={async () => {
+                    setLetterStep('sealing');
                     const res = await data.sealLetter('ENFANT', letter);
                     if (res.ok) {
                       setLetter(''); // effacé de la mémoire du composant (R12)
@@ -991,15 +1023,6 @@ export function ActivityMode({
                   Sceller
                 </PrimaryButton>
                 <GhostButton onClick={() => setLetterStep('write')}>Revenir</GhostButton>
-              </div>
-            </>
-          ) : letterStep === 'sealed' ? (
-            <>
-              <p className="mt-5 text-[18px] leading-[1.5] text-ink">
-                Lettre scellée. Elle te reviendra par courriel le {sealedAt ? formatFullDate(inOneYear(sealedAt)) : letterOpenDate}.
-              </p>
-              <div className="mt-6">
-                <PrimaryButton onClick={() => setCaptureOpen(false)}>Continuer</PrimaryButton>
               </div>
             </>
           ) : (

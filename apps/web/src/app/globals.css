@@ -109,6 +109,21 @@
   --dur-fast: 150ms;
   --dur-base: 220ms;
   --dur-slow: 300ms;
+  /* Mouvement (packages/shared/src/motion/tokens.ts) */
+  --ease-in-out: cubic-bezier(0.45, 0, 0.55, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-push: 300ms;
+  --dur-back: 220ms;
+  --dur-tab: 300ms;
+  --dur-page-out: 140ms;
+  --dur-page-in: 260ms;
+  --dur-hair: 700ms;
+  --dur-ring: 900ms;
+  --dur-count: 800ms;
+  --dur-hop: 550ms;
+  --dur-stair-fill: 450ms;
+  --dur-bar: 600ms;
+  --dur-ritual-min: 2400ms;
 }
 
 /* La bascule fond/texte s'anime, mais on n'impose pas de transition aux
@@ -1177,4 +1192,158 @@
 }
 .login-arch-sm .login-arch-inner {
   border-radius: 50% 50% 14px 14px / 44% 44% 14px 14px;
+}
+
+
+/* ─── Mouvement : escalier, mascotte, rituels (composants/motion) ─────────────
+   Seulement transform et opacité (exceptions : stroke-dashoffset des anneaux). */
+@keyframes st-breathe {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.75;
+  }
+}
+@keyframes st-hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  35% {
+    transform: translateY(-22px) scale(0.96, 1.06);
+  }
+  72% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+@keyframes st-cheer {
+  0% {
+    transform: scale(1) translateY(0);
+  }
+  40% {
+    transform: scale(1.22) translateY(-8px);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+  }
+}
+@keyframes st-slide {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(260%);
+  }
+}
+@keyframes sl-sheet {
+  to {
+    transform: translateY(46px);
+  }
+}
+@keyframes sl-flap {
+  from {
+    transform: scaleY(-1);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+@keyframes sl-seal {
+  0% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(0.92);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes sl-ring {
+  from {
+    stroke-dashoffset: 170;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes sl-wave {
+  from {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.6);
+  }
+}
+@keyframes sl-breathe {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+@keyframes glint {
+  from {
+    transform: translateX(-120%) rotate(-20deg);
+  }
+  to {
+    transform: translateX(520%) rotate(-20deg);
+  }
+}
+@keyframes unlock-up {
+  from {
+    transform: translateY(140%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Plus de saut, de respiration, d'anneau, de reflet ni d'onde : valeurs finales + fondu de 150 ms. */
+  .mo-anim,
+  .mo-anim * {
+    animation: none !important;
+  }
+  .animate-rise,
+  .animate-pop {
+    animation: rise-fade 150ms linear backwards !important;
+  }
+  .animate-wave {
+    animation: none !important;
+    opacity: 0.7;
+  }
+}
+@keyframes rise-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes label-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes ring-draw {
+  from {
+    stroke-dashoffset: var(--ring-from, 490.1);
+  }
 }

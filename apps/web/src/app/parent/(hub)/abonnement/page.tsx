@@ -18,6 +18,10 @@ import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'rea
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Icon } from '@/components/ui';
+import { useDelayedFlag, useLoadStages } from '@thrive/shared';
+import { StairLoader } from '@/components/motion/StairLoader';
+import { MicroTip } from '@/components/motion/MicroTip';
+import { paiementScenario } from '@/components/motion/scenarios';
 import { useAuthStore } from '@/stores/auth.store';
 import { useAccessStore } from '@/lib/access';
 import { isNativeApp, postToNative } from '@/lib/native-bridge';
@@ -80,6 +84,9 @@ function Abonnement() {
   const router = useRouter();
 
   const [activating, setActivating] = useState(false);
+  // Retour de paiement : l'escalier s'allume sur des événements réels (retour de Checkout, billing-sync, accès, données).
+  const stair = useLoadStages(paiementScenario.stages, {});
+  const markStair = stair.markDone;
   const [notice, setNotice] = useState<{ tone: 'ok' | 'info' | 'warn'; text: string } | null>(null);
   const handled = useRef(false);
   // Contexte app (WebView) : aucun paiement web, l'achat passe par le paywall natif.
@@ -104,6 +111,7 @@ function Abonnement() {
         setNotice({ tone: 'info', text: 'Paiement interrompu : rien n’a été prélevé. Tu peux reprendre quand tu veux.' });
       } else if (checkout === 'success') {
         setActivating(true);
+        markStair('paiement');
         let active = false;
         for (let attempt = 0; attempt < 6 && !active; attempt++) {
           try {
@@ -113,8 +121,15 @@ function Abonnement() {
           }
           if (!active) await wait(2500);
         }
-        setActivating(false);
+        if (active) markStair('abonnement');
         await refreshAccess();
+        if (active && useAccessStore.getState().access?.p3Access) {
+          markStair('acces');
+          markStair('donnees');
+          // Laisse l'escalier finir (≤ 0,6 s) et la mascotte planter son fanion.
+          await wait(1400);
+        }
+        setActivating(false);
         setNotice(
           active
             ? { tone: 'ok', text: 'Bienvenue ! Ton accès à Maison est ouvert.' }
@@ -133,7 +148,7 @@ function Abonnement() {
       }
       router.replace('/parent/abonnement', { scroll: false });
     })();
-  }, [params, router, sync, refreshAccess]);
+  }, [params, router, sync, refreshAccess, markStair]);
 
   if (role && role !== 'PARENT') {
     return (
@@ -150,11 +165,18 @@ function Abonnement() {
   if (isLoading || activating) {
     return activating ? (
       <Shell>
-        <section className="nc-card text-center py-10" aria-live="polite">
-          <div className="mx-auto w-10 h-10 rounded-full border-2 border-line border-t-accent animate-spin" aria-hidden />
-          <p className="font-display text-[20px] font-semibold text-night-ink mt-5">Nous activons ton accès…</p>
-          <p className="text-[14px] text-soft mt-1.5">Quelques secondes, ne ferme pas la page.</p>
-        </section>
+        {stair.visible || stair.done ? (
+          <StairLoader
+            title={paiementScenario.title}
+            doneTitle={paiementScenario.doneTitle}
+            stages={paiementScenario.stages}
+            index={stair.index}
+            total={stair.total}
+            done={stair.done}
+            slow={stair.slow}
+            tip={<MicroTip context="paiement" />}
+          />
+        ) : null}
       </Shell>
     ) : (
       <PageSkeleton />
@@ -601,10 +623,13 @@ function Notice({ tone, children }: { tone: 'ok' | 'info' | 'warn'; children: Re
 }
 
 function PageSkeleton() {
+  // Rien qui clignote : le squelette n'apparaît qu'après 400 ms d'attente.
+  const shown = useDelayedFlag(true);
+  if (!shown) return null;
   return (
     <div className="max-w-xl mx-auto space-y-4" aria-hidden>
-      <div className="h-24 rounded-[22px] bg-night-surface animate-pulse" />
-      <div className="h-64 rounded-[22px] bg-night-surface animate-pulse" />
+      <div className="h-24 rounded-[22px] bg-night-surface animate-wave" />
+      <div className="h-64 rounded-[22px] bg-night-surface animate-wave" style={{ animationDelay: '80ms' }} />
     </div>
   );
 }

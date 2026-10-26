@@ -22,6 +22,7 @@ export const MICROCOPY: Micro[] = [
   { id: 'rem-premiere-marche', family: 'reminder', text: 'Ce soir : la première marche de {prenom}, dix minutes.', contexts: ['ouverture'], reviewed: true },
   { id: 'rem-phrases', family: 'reminder', text: '{prenom} a gardé {n} {phrases} depuis le début.', contexts: ['ouverture', 'upload', 'post-activite'], reviewed: true },
   { id: 'rem-lettre', family: 'reminder', text: 'Ta lettre reviendra le {date}.', contexts: ['ouverture', 'lettre'], reviewed: true },
+  { id: 'rem-paiement-quitter', family: 'reminder', text: 'Tu peux quitter cet écran : on termine pour toi.', contexts: ['paiement'], reviewed: true },
   // Définitions (à valider par Lylian avant la production)
   { id: 'def-smart', family: 'definition', text: 'Objectif SMART : spécifique, mesurable, atteignable, réaliste, temporel. Pour un enfant, une seule marche, ce soir.', contexts: WAIT, weeks: [2], reviewed: false },
   { id: 'def-controle', family: 'definition', text: 'Ce qui dépend de lui : son effort, sa préparation, son attitude. Pas l’arbitre, pas la météo.', contexts: WAIT, weeks: [2], reviewed: false },
