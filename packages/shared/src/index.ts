@@ -50,3 +50,7 @@ export { useQuestionnaires } from './hooks/useQuestionnaires';
 // les importer par sous-chemin :
 //   import { NotificationService } from '@thrive/shared/services/NotificationService';
 //   import { useNotifications } from '@thrive/shared/hooks/useNotifications';
+
+// Mouvement et petits textes (chargements, transitions)
+export * from './motion';
+export * from './content/microcopy';

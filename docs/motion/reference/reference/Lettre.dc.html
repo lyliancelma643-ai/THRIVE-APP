@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Sceller la lettre</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.12);--tint:#004E7A;--tint-ink:#FFFFFF;--env:#FFFFFF;--env2:#EFEBE5;--paper:#F7F5F2;--edge:rgba(2,37,57,.28);--stroke:#022539}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.16);--tint:#F9EB50;--tint-ink:#141414;--env:#123A55;--env2:#1A4767;--paper:#F7F5F2;--edge:rgba(247,245,242,.32);--stroke:#141414}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif;display:flex;flex-direction:column;align-items:center}
+.env{margin-top:120px}
+.paper{transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+.ph-ready .paper{transform:translateY(0)}
+.ph-sealing .paper,.ph-sealed .paper{transform:translateY(46px)}
+.flap{transform-origin:120px 60px;transition:transform .45s cubic-bezier(.4,0,.2,1)}
+.ph-ready .flap{transform:scaleY(-1)}
+.ph-sealing .flap,.ph-sealed .flap{transform:scaleY(1);transition-delay:.3s}
+.seal{transform-box:fill-box;transform-origin:center;opacity:0;transform:scale(1.7)}
+.ph-sealing .seal,.ph-sealed .seal{animation:stamp .45s cubic-bezier(.34,1.56,.64,1) .7s both}
+.ph-sealing.is-wait .seal{animation:stamp .45s cubic-bezier(.34,1.56,.64,1) .7s both,breathe 1.4s ease-in-out 1.2s infinite}
+.ring{opacity:0}
+.ph-sealing .ring{opacity:1;stroke-dasharray:170;animation:ringfill 1.7s linear .7s both}
+.ph-sealed .ring{opacity:0}
+.ripple{transform-box:fill-box;transform-origin:center;opacity:0}
+.ph-sealed .ripple{animation:ripple .8s cubic-bezier(.22,.61,.36,1) both}
+.ttl{margin:34px 0 0;padding:0 32px;font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;text-align:center}
+.sub{margin:8px 0 0;padding:0 36px;font-size:17px;line-height:22px;letter-spacing:-.4px;color:var(--ink2);text-align:center}
+.lbl-a{animation:fadeA .22s cubic-bezier(.22,.61,.36,1)}
+.lbl-b{animation:fadeB .22s cubic-bezier(.22,.61,.36,1)}
+.cta{position:absolute;left:16px;right:16px;bottom:44px;height:52px;border:0;border-radius:9999px;background:var(--tint);color:var(--tint-ink);font-size:17px;font-weight:600}
+.cta:disabled{opacity:.45;cursor:default}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes stamp{0%{opacity:0;transform:scale(1.7)}60%{opacity:1;transform:scale(.92)}100%{opacity:1;transform:scale(1)}}
+@keyframes breathe{0%,100%{opacity:1}50%{opacity:.7}}
+@keyframes ringfill{from{stroke-dashoffset:170}to{stroke-dashoffset:0}}
+@keyframes ripple{0%{opacity:.6;transform:scale(1)}100%{opacity:0;transform:scale(2.6)}}
+@keyframes fadeA{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeB{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+.paper,.flap{transition:none}
+.ph-sealing .seal,.ph-sealed .seal,.ph-sealing.is-wait .seal{animation:none;opacity:1;transform:none}
+.ph-sealing .ring{animation:none;stroke-dashoffset:0}
+.ph-sealed .ripple,.lbl-a,.lbl-b{animation:none}
+}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+
+<svg class="env {{envCls}}" width="300" height="250" viewBox="0 -20 240 200" role="img" aria-label="{{ariaEnv}}">
+<rect x="20" y="60" width="200" height="110" rx="12" fill="var(--env)" stroke="var(--edge)" stroke-width="1.5"></rect>
+<g class="paper">
+<rect x="42" y="28" width="156" height="118" rx="6" fill="var(--paper)" stroke="var(--edge)" stroke-width="1.5"></rect>
+<rect x="58" y="46" width="90" height="6" rx="3" fill="var(--track)"></rect>
+<rect x="58" y="62" width="124" height="6" rx="3" fill="var(--track)"></rect>
+<rect x="58" y="78" width="110" height="6" rx="3" fill="var(--track)"></rect>
+<rect x="58" y="94" width="70" height="6" rx="3" fill="var(--track)"></rect>
+</g>
+<path d="M20 170 L20 76 L120 132 L220 76 L220 170 Z" fill="var(--env)" stroke="var(--edge)" stroke-width="1.5" stroke-linejoin="round"></path>
+<path class="flap" d="M20 60 L120 125 L220 60 Z" fill="var(--env2)" stroke="var(--edge)" stroke-width="1.5" stroke-linejoin="round"></path>
+<circle class="ripple" cx="120" cy="118" r="22" fill="none" stroke="#F9EB50" stroke-width="3"></circle>
+<circle class="ring" cx="120" cy="118" r="27" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" transform="rotate(-90 120 118)"></circle>
+<g class="seal">
+<circle cx="120" cy="118" r="20" fill="#F9EB50" stroke="var(--stroke)" stroke-width="2.5"></circle>
+<circle cx="120" cy="118" r="10" fill="none" stroke="var(--stroke)" stroke-width="2.5"></circle>
+</g>
+</svg>
+
+<h1 class="ttl {{lblCls}}">{{title}}</h1>
+<p class="sub {{lblCls}}" aria-live="polite">{{sub}}</p>
+
+<button class="cta" disabled="{{btnDisabled}}" onClick="{{act}}">{{btnLabel}}</button>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Démo, hors de l'app</span></div>
+<div class="srow">
+<button class="cbtn" onClick="{{replay}}">Rejouer</button>
+<button class="cbtn {{onSlow}}" aria-pressed="{{slow}}" onClick="{{toggleSlow}}">Réseau lent</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Le rituel dure 2,4 s au minimum, même si le serveur répond plus vite.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'ready', slow: false };
+    this._timers = [];
+  }
+  componentWillUnmount() { this.clear(); }
+  clear() { this._timers.forEach((t) => clearTimeout(t)); this._timers = []; }
+  reset(slow) { this.clear(); this.setState({ phase: 'ready', slow: slow }); }
+  seal() {
+    this.clear();
+    this.setState({ phase: 'sealing' });
+    const reqDone = this.state.slow ? 5200 : 1200;
+    const minDone = 2400;
+    if (reqDone > minDone) {
+      this._timers.push(setTimeout(() => this.setState({ phase: 'wait' }), minDone));
+    }
+    this._timers.push(setTimeout(() => this.setState({ phase: 'sealed' }), Math.max(reqDone, minDone)));
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const ph = st.phase;
+    const T = {
+      ready: ['Ta lettre est prête.', 'Une fois scellée, personne ne pourra la lire avant le 25 janvier, pas même toi.'],
+      sealing: ['On la scelle…', 'Rien à faire, ça ne prend qu\'un instant.'],
+      wait: ['Encore un instant…', 'On finit de la mettre en sécurité.'],
+      sealed: ['Lettre scellée.', 'Elle te reviendra par courriel le 25 janvier 2027.']
+    };
+    const envCls = ph === 'ready' ? 'ph-ready' : (ph === 'sealed' ? 'ph-sealed' : 'ph-sealing' + (ph === 'wait' ? ' is-wait' : ''));
+    const idx = { ready: 0, sealing: 1, wait: 2, sealed: 3 }[ph];
+    const label = { ready: 'Sceller la lettre', sealing: 'Scellement…', wait: 'Scellement…', sealed: 'Terminer' }[ph];
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      envCls: envCls,
+      ariaEnv: ph === 'sealed' ? 'Enveloppe scellée' : (ph === 'ready' ? 'Enveloppe ouverte avec une lettre' : 'Enveloppe en cours de scellement'),
+      title: T[ph][0], sub: T[ph][1],
+      lblCls: idx % 2 === 0 ? 'lbl-a' : 'lbl-b',
+      btnLabel: label,
+      btnDisabled: ph === 'sealing' || ph === 'wait',
+      act: () => { if (this.state.phase === 'ready') this.seal(); else if (this.state.phase === 'sealed') this.reset(this.state.slow); },
+      replay: () => this.reset(this.state.slow),
+      slow: st.slow, onSlow: st.slow ? 'on' : '',
+      toggleSlow: () => this.reset(!this.state.slow)
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Squelette en vague</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.10);--tint:#004E7A;--tint-ink:#FFFFFF;--line:rgba(2,37,57,.14)}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.14);--tint:#F9EB50;--tint-ink:#141414;--line:rgba(247,245,242,.2)}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif;padding:74px 16px 0}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.big{margin:6px 0 0;font-size:34px;line-height:41px;font-weight:700;letter-spacing:.4px}
+.list{margin-top:26px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border-radius:26px;background:var(--card)}
+.ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--track);color:var(--ink);display:flex;align-items:center;justify-content:center}
+.col{flex:1;min-width:0}
+.rt{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.43px}
+.rm{margin-top:2px;font-size:15px;line-height:20px;letter-spacing:-.23px;color:var(--ink2)}
+.chev{flex:none;color:var(--ink2)}
+.sk{background:var(--track);border-radius:8px;animation:wave 1.4s ease-in-out infinite}
+.skrow{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border-radius:26px;background:var(--card);animation:wave 1.4s ease-in-out infinite}
+.skico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--track)}
+.skcol{flex:1;display:flex;flex-direction:column;gap:8px}
+.skbar{height:12px;border-radius:6px;background:var(--track)}
+.in{animation:rise .3s cubic-bezier(.22,.61,.36,1) both}
+.tabs{position:absolute;left:16px;right:16px;bottom:25px;height:62px;border-radius:9999px;background:var(--card);border:1px solid var(--line);display:flex;align-items:center;padding:0 6px;gap:4px}
+.tab{flex:1;height:50px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--ink2)}
+.tab.on{background:var(--track);color:var(--ink)}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.spal{flex:none;font-size:15px;font-weight:700;color:#F9EB50}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes wave{0%,100%{opacity:.45}50%{opacity:1}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.sk,.skrow,.in{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+
+<sc-if value="{{isSkel}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="sk" style="width:150px;height:14px;animation-delay:0ms"></div>
+<div class="sk" style="width:190px;height:36px;margin-top:10px;animation-delay:80ms"></div>
+<div class="list">
+<div class="skrow" style="animation-delay:160ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:70%"></div><div class="skbar" style="width:45%"></div></div></div>
+<div class="skrow" style="animation-delay:240ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:62%"></div><div class="skbar" style="width:50%"></div></div></div>
+<div class="skrow" style="animation-delay:320ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:74%"></div><div class="skbar" style="width:40%"></div></div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{isContent}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="eyebrow in" style="animation-delay:0ms">Semaine 3 · Développer</div>
+<h1 class="big in" style="animation-delay:60ms">Oser</h1>
+<div class="list">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<div class="row in" style="animation-delay: {{r.delay}}ms">
+<div class="ico">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+<sc-if value="{{r.isBrick}}" hint-placeholder-val="{{ false }}"><g><rect x="3" y="5" width="8" height="5" rx="1.5"></rect><rect x="13" y="5" width="8" height="5" rx="1.5"></rect><rect x="8" y="13" width="8" height="5" rx="1.5"></rect></g></sc-if>
+<sc-if value="{{r.isTarget}}" hint-placeholder-val="{{ false }}"><g><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle></g></sc-if>
+<sc-if value="{{r.isRoute}}" hint-placeholder-val="{{ false }}"><g><path d="M4 18 L10 12 L14 15 L20 7"></path><path d="M15 7 H20 V12"></path></g></sc-if>
+</svg>
+</div>
+<div class="col"><div class="rt">{{r.title}}</div><div class="rm">{{r.meta}}</div></div>
+<svg class="chev" width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2 L8 8 L2 14"></path></svg>
+</div>
+</sc-for>
+</div>
+</div>
+</sc-if>
+
+<div class="tabs">
+<div class="tab on">Maison</div>
+<div class="tab">Séances</div>
+<div class="tab">Bilan</div>
+</div>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Palier</span><span class="spal">{{palier}}</span></div>
+<div class="srow">
+<button class="cbtn {{onSlow}}" aria-pressed="{{isSlow}}" onClick="{{runSlow}}">Réponse lente, 2 s</button>
+<button class="cbtn {{onFast}}" aria-pressed="{{isFast}}" onClick="{{runFast}}">Réponse rapide, 0,3 s</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Si la réponse vient avant 0,4 s, aucun squelette n'est montré.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { phase: 'blank', fast: false };
+    this._timers = [];
+  }
+  componentDidMount() { this.run(false); }
+  componentWillUnmount() { this.clear(); }
+  clear() { this._timers.forEach((t) => clearTimeout(t)); this._timers = []; }
+  run(fast) {
+    this.clear();
+    this.setState({ phase: 'blank', fast: fast });
+    if (fast) {
+      this._timers.push(setTimeout(() => this.setState({ phase: 'content' }), 300));
+    } else {
+      this._timers.push(setTimeout(() => this.setState({ phase: 'skel' }), 400));
+      this._timers.push(setTimeout(() => this.setState({ phase: 'content' }), 2400));
+    }
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const rows = [
+      { title: 'Le mur des impossibles', meta: 'Découvrir · 10 min · maison', delay: 120, isBrick: true, isTarget: false, isRoute: false },
+      { title: 'Le défi une fois sur trois', meta: 'Pratiquer · 10 min · extérieur', delay: 180, isBrick: false, isTarget: true, isRoute: false },
+      { title: "L'histoire du raté", meta: 'Transférer · 20 min · voiture', delay: 240, isBrick: false, isTarget: false, isRoute: true }
+    ];
+    const lab = { blank: 'T0 · rien', skel: 'T1 · squelette', content: 'Contenu affiché' };
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      isSkel: st.phase === 'skel',
+      isContent: st.phase === 'content',
+      rows: rows,
+      palier: lab[st.phase],
+      isSlow: !st.fast, isFast: st.fast,
+      onSlow: !st.fast ? 'on' : '', onFast: st.fast ? 'on' : '',
+      runSlow: () => this.run(false),
+      runFast: () => this.run(true)
+    };
+  }
+}
+</script>
+</body>
+</html>

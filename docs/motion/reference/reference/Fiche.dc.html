@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Ouvrir une fiche</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.10);--track2:rgba(2,37,57,.14);--tint:#004E7A;--tint-ink:#FFFFFF;--line:rgba(2,37,57,.14);--glass:rgba(255,255,255,.78);--sage:#A7C4BC;--stroke:#022539}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.14);--track2:rgba(247,245,242,.2);--tint:#F9EB50;--tint-ink:#141414;--line:rgba(247,245,242,.2);--glass:rgba(60,70,80,.7);--sage:#2F5B63;--stroke:#F7F5F2}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif}
+.base{position:absolute;left:0;top:0;right:0;bottom:0;padding:74px 16px 0;transition:transform .22s cubic-bezier(.22,.61,.36,1)}
+.base.pushed{transform:translateX(-28%);transition-duration:.3s}
+.dim{position:absolute;left:0;top:0;right:0;bottom:0;background:#000;opacity:0;pointer-events:none;transition:opacity .22s cubic-bezier(.22,.61,.36,1)}
+.dim.on{opacity:.22;transition-duration:.3s}
+.top{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--bg);border-left:1px solid var(--line);transform:translateX(100%);transition:transform .22s cubic-bezier(.22,.61,.36,1)}
+.top.open{transform:translateX(0);transition-duration:.3s}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.big{margin:6px 0 0;font-size:34px;line-height:41px;font-weight:700;letter-spacing:.4px}
+.list{margin-top:26px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;width:100%;min-height:76px;padding:12px 14px;border:0;border-radius:26px;background:var(--card);color:var(--ink);text-align:left;font-family:inherit}
+.row:active{transform:scale(.98)}
+.col{flex:1;min-width:0}
+.rt{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.43px}
+.rm{margin-top:2px;font-size:15px;line-height:20px;letter-spacing:-.23px;color:var(--ink2)}
+.chev{flex:none;color:var(--ink2)}
+.inner{position:absolute;left:0;top:0;right:0;bottom:0;padding:74px 16px 0}
+.back{display:inline-flex;align-items:center;gap:6px;height:44px;padding:0 16px 0 12px;border-radius:9999px;border:1px solid var(--line);background:var(--glass);color:var(--ink);font-size:15px;font-weight:600}
+.thumb{margin-top:16px;width:358px;height:190px;border-radius:26px;overflow:hidden;background:var(--sage)}
+.ft{margin:16px 0 0;font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px}
+.fo{margin:10px 0 0;font-size:17px;line-height:24px;letter-spacing:-.4px;color:var(--ink2)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.chip{padding:8px 14px;border-radius:9999px;background:var(--track);font-size:14px;line-height:18px;font-weight:600}
+.cta{position:absolute;left:16px;right:16px;bottom:44px;height:52px;border:0;border-radius:9999px;background:var(--tint);color:var(--tint-ink);font-size:17px;font-weight:600}
+.st{animation:rise .3s cubic-bezier(.22,.61,.36,1) both}
+.sk{background:var(--track);border-radius:8px;animation:wave 1.4s ease-in-out infinite}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.spal{flex:none;font-size:15px;font-weight:700;color:#F9EB50}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes wave{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+.base,.dim,.top{transition:none}
+.st,.sk{animation:none}
+.row:active{transform:none}
+}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+
+<div class="base {{baseCls}}">
+<div class="eyebrow">Semaine 3 · Développer</div>
+<h1 class="big">Oser</h1>
+<div class="list">
+<sc-for list="{{rows}}" as="r" hint-placeholder-count="3">
+<button class="row" onClick="{{r.open}}">
+<div class="col"><div class="rt">{{r.title}}</div><div class="rm">{{r.meta}}</div></div>
+<svg class="chev" width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 2 L8 8 L2 14"></path></svg>
+</button>
+</sc-for>
+</div>
+</div>
+<div class="dim {{dimCls}}"></div>
+
+<div class="top {{topCls}}">
+<sc-if value="{{mounted}}" hint-placeholder-val="{{ false }}">
+<div class="inner">
+<button class="back" onClick="{{close}}" aria-label="Retour à la semaine 3">
+<svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2 L2 8 L8 14"></path></svg>
+<span>Semaine 3</span>
+</button>
+
+<sc-if value="{{skel}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="thumb sk" style="background:var(--track)"></div>
+<div class="sk" style="width:70%;height:30px;margin-top:20px;animation-delay:80ms"></div>
+<div class="sk" style="width:96%;height:16px;margin-top:14px;animation-delay:160ms"></div>
+<div class="sk" style="width:80%;height:16px;margin-top:8px;animation-delay:200ms"></div>
+</div>
+</sc-if>
+
+<sc-if value="{{ready}}" hint-placeholder-val="{{ true }}">
+<div>
+<div class="thumb st" style="animation-delay:0ms">
+<svg width="358" height="190" viewBox="0 0 358 190" aria-hidden="true">
+<path d="M70 120 L124 120 L124 96 L178 96 L178 72 L232 72 L232 48 L286 48" fill="none" stroke="var(--tint)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" opacity=".85"></path>
+<path d="M286 48 V16" stroke="var(--stroke)" stroke-width="3" stroke-linecap="round"></path>
+<path d="M288 16 L312 25 L288 34 Z" fill="#F9EB50" stroke="var(--stroke)" stroke-width="2.5" stroke-linejoin="round"></path>
+<circle cx="97" cy="98" r="15" fill="#F9EB50" stroke="var(--stroke)" stroke-width="2.5"></circle>
+<circle cx="92.4" cy="96" r="2" fill="#022539"></circle>
+<circle cx="101.6" cy="96" r="2" fill="#022539"></circle>
+</svg>
+</div>
+<div class="eyebrow st" style="margin-top:16px;animation-delay:60ms">{{f.role}}</div>
+<h2 class="ft st" style="margin-top:6px;animation-delay:100ms">{{f.title}}</h2>
+<p class="fo st" style="animation-delay:150ms">{{f.objective}}</p>
+<div class="chips st" style="animation-delay:200ms">
+<sc-for list="{{f.chips}}" as="c" hint-placeholder-count="4"><span class="chip">{{c}}</span></sc-for>
+</div>
+<button class="cta st" style="animation-delay:260ms">Commencer</button>
+</div>
+</sc-if>
+</div>
+</sc-if>
+</div>
+
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Chargement</span><span class="spal">{{note}}</span></div>
+<div class="srow">
+<button class="cbtn {{onLocal}}" aria-pressed="{{isLocal}}" onClick="{{setLocal}}">Contenu dans l'app</button>
+<button class="cbtn {{onRemote}}" aria-pressed="{{isRemote}}" onClick="{{setRemote}}">Contenu distant</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Touche une activité. Si le texte est livré avec l'app, aucun squelette n'est nécessaire.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { open: false, mounted: false, sel: 1, remote: false, ready: true };
+    this._timers = [];
+  }
+  componentWillUnmount() { this.clear(); }
+  clear() { this._timers.forEach((t) => clearTimeout(t)); this._timers = []; }
+  openAt(i) {
+    this.clear();
+    const remote = this.state.remote;
+    this.setState({ sel: i, mounted: true, open: true, ready: !remote });
+    if (remote) this._timers.push(setTimeout(() => this.setState({ ready: true }), 1100));
+  }
+  close() {
+    this.clear();
+    this.setState({ open: false });
+    this._timers.push(setTimeout(() => this.setState({ mounted: false, ready: true }), 320));
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const F = [
+      { role: 'Découvrir', title: 'Le mur des impossibles', objective: "L'enfant liste cinq choses qu'il ne savait pas faire il y a un an, et voit que c'est lui qui a changé.", chips: ['10 min', 'maison', 'assis', 'papier, crayon'], meta: 'Découvrir · 10 min · maison' },
+      { role: 'Pratiquer', title: 'Le défi une fois sur trois', objective: "Lancer une boule de papier dans une boîte, à la distance où il réussit une fois sur trois.", chips: ['10 min', 'maison, extérieur', 'actif', 'boule de papier, panier'], meta: 'Pratiquer · 10 min · extérieur' },
+      { role: 'Transférer', title: "L'histoire du raté", objective: "Le parent raconte un vrai échec à lui, sa peur, sa honte, et ce qu'il a fait ensuite.", chips: ['20 min', 'voiture, table, marche', 'assis'], meta: 'Transférer · 20 min · voiture' }
+    ];
+    const rows = F.map((f, i) => ({ title: f.title, meta: f.meta, open: () => this.openAt(i) }));
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      rows: rows,
+      f: F[st.sel],
+      baseCls: st.open ? 'pushed' : '',
+      dimCls: st.open ? 'on' : '',
+      topCls: st.open ? 'open' : '',
+      mounted: st.mounted,
+      skel: st.mounted && !st.ready,
+      ready: st.mounted && st.ready,
+      close: () => this.close(),
+      note: st.remote ? 'Distant · squelette 1,1 s' : '0 ms · local',
+      isLocal: !st.remote, isRemote: st.remote,
+      onLocal: !st.remote ? 'on' : '', onRemote: st.remote ? 'on' : '',
+      setLocal: () => this.setState({ remote: false }),
+      setRemote: () => this.setState({ remote: true })
+    };
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>L'escalier de chargement</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.12);--tint:#004E7A;--tint-ink:#FFFFFF;--sun:#F9EB50;--stroke:#022539;--line:rgba(2,37,57,.16)}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.16);--tint:#F9EB50;--tint-ink:#141414;--sun:#F9EB50;--stroke:transparent;--line:rgba(247,245,242,.2)}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif;display:flex;flex-direction:column;align-items:center}
+.brand{margin-top:74px;font-size:13px;line-height:18px;font-weight:700;letter-spacing:.28em;color:var(--ink2)}
+.stairs{margin-top:64px}
+.fill{transform-box:fill-box;transform-origin:50% 100%;transition:transform .45s cubic-bezier(.22,.61,.36,1),opacity .3s cubic-bezier(.22,.61,.36,1);fill:var(--tint)}
+.f-pend{transform:scaleY(0);opacity:0}
+.f-active{transform:scaleY(1);opacity:.7;animation:breathe 1.6s ease-in-out infinite}
+.f-done{transform:scaleY(1);opacity:1}
+.mascot{transition:transform .65s cubic-bezier(.34,1.3,.5,1)}
+.m-hop{transform-box:fill-box;transform-origin:50% 100%}
+.hopA{animation:hopA .55s cubic-bezier(.22,.61,.36,1)}
+.hopB{animation:hopB .55s cubic-bezier(.22,.61,.36,1)}
+.cheer{animation:cheer .7s cubic-bezier(.34,1.56,.64,1)}
+.flag{transform-box:fill-box;transform-origin:0 50%;transition:transform .5s cubic-bezier(.34,1.4,.5,1)}
+.flag-off{transform:scaleX(0)}
+.flag-on{transform:scaleX(1)}
+.ttl{margin:30px 0 0;padding:0 32px;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.26px;text-align:center}
+.sub{margin:6px 0 0;padding:0 32px;min-height:44px;font-size:17px;line-height:22px;letter-spacing:-.4px;color:var(--ink2);text-align:center}
+.lbl-a{animation:fadeA .22s cubic-bezier(.22,.61,.36,1)}
+.lbl-b{animation:fadeB .22s cubic-bezier(.22,.61,.36,1)}
+.bar{width:260px;height:6px;border-radius:9999px;background:var(--track);margin-top:14px;overflow:hidden}
+.bar-f{height:100%;width:100%;border-radius:9999px;background:var(--tint);transform-origin:0 50%;transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.cnt{margin-top:10px;font-size:13px;line-height:18px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.slow{margin-top:14px;max-width:330px;padding:10px 14px;border-radius:14px;background:var(--card);font-size:15px;line-height:20px;text-align:center;animation:rise .3s cubic-bezier(.22,.61,.36,1)}
+.tip{position:absolute;left:16px;right:16px;bottom:44px;padding:18px 20px 8px;border-radius:22px;background:var(--card)}
+.tip-a{animation:rise .3s cubic-bezier(.22,.61,.36,1)}
+.tip-b{animation:rise2 .3s cubic-bezier(.22,.61,.36,1)}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.tip-t{margin:8px 0 0;font-family:Fraunces,Georgia,serif;font-size:20px;line-height:26px;font-weight:500;min-height:78px}
+.keep{display:inline-flex;align-items:center;gap:8px;min-height:44px;margin:4px 0 0 -10px;padding:0 10px;border:0;border-radius:9999px;background:transparent;color:var(--tint);font-size:15px;line-height:20px;font-weight:600}
+.cta{position:absolute;left:16px;right:16px;bottom:44px;height:52px;border:0;border-radius:9999px;background:var(--tint);color:var(--tint-ink);font-size:17px;font-weight:600;animation:rise .3s cubic-bezier(.22,.61,.36,1)}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes breathe{0%,100%{opacity:.3}50%{opacity:.75}}
+@keyframes hopA{0%{transform:translateY(0) scale(1,1)}35%{transform:translateY(-22px) scale(.96,1.06)}72%{transform:translateY(0) scale(1.08,.9)}100%{transform:translateY(0) scale(1,1)}}
+@keyframes hopB{0%{transform:translateY(0) scale(1,1)}35%{transform:translateY(-22px) scale(.96,1.06)}72%{transform:translateY(0) scale(1.08,.9)}100%{transform:translateY(0) scale(1,1)}}
+@keyframes cheer{0%{transform:scale(1)}40%{transform:scale(1.22) translateY(-8px)}100%{transform:scale(1)}}
+@keyframes fadeA{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeB{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rise2{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+.fill,.mascot,.flag,.bar-f{transition:none}
+.f-active,.hopA,.hopB,.cheer,.lbl-a,.lbl-b,.tip-a,.tip-b,.slow,.cta{animation:none}
+}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+<div class="brand">THRIVE</div>
+
+<svg class="stairs" width="300" height="182" viewBox="0 0 280 170" role="img" aria-label="{{ariaStairs}}">
+<rect x="0" y="150" width="280" height="2" fill="var(--line)"></rect>
+<rect x="8" y="120" width="56" height="30" rx="8" fill="var(--track)"></rect>
+<rect x="70" y="94" width="56" height="56" rx="8" fill="var(--track)"></rect>
+<rect x="132" y="68" width="56" height="82" rx="8" fill="var(--track)"></rect>
+<rect x="194" y="42" width="56" height="108" rx="8" fill="var(--track)"></rect>
+<rect class="fill {{c0}}" x="8" y="120" width="56" height="30" rx="8"></rect>
+<rect class="fill {{c1}}" x="70" y="94" width="56" height="56" rx="8"></rect>
+<rect class="fill {{c2}}" x="132" y="68" width="56" height="82" rx="8"></rect>
+<rect class="fill {{c3}}" x="194" y="42" width="56" height="108" rx="8"></rect>
+<rect x="244" y="2" width="3" height="40" rx="1.5" fill="var(--ink2)"></rect>
+<path class="flag {{flagCls}}" d="M247 2 L277 12 L247 22 Z" fill="var(--sun)" stroke="var(--stroke)" stroke-width="2" stroke-linejoin="round"></path>
+<g class="mascot" style="transform: translate({{mx}}px, {{my}}px)">
+<ellipse cx="0" cy="15" rx="10" ry="2.4" fill="var(--ink)" opacity=".16"></ellipse>
+<g class="m-hop {{hopCls}}">
+<circle cx="0" cy="0" r="14" fill="var(--sun)" stroke="var(--stroke)" stroke-width="2"></circle>
+<circle cx="-4.6" cy="-2" r="1.9" fill="#022539"></circle>
+<circle cx="4.6" cy="-2" r="1.9" fill="#022539"></circle>
+</g>
+</g>
+</svg>
+
+<h1 class="ttl">{{title}}</h1>
+<div class="sub {{lblCls}}" aria-live="polite">{{sub}}</div>
+
+<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="4" aria-valuenow="{{s}}" aria-label="Progression">
+<div class="bar-f" style="transform: scaleX({{barScale}})"></div>
+</div>
+<div class="cnt">{{counter}}</div>
+
+<sc-if value="{{banner}}" hint-placeholder-val="{{ false }}">
+<div class="slow">Un peu plus long que d'habitude. Ton travail est sauvegardé.</div>
+</sc-if>
+
+<sc-if value="{{showTip}}" hint-placeholder-val="{{ true }}">
+<div class="tip {{tipCls}}">
+<div class="eyebrow">{{tip.eyebrow}}</div>
+<p class="tip-t">{{tip.text}}</p>
+<button class="keep" aria-pressed="{{kept}}" onClick="{{toggleKeep}}">
+<sc-if value="{{kept}}" hint-placeholder-val="{{ false }}">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z" fill="currentColor" stroke="currentColor" stroke-width="1.85" stroke-linejoin="round"></path></svg>
+</sc-if>
+<sc-if value="{{notKept}}" hint-placeholder-val="{{ true }}">
+<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18l-6-4.5L6 21z" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linejoin="round"></path></svg>
+</sc-if>
+<span>{{keepLabel}}</span>
+</button>
+</div>
+</sc-if>
+
+<sc-if value="{{done}}" hint-placeholder-val="{{ false }}">
+<button class="cta">{{cta}}</button>
+</sc-if>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Démo, hors de l'app</span></div>
+<div class="srow">
+<button class="cbtn {{onA}}" aria-pressed="{{isA}}" onClick="{{pickA}}">Ouverture</button>
+<button class="cbtn {{onB}}" aria-pressed="{{isB}}" onClick="{{pickB}}">Paiement</button>
+</div>
+<div class="srow">
+<button class="cbtn" onClick="{{replay}}">Rejouer</button>
+<button class="cbtn {{onSlow}}" aria-pressed="{{slow}}" onClick="{{toggleSlow}}">Connexion lente</button>
+</div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { scenario: 'espace', slow: false, s: 0, banner: false, kept: false };
+    this._timers = [];
+  }
+  componentDidMount() { this.run(false, 'espace'); }
+  componentWillUnmount() { this.clear(); }
+  clear() { this._timers.forEach((t) => clearTimeout(t)); this._timers = []; }
+  run(slow, scenario) {
+    this.clear();
+    this.setState({ s: 0, banner: false, kept: false, slow: slow, scenario: scenario });
+    const ev = slow ? [900, 2100, 9300, 10000] : [900, 2100, 3600, 4300];
+    ev.forEach((t, i) => {
+      this._timers.push(setTimeout(() => {
+        this.setState({ s: i + 1, banner: false, kept: false });
+      }, t));
+    });
+    if (slow) this._timers.push(setTimeout(() => this.setState({ banner: true }), 8000));
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const SC = {
+      espace: {
+        title: 'Ton espace se prépare', doneTitle: "C'est prêt.", cta: 'Commencer',
+        labels: ['Connexion sécurisée', 'Le profil de Léa', 'La semaine 3 · Oser', 'Ton accès THRIVE Maison'],
+        doneSub: 'Tout est prêt pour ce soir. Il reste une activité pour ouvrir la semaine 4.',
+        tips: [
+          { eyebrow: 'Un mot pour comprendre', text: 'Objectif SMART : spécifique, mesurable, atteignable, réaliste, temporel. Pour un enfant, une seule marche, ce soir.' },
+          { eyebrow: 'Pour toi, ce soir', text: 'Rien n\'est obligatoire. Dix minutes, c\'est déjà beaucoup.' }
+        ]
+      },
+      paiement: {
+        title: 'On finalise ton abonnement', doneTitle: 'Bienvenue dans THRIVE Maison.', cta: 'Découvrir la semaine 1',
+        labels: ['Paiement confirmé', 'Abonnement vérifié', 'Accès ouvert', 'Ton espace se prépare'],
+        doneSub: 'Ton mois d\'essai est commencé. Tu peux l\'annuler quand tu veux.',
+        tips: [
+          { eyebrow: 'Rien à faire', text: 'Tu peux quitter cet écran : on termine pour toi.' },
+          { eyebrow: 'Pour toi, ce soir', text: 'Un soir raté ne défait pas une semaine.' }
+        ]
+      }
+    };
+    const sc = SC[st.scenario];
+    const s = st.s;
+    const done = s >= 4;
+    const cls = (i) => (i < s ? 'f-done' : (i === s ? 'f-active' : 'f-pend'));
+    const px = [36, 98, 160, 222];
+    const py = [106, 80, 54, 28];
+    const ix = Math.min(s, 3);
+    const tipIdx = s >= 2 ? 1 : 0;
+    const par = s % 2 === 0;
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      ariaStairs: 'Escalier de quatre marches : ' + Math.min(s, 4) + ' sur 4 terminées',
+      c0: cls(0), c1: cls(1), c2: cls(2), c3: cls(3),
+      flagCls: done ? 'flag-on' : 'flag-off',
+      mx: px[ix], my: py[ix],
+      hopCls: done ? 'cheer' : (par ? 'hopA' : 'hopB'),
+      title: done ? sc.doneTitle : sc.title,
+      sub: done ? sc.doneSub : sc.labels[Math.min(s, 3)],
+      lblCls: par ? 'lbl-a' : 'lbl-b',
+      s: s,
+      barScale: done ? 1 : Math.max(0.04, s / 4),
+      counter: done ? 'Terminé' : 'Étape ' + (s + 1) + ' sur 4',
+      banner: st.banner && !done,
+      showTip: !done,
+      tip: sc.tips[tipIdx],
+      tipCls: tipIdx === 0 ? 'tip-a' : 'tip-b',
+      kept: st.kept, notKept: !st.kept,
+      keepLabel: st.kept ? 'Gardé dans ton carnet' : 'Garder ce mot',
+      toggleKeep: () => this.setState({ kept: !this.state.kept }),
+      done: done, cta: sc.cta,
+      isA: st.scenario === 'espace', isB: st.scenario === 'paiement',
+      onA: st.scenario === 'espace' ? 'on' : '', onB: st.scenario === 'paiement' ? 'on' : '',
+      pickA: () => this.run(this.state.slow, 'espace'),
+      pickB: () => this.run(this.state.slow, 'paiement'),
+      replay: () => this.run(this.state.slow, this.state.scenario),
+      slow: st.slow, onSlow: st.slow ? 'on' : '',
+      toggleSlow: () => this.run(!this.state.slow, this.state.scenario)
+    };
+  }
+}
+</script>
+</body>
+</html>

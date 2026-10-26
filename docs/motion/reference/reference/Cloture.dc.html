@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Fin d'activité et déblocage</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.14);--tint:#004E7A;--tint-ink:#FFFFFF;--sun:#F9EB50;--stroke:#022539;--glint:rgba(255,255,255,.7)}
+.t-veil{--bg:#022539;--card:#0F3550;--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.2);--tint:#F9EB50;--tint-ink:#141414;--sun:#F9EB50;--stroke:#141414;--glint:rgba(249,235,80,.28)}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif}
+.layer{position:absolute;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;padding:0 24px;transition:opacity .22s cubic-bezier(.22,.61,.36,1)}
+.la{justify-content:center}
+.lb{padding-top:150px}
+.hide{opacity:0}
+.show{opacity:1}
+.big{margin:0;font-family:Fraunces,Georgia,serif;font-size:36px;line-height:42px;font-weight:600;letter-spacing:-.2px;text-align:center;animation:rise .3s cubic-bezier(.22,.61,.36,1) both}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.odo{margin-top:14px;height:96px;overflow:hidden;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:84px;line-height:96px;font-weight:600;font-variant-numeric:tabular-nums}
+.odo-in{transition:transform .6s cubic-bezier(.22,.61,.36,1)}
+.odo-in.rolled{transform:translateY(-96px)}
+.odo-in div{height:96px;text-align:center}
+.cap{margin-top:2px;font-size:15px;line-height:20px;color:var(--ink2);text-align:center}
+.week{margin-top:44px;display:flex;flex-direction:column;align-items:center;gap:12px}
+.dots{display:flex;gap:12px}
+.pas{width:22px;height:22px;border-radius:9999px;border:2px solid var(--track);background:transparent}
+.pas.on{border-color:var(--tint);background:var(--tint)}
+.pas.pop{animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+.pride{margin:44px 0 0;font-family:Fraunces,Georgia,serif;font-size:22px;line-height:30px;font-weight:500;text-align:center;max-width:300px;opacity:0;transition:opacity .3s cubic-bezier(.22,.61,.36,1)}
+.pride.show{opacity:1}
+.unlock{position:absolute;left:16px;right:16px;bottom:34px;overflow:hidden;border-radius:26px;background:var(--card);padding:18px;display:flex;gap:16px;align-items:center;transform:translateY(140%);transition:transform .5s cubic-bezier(.22,.61,.36,1)}
+.unlock.up{transform:translateY(0)}
+.fiche{flex:none;width:64px;height:80px;border-radius:12px;background:var(--bg);border:2px solid var(--tint);position:relative}
+.fiche:before{content:"";position:absolute;left:18px;top:12px;width:24px;height:24px;border-radius:9999px;background:var(--sun);border:2px solid var(--stroke);box-sizing:border-box}
+.fiche:after{content:"";position:absolute;left:12px;right:12px;top:48px;height:6px;border-radius:3px;background:var(--track);box-shadow:0 12px 0 var(--track)}
+.utxt{flex:1;min-width:0}
+.ut{margin:4px 0 0;font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.43px}
+.us{margin:2px 0 0;font-size:15px;line-height:20px;color:var(--ink2)}
+.glint{position:absolute;top:-20px;bottom:-20px;left:0;width:56px;background:var(--glint);transform:skewX(-20deg) translateX(-140px);opacity:0}
+.up .glint{animation:glint .9s cubic-bezier(.4,0,.2,1) .45s both}
+.noanim .layer,.noanim .odo-in,.noanim .pride,.noanim .unlock{transition:none}
+.noanim .pas.pop,.noanim .up .glint,.noanim .big{animation:none}
+.noanim .up .glint{opacity:0}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.6)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes glint{0%{opacity:1;transform:skewX(-20deg) translateX(-140px)}100%{opacity:1;transform:skewX(-20deg) translateX(460px)}}
+@media (prefers-reduced-motion:reduce){
+.layer,.odo-in,.pride,.unlock{transition:none}
+.pas.pop,.up .glint,.big{animation:none}
+.up .glint{opacity:0}
+}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}} {{animCls}}">
+
+<div class="layer la {{aCls}}">
+<h1 class="big">12 minutes avec Léa.</h1>
+</div>
+
+<div class="layer lb {{bCls}}">
+<div class="eyebrow">Moment enregistré</div>
+<div class="odo" role="img" aria-label="{{ariaCount}}">
+<div class="odo-in {{odoCls}}"><div>7</div><div>8</div></div>
+</div>
+<div class="cap">moments avec Léa depuis le début</div>
+<div class="week">
+<div class="dots">
+<div class="pas on"></div>
+<div class="pas on"></div>
+<div class="pas {{p3Cls}}"></div>
+</div>
+<div class="cap">{{weekCap}}</div>
+</div>
+<p class="pride {{prideCls}}">Un soir comme celui-là compte vraiment.</p>
+</div>
+
+<div class="unlock {{unlockCls}}">
+<div class="glint"></div>
+<div class="fiche" aria-hidden="true"></div>
+<div class="utxt">
+<div class="eyebrow">Nouveau dans ton carnet</div>
+<p class="ut">La fiche d'identité de Léa</p>
+<p class="us">Elle se remplit, semaine après semaine.</p>
+</div>
+</div>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Démo, hors de l'app</span></div>
+<div class="srow">
+<button class="cbtn {{onA}}" aria-pressed="{{isA}}" onClick="{{runA}}">Il a répondu</button>
+<button class="cbtn {{onB}}" aria-pressed="{{isB}}" onClick="{{runB}}">Il a passé</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">S'il passe la synthèse, même compteur, sans animation. Aucun badge « incomplet ».</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { step: 0, skipped: false, key: 0 };
+    this._timers = [];
+  }
+  componentDidMount() { this.run(false); }
+  componentWillUnmount() { this.clear(); }
+  clear() { this._timers.forEach((t) => clearTimeout(t)); this._timers = []; }
+  run(skipped) {
+    this.clear();
+    this.setState({ step: 0, skipped: skipped });
+    const go = (ms, n) => this._timers.push(setTimeout(() => this.setState({ step: n }), ms));
+    if (skipped) {
+      go(1000, 2);
+      go(1800, 3);
+    } else {
+      go(1400, 1);
+      go(1900, 2);
+      go(3300, 3);
+    }
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const s = st.step;
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      animCls: st.skipped ? 'noanim' : '',
+      aCls: s >= 1 ? 'hide' : 'show',
+      bCls: s >= 1 ? 'show' : 'hide',
+      odoCls: s >= 2 ? 'rolled' : '',
+      ariaCount: s >= 2 ? '8 moments' : '7 moments',
+      p3Cls: s >= 2 ? 'on pop' : '',
+      weekCap: s >= 2 ? 'Semaine 3 complète' : 'Semaine 3 · 2 sur 3',
+      prideCls: s >= 2 ? 'show' : '',
+      unlockCls: s >= 3 ? 'up' : '',
+      isA: !st.skipped, isB: st.skipped,
+      onA: !st.skipped ? 'on' : '', onB: st.skipped ? 'on' : '',
+      runA: () => this.run(false),
+      runB: () => this.run(true)
+    };
+  }
+}
+</script>
+</body>
+</html>

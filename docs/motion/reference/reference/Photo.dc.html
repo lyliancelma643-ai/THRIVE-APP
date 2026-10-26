@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Envoi de la photo</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&display=swap">
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.12);--tint:#004E7A;--tint-ink:#FFFFFF;--ph:#E3DFD8;--ok:#2E6B4F}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.16);--tint:#F9EB50;--tint-ink:#141414;--ph:#0F3550;--ok:#30D158}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif;padding:74px 16px 0}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.ttl{margin:6px 0 0;font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px}
+.quote{margin:14px 0 0;font-family:Fraunces,Georgia,serif;font-size:22px;line-height:30px;font-weight:500}
+.photo{position:relative;margin-top:22px;width:358px;height:240px;border-radius:26px;overflow:hidden;background:var(--ph)}
+.veil{position:absolute;left:0;top:0;right:0;bottom:0;background:var(--ph)}
+.pic{position:absolute;left:0;top:0;width:358px;height:240px}
+.meta{margin-top:18px;display:flex;align-items:baseline;justify-content:space-between}
+.lab{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.43px}
+.pct{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:22px;line-height:28px;font-weight:600;font-variant-numeric:tabular-nums}
+.bar{margin-top:10px;height:6px;border-radius:9999px;background:var(--track);overflow:hidden}
+.bar-f{height:100%;width:100%;border-radius:9999px;background:var(--tint);transform-origin:0 50%}
+.hint{margin:16px 0 0;font-size:15px;line-height:20px;letter-spacing:-.23px;color:var(--ink2);min-height:40px}
+.okpill{display:inline-flex;align-items:center;gap:8px;margin-top:2px;color:var(--ok);font-size:17px;font-weight:600;animation:pop .4s cubic-bezier(.34,1.56,.64,1)}
+.btns{position:absolute;left:16px;right:16px;bottom:44px;display:flex;flex-direction:column;gap:8px}
+.btn{height:52px;border-radius:9999px;border:0;font-size:17px;font-weight:600}
+.btn-1{background:var(--tint);color:var(--tint-ink)}
+.btn-2{background:transparent;color:var(--ink)}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes pop{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.okpill{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+<div class="eyebrow">Fin du moment · Semaine 3</div>
+<h1 class="ttl">Une phrase à garder</h1>
+<p class="quote">« Aujourd'hui, j'ai osé lever la main. »</p>
+
+<div class="photo">
+<svg class="pic" style="transform: scale({{picScale}})" viewBox="0 0 358 240" aria-hidden="true">
+<rect width="358" height="240" fill="#A7C4BC"></rect>
+<g transform="rotate(-2 179 120)">
+<rect x="44" y="26" width="270" height="188" rx="6" fill="#F7F5F2"></rect>
+<path d="M78 180 H128 V152 H178 V124 H228 V96 H276" fill="none" stroke="#004E7A" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"></path>
+<path d="M276 96 V58" stroke="#022539" stroke-width="4" stroke-linecap="round"></path>
+<path d="M278 58 L304 68 L278 78 Z" fill="#F9EB50" stroke="#022539" stroke-width="3" stroke-linejoin="round"></path>
+</g>
+</svg>
+<div class="veil" style="opacity: {{veilOp}}"></div>
+</div>
+
+<div class="meta">
+<span class="lab">{{label}}</span>
+<span class="pct">{{pct}} %</span>
+</div>
+<div class="bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{pct}}" aria-label="Envoi de la photo"><div class="bar-f" style="transform: scaleX({{scale}})"></div></div>
+
+<sc-if value="{{uploading}}" hint-placeholder-val="{{ true }}">
+<p class="hint">{{hint}}</p>
+</sc-if>
+<sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+<div class="okpill">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M7.5 12.5 L10.5 15.5 L16.5 9"></path></svg>
+<span>Gardée dans le carnet de Léa</span>
+</div>
+</sc-if>
+
+<div class="btns">
+<sc-if value="{{uploading}}" hint-placeholder-val="{{ true }}">
+<button class="btn btn-2" onClick="{{replay}}">Annuler l'envoi</button>
+</sc-if>
+<sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+<button class="btn btn-1">Continuer</button>
+</sc-if>
+</div>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Démo, hors de l'app</span></div>
+<div class="srow">
+<button class="cbtn {{onNormal}}" aria-pressed="{{isNormal}}" onClick="{{runNormal}}">Réseau normal</button>
+<button class="cbtn {{onSlow}}" aria-pressed="{{isSlow}}" onClick="{{runSlow}}">Réseau lent</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Le pourcentage vient de l'envoi réel, jamais d'une durée inventée.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { t: 0, slowMode: false };
+    this._iv = null;
+    this._start = 0;
+  }
+  componentDidMount() { this.run(false); }
+  componentWillUnmount() { if (this._iv) clearInterval(this._iv); }
+  run(slow) {
+    if (this._iv) clearInterval(this._iv);
+    this._start = Date.now();
+    const scale = slow ? 2.5 : 1;
+    this.setState({ t: 0, slowMode: slow });
+    this._iv = setInterval(() => {
+      const el = Date.now() - this._start;
+      this.setState({ t: el });
+      if (el / scale >= 3700) { clearInterval(this._iv); this._iv = null; }
+    }, 50);
+  }
+  pAt(ms) {
+    const pts = [[0, 0], [300, 12], [700, 31], [1100, 34], [1800, 58], [2400, 77], [2700, 77], [3300, 93], [3700, 100]];
+    if (ms >= 3700) return 100;
+    for (let i = 1; i < pts.length; i++) {
+      if (ms <= pts[i][0]) {
+        const a = pts[i - 1], b = pts[i];
+        return a[1] + (b[1] - a[1]) * ((ms - a[0]) / (b[0] - a[0]));
+      }
+    }
+    return 100;
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const scale = st.slowMode ? 2.5 : 1;
+    const p = this.pAt(st.t / scale);
+    const pct = Math.round(p);
+    const isDone = pct >= 100;
+    const slowMsg = st.slowMode && st.t > 8000 && !isDone;
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      pct: pct,
+      scale: Math.max(0.01, p / 100),
+      veilOp: (1 - p / 100).toFixed(3),
+      picScale: (1 + 0.05 * (1 - p / 100)).toFixed(4),
+      label: isDone ? 'Photo enregistrée' : 'Envoi de la photo',
+      uploading: !isDone,
+      isDone: isDone,
+      hint: slowMsg ? "Un peu long. L'envoi continue, tu peux passer à la suite." : 'Ce que tu notes aujourd\'hui, Léa le relira dans trois mois.',
+      isNormal: !st.slowMode, isSlow: st.slowMode,
+      onNormal: !st.slowMode ? 'on' : '', onSlow: st.slowMode ? 'on' : '',
+      runNormal: () => this.run(false),
+      runSlow: () => this.run(true),
+      replay: () => this.run(this.state.slowMode)
+    };
+  }
+}
+</script>
+</body>
+</html>

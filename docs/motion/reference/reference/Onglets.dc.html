@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Changer d'onglet</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.10);--track2:rgba(2,37,57,.14);--tint:#004E7A;--tint-ink:#FFFFFF;--line:rgba(2,37,57,.14)}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.14);--track2:rgba(247,245,242,.2);--tint:#F9EB50;--tint-ink:#141414;--line:rgba(247,245,242,.2)}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif}
+.hair{position:absolute;left:0;right:0;top:56px;height:2px;background:var(--tint);transform-origin:0 50%;transform:scaleX(0);opacity:0}
+.hairA{animation:hairA .7s cubic-bezier(.22,.61,.36,1)}
+.hairB{animation:hairB .7s cubic-bezier(.22,.61,.36,1)}
+.page{position:absolute;left:16px;right:16px;top:74px;bottom:110px;transition:opacity .14s cubic-bezier(.4,0,1,1)}
+.page.out{opacity:0}
+.from-r{animation:fromR .26s cubic-bezier(.22,.61,.36,1) both}
+.from-l{animation:fromL .26s cubic-bezier(.22,.61,.36,1) both}
+.rise{animation:rise .3s cubic-bezier(.22,.61,.36,1) both}
+.eyebrow{font-size:12px;line-height:16px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ink2)}
+.big{margin:6px 0 0;font-size:34px;line-height:41px;font-weight:700;letter-spacing:.4px}
+.list{margin-top:26px;display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border-radius:26px;background:var(--card)}
+.ico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--track);display:flex;align-items:center;justify-content:center}
+.col{flex:1;min-width:0}
+.rt{font-size:17px;line-height:22px;font-weight:600;letter-spacing:-.43px}
+.rm{margin-top:2px;font-size:15px;line-height:20px;letter-spacing:-.23px;color:var(--ink2)}
+.ringcard{margin-top:22px;border-radius:26px;background:var(--card);padding:22px 0;display:flex;justify-content:center}
+.ringwrap{position:relative;width:200px;height:200px}
+.arc{stroke-dasharray:490.1;transition:stroke-dashoffset .9s cubic-bezier(.22,.61,.36,1)}
+.rc{position:absolute;left:0;top:0;width:200px;height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-weight:600;font-variant-numeric:tabular-nums}
+.cap{font-size:15px;line-height:20px;color:var(--ink2)}
+.stats{margin-top:8px;display:flex;gap:8px}
+.stat{flex:1;border-radius:26px;background:var(--card);padding:16px}
+.sk{background:var(--track);border-radius:8px;animation:wave 1.4s ease-in-out infinite}
+.skrow{display:flex;align-items:center;gap:12px;min-height:76px;padding:12px 14px;border-radius:26px;background:var(--card);animation:wave 1.4s ease-in-out infinite}
+.skico{flex:none;width:44px;height:44px;border-radius:12px;background:var(--track)}
+.skcol{flex:1;display:flex;flex-direction:column;gap:8px}
+.skbar{height:12px;border-radius:6px;background:var(--track)}
+.tabs{position:absolute;left:16px;right:16px;bottom:25px;height:62px;border-radius:9999px;background:var(--card);border:1px solid var(--line);padding:5px}
+.ind{position:absolute;left:5px;top:5px;bottom:5px;width:calc((100% - 10px) / 3);border-radius:9999px;background:var(--track2);transition:transform .3s cubic-bezier(.22,.61,.36,1)}
+.tabrow{position:relative;display:flex;height:100%}
+.tab{flex:1;border:0;background:transparent;border-radius:9999px;font-size:13px;font-weight:600;color:var(--ink2)}
+.tab.on{color:var(--ink)}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.spal{flex:none;font-size:15px;font-weight:700;color:#F9EB50}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+.cbtn.on{background:#FAF9F5;color:#141413}
+@keyframes hairA{0%{transform:scaleX(0);opacity:1}70%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+@keyframes hairB{0%{transform:scaleX(0);opacity:1}70%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
+@keyframes fromR{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes fromL{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes wave{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){
+.page,.arc,.ind{transition:none}
+.hairA,.hairB,.from-r,.from-l,.rise,.sk,.skrow{animation:none}
+}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+<div class="hair {{hairCls}}"></div>
+
+<div class="page {{outCls}}">
+
+<sc-if value="{{showMaison}}" hint-placeholder-val="{{ true }}">
+<div class="{{contCls}}">
+<div class="eyebrow">Semaine 3 · Développer</div>
+<h1 class="big">Oser</h1>
+<div class="list">
+<div class="row"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="8" height="5" rx="1.5"></rect><rect x="13" y="5" width="8" height="5" rx="1.5"></rect><rect x="8" y="13" width="8" height="5" rx="1.5"></rect></svg></div><div class="col"><div class="rt">Le mur des impossibles</div><div class="rm">Découvrir · 10 min · maison</div></div></div>
+<div class="row"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle></svg></div><div class="col"><div class="rt">Le défi une fois sur trois</div><div class="rm">Pratiquer · 10 min · extérieur</div></div></div>
+<div class="row"><div class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.85" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 18 L10 12 L14 15 L20 7"></path><path d="M15 7 H20 V12"></path></svg></div><div class="col"><div class="rt">L'histoire du raté</div><div class="rm">Transférer · 20 min · voiture</div></div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showSeances}}" hint-placeholder-val="{{ false }}">
+<div class="{{contCls}}">
+<div class="eyebrow">Avec ton coach</div>
+<h1 class="big">Séances</h1>
+<div class="list">
+<div class="row"><div class="col"><div class="rt">Séance 9</div><div class="rm">À venir</div></div></div>
+<div class="row"><div class="col"><div class="rt">Séance 8</div><div class="rm">Validée par le coach · 8 oct.</div></div></div>
+<div class="row"><div class="col"><div class="rt">Séance 7</div><div class="rm">Validée par le coach · 1 oct.</div></div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{showBilan}}" hint-placeholder-val="{{ false }}">
+<div class="{{contCls}}">
+<div class="eyebrow">Ce qui progresse en Léa</div>
+<h1 class="big">Bilan</h1>
+<div class="ringcard">
+<div class="ringwrap">
+<svg width="200" height="200" viewBox="0 0 200 200" aria-hidden="true">
+<circle cx="100" cy="100" r="78" fill="none" stroke="var(--track2)" stroke-width="16"></circle>
+<circle class="arc" cx="100" cy="100" r="78" fill="none" stroke="var(--tint)" stroke-width="16" stroke-linecap="round" transform="rotate(-90 100 100)" style="stroke-dashoffset: {{dash}}"></circle>
+</svg>
+<div class="rc"><div class="num" style="font-size:64px;line-height:64px">3</div><div class="cap">sur 13 semaines</div></div>
+</div>
+</div>
+<div class="stats">
+<div class="stat"><div class="num" style="font-size:34px;line-height:40px">{{c8}}</div><div class="cap">moments faits</div></div>
+<div class="stat"><div class="num" style="font-size:34px;line-height:40px">{{c7}}</div><div class="cap">phrases gardées</div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{skelMaison}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="sk" style="width:150px;height:14px;animation-delay:0ms"></div>
+<div class="sk" style="width:120px;height:36px;margin-top:10px;animation-delay:80ms"></div>
+<div class="list">
+<div class="skrow" style="animation-delay:160ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:70%"></div><div class="skbar" style="width:45%"></div></div></div>
+<div class="skrow" style="animation-delay:240ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:62%"></div><div class="skbar" style="width:50%"></div></div></div>
+<div class="skrow" style="animation-delay:320ms"><div class="skico"></div><div class="skcol"><div class="skbar" style="width:74%"></div><div class="skbar" style="width:40%"></div></div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{skelSeances}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="sk" style="width:130px;height:14px;animation-delay:0ms"></div>
+<div class="sk" style="width:150px;height:36px;margin-top:10px;animation-delay:80ms"></div>
+<div class="list">
+<div class="skrow" style="animation-delay:160ms"><div class="skcol"><div class="skbar" style="width:34%"></div><div class="skbar" style="width:26%"></div></div></div>
+<div class="skrow" style="animation-delay:240ms"><div class="skcol"><div class="skbar" style="width:34%"></div><div class="skbar" style="width:58%"></div></div></div>
+<div class="skrow" style="animation-delay:320ms"><div class="skcol"><div class="skbar" style="width:34%"></div><div class="skbar" style="width:58%"></div></div></div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{skelBilan}}" hint-placeholder-val="{{ false }}">
+<div>
+<div class="sk" style="width:190px;height:14px;animation-delay:0ms"></div>
+<div class="sk" style="width:110px;height:36px;margin-top:10px;animation-delay:80ms"></div>
+<div class="ringcard sk" style="animation-delay:160ms;background:var(--card);border-radius:26px">
+<svg width="200" height="200" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="78" fill="none" stroke="var(--track2)" stroke-width="16"></circle></svg>
+</div>
+<div class="stats">
+<div class="stat sk" style="animation-delay:240ms;height:96px;background:var(--card)"><div class="skbar" style="width:40%;height:26px"></div><div class="skbar" style="width:70%;margin-top:12px"></div></div>
+<div class="stat sk" style="animation-delay:320ms;height:96px;background:var(--card)"><div class="skbar" style="width:40%;height:26px"></div><div class="skbar" style="width:70%;margin-top:12px"></div></div>
+</div>
+</div>
+</sc-if>
+
+</div>
+
+<div class="tabs">
+<div class="ind" style="transform: translateX({{ind}}%)"></div>
+<div class="tabrow">
+<button class="tab {{onM}}" aria-current="{{curM}}" onClick="{{goMaison}}">Maison</button>
+<button class="tab {{onS}}" aria-current="{{curS}}" onClick="{{goSeances}}">Séances</button>
+<button class="tab {{onB}}" aria-current="{{curB}}" onClick="{{goBilan}}">Bilan</button>
+</div>
+</div>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">État</span><span class="spal">{{note}}</span></div>
+<div class="srow">
+<button class="cbtn" onClick="{{reset}}">Réinitialiser</button>
+<button class="cbtn {{onSlow}}" aria-pressed="{{slow}}" onClick="{{toggleSlow}}">Réseau lent</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Touche Séances puis Bilan. Une revisite est instantanée, sans animation d'arrivée.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { tab: 'maison', out: false, phase: 'content', afterSkel: false, dir: 1, visited: { maison: true }, hair: 0, drawn: false, cp: 0, slow: false, note: 'Départ · Maison' };
+    this._timers = [];
+    this._iv = null;
+  }
+  componentWillUnmount() { this.clear(); }
+  clear() {
+    this._timers.forEach((t) => clearTimeout(t)); this._timers = [];
+    if (this._iv) { clearInterval(this._iv); this._iv = null; }
+  }
+  reset() {
+    this.clear();
+    this.setState({ tab: 'maison', out: false, phase: 'content', afterSkel: false, dir: 1, visited: { maison: true }, hair: 0, drawn: false, cp: 0, note: 'Départ · Maison' });
+  }
+  go(tab) {
+    const s = this.state;
+    if (tab === s.tab || s.out) return;
+    this.clear();
+    const order = ['maison', 'seances', 'bilan'];
+    const dir = order.indexOf(tab) > order.indexOf(s.tab) ? 1 : -1;
+    this.setState({ out: true });
+    this._timers.push(setTimeout(() => {
+      const first = !this.state.visited[tab];
+      const visited = Object.assign({}, this.state.visited);
+      visited[tab] = true;
+      this.setState({
+        tab: tab, out: false, dir: dir, visited: visited,
+        phase: first ? 'skel' : 'content', afterSkel: false,
+        hair: first ? this.state.hair : this.state.hair + 1,
+        drawn: !first, cp: first ? 0 : 1,
+        note: first ? 'Première visite · squelette' : 'Déjà visité · cache immédiat'
+      });
+      if (first) {
+        const lat = this.state.slow ? 2500 : 1100;
+        this._timers.push(setTimeout(() => {
+          this.setState({ phase: 'content', afterSkel: true, note: 'Données reçues · arrivée' });
+          if (tab === 'bilan') this.arrive();
+        }, lat));
+      }
+    }, 140));
+  }
+  arrive() {
+    this._timers.push(setTimeout(() => this.setState({ drawn: true }), 80));
+    const t0 = Date.now();
+    this._iv = setInterval(() => {
+      const p = Math.min(1, (Date.now() - t0) / 800);
+      this.setState({ cp: p });
+      if (p >= 1) { clearInterval(this._iv); this._iv = null; }
+    }, 40);
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const idx = { maison: 0, seances: 1, bilan: 2 }[st.tab];
+    const content = st.phase === 'content';
+    const skel = st.phase === 'skel';
+    const e = 1 - Math.pow(1 - st.cp, 3);
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      hairCls: st.hair === 0 ? '' : (st.hair % 2 === 1 ? 'hairA' : 'hairB'),
+      outCls: st.out ? 'out' : '',
+      contCls: st.afterSkel ? 'rise' : (st.dir > 0 ? 'from-r' : 'from-l'),
+      showMaison: st.tab === 'maison' && content,
+      showSeances: st.tab === 'seances' && content,
+      showBilan: st.tab === 'bilan' && content,
+      skelMaison: st.tab === 'maison' && skel,
+      skelSeances: st.tab === 'seances' && skel,
+      skelBilan: st.tab === 'bilan' && skel,
+      dash: st.drawn ? (490.1 * (1 - 3 / 13)).toFixed(1) : '490.1',
+      c8: Math.round(8 * e), c7: Math.round(7 * e),
+      ind: idx * 100,
+      onM: idx === 0 ? 'on' : '', onS: idx === 1 ? 'on' : '', onB: idx === 2 ? 'on' : '',
+      curM: idx === 0 ? 'page' : 'false', curS: idx === 1 ? 'page' : 'false', curB: idx === 2 ? 'page' : 'false',
+      goMaison: () => this.go('maison'), goSeances: () => this.go('seances'), goBilan: () => this.go('bilan'),
+      note: st.note,
+      slow: st.slow, onSlow: st.slow ? 'on' : '',
+      toggleSlow: () => this.setState({ slow: !this.state.slow }),
+      reset: () => this.reset()
+    };
+  }
+}
+</script>
+</body>
+</html>

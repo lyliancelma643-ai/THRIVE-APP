@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Un souffle ensemble</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0}
+*{box-sizing:border-box}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid #F9EB50;outline-offset:2px}
+.t-lin{--bg:#F7F5F2;--card:#FFFFFF;--ink:#022539;--ink2:rgba(2,37,57,.70);--track:rgba(2,37,57,.14);--tint:#004E7A;--tint-ink:#FFFFFF;--sun:#F9EB50;--sun-ink:#022539;--stroke:#022539}
+.t-veil{--bg:#022539;--card:rgba(247,245,242,.08);--ink:#F7F5F2;--ink2:rgba(247,245,242,.72);--track:rgba(247,245,242,.22);--tint:#F9EB50;--tint-ink:#141414;--sun:#F9EB50;--sun-ink:#141414;--stroke:transparent}
+.screen{position:relative;width:390px;height:844px;overflow:hidden;background:var(--bg);color:var(--ink);font-family:-apple-system,"SF Pro Text",system-ui,Inter,"Helvetica Neue",Arial,sans-serif;display:flex;flex-direction:column;align-items:center;padding:74px 24px 0}
+.ttl{margin:0;font-size:28px;line-height:34px;font-weight:700;letter-spacing:.36px;text-align:center}
+.sub{margin:8px 0 0;font-size:17px;line-height:22px;letter-spacing:-.4px;color:var(--ink2);text-align:center}
+.stage{position:relative;margin-top:56px;width:260px;height:260px;display:flex;align-items:center;justify-content:center}
+.guide{position:absolute;left:0;top:0;width:260px;height:260px;border-radius:9999px;border:2px dashed var(--track)}
+.ball{width:260px;height:260px;border-radius:9999px;background:var(--sun);border:3px solid var(--stroke);transition-property:transform;transition-timing-function:cubic-bezier(.45,0,.55,1);display:flex;align-items:center;justify-content:center}
+.num{position:absolute;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:64px;line-height:64px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--sun-ink)}
+.phase{margin-top:36px;min-height:28px;font-size:22px;line-height:28px;font-weight:700;letter-spacing:-.26px;text-align:center;animation:fadeA .22s cubic-bezier(.22,.61,.36,1)}
+.phase.b{animation:fadeB .22s cubic-bezier(.22,.61,.36,1)}
+.btns{position:absolute;left:16px;right:16px;bottom:44px;display:flex;flex-direction:column;gap:8px}
+.btn{height:52px;border-radius:9999px;border:0;font-size:17px;font-weight:600}
+.btn-1{background:var(--tint);color:var(--tint-ink)}
+.btn-2{background:transparent;color:var(--ink)}
+.strip{height:116px;background:#141413;color:#FAF9F5;padding:10px 16px;display:flex;flex-direction:column;gap:8px;font-family:-apple-system,system-ui,Inter,Arial,sans-serif}
+.srow{display:flex;gap:8px;align-items:center}
+.slab{flex:1;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#C9C6BC}
+.cbtn{flex:1;height:44px;border:0;border-radius:9999px;background:rgba(250,249,245,.14);color:#FAF9F5;font-size:15px;font-weight:600}
+@keyframes fadeA{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes fadeB{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ball{transition:none}.phase,.phase.b{animation:none}}
+</style>
+</helmet>
+<div style="width:390px;height:960px;background:#141413">
+
+<div class="screen {{themeCls}}">
+<h1 class="ttl">{{title}}</h1>
+<p class="sub">{{sub}}</p>
+
+<div class="stage">
+<div class="guide"></div>
+<div class="ball" style="transform: scale({{sc}}); transition-duration: {{dur}}s"></div>
+<div class="num" aria-hidden="true">{{num}}</div>
+</div>
+
+<div class="phase {{phCls}}" aria-live="polite">{{phase}}</div>
+
+<div class="btns">
+<sc-if value="{{isIdle}}" hint-placeholder-val="{{ true }}">
+<button class="btn btn-1" onClick="{{start}}">Commencer le souffle</button>
+</sc-if>
+<sc-if value="{{isDone}}" hint-placeholder-val="{{ false }}">
+<button class="btn btn-1" onClick="{{reset}}">Commencer l'activité</button>
+</sc-if>
+<sc-if value="{{canSkip}}" hint-placeholder-val="{{ true }}">
+<button class="btn btn-2" onClick="{{reset}}">Passer</button>
+</sc-if>
+</div>
+</div>
+
+<div class="strip">
+<div class="srow"><span class="slab">Démo, hors de l'app</span></div>
+<div class="srow">
+<button class="cbtn" onClick="{{reset}}">Rejouer</button>
+</div>
+<div class="srow"><span class="slab" style="text-transform:none;letter-spacing:0;font-size:13px">Inspiration de 4 s, expiration de 6 s : le rythme de la Méthode. Toujours facultatif.</span></div>
+</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"theme":{"editor":"enum","options":["Lin","Veillée"],"default":"Lin","section":"Thème"},"$preview":{"width":390,"height":960}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { mode: 'idle', e: 0 };
+    this._iv = null;
+  }
+  componentWillUnmount() { if (this._iv) clearInterval(this._iv); }
+  reset() {
+    if (this._iv) { clearInterval(this._iv); this._iv = null; }
+    this.setState({ mode: 'idle', e: 0 });
+  }
+  start() {
+    if (this._iv) clearInterval(this._iv);
+    this.setState({ mode: 'run', e: 0 });
+    this._iv = setInterval(() => {
+      const e = this.state.e + 1;
+      if (e >= 10) {
+        clearInterval(this._iv); this._iv = null;
+        this.setState({ mode: 'done', e: 10 });
+      } else {
+        this.setState({ e: e });
+      }
+    }, 1000);
+  }
+  renderVals() {
+    const lin = (this.props.theme ?? 'Lin') === 'Lin';
+    const st = this.state;
+    const run = st.mode === 'run';
+    const inhale = run && st.e < 4;
+    let sc = 0.62, dur = 0.6, num = '', phase = 'Prêt quand tu l\'es.';
+    if (run) {
+      if (inhale) { sc = 1; dur = 4; num = String(st.e + 1); phase = 'Inspire par le nez'; }
+      else { sc = 0.62; dur = 6; num = String(st.e - 3); phase = 'Souffle doucement'; }
+    }
+    if (st.mode === 'done') { sc = 0.8; dur = 1; phase = 'Voilà.'; }
+    return {
+      themeCls: lin ? 't-lin' : 't-veil',
+      title: st.mode === 'done' ? "On y va ensemble." : 'Un souffle avant de commencer',
+      sub: st.mode === 'done' ? 'Le moment de Léa peut commencer.' : 'Facultatif. Dix secondes, ensemble.',
+      sc: sc, dur: dur, num: num,
+      phase: phase,
+      phCls: (st.mode === 'run' && !inhale) || st.mode === 'done' ? 'b' : '',
+      isIdle: st.mode === 'idle', isDone: st.mode === 'done',
+      canSkip: st.mode !== 'done',
+      start: () => this.start(),
+      reset: () => this.reset()
+    };
+  }
+}
+</script>
+</body>
+</html>
