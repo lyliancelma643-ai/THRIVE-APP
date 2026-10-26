@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { can, type Pack, type PlanFeature } from '../../../../../web/src/lib/packs';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
+import { useRevalidateStore } from '../../../stores/revalidate.store';
 import type { CoachInfo, ParentIdentity } from '../../../../../web/src/app/parent/(hub)/bilans/bilan-html';
 
 export type LsssMoment = 'BASELINE' | 'MID' | 'FINAL';
@@ -113,6 +114,8 @@ export function useBilanData(childId: string | null) {
   const reload = useCallback(async () => {
     if (!childId) return;
     setLoading(true);
+    // Page déjà vue (cache) : relecture silencieuse, signalée par le filet sous l'en-tête.
+    if (cache.has(childId)) useRevalidateStore.getState().ping();
     // Trois essais espacés (0,7 s · 1,8 s) : un raté réseau passager ne laisse plus la page en squelette.
     for (let attempt = 0; attempt < 3; attempt++) {
       if (attempt) await new Promise((r) => setTimeout(r, attempt === 1 ? 700 : 1800));

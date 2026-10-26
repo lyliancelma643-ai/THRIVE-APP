@@ -24,7 +24,7 @@ import { flowResetKey, useActivityKeepAwake } from '../../../components/activite
 import { VisualSheet } from '../../../components/activite/visuals/VisualSheet';
 import { useVisualNotes } from '../../../components/activite/visuals/useVisualNotes';
 import {
-  buildMomentPayload, counterSteps, elapsedSeconds, flattenGuide, flowReduce, initialFlow, letterOpensAt, minutesPlayed, parsePlaceChoice,
+  buildMomentPayload, elapsedSeconds, flattenGuide, flowReduce, initialFlow, letterOpensAt, minutesPlayed, parsePlaceChoice,
   playedDuration, prideLine, quitSubtitle, summarizeAfter, type EndSummary, type FlowCtx, type FlowEffect, type FlowEvent, type FlowState,
 } from '../../../components/activite/flow';
 import { vignetteIdFor } from '../../../lib/vignettes';
@@ -51,7 +51,6 @@ type FlowProps = {
 
 function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   const router = useRouter();
-  const { reduceMotion } = useTheme();
   useActivityKeepAwake();
   const { child, moments, doneIds, reload, childrenLoading, isLoading } = useMaisonContext(childId);
   const view = useMemo(() => resolveActivity(activity, duration, band)!, [activity, duration, band]);
@@ -84,7 +83,6 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
   const ctxRef = useRef(ctx);
   ctxRef.current = ctx;
   const [summary, setSummary] = useState<EndSummary | null>(null);
-  const [shownCount, setShownCount] = useState<number | null>(null);
   const [rewardsHidden, setRewardsHidden] = useState(false);
   const [playTimer, setPlayTimer] = useState<StepTimer | null>(null);
   const [visual, setVisual] = useState<VisualId | null>(null);
@@ -161,23 +159,6 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
     return () => clearTimeout(id);
   }, [state.ext.boost]);
 
-  // Compteur qui monte (≤ 2 s) si le parent a répondu ; sinon affiché directement.
-  useEffect(() => {
-    if (!summary) return;
-    const steps = counterSteps(summary.countBefore, summary.count);
-    if (!summary.answered || reduceMotion || steps.length < 2) {
-      setShownCount(summary.count);
-      return;
-    }
-    let i = 0;
-    setShownCount(steps[0]);
-    const id = setInterval(() => {
-      i += 1;
-      setShownCount(steps[Math.min(i, steps.length - 1)]);
-      if (i >= steps.length - 1) clearInterval(id);
-    }, 600);
-    return () => clearInterval(id);
-  }, [summary, reduceMotion]);
 
   const onMinutesElapsed = useCallback(() => dispatch({ t: 'minutes.elapsed' }), [dispatch]);
 
@@ -336,7 +317,9 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
         <EndView
           chrome={chrome}
           firstName={firstName}
-          count={shownCount ?? summary?.count ?? 0}
+          count={summary?.count ?? 0}
+          countBefore={summary?.countBefore ?? summary?.count ?? 0}
+          animate={!!summary?.answered}
           weekStars={summary?.weekStars ?? 0}
           pride={prideLine(summary?.prideKey ?? 'done')}
           low={summary?.low ? { text: activity.why_it_fails, reassurance: PRIDE_LINES.notReally } : null}

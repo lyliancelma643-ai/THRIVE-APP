@@ -4,6 +4,8 @@ import { Lamp } from '../../design';
 import { WebSurfaceProvider, useWeb, type WebSurface } from '../../design/web';
 import { HubHeader } from './HubHeader';
 import { MAX_COLUMN, useLayout } from '../../design/layout';
+import { HairlineRefresh } from '../motion/HairlineRefresh';
+import { useRevalidateStore } from '../../stores/revalidate.store';
 
 type Props = {
   surface?: WebSurface;
@@ -21,7 +23,8 @@ type Props = {
 
 function Body({ children, refreshControl, header = true, overlay, contentPaddingBottom = 56, onScroll, readingWidth }: Omit<Props, 'surface'>, ref: React.Ref<ScrollView>) {
   const w = useWeb();
-  const { isTablet } = useLayout();
+  const { isTablet, width } = useLayout();
+  const tick = useRevalidateStore((st) => st.tick);
   const gutter = isTablet ? 32 : 20;
   const [scrolled, setScrolled] = useState(false);
   return (
@@ -33,6 +36,7 @@ function Body({ children, refreshControl, header = true, overlay, contentPadding
           <HubHeader />
         </View>
       ) : null}
+      {header && tick > 0 ? <HairlineRefresh key={tick} active width={width} /> : null}
       <ScrollView
         ref={ref}
         refreshControl={refreshControl}

@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { useDelayedFlag } from '@thrive/shared';
+import { OpeningGate } from '../../motion/OpeningGate';
 import { AccentButton, Eyebrow, FadeUp, NcCard, Skeleton, WText } from '../../../design/web';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild, type ChildProfile } from '../../../stores/child.store';
@@ -28,6 +30,7 @@ export function forChild(ctx: Pick<MaisonCtx, 'firstName' | 'age'>): string {
 }
 
 export function MaisonSkeleton() {
+  const shown = useDelayedFlag(true);
   // Jamais de squelette sans fin : au bout de 10 s, « Réessayer » relit les enfants (puis redonne 10 s).
   const [round, setRound] = useState(0);
   const stalled = useStall(true, 10_000, round);
@@ -42,11 +45,12 @@ export function MaisonSkeleton() {
       />
     );
   }
+  if (!shown) return null;
   return (
     <View style={{ gap: 20, marginTop: 8 }} accessibilityLabel="Chargement">
-      <Skeleton height={20} radius={10} style={{ width: 160 }} />
-      <Skeleton height={360} radius={28} />
-      <Skeleton height={96} />
+      <Skeleton index={0} height={20} radius={10} style={{ width: 160 }} />
+      <Skeleton index={1} height={360} radius={28} />
+      <Skeleton index={2} height={96} />
     </View>
   );
 }
@@ -73,7 +77,7 @@ function OnboardingSteps() {
 }
 
 /** État Maison de l'écran courant (enfant de l'en-tête, données relues au retour sur l'écran). */
-export function useMaison(): { status: 'loading' | 'under8' | 'ready'; ctx: MaisonCtx | null; onboarding: boolean } {
+export function useMaison(): { status: 'loading' | 'under8' | 'ready'; ctx: MaisonCtx | null; onboarding: boolean; childReady: boolean; dataReady: boolean; childName: string | null; week: number | null } {
   const selected = useSelectedChild();
   const { loaded, isLoading } = useChildStore();
   const userId = useAuthStore((s) => s.user?.id ?? null);
@@ -97,9 +101,14 @@ export function useMaison(): { status: 'loading' | 'under8' | 'ready'; ctx: Mais
     }, [data.reload]),
   );
 
-  if (!child || data.loading) return { status: 'loading', ctx: null, onboarding: false };
-  if (!data.band) return { status: 'under8', ctx: null, onboarding: false };
+  const childReady = !!child;
+  const dataReady = !!child && !data.loading;
+  const childName = selected?.first_name ?? null;
+  const week = null;
+  if (!child || data.loading) return { status: 'loading', ctx: null, onboarding: false, childReady, dataReady, childName, week };
+  if (!data.band) return { status: 'under8', ctx: null, onboarding: false, childReady, dataReady, childName, week };
   return {
+    childReady, dataReady, childName, week,
     status: 'ready',
     ctx: { child, hasChild: !!selected, firstName, age: data.age, band: data.band, data },
     onboarding: !selected,
@@ -123,11 +132,20 @@ export function Under8() {
  */
 export function MaisonFrame({ children }: { children: (ctx: MaisonCtx) => ReactNode }) {
   const m = useMaison();
-  if (m.status === 'loading' || !m.ctx) return m.status === 'under8' ? <Under8 /> : <MaisonSkeleton />;
+  const [, setRound] = useState(0);
+  const body =
+    m.status === 'loading' || !m.ctx ? (
+      m.status === 'under8' ? <Under8 /> : <MaisonSkeleton />
+    ) : (
+      <>
+        {m.onboarding ? <OnboardingSteps /> : null}
+        {children(m.ctx)}
+      </>
+    );
+  // Premier affichage depuis le lancement : l'escalier d'ouverture (rien du tout si tout est prêt en 400 ms).
   return (
-    <>
-      {m.onboarding ? <OnboardingSteps /> : null}
-      {children(m.ctx)}
-    </>
+    <OpeningGate progress={{ childName: m.childName, childReady: m.childReady, weekReady: m.dataReady, week: m.week }} onRetry={() => setRound((r) => r + 1)}>
+      {body}
+    </OpeningGate>
   );
 }

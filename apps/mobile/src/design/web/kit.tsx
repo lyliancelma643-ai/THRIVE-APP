@@ -448,19 +448,26 @@ export function Track({ pct, color }: { pct: number; color?: string }) {
   );
 }
 
-/** Squelette (`animate-pulse`). */
-export function Skeleton({ height, radius = 22, style }: { height: number; radius?: number; style?: StyleProp<ViewStyle> }) {
+/**
+ * Squelette « en vague » : l'opacité respire 0,45 → 1 → 0,45 (1 400 ms), décalée de 80 ms par élément (`index`,
+ * plafonné à 8). Aucun dégradé. En « réduire les animations » : aplat fixe.
+ */
+export function Skeleton({ height, radius = 22, index = 0, style }: { height: number; radius?: number; index?: number; style?: StyleProp<ViewStyle> }) {
   const w = useWeb();
-  const v = useRef(new Animated.Value(0.55)).current;
+  const v = useRef(new Animated.Value(0.45)).current;
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(v, { toValue: 1, duration: 900, useNativeDriver: true }),
-        Animated.timing(v, { toValue: 0.55, duration: 900, useNativeDriver: true }),
-      ]),
-    );
+    if (w.reduceMotion) return;
+    const loop = Animated.sequence([
+      Animated.delay(Math.min(Math.max(index, 0), 8) * 80),
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(v, { toValue: 1, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(v, { toValue: 0.45, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ]),
+      ),
+    ]);
     loop.start();
     return () => loop.stop();
-  }, [v]);
+  }, [v, index, w.reduceMotion]);
   return <Animated.View accessibilityElementsHidden style={[{ height, borderRadius: radius, backgroundColor: w.surface, opacity: v }, style]} />;
 }

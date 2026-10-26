@@ -2,7 +2,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import { Button, Card, Icon, Star, ThemedText, useTheme } from '../../design';
 import { SYNTHESIS } from '../../lib/p3';
-import { countLine } from './flow';
+import { ClosingCount, PrideFade } from '../motion/ClosingSequence';
+import { UnlockRise } from '../motion/Glint';
+import { Pop } from '../motion/Pop';
 import { Display, Eyebrow, Frame, Ghost, type Chrome } from './parts';
 
 export type EndReward = { id: string; label: string };
@@ -12,6 +14,10 @@ type Props = {
   firstName: string;
   /** Compteur affiché (il « monte » jusqu'au total quand le parent a répondu). */
   count: number;
+  /** Compteur avant ce moment (il défile de là jusqu'à `count`). */
+  countBefore: number;
+  /** Faux si la synthèse a été passée : mêmes valeurs, aucune animation. */
+  animate: boolean;
   /** Étoiles allumées cette semaine (0 à 3). Le seul geste soleil de l'écran. */
   weekStars: number;
   pride: string;
@@ -32,7 +38,7 @@ type Props = {
 
 /** M12 · Fin (compteur, trois étoiles de la semaine, fierté, suite, retour Maison) et M13 · objet débloqué. */
 export function EndView({
-  chrome, firstName, count, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onViewReward, onLaterRewards, onNext, onHome,
+  chrome, firstName, count, countBefore, animate, weekStars, pride, low, sealedLine, rewards, weekCompleteLabel, next, onViewReward, onLaterRewards, onNext, onHome,
 }: Props) {
   const { colors } = useTheme();
   const router = useRouter();
@@ -44,7 +50,7 @@ export function EndView({
   return (
     <Frame chrome={{ ...chrome, timer: null }} padTop={rewards.length > 0 ? 28 : 60} padBottom={48}>
       <View accessibilityLiveRegion="polite">
-        <Display size={38} lineHeight={44} weight={600}>{countLine(count, firstName)}</Display>
+        <ClosingCount count={count} before={countBefore} firstName={firstName} animate={animate} />
       </View>
       <View
         style={{ marginTop: 22, flexDirection: 'row', alignItems: 'center', gap: 12 }}
@@ -52,7 +58,13 @@ export function EndView({
         accessibilityRole="image"
         accessibilityLabel={`${lit} sur 3 cette semaine`}
       >
-        {[0, 1, 2].map((i) => <Star key={i} on={i < lit} size={48} />)}
+        {[0, 1, 2].map((i) =>
+          weekCompleteLabel && animate && i === lit - 1 ? (
+            <Pop key={i} ms={500}><Star on size={48} /></Pop>
+          ) : (
+            <Star key={i} on={i < lit} size={48} />
+          ),
+        )}
         <ThemedText variant="sub" weight={600} color="label2" style={{ marginLeft: 4 }}>{`${lit} sur 3 cette semaine`}</ThemedText>
       </View>
 
@@ -63,7 +75,9 @@ export function EndView({
           <ThemedText variant="body" style={{ marginTop: 14 }}>{low.reassurance}</ThemedText>
         </Card>
       ) : (
-        <ThemedText variant="body" color="label2" style={{ marginTop: 30, fontSize: 18, lineHeight: 27 }}>{pride}</ThemedText>
+        <PrideFade animate={animate}>
+          <ThemedText variant="body" color="label2" style={{ marginTop: 30, fontSize: 18, lineHeight: 27 }}>{pride}</ThemedText>
+        </PrideFade>
       )}
 
       {sealedLine ? <ThemedText variant="callout" color="label2" style={{ marginTop: 24 }}>{sealedLine}</ThemedText> : null}
@@ -71,7 +85,8 @@ export function EndView({
       {rewards.length > 0 ? (
         <View style={{ marginTop: 28, gap: 12 }}>
           {rewards.map((r) => (
-            <Card key={r.id} padding={18} style={{ borderColor: colors.sage }}>
+            <UnlockRise key={r.id} skip={!animate}>
+            <Card padding={18} style={{ borderColor: colors.sage }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                 <View style={{ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.badgeBg }}>
                   <Icon name="medal" size={24} color={colors.badgeInk} />
@@ -86,6 +101,7 @@ export function EndView({
                 <Ghost label="Plus tard" onPress={onLaterRewards} />
               </View>
             </Card>
+            </UnlockRise>
           ))}
         </View>
       ) : null}

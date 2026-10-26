@@ -3,6 +3,7 @@ import { View } from 'react-native';
 import { Button, ThemedText } from '../../design';
 import { closingLine, frTypo } from './flow';
 import { Display, Frame, type Chrome } from './parts';
+import { Rise } from '../motion/Rise';
 
 /** M9 · Pour finir : la phrase de clôture, à dire. */
 export function ClosingView({ chrome, closing, onDone }: { chrome: Chrome; closing: string; onDone: () => void }) {
@@ -23,7 +24,9 @@ export function MinutesView({ chrome, minutes, firstName, onElapsed }: { chrome:
   return (
     <Frame chrome={{ ...chrome, timer: null }} scroll={false}>
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 36 }} accessibilityLiveRegion="polite">
-        <Display size={42} lineHeight={50} align="center">{closingLine(minutes, firstName)}</Display>
+        <Rise distance={12}>
+          <Display size={42} lineHeight={50} align="center">{closingLine(minutes, firstName)}</Display>
+        </Rise>
       </View>
     </Frame>
   );

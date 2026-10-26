@@ -20,6 +20,7 @@ import { useMaisonNav } from './nav';
 import { ActivityArch } from './parts';
 import { PillarTag } from './screens';
 import { Split } from '../Split';
+import { Rise } from '../../motion/Rise';
 import { useLayout, useWindowDimensions } from '../../../design/layout';
 
 const PLACE_LABELS: Record<Place, string> = { maison: 'À la maison', exterieur: 'Dehors', voiture: 'En voiture', partout: 'Partout' };
@@ -88,11 +89,14 @@ function FicheBody({
       ratio={[4, 6]}
       left={
         <>
+      <Rise delay={60}>
       <Eyebrow style={{ marginTop: 12 }}>
         {activity.programme === 'bonus'
           ? 'Bonus · hors programme'
           : `Semaine ${activity.week} · ${activity.programme === 'complement' ? 'Pour aller plus loin · ' : ''}${ROLE_LABELS[activity.role]}`}
       </Eyebrow>
+      </Rise>
+      <Rise delay={100}>
       <WText display size={35} weight={500} lh={1.05} tone="ink" style={{ marginTop: 8 }} accessibilityRole="header">
         {activity.title}
       </WText>
@@ -108,17 +112,21 @@ function FicheBody({
           {ctx.data.doneIds.has(after.id) ? ' (déjà vécue)' : ''}
         </WText>
       ) : null}
+      </Rise>
 
       {/* L'arche : la vignette de l'activité. L'enfant comprend l'activité sans lire son but. */}
+      <Rise delay={0}>
       <View style={{ alignItems: wide ? 'flex-start' : 'center', marginTop: 24 }}>
         <ActivityArch activityId={activity.id} width={wide ? 270 : Math.min(330, Math.round(screen * 0.86))} />
       </View>
+      </Rise>
 
         </>
       }
       right={
         <>
       {/* Ce qu'on travaille vraiment : l'objectif relié à la séance du coach */}
+      <Rise delay={150}>
       <View style={{ marginTop: wide ? 12 : 32, transform: [{ rotate: '-0.3deg' }] }} accessibilityLabel="Ce qu’on travaille">
         <Paper radius={26} padding={24} style={{ paddingBottom: 0 }}>
           <View style={{ paddingBottom: 20 }}>
@@ -152,8 +160,10 @@ function FicheBody({
           </View>
         </Paper>
       </View>
+      </Rise>
 
       {/* Barre de contexte : une puce par information */}
+      <Rise delay={200}>
       <View style={{ marginTop: 20, flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
         {chips.map((c) => (
           <View key={c.text} style={{ minHeight: 34, paddingHorizontal: 12, borderRadius: 17, backgroundColor: w.chip, borderWidth: 1, borderColor: w.line, flexDirection: 'row', alignItems: 'center', gap: 6, maxWidth: '100%' }}>
@@ -167,6 +177,7 @@ function FicheBody({
       <View style={{ marginTop: 12 }}>
         <PillarTag pillar={activity.pillar_main} />
       </View>
+      </Rise>
 
       {activity.durations.length > 1 ? (
         <View
@@ -386,7 +397,7 @@ function FicheOverlay({
   );
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 14, right: 14, bottom: 10, alignItems: 'center' }}>
-      <View style={{ width: '100%', maxWidth: 560 }}>
+      <Rise delay={260} style={{ width: '100%', maxWidth: 560 }}>
       <View
         style={{
           flexDirection: 'row', alignItems: 'center', gap: 4, padding: 6, borderRadius: 34, backgroundColor: w.surfaceKind === 'maison' && w.isNight ? 'rgba(0,49,76,0.94)' : w.tab,
@@ -406,7 +417,7 @@ function FicheOverlay({
           nav.home();
         })}
       </View>
-      </View>
+      </Rise>
     </View>
   );
 }

@@ -1,5 +1,8 @@
-import { View } from 'react-native';
-import { Arch, Button, Paper, ThemedText, useTheme } from '../../design';
+import { useState } from 'react';
+import { Pressable, View } from 'react-native';
+import { Arch, Button, Paper, Sheet, ThemedText, useTheme } from '../../design';
+import { BreathingBall } from '../motion/BreathingBall';
+import { MicroTip } from '../motion/MicroTip';
 import { VIGNETTE_SOURCES } from '../../design/vignetteSources';
 import { BASE_VIGNETTE_ID } from '../../design/vignetteIds';
 import { frTypo } from './flow';
@@ -20,6 +23,7 @@ type Props = {
 /** M3 · Amorce : affiche en arche, « Ce qu'on travaille » sur papier, phrase d'ouverture, puis le minuteur démarre. */
 export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, opener, minutes, onStart }: Props) {
   const { colors } = useTheme();
+  const [breathe, setBreathe] = useState(false);
   return (
     <Frame chrome={chrome} padTop={16} padBottom={56}>
       <View style={{ alignItems: 'center', marginBottom: 28 }}>
@@ -49,9 +53,25 @@ export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, 
       <ThemedText variant="callout" color="label2" style={{ marginTop: 22, marginHorizontal: 4 }}>
         {`Le minuteur démarre sur ${minutes} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.`}
       </ThemedText>
-      <View style={{ marginTop: 30 }}>
+      <Pressable
+        onPress={() => setBreathe(true)}
+        accessibilityRole="button"
+        accessibilityLabel="Un souffle avant de commencer"
+        style={{ marginTop: 18, minHeight: 44, justifyContent: 'center', alignSelf: 'flex-start' }}
+      >
+        <ThemedText variant="callout" color="label2" style={{ textDecorationLine: 'underline' }}>Un souffle avant de commencer</ThemedText>
+      </Pressable>
+      <View style={{ marginTop: 12 }}>
         <Button size="xl" variant="accent" label="C’est dit, on commence" onPress={onStart} />
       </View>
+      <Sheet visible={breathe} onClose={() => setBreathe(false)} title="Un souffle" detent="large">
+        {breathe ? (
+          <View>
+            <BreathingBall onDone={() => setBreathe(false)} onSkip={() => setBreathe(false)} />
+            <View style={{ marginTop: 8 }}><MicroTip context="souffle" /></View>
+          </View>
+        ) : null}
+      </Sheet>
     </Frame>
   );
 }

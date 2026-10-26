@@ -5,7 +5,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, RefreshControl, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { AccentButton, Skeleton, Tap, WIcon, WText, useWeb } from '../../../design/web';
+import { DelayedSkeleton, WaveSkeleton } from '../../motion/WaveSkeleton';
+import { ProgressRing } from '../../motion/ProgressRing';
+import { AccentButton, Tap, WIcon, WText, useWeb } from '../../../design/web';
 import { buildHtml, ageFromDob } from '../../../../../web/src/app/parent/(hub)/bilans/bilan-html';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild } from '../../../stores/child.store';
@@ -24,14 +26,14 @@ import { accentHex, programPct, resolveAvatarUrl, signedDocUrl, useBilanData, us
 
 function BilanSkeleton() {
   return (
-    <View style={{ gap: 12, marginTop: 8 }} accessibilityLabel="Chargement du bilan">
-      <Skeleton height={12} radius={6} style={{ width: 160 }} />
-      <Skeleton height={80} radius={18} style={{ width: 176 }} />
-      <Skeleton height={6} radius={3} style={{ marginBottom: 16 }} />
-      <Skeleton height={72} radius={18} />
-      <Skeleton height={224} />
-      <Skeleton height={176} />
-    </View>
+    <DelayedSkeleton>
+      <View style={{ gap: 12, marginTop: 8, alignItems: 'center' }} accessibilityLabel="Chargement du bilan">
+        <ProgressRing value={0} animate={false} size={180} />
+        <View style={{ alignSelf: 'stretch', gap: 12 }}>
+          <WaveSkeleton gap={12} shapes={[{ height: 72, radius: 26 }, { height: 72, radius: 26 }, { height: 176, radius: 26 }]} />
+        </View>
+      </View>
+    </DelayedSkeleton>
   );
 }
 

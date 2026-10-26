@@ -9,7 +9,8 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
 import { supabaseClient as supabase } from '@thrive/shared';
-import { AccentButton, Eyebrow, FadeUp, GhostButton, NcCard, NcRow, Skeleton, Tap, Track, WIcon, WText, useWeb } from '../../../design/web';
+import { DelayedSkeleton, WaveSkeleton } from '../../motion/WaveSkeleton';
+import { AccentButton, Eyebrow, FadeUp, GhostButton, NcCard, NcRow, Tap, Track, WIcon, WText, useWeb } from '../../../design/web';
 import { THRIVE_SESSIONS } from '../../../../../web/src/lib/coach';
 import { sessionWhen } from '../../../../../web/src/lib/session-time';
 import type { Pack } from '../../../../../web/src/lib/packs';
@@ -23,6 +24,7 @@ import { LoadRetry } from '../LoadRetry';
 import { Split } from '../Split';
 import { useLayout } from '../../../design/layout';
 import { HubScreen } from '../HubScreen';
+import { useRevalidateStore } from '../../../stores/revalidate.store';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import { usePack } from '../bilan/data';
 
@@ -298,6 +300,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   // Une seule lecture à la fois ; l'heure de la dernière sert à espacer les relectures au retour sur l'onglet.
   const inFlight = useRef<string | null>(null);
   const lastLoad = useRef(0);
+  const hasLoaded = useRef(false);
   const load = useCallback(async () => {
     if (!child?.id || !view || view === 'locked') {
       setLoading(false);
@@ -307,6 +310,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     if (inFlight.current === child.id) return;
     inFlight.current = child.id;
     lastLoad.current = Date.now();
+    if (hasLoaded.current) useRevalidateStore.getState().ping();
     try {
       await loadNow();
     } catch {
@@ -351,6 +355,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     setCoach((Array.isArray(a?.profiles) ? a?.profiles[0] : a?.profiles) ?? null);
     setFailed(Boolean(sessionsRes.error));
     setLoading(false);
+    hasLoaded.current = true;
   };
 
   useEffect(() => {
@@ -384,11 +389,9 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   if (!access || ((childrenLoading || !loaded) && !child)) {
     if (stalled) return <LoadRetry onRetry={retryAll} />;
     return (
-      <View style={{ gap: 8 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} height={64} radius={18} />
-        ))}
-      </View>
+      <DelayedSkeleton>
+        <WaveSkeleton gap={8} shapes={[0, 1, 2, 3, 4].map(() => ({ height: 64, radius: 18 }))} />
+      </DelayedSkeleton>
     );
   }
   if (view === 'locked') return <HubLocked section="seances" />;
@@ -411,11 +414,9 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   if (loading) {
     if (stalled) return <LoadRetry onRetry={retryAll} />;
     return (
-      <View style={{ gap: 8 }}>
-        {[0, 1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} height={64} radius={18} />
-        ))}
-      </View>
+      <DelayedSkeleton>
+        <WaveSkeleton gap={8} shapes={[0, 1, 2, 3, 4].map(() => ({ height: 64, radius: 18 }))} />
+      </DelayedSkeleton>
     );
   }
 

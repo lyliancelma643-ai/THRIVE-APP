@@ -2,6 +2,7 @@ import { View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Button, Icon, Paper, ThemedText, Velvet, useTheme } from '../../design';
 import { Display, Ghost } from './parts';
+import { SealCaption, SealLetter, useLate, useMinSealing } from '../motion/SealLetter';
 
 export type SealStep = 'confirm' | 'sealing' | 'sealed' | 'paper';
 
@@ -37,22 +38,29 @@ export function SealedEnvelope() {
 export function SealPanel({
   step, openDate, onSeal, onBack, onDone,
 }: { step: SealStep; openDate: string; onSeal: () => void; onBack: () => void; onDone: () => void }) {
+  // Le rituel dure au moins 2,4 s : la confirmation du serveur n'est montrée qu'après.
+  const shown = useMinSealing<SealStep>(step, 'sealing', 'sealed');
+  const late = useLate(step === 'sealing');
+  if (shown === 'sealing' || shown === 'sealed') {
+    const finished = shown === 'sealed';
+    return (
+      <View style={{ paddingTop: 8 }}>
+        <SealLetter phase={finished ? 'sealed' : 'sealing'} waiting={!finished && late} />
+        <SealCaption phase={finished ? 'sealed' : late ? 'waiting' : 'sealing'} date={openDate} />
+        {finished ? <View style={{ marginTop: 26 }}><Button variant="accent" label="Continuer" onPress={onDone} /></View> : null}
+      </View>
+    );
+  }
   return (
     <View style={{ paddingTop: 16 }}>
-      {step === 'confirm' || step === 'sealing' ? (
+      {step === 'confirm' ? (
         <>
+          <SealLetter phase="ready" />
           <Display size={25} lineHeight={32}>{`Une fois scellée, personne ne pourra la lire avant le ${openDate}, pas même toi.`}</Display>
           <View style={{ marginTop: 26, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            <Button variant="accent" label="Sceller" flex loading={step === 'sealing'} onPress={onSeal} />
-            {step === 'confirm' ? <Ghost label="Revenir" onPress={onBack} /> : null}
+            <Button variant="accent" label="Sceller" flex onPress={onSeal} />
+            <Ghost label="Revenir" onPress={onBack} />
           </View>
-        </>
-      ) : step === 'sealed' ? (
-        <>
-          <SealedEnvelope />
-          <View style={{ height: 18 }} />
-          <Display size={25} lineHeight={32}>{`Lettre scellée. Elle te reviendra par courriel le ${openDate}.`}</Display>
-          <View style={{ marginTop: 26 }}><Button variant="accent" label="Continuer" onPress={onDone} /></View>
         </>
       ) : (
         <>
