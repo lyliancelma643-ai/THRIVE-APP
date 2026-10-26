@@ -15,8 +15,11 @@ import { sessionWhen } from '../../../../../web/src/lib/session-time';
 import type { Pack } from '../../../../../web/src/lib/packs';
 import { useSelectedChild, useChildStore } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
+import { useAuthStore } from '../../../stores/auth.store';
 import { sectionView } from '../../../services/access';
 import { useUpgrade } from '../UpgradeSheet';
+import { useStall } from '../../../hooks/useStall';
+import { LoadRetry } from '../LoadRetry';
 import { Split } from '../Split';
 import { useLayout } from '../../../design/layout';
 import { HubScreen } from '../HubScreen';
@@ -281,7 +284,16 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   const [coach, setCoach] = useState<CoachInfo>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
   const { wide } = useLayout();
+  const stalled = useStall(!access || ((childrenLoading || !loaded) && !child) || loading, 10_000);
+  const retryAll = () => {
+    void useSubscriptionStore.getState().loadServerAccess();
+    const uid = useAuthStore.getState().user?.id;
+    if (uid) void useChildStore.getState().loadChildren(uid);
+    setLoading(true);
+    void load();
+  };
 
   // Une seule lecture à la fois ; l'heure de la dernière sert à espacer les relectures au retour sur l'onglet.
   const inFlight = useRef<string | null>(null);
@@ -297,6 +309,10 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     lastLoad.current = Date.now();
     try {
       await loadNow();
+    } catch {
+      // Lecture ratée : on sort du squelette (relecture au retour sur l'onglet / « Réessayer »).
+      setLoading(false);
+      setFailed(true);
     } finally {
       if (inFlight.current === child.id) inFlight.current = null;
     }
@@ -333,6 +349,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     setBilans(Object.fromEntries(entries.filter(([, b]) => b !== null)) as Record<string, SessionBilan>);
     const a = (assignmentRes.data ?? [])[0] as { profiles?: CoachInfo | CoachInfo[] } | undefined;
     setCoach((Array.isArray(a?.profiles) ? a?.profiles[0] : a?.profiles) ?? null);
+    setFailed(Boolean(sessionsRes.error));
     setLoading(false);
   };
 
@@ -365,6 +382,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   }, [child?.id, view, load]);
 
   if (!access || ((childrenLoading || !loaded) && !child)) {
+    if (stalled) return <LoadRetry onRetry={retryAll} />;
     return (
       <View style={{ gap: 8 }}>
         {[0, 1, 2, 3, 4].map((i) => (
@@ -391,6 +409,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     );
   }
   if (loading) {
+    if (stalled) return <LoadRetry onRetry={retryAll} />;
     return (
       <View style={{ gap: 8 }}>
         {[0, 1, 2, 3, 4].map((i) => (

@@ -2,7 +2,7 @@
 // rappels de questionnaire, même « Carte d'identité » (gabarit HTML du web rendu à l'identique), mêmes fiches.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, View } from 'react-native';
+import { AppState, RefreshControl, ScrollView, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { AccentButton, Skeleton, Tap, WIcon, WText, useWeb } from '../../../design/web';
@@ -11,6 +11,8 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
 import { sectionView } from '../../../services/access';
+import { useStall } from '../../../hooks/useStall';
+import { LoadRetry } from '../LoadRetry';
 import { useUpgrade } from '../UpgradeSheet';
 import { HubScreen } from '../HubScreen';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
@@ -67,7 +69,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const child = useSelectedChild();
   const access = useSubscriptionStore((s) => s.access);
   const view = access ? sectionView(access, 'bilan') : null;
-  const { data, reload } = useBilanData(child && view && view !== 'locked' ? child.id : null);
+  const { data, error, reload } = useBilanData(child && view && view !== 'locked' ? child.id : null);
   const { can, loaded: packLoaded } = usePack(child?.id ?? null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [infoKey, setInfoKey] = useState<string | null>(null);
@@ -78,6 +80,48 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const [domFailed, setDomFailed] = useState(false);
   const [domKey, setDomKey] = useState(0);
   const top = useRef(0);
+  const domReady = useRef(false);
+  const domTries = useRef(0);
+
+  // Un chargement ne reste jamais sans issue : au bout de 10 s, « Réessayer » (accès, dossier ou carte).
+  const waiting = !access || (!data && !!child) || !packLoaded;
+  const stalled = useStall(waiting, 10_000);
+  const retryAll = () => {
+    void useSubscriptionStore.getState().loadServerAccess();
+    const uid = useAuthStore.getState().user?.id;
+    if (uid) void useChildStore.getState().loadChildren(uid);
+    void reload();
+    setDomFailed(false);
+    setDomKey((k) => k + 1);
+  };
+
+  // La carte d'identité (webview) est remontée si elle ne s'annonce pas dans les 8 s (une fois automatiquement,
+  // puis « Réessayer »), et au retour de l'arrière-plan après une longue pause (iOS peut vider une webview endormie).
+  useEffect(() => {
+    if (!data || domFailed) return;
+    domReady.current = false;
+    const t = setTimeout(() => {
+      if (domReady.current) return;
+      if (domTries.current < 1) {
+        domTries.current += 1;
+        setDomKey((k) => k + 1);
+      } else {
+        setDomFailed(true);
+      }
+    }, 8000);
+    return () => clearTimeout(t);
+  }, [data, domKey, domFailed]);
+  useEffect(() => {
+    let leftAt = 0;
+    const sub = AppState.addEventListener('change', (st) => {
+      if (st !== 'active') leftAt = leftAt || Date.now();
+      else {
+        if (leftAt && Date.now() - leftAt > 5 * 60_000) setDomKey((k) => k + 1);
+        leftAt = 0;
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   // Glisser vers le bas : relecture du dossier.
   useEffect(() => {
@@ -180,7 +224,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
     else setInfoKey(a.value);
   };
 
-  if (!access || ((childrenLoading || !loaded) && !child)) return <BilanSkeleton />;
+  if (!access || ((childrenLoading || !loaded) && !child)) return stalled ? <LoadRetry onRetry={retryAll} /> : <BilanSkeleton />;
   if (view === 'locked') return <HubLocked section="bilan" />;
 
   if (!child) {
@@ -200,7 +244,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
     );
   }
   // Le gabarit attend le forfait : jamais de « Contenu réservé » affiché un instant à tort.
-  if (!data || !html || !packLoaded) return <BilanSkeleton />;
+  if (!data || !html || !packLoaded) return stalled || (error && !data) ? <LoadRetry onRetry={retryAll} /> : <BilanSkeleton />;
 
   const identity = data.identity;
   return (
@@ -250,6 +294,10 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
             html={html}
             vars={vars}
             focus={focus}
+            onReady={async () => {
+              domReady.current = true;
+              domTries.current = 0;
+            }}
             onAction={onAction}
             onFocusOffset={async (y) => {
               scrollRef.current?.scrollTo({ y: Math.max(0, top.current + y - 120), animated: false });

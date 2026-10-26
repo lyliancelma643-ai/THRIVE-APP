@@ -32,6 +32,8 @@ type ChildStore = {
   reset: () => void;
 };
 
+let inFlight: Promise<void> | null = null;
+
 export const useChildStore = create<ChildStore>((set, get) => ({
   children: [],
   selectedChildId: null,
@@ -39,36 +41,52 @@ export const useChildStore = create<ChildStore>((set, get) => ({
   loaded: false,
 
   loadChildren: async (parentId) => {
+    // Une lecture à la fois ; un raté réseau n'efface JAMAIS la liste connue (et n'invente pas « aucun enfant »).
+    if (inFlight) return inFlight;
     set({ isLoading: true });
-    try {
-      const [{ data: families }, { data: memberships }, stored] = await Promise.all([
-        supabase.from('families').select('id').eq('parent_id', parentId),
-        supabase.from('family_members').select('family_id').eq('profile_id', parentId),
-        AsyncStorage.getItem(KEY).catch(() => null),
-      ]);
-      const familyIds = Array.from(
-        new Set([
-          ...((families ?? []) as { id: string }[]).map((f) => f.id),
-          ...((memberships ?? []) as { family_id: string }[]).map((m) => m.family_id),
-        ]),
-      );
-      if (familyIds.length === 0) {
-        set({ children: [], isLoading: false, loaded: true, selectedChildId: null });
-        return;
+    inFlight = (async () => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        if (attempt) await new Promise((r) => setTimeout(r, attempt === 1 ? 800 : 2000));
+        try {
+          const [families, memberships, stored] = await Promise.all([
+            supabase.from('families').select('id').eq('parent_id', parentId),
+            supabase.from('family_members').select('family_id').eq('profile_id', parentId),
+            AsyncStorage.getItem(KEY).catch(() => null),
+          ]);
+          // Une erreur de lecture n'est PAS « aucune famille » : on réessaie.
+          if (families.error || memberships.error) continue;
+          const familyIds = Array.from(
+            new Set([
+              ...((families.data ?? []) as { id: string }[]).map((f) => f.id),
+              ...((memberships.data ?? []) as { family_id: string }[]).map((m) => m.family_id),
+            ]),
+          );
+          if (familyIds.length === 0) {
+            set({ children: [], isLoading: false, loaded: true, selectedChildId: null });
+            return;
+          }
+          const res = await supabase
+            .from('children')
+            .select('id, family_id, first_name, last_name, date_of_birth, avatar_url, nickname, jersey_number, accent_color')
+            .in('family_id', familyIds)
+            .eq('is_active', true)
+            .order('created_at');
+          if (res.error) continue;
+          const list = (res.data ?? []) as ChildProfile[];
+          const current = get().selectedChildId ?? stored;
+          const selectedChildId = current && list.some((c) => c.id === current) ? current : list[0]?.id ?? null;
+          set({ children: list, isLoading: false, loaded: true, selectedChildId });
+          return;
+        } catch {
+          // essai suivant
+        }
       }
-      const { data } = await supabase
-        .from('children')
-        .select('id, family_id, first_name, last_name, date_of_birth, avatar_url, nickname, jersey_number, accent_color')
-        .in('family_id', familyIds)
-        .eq('is_active', true)
-        .order('created_at');
-      const list = (data ?? []) as ChildProfile[];
-      const current = get().selectedChildId ?? stored;
-      const selectedChildId = current && list.some((c) => c.id === current) ? current : list[0]?.id ?? null;
-      set({ children: list, isLoading: false, loaded: true, selectedChildId });
-    } catch {
-      set({ isLoading: false, loaded: true });
-    }
+      // Échec durable : on garde la liste connue ; sans rien en mémoire, `loaded` reste faux (les écrans proposent « Réessayer »).
+      set({ isLoading: false });
+    })().finally(() => {
+      inFlight = null;
+    });
+    return inFlight;
   },
 
   selectChild: (childId) => {

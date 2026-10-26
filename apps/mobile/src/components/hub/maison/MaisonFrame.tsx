@@ -1,4 +1,4 @@
-import { useCallback, useRef, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { AccentButton, Eyebrow, FadeUp, NcCard, Skeleton, WText } from '../../../design/web';
@@ -6,6 +6,8 @@ import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild, type ChildProfile } from '../../../stores/child.store';
 import { PARENT_ONLY_PREFIX, useP3Data, type P3Data } from '../../../hooks/useP3Data';
 import type { AgeBand } from '../../../lib/p3web';
+import { useStall } from '../../../hooks/useStall';
+import { LoadRetry } from '../LoadRetry';
 
 export type MaisonCtx = {
   child: ChildProfile;
@@ -26,6 +28,20 @@ export function forChild(ctx: Pick<MaisonCtx, 'firstName' | 'age'>): string {
 }
 
 export function MaisonSkeleton() {
+  // Jamais de squelette sans fin : au bout de 10 s, « Réessayer » relit les enfants (puis redonne 10 s).
+  const [round, setRound] = useState(0);
+  const stalled = useStall(true, 10_000, round);
+  if (stalled) {
+    return (
+      <LoadRetry
+        onRetry={() => {
+          const uid = useAuthStore.getState().user?.id;
+          if (uid) void useChildStore.getState().loadChildren(uid);
+          setRound((r) => r + 1);
+        }}
+      />
+    );
+  }
   return (
     <View style={{ gap: 20, marginTop: 8 }} accessibilityLabel="Chargement">
       <Skeleton height={20} radius={10} style={{ width: 160 }} />

@@ -113,17 +113,26 @@ export function useBilanData(childId: string | null) {
   const reload = useCallback(async () => {
     if (!childId) return;
     setLoading(true);
-    try {
-      const d = (__DEV__ && DEV_BILAN_FIXTURES.get(childId)) || (await loadBilanData(childId));
-      cache.set(childId, d);
-      if (alive.current) {
-        setData(d);
-        setError(false);
+    // Trois essais espacés (0,7 s · 1,8 s) : un raté réseau passager ne laisse plus la page en squelette.
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (attempt) await new Promise((r) => setTimeout(r, attempt === 1 ? 700 : 1800));
+      if (!alive.current) return;
+      try {
+        const d = (__DEV__ && DEV_BILAN_FIXTURES.get(childId)) || (await loadBilanData(childId));
+        cache.set(childId, d);
+        if (alive.current) {
+          setData(d);
+          setError(false);
+          setLoading(false);
+        }
+        return;
+      } catch {
+        // essai suivant
       }
-    } catch {
-      if (alive.current) setError(true);
-    } finally {
-      if (alive.current) setLoading(false);
+    }
+    if (alive.current) {
+      setError(true);
+      setLoading(false);
     }
   }, [childId]);
 

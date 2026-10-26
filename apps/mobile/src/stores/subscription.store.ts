@@ -58,6 +58,8 @@ async function syncServerAfterPurchase(reload: () => Promise<void>): Promise<voi
   await reload();
 }
 
+let accessInFlight: Promise<void> | null = null;
+
 export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   status: 'loading',
   customerInfo: null,
@@ -65,14 +67,29 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
   access: null,
 
   loadServerAccess: async () => {
-    const { data, error } = await supabase.rpc('access_state');
-    const access = error ? null : parseParentAccess(data);
-    // Erreur réseau : on garde le dernier état connu (jamais « tout ouvert »).
-    if (!access) {
+    // Un raté réseau (lancement hors zone, session pas encore prête) ne laisse plus Bilan / Séances en attente
+    // jusqu'au prochain redémarrage : 4 essais espacés (0,8 s · 2 s · 4 s), une seule lecture à la fois.
+    if (accessInFlight) return accessInFlight;
+    accessInFlight = (async () => {
+      for (let attempt = 0; attempt < 4; attempt++) {
+        if (attempt) await new Promise((r) => setTimeout(r, [800, 2000, 4000][attempt - 1]));
+        try {
+          const { data, error } = await supabase.rpc('access_state');
+          const access = error ? null : parseParentAccess(data);
+          if (access) {
+            set({ serverAccess: access.maison, access });
+            return;
+          }
+        } catch {
+          // réseau coupé : on réessaie
+        }
+      }
+      // Échec durable : on garde le dernier état connu (jamais « tout ouvert »).
       set((s) => ({ serverAccess: s.access ? s.serverAccess : false }));
-      return;
-    }
-    set({ serverAccess: access.maison, access });
+    })().finally(() => {
+      accessInFlight = null;
+    });
+    return accessInFlight;
   },
 
   setCustomerInfo: (info) => {

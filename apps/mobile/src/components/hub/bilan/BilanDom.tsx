@@ -23,6 +23,8 @@ type Props = {
   onAction: (a: BilanAction) => Promise<void>;
   /** Position de la carte visée (px depuis le haut du gabarit), pour que l'app y fasse défiler. */
   onFocusOffset?: (y: number) => Promise<void>;
+  /** Signal « je suis affiché » : sans lui, l'app remonte la carte (webview restée vide). */
+  onReady?: () => Promise<void>;
   dom?: DOMProps;
 };
 
@@ -41,8 +43,12 @@ html,body{margin:0;padding:0;background:transparent;-webkit-text-size-adjust:100
 .bilan-host [style*="b-ring"]{animation:none!important;box-shadow:none!important;}
 `;
 
-export default function BilanDom({ html, vars, focus, hideUpgrade, onAction, onFocusOffset }: Props) {
+export default function BilanDom({ html, vars, focus, hideUpgrade, onAction, onFocusOffset, onReady }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    void onReady?.();
+  }, []);
 
   useEffect(() => {
     if (!focus || !ref.current) return;
