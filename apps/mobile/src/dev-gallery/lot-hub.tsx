@@ -12,6 +12,8 @@ const DEMO_NOTIFS: HubNotif[] = [
   { id: 'n3', type: 'SESSION_REMINDER', title: 'Séance demain à 15 h', body: 'Demander de l’aide, avec Sophie Gagnon.', data: null, is_read: true, created_at: new Date(Date.now() - 30 * 3600e3).toISOString() },
 ];
 import { HubLocked } from '../components/hub/HubLocked';
+import { TabGate } from '../components/motion/TabGate';
+import { usePageReadyStore } from '../stores/pageReady.store';
 import { MaisonFrame } from '../components/hub/maison/MaisonFrame';
 import { MaisonWelcome } from '../components/hub/maison/MaisonHome';
 import { Carnet, Catalogue, PageNon, Programme, Sources } from '../components/hub/maison/screens';
@@ -147,7 +149,19 @@ const maison = (node: (ctx: Parameters<Parameters<typeof MaisonFrame>[0]['childr
   </Phone>
 );
 
+// Banc : la session de démo est effacée par l'écouteur d'auth du layout ; on signale l'étape « session » à la main.
+let gateBenchDone = false;
+function gateBench(tab: 'maison' | 'seances') {
+  if (gateBenchDone) return;
+  gateBenchDone = true;
+  usePageReadyStore.getState().reset();
+  usePageReadyStore.getState().mark(tab, 'session');
+}
+
 export const screens: GalleryScreen[] = [
+  // Page de chargement du premier accès (TabGate) : on repart de zéro à chaque affichage du banc.
+  { id: 'HK-gate', title: 'Maison + page de chargement', tab: 'maison', render: () => { gateBench('maison'); return <Phone><TabGate tab="maison"><HubScreen surface="maison"><MaisonFrame>{(ctx) => <MaisonWelcome ctx={ctx} />}</MaisonFrame></HubScreen></TabGate></Phone>; } },
+  { id: 'HS-gate', title: 'Mes séances + page de chargement', tab: 'seances', render: () => { gateBench('seances'); return <Phone><TabGate tab="seances"><SeancesScreen /></TabGate></Phone>; } },
   { id: 'HK', title: 'Maison (web)', tab: 'maison', render: maison((ctx) => <MaisonWelcome ctx={ctx} />) },
   { id: 'HT', title: 'Toutes les activités (web)', tab: 'maison', render: maison((ctx) => <Catalogue ctx={ctx} />) },
   { id: 'HP', title: 'Le programme (web)', tab: 'maison', render: maison((ctx) => <Programme ctx={ctx} />) },

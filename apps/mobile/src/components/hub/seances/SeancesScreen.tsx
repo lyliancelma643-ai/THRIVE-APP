@@ -25,6 +25,7 @@ import { Split } from '../Split';
 import { useLayout } from '../../../design/layout';
 import { HubScreen } from '../HubScreen';
 import { useRevalidateStore } from '../../../stores/revalidate.store';
+import { usePageStage } from '../../../stores/pageReady.store';
 import { HubLocked, ReadOnlyBanner } from '../HubLocked';
 import { usePack } from '../bilan/data';
 
@@ -289,6 +290,8 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   const [failed, setFailed] = useState(false);
   const { wide } = useLayout();
   const stalled = useStall(!access || ((childrenLoading || !loaded) && !child) || loading, 10_000);
+  // Page de chargement de l'onglet : prête quand les séances sont lues (ou qu'il n'y a rien à lire).
+  usePageStage('seances', 'seances', (!!access && (view === 'locked' || (loaded && !childrenLoading && !child) || (!!child && !loading))) || stalled);
   const retryAll = () => {
     void useSubscriptionStore.getState().loadServerAccess();
     const uid = useAuthStore.getState().user?.id;

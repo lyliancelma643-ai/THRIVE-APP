@@ -93,4 +93,29 @@ describe('createLoadStages', () => {
     e.retry();
     expect(e.getState().failed).toBeNull();
   });
+  it('minTotal : visible tout de suite, fin retenue jusqu’à 2 s même si tout est prêt', () => {
+    const states: LoadStagesState[] = [];
+    const onDone = vi.fn();
+    const e = createLoadStages(['a', 'b', 'c', 'd'], { onDone, showAfter: 0, minTotal: 2000 }, (s) => states.push(s));
+    e.start();
+    expect(e.getState().visible).toBe(true);
+    ['a', 'b', 'c', 'd'].forEach((k) => e.markDone(k));
+    vi.advanceTimersByTime(1000);
+    expect(e.getState().index).toBe(4);
+    expect(onDone).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1001);
+    expect(onDone).toHaveBeenCalledTimes(1);
+    expect(e.getState().done).toBe(true);
+  });
+  it('minTotal : une page lente attend ses vrais événements', () => {
+    const onDone = vi.fn();
+    const e = createLoadStages(['a', 'b'], { onDone, showAfter: 0, minTotal: 2000 }, () => undefined);
+    e.start();
+    e.markDone('a');
+    vi.advanceTimersByTime(5000);
+    expect(onDone).not.toHaveBeenCalled();
+    e.markDone('b');
+    vi.advanceTimersByTime(500);
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
 });

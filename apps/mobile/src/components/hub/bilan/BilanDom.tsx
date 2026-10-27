@@ -46,8 +46,23 @@ html,body{margin:0;padding:0;background:transparent;-webkit-text-size-adjust:100
 export default function BilanDom({ html, vars, focus, hideUpgrade, onAction, onFocusOffset, onReady }: Props) {
   const ref = useRef<HTMLDivElement>(null);
 
+  // « Prête » seulement quand la carte a réellement une hauteur (une webview mesurée à 0 px reste blanche).
   useEffect(() => {
-    void onReady?.();
+    const el = ref.current;
+    if (!el) return;
+    let sent = false;
+    const check = () => {
+      if (sent || el.getBoundingClientRect().height <= 0) return;
+      sent = true;
+      void onReady?.();
+    };
+    const raf = requestAnimationFrame(() => requestAnimationFrame(check));
+    const ro = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(check) : null;
+    ro?.observe(el);
+    return () => {
+      cancelAnimationFrame(raf);
+      ro?.disconnect();
+    };
   }, []);
 
   useEffect(() => {

@@ -2,7 +2,7 @@ import { useCallback, useRef, useState, type ReactNode } from 'react';
 import { View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useDelayedFlag } from '@thrive/shared';
-import { OpeningGate } from '../../motion/OpeningGate';
+import { usePageStage } from '../../../stores/pageReady.store';
 import { AccentButton, Eyebrow, FadeUp, NcCard, Skeleton, WText } from '../../../design/web';
 import { useAuthStore } from '../../../stores/auth.store';
 import { useChildStore, useSelectedChild, type ChildProfile } from '../../../stores/child.store';
@@ -132,7 +132,8 @@ export function Under8() {
  */
 export function MaisonFrame({ children }: { children: (ctx: MaisonCtx) => ReactNode }) {
   const m = useMaison();
-  const [, setRound] = useState(0);
+  // Page de chargement de l'onglet Maison : prête quand la semaine (données Maison) est lue.
+  usePageStage('maison', 'semaine', m.status !== 'loading');
   const body =
     m.status === 'loading' || !m.ctx ? (
       m.status === 'under8' ? <Under8 /> : <MaisonSkeleton />
@@ -142,10 +143,5 @@ export function MaisonFrame({ children }: { children: (ctx: MaisonCtx) => ReactN
         {children(m.ctx)}
       </>
     );
-  // Premier affichage depuis le lancement : l'escalier d'ouverture (rien du tout si tout est prêt en 400 ms).
-  return (
-    <OpeningGate progress={{ childName: m.childName, childReady: m.childReady, weekReady: m.dataReady, week: m.week }} onRetry={() => setRound((r) => r + 1)}>
-      {body}
-    </OpeningGate>
-  );
+  return body;
 }

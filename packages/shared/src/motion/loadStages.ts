@@ -26,6 +26,8 @@ export type LoadStagesOptions = {
   showAfter?: number;
   slowAfter?: number;
   retryAfter?: number;
+  /** Durée minimale de l'écran de chargement (depuis `start`) : la fin est retenue jusque-là. */
+  minTotal?: number;
 };
 
 /**
@@ -39,6 +41,9 @@ export function createLoadStages(keys: string[], opts: LoadStagesOptions, onChan
   const slowAfter = opts.slowAfter ?? THRESH.slowMessage;
   const retryAfter = opts.retryAfter ?? THRESH.retry;
   const total = keys.length;
+  const minTotal = opts.minTotal ?? 0;
+  let startedAt = 0;
+  let holdTimer: ReturnType<typeof setTimeout> | null = null;
 
   let real = new Set<string>();
   let shown = 0;
@@ -62,6 +67,14 @@ export function createLoadStages(keys: string[], opts: LoadStagesOptions, onChan
   const emit = () => onChange(state());
   const finish = () => {
     if (done) return;
+    const rest = minTotal - (Date.now() - startedAt);
+    if (rest > 0) {
+      if (!holdTimer) holdTimer = setTimeout(() => {
+        holdTimer = null;
+        finish();
+      }, rest);
+      return;
+    }
     done = true;
     timers.forEach(clearTimeout);
     timers.length = 0;
@@ -121,10 +134,15 @@ export function createLoadStages(keys: string[], opts: LoadStagesOptions, onChan
     start() {
       if (started) return;
       started = true;
+      startedAt = Date.now();
       arm();
+      if (showAfter <= 0) {
+        visible = true;
+        lastAdvance = Date.now() - dwell;
+      }
       timers.push(
         setTimeout(() => {
-          if (done) return;
+          if (done || visible) return;
           visible = true;
           lastAdvance = Date.now() - dwell;
           emit();
@@ -154,6 +172,7 @@ export function createLoadStages(keys: string[], opts: LoadStagesOptions, onChan
     getState: state,
     dispose() {
       if (tick) clearTimeout(tick);
+      if (holdTimer) clearTimeout(holdTimer);
       timers.forEach(clearTimeout);
     },
   };
@@ -170,9 +189,10 @@ export function useLoadStages(stages: Stage[], opts: LoadStagesOptions = {}) {
     index: 0, total: keys.length, done: false, visible: false, slow: false, canRetry: false, failed: null,
   });
   useEffect(() => {
+    const o = optsRef.current;
     const e = createLoadStages(
       keys,
-      { onDone: () => optsRef.current.onDone?.(), onRetry: () => optsRef.current.onRetry?.() },
+      { ...o, onDone: () => optsRef.current.onDone?.(), onRetry: () => optsRef.current.onRetry?.() },
       setSt,
     );
     engine.current = e;

@@ -6,6 +6,10 @@
 - **Web** (`apps/web/src/components/motion/*`) : mêmes noms (hors `PushTransition`/`TabTransition`), tokens CSS + keyframes Tailwind, `Skeleton` en vague.
 - Banc de contrôle DEV : `/__ecran?e=MOT-escalier|MOT-escalier-rafale|MOT-squelette|MOT-anneau|MOT-lettre|MOT-photo|MOT-souffle|MOT-mot`.
 
+## 1 bis. Page de chargement des onglets (premier accès)
+- `TabGate` (mobile) sur Maison, Bilan et Mes séances : au premier passage sur un onglet, l'escalier s'affiche **2 s au minimum** et ne s'efface qu'une fois la page **entièrement** prête dessous (étapes réelles signalées par la page via `stores/pageReady.store.ts`). Ensuite l'onglet reste monté : plus jamais de page de chargement dans la session (remise à zéro à la déconnexion). Remplace l'ancien `OpeningGate`.
+- Bug du Bilan corrigé : chaque relecture du dossier (temps réel, retour sur l'onglet) relançait le chien de garde de la carte, qui la remontait au bout de 8 s, puis la déclarait en échec à la relecture suivante (« La carte d'identité n'a pas pu s'afficher » ou carte vide). Le chien de garde ne suit plus que le montage de la carte. La carte n'est plus montée cachée en arrière-plan (iOS pouvait la mesurer à 0 px) et n'est « prête » que si elle a réellement une hauteur.
+
 ## 2. Branchements
 Voir `docs/motion/PLAN.md` (tableau). Nouveau côté mobile : escalier d'ouverture dans Maison, filet sous l'en-tête aux relectures, cascade de la fiche, lettre scellée, fin d'activité, souffle.
 

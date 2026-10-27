@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { IAuthState, IAuthTokens, IAuthUser } from '@thrive/shared';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { clearP3Cache } from '../hooks/useP3Data';
+import { usePageReadyStore } from './pageReady.store';
 
 type AuthStore = IAuthState & {
   hydrate: () => Promise<void>;
@@ -74,6 +75,7 @@ export const useAuthStore = create<AuthStore>((set) => ({
 
   signOut: async () => {
     clearP3Cache();
+    usePageReadyStore.getState().reset();
     await supabase.auth.signOut();
     set({ user: null, session: null, isAuthenticated: false, isLoading: false });
   },

@@ -3,7 +3,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, RefreshControl, ScrollView, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { usePageStage } from '../../../stores/pageReady.store';
 import * as WebBrowser from 'expo-web-browser';
 import { DelayedSkeleton, WaveSkeleton } from '../../motion/WaveSkeleton';
 import { ProgressRing } from '../../motion/ProgressRing';
@@ -84,10 +85,24 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const top = useRef(0);
   const domReady = useRef(false);
   const domTries = useRef(0);
+  const [domShown, setDomShown] = useState(false);
+  // La carte (webview) n'est montée qu'au premier passage sur l'onglet : montée cachée en arrière-plan, iOS pouvait
+  // la mesurer à 0 px et elle restait vide.
+  const [seen, setSeen] = useState(false);
+  useFocusEffect(
+    useCallback(() => {
+      setSeen(true);
+    }, []),
+  );
 
   // Un chargement ne reste jamais sans issue : au bout de 10 s, « Réessayer » (accès, dossier ou carte).
   const waiting = !access || (!data && !!child) || !packLoaded;
   const stalled = useStall(waiting, 10_000);
+  // Page de chargement de l'onglet : le dossier lu, puis la carte réellement affichée (hauteur > 0).
+  const nothingToShow = !!access && (view === 'locked' || (loaded && !childrenLoading && !child));
+  const giveUp = stalled || (error && !data) || domFailed;
+  usePageStage('bilan', 'dossier', nothingToShow || giveUp || (!!data && packLoaded));
+  usePageStage('bilan', 'affichage', nothingToShow || giveUp || domShown);
   const retryAll = () => {
     void useSubscriptionStore.getState().loadServerAccess();
     const uid = useAuthStore.getState().user?.id;
@@ -99,8 +114,9 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
 
   // La carte d'identité (webview) est remontée si elle ne s'annonce pas dans les 8 s (une fois automatiquement,
   // puis « Réessayer »), et au retour de l'arrière-plan après une longue pause (iOS peut vider une webview endormie).
+  const hasData = !!data;
   useEffect(() => {
-    if (!data || domFailed) return;
+    if (!hasData || !seen || domFailed) return;
     domReady.current = false;
     const t = setTimeout(() => {
       if (domReady.current) return;
@@ -112,7 +128,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
       }
     }, 8000);
     return () => clearTimeout(t);
-  }, [data, domKey, domFailed]);
+  }, [hasData, seen, domKey, domFailed]);
   useEffect(() => {
     let leftAt = 0;
     const sub = AppState.addEventListener('change', (st) => {
@@ -291,6 +307,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
         </View>
       ) : (
         <View onLayout={(e) => (top.current = e.nativeEvent.layout.y)}>
+          {seen ? (
           <BilanDom
             key={domKey}
             html={html}
@@ -299,6 +316,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
             onReady={async () => {
               domReady.current = true;
               domTries.current = 0;
+              setDomShown(true);
             }}
             onAction={onAction}
             onFocusOffset={async (y) => {
@@ -310,6 +328,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
               onError: () => setDomFailed(true),
             }}
           />
+          ) : null}
         </View>
       )}
 
