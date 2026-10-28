@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # Rejoue les tests de sécurité RLS sur un Postgres jetable, sans toucher à la prod.
 #
-#   1. base « avant » : réplique du schéma de prod + seed synthétique
-#      → les tests DOIVENT échouer (preuve qu'ils détectent les failles) ;
-#   2. base « après » : même chose + migrations 066, 067, puis 068, 070 et 075 si
-#      elles existent dans supabase/migrations
+#   1. base « avant » : réplique du schéma de prod (00 + complément 02) + seed
+#      synthétique → les tests DOIVENT échouer (preuve qu'ils détectent les failles) ;
+#   2. base « après » : même chose + migrations 066, 067, puis 068, 070, 075 et 076
+#      si elles existent dans supabase/migrations
 #      → les tests DOIVENT passer ;
 #   3. si supabase/tests/access_matrix.sql existe, il est rejoué sur la base
-#      « après » avec ON_ERROR_STOP : toute erreur fait échouer le script.
+#      « après » ; comme les autres tests il se termine TOUJOURS par une exception
+#      qui porte le verdict : on exige ACCESS_MATRIX_PASSED.
 #      (Fichiers absents = ignorés avec un message, pas d'erreur.)
+# Même séquence que la base de supabase/tests/local/run-pglite.mjs.
 #
 # Usage : PGHOST=/var/run/postgresql PGPORT=5432 PGUSER=postgres ./supabase/tests/local/run.sh
 set -euo pipefail
@@ -19,6 +21,8 @@ migration="$migrations_dir/20261001_066_security_audit_final.sql"
 migration_067="$migrations_dir/20261002_067_require_email_confirmation.sql"
 tests="$root/supabase/tests/security_rls_regression.sql"
 access_matrix="$root/supabase/tests/access_matrix.sql"
+# Objets de prod apparus après l'extraction de 00 (is_family_parent, tables Bilan…).
+complement="$here/02_replica_complement.sql"
 
 # Migrations optionnelles (arrivent par d'autres branches) : résolues par numéro.
 # Glob sans correspondance = chaîne littérale → on la rejette ici.
@@ -31,7 +35,7 @@ optional_migration() {
 }
 
 extras=("$migration" "$migration_067")
-for num in 068 070 075; do
+for num in 068 070 075 076; do
   if f="$(optional_migration "$num")"; then
     echo "migration $num présente : $(basename "$f")"
     extras+=("$f")
@@ -44,7 +48,7 @@ run_case() {
   local db="$1"; shift
   dropdb --if-exists "$db" >/dev/null
   createdb "$db"
-  psql -q -v ON_ERROR_STOP=1 -d "$db" -f "$here/00_replica_schema.sql" -f "$here/01_seed.sql" >/dev/null
+  psql -q -v ON_ERROR_STOP=1 -d "$db" -f "$here/00_replica_schema.sql" -f "$here/01_seed.sql" -f "$complement" >/dev/null
   for extra in "$@"; do psql -q -v ON_ERROR_STOP=1 -d "$db" -f "$extra" >/dev/null; done
   # Le bloc de tests se termine toujours par une exception : on lit son message.
   psql -d "$db" -f "$tests" 2>&1 | grep -oE 'SECURITY_TESTS_(PASSED|FAILED|SKIPPED).*' || true
@@ -64,17 +68,24 @@ echo
 access_status="absent (ignoré)"
 if [[ -f "$access_matrix" ]]; then
   echo "── Matrice d'accès (supabase/tests/access_matrix.sql) ──"
-  # Rejouée sur une base « après » fraîche, ON_ERROR_STOP : toute erreur = échec.
+  # Rejouée sur une base « après » fraîche. Le bloc se termine toujours par une
+  # exception qui porte le verdict : on lit le message, comme pour les tests de sécurité.
   dropdb --if-exists thrive_sec_matrix >/dev/null
   createdb thrive_sec_matrix
-  psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$here/00_replica_schema.sql" -f "$here/01_seed.sql" >/dev/null
+  psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$here/00_replica_schema.sql" -f "$here/01_seed.sql" -f "$complement" >/dev/null
   for extra in "${extras[@]}"; do psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$extra" >/dev/null; done
-  if psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$access_matrix"; then
+  # psql préfixe le verdict par « ERROR: » : on cherche d'abord le verdict, et à défaut
+  # la première vraie erreur (fonction manquante, syntaxe…) pour l'afficher.
+  matrix_out="$(psql -d thrive_sec_matrix -f "$access_matrix" 2>&1 || true)"
+  matrix="$(grep -oE 'ACCESS_MATRIX_(PASSED|FAILED).*' <<<"$matrix_out" | head -1 || true)"
+  [[ -n "$matrix" ]] || matrix="$(grep -m1 'ERROR:' <<<"$matrix_out" || true)"
+  if [[ "$matrix" == ACCESS_MATRIX_PASSED* ]]; then
     access_status="OK"
   else
     access_status="ECHEC"
   fi
   dropdb --if-exists thrive_sec_matrix >/dev/null
+  echo "${matrix:-(aucun verdict)}"
   echo "matrice d'accès : $access_status"
   echo
 fi
