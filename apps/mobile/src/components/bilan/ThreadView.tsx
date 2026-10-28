@@ -28,6 +28,8 @@ export type ThreadViewProps = {
   sending?: boolean;
   /** Fil bloqué : bandeau à la place de la saisie. */
   blockedText?: string | null;
+  /** Titre du bandeau (par défaut « Conversation bloquée »). */
+  blockedTitle?: string;
   onUnblock?: () => void;
   replyTo?: string | null;
   onCancelReply?: () => void;
@@ -92,7 +94,7 @@ export function ThreadView(p: ThreadViewProps) {
       {p.blockedText ? (
         <View style={{ marginHorizontal: 16, marginBottom: 12, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
           <View style={{ flex: 1 }}>
-            <ThemedText variant="headline">Conversation bloquée</ThemedText>
+            <ThemedText variant="headline">{p.blockedTitle ?? 'Conversation bloquée'}</ThemedText>
             <ThemedText variant="foot" color="label2">{p.blockedText}</ThemedText>
           </View>
           {p.onUnblock ? <GlassButton label="Débloquer" accessibilityLabel="Débloquer la conversation" onPress={p.onUnblock} /> : null}

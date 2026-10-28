@@ -13,6 +13,7 @@ import { DelayedSkeleton, WaveSkeleton } from '../../motion/WaveSkeleton';
 import { AccentButton, Eyebrow, FadeUp, GhostButton, NcCard, NcRow, Tap, Track, WIcon, WText, useWeb } from '../../../design/web';
 import { THRIVE_SESSIONS } from '../../../../../web/src/lib/coach';
 import { sessionWhen } from '../../../../../web/src/lib/session-time';
+import { nextSessionDate } from './nextSession';
 import type { Pack } from '../../../../../web/src/lib/packs';
 import { useSelectedChild, useChildStore } from '../../../stores/child.store';
 import { useSubscriptionStore } from '../../../stores/subscription.store';
@@ -230,6 +231,7 @@ function NextSessionCard({ session, fallbackTitle, childName, coachName }: { ses
   const title = session.title ?? fallbackTitle ?? `Séance ${session.session_number ?? ''}`;
   const live = session.status === 'IN_PROGRESS';
   const upcoming = !!session.scheduled_at && new Date(session.scheduled_at).getTime() > Date.now();
+  const when = nextSessionDate(session.scheduled_at, session.duration_minutes, live);
 
   // La fiche d'événement du Calendrier d'iOS, pré-remplie (aucun accès au calendrier n'est demandé pour l'afficher).
   const addToCalendar = async () => {
@@ -258,8 +260,8 @@ function NextSessionCard({ session, fallbackTitle, childName, coachName }: { ses
         <WText display size={20} weight={600} lh={1.25} tone="ink" style={{ marginTop: 6 }}>{`${session.session_number ? `${session.session_number}. ` : ''}${title}`}</WText>
         <View style={{ marginTop: 8, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <WIcon name="calendar" size={16} color={w.accentInk} />
-          <WText size={15} weight={600} tone="accent" style={{ flex: 1 }}>
-            {session.scheduled_at ? sessionWhen(session.scheduled_at) : 'Date à fixer avec ton coach'}
+          <WText size={15} weight={600} tone={when.kind === 'upcoming' ? 'accent' : 'soft'} style={{ flex: 1 }}>
+            {when.label}
           </WText>
         </View>
         {coachName ? (

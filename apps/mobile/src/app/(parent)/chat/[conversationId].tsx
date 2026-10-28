@@ -3,10 +3,15 @@ import { Alert } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMessages, supabaseClient as supabase } from '@thrive/shared';
 import { ThreadView, type ThreadMessage } from '../../../components/bilan/ThreadView';
+import { usePack } from '../../../components/hub/bilan/data';
 
 // U — fil de messages du parent (vue dédiée : components/bilan/ThreadView). La logique est celle du chat existant :
 // destinataire déduit de la conversation en base (migration 056), réponse à un message, signalement et blocage
 // (Apple 1.2 — tables message_reports et conversation_blocks, migration 077).
+// Fil COACH sans messagerie coach dans le forfait : lecture seule, comme le refuse le serveur
+// (private.can_write_conversation exige coachMessaging) — jamais un champ actif qui échoue en silence.
+
+const COACH_LOCKED_TEXT = 'La messagerie avec le coach s’ouvre avec le forfait Complet. Le Support THRIVE reste ouvert.';
 
 type RawMessage = {
   id: string;
@@ -28,6 +33,25 @@ export default function ParentChatScreen() {
   // `blocked` = j'ai bloqué ce fil (ligne visible par moi seul, RLS) ; `blockedByOther` = envoi refusé par le serveur.
   const [blocked, setBlocked] = useState(false);
   const [blockedByOther, setBlockedByOther] = useState(false);
+  const [isCoachThread, setIsCoachThread] = useState(false);
+  const { can, loaded: packLoaded } = usePack(null);
+  const coachLocked = isCoachThread && packLoaded && !can('coachMessaging');
+
+  useEffect(() => {
+    if (!conversationId) return;
+    let cancelled = false;
+    supabase
+      .from('conversations')
+      .select('kind')
+      .eq('id', conversationId)
+      .maybeSingle()
+      .then(({ data }) => {
+        if (!cancelled) setIsCoachThread((data as { kind?: string } | null)?.kind === 'COACH');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationId]);
 
   useEffect(() => {
     if (!conversationId || !currentUserId) return;
@@ -47,7 +71,7 @@ export default function ParentChatScreen() {
   }, [conversationId, currentUserId]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || coachLocked) return;
     setSending(true);
     try {
       await sendMessage(input.trim(), { replyToId: replyTo?.id });
@@ -55,6 +79,8 @@ export default function ParentChatScreen() {
       setReplyTo(null);
     } catch (e: unknown) {
       if (String((e as { message?: string })?.message ?? '').includes('Conversation bloquée')) setBlockedByOther(true);
+      // Le texte reste dans le champ : le parent peut réessayer sans le retaper.
+      else Alert.alert('Message non envoyé', 'Vérifie ta connexion et réessaie. Si le problème persiste, écris au Support THRIVE.');
     }
     setSending(false);
   };
@@ -129,7 +155,7 @@ export default function ParentChatScreen() {
     Alert.alert('Message', undefined, options);
   };
 
-  const title = name ?? 'Conversation';
+  const title = name ?? (isCoachThread ? 'Ton coach THRIVE' : 'Conversation');
   return (
     <ThreadView
       title={title}
@@ -155,8 +181,11 @@ export default function ParentChatScreen() {
           ? 'Vous avez bloqué cette conversation. Aucun message ne peut y être envoyé.'
           : blockedByOther
             ? "Cette conversation n'accepte plus de messages."
-            : null
+            : coachLocked
+              ? COACH_LOCKED_TEXT
+              : null
       }
+      blockedTitle={!blocked && !blockedByOther && coachLocked ? 'Lecture seule' : undefined}
       onUnblock={blocked ? unblockConversation : undefined}
       onBack={() => (router.canGoBack() ? router.back() : router.replace('/(parent)/messages'))}
     />
