@@ -74,7 +74,11 @@ if [[ -f "$access_matrix" ]]; then
   createdb thrive_sec_matrix
   psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$here/00_replica_schema.sql" -f "$here/01_seed.sql" -f "$complement" >/dev/null
   for extra in "${extras[@]}"; do psql -q -v ON_ERROR_STOP=1 -d thrive_sec_matrix -f "$extra" >/dev/null; done
-  matrix="$(psql -d thrive_sec_matrix -f "$access_matrix" 2>&1 | grep -oE 'ACCESS_MATRIX_(PASSED|FAILED).*|ERROR:.*' | head -1 || true)"
+  # psql préfixe le verdict par « ERROR: » : on cherche d'abord le verdict, et à défaut
+  # la première vraie erreur (fonction manquante, syntaxe…) pour l'afficher.
+  matrix_out="$(psql -d thrive_sec_matrix -f "$access_matrix" 2>&1 || true)"
+  matrix="$(grep -oE 'ACCESS_MATRIX_(PASSED|FAILED).*' <<<"$matrix_out" | head -1 || true)"
+  [[ -n "$matrix" ]] || matrix="$(grep -m1 'ERROR:' <<<"$matrix_out" || true)"
   if [[ "$matrix" == ACCESS_MATRIX_PASSED* ]]; then
     access_status="OK"
   else
