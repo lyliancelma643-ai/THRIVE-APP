@@ -14,6 +14,9 @@
 //   4. PASSAGE 083 GO 3 → GO 4 : la 083 du GO 3 (natif|nuit|carnet, copie figée dans
 //      083_ui_style_go3.sql) tourne d'abord, des profils portent les anciennes valeurs,
 //      puis la 083 du GO 4 (lin|veillee) les convertit, deux fois, et ui_style.sql repasse.
+//   5. AUDIT QA 2026-10-27 : 084 (compte inactif/rétrogradé sans droits malgré un JWT
+//      valide) et 085 (questionnaire : un seul jeu de scores) — chacune échoue AVANT,
+//      passe APRÈS (appliquée deux fois), et survit à rollback + réapplication.
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,6 +54,12 @@ const m083 = mig('20261012_083_ui_style.sql');
 const r083 = join(root, 'rollbacks', '20261012_083_ui_style_rollback.sql');
 // 083 telle qu'elle était au GO 3 (commit a78501c) : base où elle aurait déjà tourné avant la version GO 4.
 const m083go3 = join(here, '083_ui_style_go3.sql');
+// Audit QA 2026-10-27 : comptes inactifs (084) et envoi unique des questionnaires (085).
+const m084 = mig('20261027_084_comptes_inactifs_sans_acces.sql');
+const r084 = join(root, 'rollbacks', '20261027_084_comptes_inactifs_sans_acces_rollback.sql');
+const m085 = mig('20261027_085_questionnaire_envoi_unique.sql');
+// Le rollback 085 recrée les fonctions de production d'avant 085 : c'est aussi la base « avant ».
+const r085 = join(root, 'rollbacks', '20261027_085_questionnaire_envoi_unique_rollback.sql');
 
 // Les tests se terminent par une exception dont le message porte le verdict.
 async function run(label, files, expectations) {
@@ -169,6 +178,30 @@ const results = [
     [/ACCESS_080_PASSED/]
   ),
   await run083Upgrade(),
+  // 084 : un compte désactivé ou rétrogradé perd ses droits malgré un JWT encore valide.
+  await run('avant 084', [...base, m080, test('comptes_inactifs_084.sql')], [/INACTIVE_084_FAILED/]),
+  await run(
+    '084',
+    [...base, m080, m084, m084, test('comptes_inactifs_084.sql'), test('access_rights_080.sql'), test('security_rls_regression.sql')],
+    [/INACTIVE_084_PASSED/, /ACCESS_080_PASSED/, /SECURITY_TESTS_PASSED/]
+  ),
+  await run(
+    'rollback 084',
+    [...base, m080, m084, r084, test('access_rights_080.sql'), m084, test('comptes_inactifs_084.sql')],
+    [/ACCESS_080_PASSED/, /INACTIVE_084_PASSED/]
+  ),
+  // 085 : un questionnaire ne produit qu'un jeu de scores.
+  await run('avant 085', [...base, m080, r085, test('questionnaire_envoi_unique_085.sql')], [/SUBMIT_085_FAILED/]),
+  await run(
+    '085',
+    [...base, m080, r085, m085, m085, test('questionnaire_envoi_unique_085.sql')],
+    [/SUBMIT_085_PASSED/]
+  ),
+  await run(
+    'rollback 085',
+    [...base, m080, m085, r085, m085, test('questionnaire_envoi_unique_085.sql')],
+    [/SUBMIT_085_PASSED/]
+  ),
 ];
 
 if (results.every(Boolean)) {
