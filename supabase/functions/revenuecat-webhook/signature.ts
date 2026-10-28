@@ -36,7 +36,9 @@ export function parseSignatureHeader(header: string): { t: number; v1: string[] 
 
 export async function hmacSha256Hex(secret: string, message: string | Uint8Array): Promise<string> {
   const enc = new TextEncoder();
-  const data = typeof message === "string" ? enc.encode(message) : message;
+  // Copie dans un ArrayBuffer neuf : WebCrypto refuse un Uint8Array adossé à un
+  // SharedArrayBuffer, et les typages récents de Deno l'exigent (BufferSource).
+  const data = typeof message === "string" ? enc.encode(message) : new Uint8Array(message);
   const key = await crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
