@@ -17,11 +17,13 @@ type Props = {
   safety: string | null;
   opener: string;
   minutes: number;
+  /** En voiture : pas de « Suivant » à toucher, tout se fait à voix haute. */
+  inCar?: boolean;
   onStart: () => void;
 };
 
 /** M3 · Amorce : affiche en arche, « Ce qu'on travaille » sur papier, phrase d'ouverture, puis le minuteur démarre. */
-export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, opener, minutes, onStart }: Props) {
+export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, opener, minutes, inCar = false, onStart }: Props) {
   const { colors } = useTheme();
   const [breathe, setBreathe] = useState(false);
   return (
@@ -51,7 +53,9 @@ export function AmorceView({ chrome, vignetteId, vignetteLabel, worked, safety, 
         <Display size={30} lineHeight={37} italic style={{ marginTop: 8 }}>{frTypo(opener)}</Display>
       </View>
       <ThemedText variant="callout" color="label2" style={{ marginTop: 22, marginHorizontal: 4 }}>
-        {`Le minuteur démarre sur ${minutes} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.`}
+        {inCar
+          ? `Le minuteur démarre sur ${minutes} minutes. Ensuite, pose le téléphone : tout se fait à voix haute.`
+          : `Le minuteur démarre sur ${minutes} minutes. Ensuite, touche « Suivant » : chaque consigne s’ajoute en dessous, une à la fois.`}
       </ThemedText>
       <Pressable
         onPress={() => setBreathe(true)}

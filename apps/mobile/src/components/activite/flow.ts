@@ -129,6 +129,20 @@ export function revealedBeatsOfStep(flat: readonly FlatBeat[], step: number, rev
   return flat.slice(0, revealed).filter((f) => f.step === step);
 }
 
+/** Texte comparable (typographie, gras, espaces, casse) pour repérer deux textes identiques à l'écran. */
+export const sameText = (a: string, b: string) => {
+  const n = (t: string) => frTypo(t).replace(/\*\*/g, '').replace(/[’']/g, "'").replace(/\s+/g, ' ').trim().toLowerCase();
+  return n(a) === n(b);
+};
+
+/**
+ * Le titre d'une étape est parfois la phrase à dire elle-même (« Laquelle te surprend le plus ? »). Dès que ce temps « Dis »
+ * est révélé, la bulle la porte : le titre s'efface pour que la phrase ne soit pas affichée deux fois.
+ */
+export function stepTitleRepeatsRevealedBeat(title: string | undefined, revealedBeats: readonly FlatBeat[]): boolean {
+  return !!title && revealedBeats.some((f) => f.beat.kind === 'dire' && sameText(f.beat.text, title));
+}
+
 // ── Extensions : « Vous avez encore envie, tous les deux ? » (M5) ───────────
 export const EXT_LABELS = { approfondir: 'Approfondir', ancrer: 'Ancrer', transferer: 'Transférer' } as const;
 export type ExtState = { open: number[]; extraMinutes: number; boost: number };

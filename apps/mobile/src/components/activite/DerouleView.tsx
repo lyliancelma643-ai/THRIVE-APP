@@ -3,7 +3,7 @@ import { Button, GlassButton, Icon, ThemedText, useTheme } from '../../design';
 import type { P3Activity, StepTimer, VisualId } from '../../lib/p3';
 import { TONE_BG } from './PlayTimer';
 import {
-  EXT_LABELS, allRevealed, extensionPlanned, extensionVisible, frTypo, nextIsNewStep, revealedBeatsOfStep, timerSummary, secondsLabel,
+  EXT_LABELS, allRevealed, extensionPlanned, extensionVisible, frTypo, nextIsNewStep, revealedBeatsOfStep, stepTitleRepeatsRevealedBeat, timerSummary, secondsLabel,
   visibleStepIndex, type ExtState, type FlatBeat,
 } from './flow';
 import { Disclosure, Display, Eyebrow, Frame, InlineMd, type Chrome } from './parts';
@@ -136,7 +136,7 @@ export function DerouleView({
             style={{ marginTop: stepIdx > 0 ? 36 : 0, paddingTop: stepIdx > 0 ? 30 : 0, borderTopWidth: stepIdx > 0 ? 1 : 0, borderTopColor: colors.separator, opacity: current ? 1 : 0.6 }}
           >
             <Eyebrow>{`Étape ${stepIdx + 1} sur ${guide.length}`}</Eyebrow>
-            {steps[stepIdx] ? (
+            {steps[stepIdx] && !stepTitleRepeatsRevealedBeat(steps[stepIdx], beats) ? (
               <InlineMd text={steps[stepIdx]} variant="title1" style={{ marginTop: 8, fontSize: 28, lineHeight: 34, fontWeight: '400' }} />
             ) : null}
             <View style={{ marginTop: 16, gap: 12 }}>

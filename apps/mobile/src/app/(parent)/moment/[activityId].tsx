@@ -20,6 +20,7 @@ import { RecallView } from '../../../components/activite/RecallView';
 import { SynthesisView } from '../../../components/activite/SynthesisView';
 import { useNow, type Chrome } from '../../../components/activite/parts';
 import { insertMoment, sealLetter } from '../../../components/activite/persist';
+import { consumeFlowHold, holdFlowForReturn } from '../../../components/activite/flowHold';
 import { flowResetKey, useActivityKeepAwake } from '../../../components/activite/visuals/keepAwake';
 import { VisualSheet } from '../../../components/activite/visuals/VisualSheet';
 import { useVisualNotes } from '../../../components/activite/visuals/useVisualNotes';
@@ -208,7 +209,6 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
       body = (
         <CarReadView
           chrome={chrome}
-          opener={view.opener}
           steps={view.screen_steps}
           says={activity.guide.map((g) => g.beats.filter((b) => b.kind === 'dire').map((b) => b.text))}
           onRead={() => dispatch({ t: 'lecture.read' })}
@@ -231,6 +231,7 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           safety={activity.safety}
           opener={view.opener}
           minutes={view.duration}
+          inCar={place === 'voiture'}
           onStart={() => dispatch({ t: 'activity.start', now: Date.now() })}
         />
       );
@@ -330,7 +331,10 @@ function ActivityFlow({ activity, duration, childId, band, place }: FlowProps) {
           rewards={rewards}
           weekCompleteLabel={summary?.weekJustDone ? `Semaine ${activity.week} complète.` : null}
           next={next ? { title: next.title } : null}
-          onViewReward={(rewardId) => router.push({ pathname: '/(parent)/objet/[rewardId]', params: { rewardId, childId } })}
+          onViewReward={(rewardId) => {
+            holdFlowForReturn();
+            router.push({ pathname: '/(parent)/objet/[rewardId]', params: { rewardId, childId } });
+          }}
           onLaterRewards={() => setRewardsHidden(true)}
           onNext={() => {
             if (next) router.replace({ pathname: '/(parent)/activite/[activityId]', params: { activityId: next.id, childId, band } });
@@ -404,7 +408,8 @@ function MomentContent() {
     useCallback(() => {
       if (left.current) {
         left.current = false;
-        setEntry((n) => n + 1);
+        // Détour (« Voir » un objet) : on reprend l'écran de fin au lieu de repartir du check-in.
+        if (!consumeFlowHold()) setEntry((n) => n + 1);
       }
       return () => {
         left.current = true;

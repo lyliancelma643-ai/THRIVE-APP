@@ -1,14 +1,15 @@
 import { View } from 'react-native';
-import { Button, Card, ThemedText, useTheme } from '../../design';
+import { Button, ThemedText, useTheme } from '../../design';
 import { frTypo, mmss, overtimeLine, overtimeMinutes, remainingOf, ringRatio } from './flow';
 import { Display, Eyebrow, Frame, InlineMd, Ring, type Chrome } from './parts';
 
 /** M6 · En voiture, avant de partir : on lit les étapes maintenant, tout se fait ensuite à voix haute. */
 export function CarReadView({
-  chrome, opener, steps, says, onRead,
+  chrome, steps, says, onRead,
 }: {
   chrome: Chrome;
-  opener: string;
+  /** Ignorée : la phrase d'ouverture n'est dite qu'UNE fois, sur l'écran d'amorce qui suit « C'est lu ». */
+  opener?: string;
   /** Titres des étapes pour l'écran. */
   steps: string[];
   /** Pour chaque étape, les phrases « Dites : … » du pas à pas. */
@@ -22,11 +23,7 @@ export function CarReadView({
       <ThemedText variant="body" style={{ marginTop: 12, fontSize: 20, lineHeight: 29 }}>
         Lis les étapes maintenant. Pendant la route, pose le téléphone : tout se fait à voix haute.
       </ThemedText>
-      <Card padding={20} style={{ marginTop: 24 }}>
-        <ThemedText variant="callout" color="label2" style={{ marginBottom: 8 }}>Dis :</ThemedText>
-        <Display size={23} lineHeight={30}>{frTypo(opener)}</Display>
-      </Card>
-      <View style={{ marginTop: 22, gap: 16 }}>
+      <View style={{ marginTop: 24, gap: 16 }}>
         {steps.map((s, i) => (
           <View key={i} style={{ flexDirection: 'row', gap: 14 }}>
             <Display size={22} lineHeight={26} weight={600} style={{ width: 26, color: colors.sageText }}>{String(i + 1)}</Display>
