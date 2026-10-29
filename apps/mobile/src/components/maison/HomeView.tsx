@@ -6,6 +6,7 @@ import {
 } from '../../design';
 import { HomeChipRow, HomeSectionHeader, PosterRow } from './HomeParts';
 import { TonightHero } from './TonightHero';
+import { TourAnchor, useTourScroll } from './tour/anchors';
 import { SOON_TAG } from './palette';
 import type { HomeActions, HomeShelfVM, HomeVM } from './viewModels';
 
@@ -34,15 +35,18 @@ const TILT = [-0.6, 0.5, -0.3];
 export function HomeView({ vm, actions, footer, refreshControl }: Props) {
   const { colors, styleKey } = useTheme();
   const scroll = useScrollEdge();
+  const tour = useTourScroll();
 
   const doorInk = (strong: boolean) => (strong ? colors.cream : colors.label);
-  const door = (d: (typeof DOORS)[number], strong: boolean) => (
+  const door = (d: (typeof DOORS)[number], strong: boolean) => {
+    const anchored = d.key === 'programme' || d.key === 'carnet';
+    const button = (
     <Pressable
       key={d.key}
       onPress={() => actions.onDoor(d.key)}
       accessibilityRole="button"
       accessibilityLabel={d.label}
-      style={({ pressed }) => ({ width: '48.6%', flexGrow: 1, opacity: pressed ? 0.75 : 1 })}
+      style={({ pressed }) => ({ width: anchored ? '100%' : '48.6%', flexGrow: 1, opacity: pressed ? 0.75 : 1 })}
     >
       <Felt
         strong={strong}
@@ -65,7 +69,12 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
         </View>
       </Felt>
     </Pressable>
-  );
+    );
+    // Repères de la visite guidée : le programme et le carnet.
+    return anchored ? (
+      <TourAnchor key={d.key} id={d.key as 'programme' | 'carnet'} style={{ width: '48.6%', flexGrow: 1 }}>{button}</TourAnchor>
+    ) : button;
+  };
 
   const shelf = (s: HomeShelfVM, onAll: () => void, onChip: (k: string) => void) => (
     <View style={{ marginTop: 34 }}>
@@ -82,7 +91,8 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
     <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
       {styleKey === 'veillee' ? <Lamp /> : null}
       <ScrollView
-        onScroll={scroll.onScroll}
+        ref={tour?.scrollRef}
+        onScroll={(e) => { scroll.onScroll(e); tour?.onScroll(e); }}
         scrollEventThrottle={scroll.scrollEventThrottle}
         refreshControl={refreshControl}
         contentContainerStyle={{ paddingBottom: 140 }}
@@ -91,6 +101,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
         <TonightHero hero={vm.hero} banner={vm.banner} onLaunch={actions.onLaunch} onOpenCard={() => actions.onOpenCard(vm.hero.id)} onMore={actions.onMore} />
 
         <View style={{ alignItems: 'center', marginTop: 22 }}>
+          <TourAnchor id="duration">
           <Pressable
             onPress={actions.onMinutes}
             accessibilityRole="button"
@@ -107,6 +118,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
             <ThemedText variant="sub" weight={600} style={{ fontSize: 15, lineHeight: 18, letterSpacing: -0.43 }}>À la maison</ThemedText>
             <Icon name="chevronDown" size={14} color={colors.label} strokeWidth={2.4} />
           </Pressable>
+          </TourAnchor>
         </View>
 
         <View style={{ marginHorizontal: 20, marginTop: 30, flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -136,6 +148,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
           accessibilityLabel={`${vm.counter.total} moment${vm.counter.total > 1 ? 's' : ''} ensemble. ${vm.counter.done} sur ${vm.counter.target} cette semaine`}
           style={{ marginHorizontal: 20, marginTop: 30 }}
         >
+          <TourAnchor id="counter">
           <Velvet radius={26}>
             <View style={{ paddingVertical: 24, paddingHorizontal: 20, alignItems: 'center', gap: 14 }}>
               <ThemedText variant="displayLarge" weight={500} style={{ fontSize: 30, lineHeight: 34, letterSpacing: -0.43, textAlign: 'center' }}>
@@ -160,6 +173,7 @@ export function HomeView({ vm, actions, footer, refreshControl }: Props) {
               </ThemedText>
             </View>
           </Velvet>
+          </TourAnchor>
         </View>
 
         <View style={{ marginTop: 34 }}>

@@ -4,6 +4,7 @@ import { Enamel, GlassSurface, Icon, ThemedText, VignetteImage, useNavBarHeight,
 import { useHeroStyle } from './palette';
 import type { HomeVM } from './viewModels';
 import { useWindowDimensions } from '../../design/layout';
+import { TourAnchor } from './tour/anchors';
 
 type Props = {
   hero: HomeVM['hero'];
@@ -143,6 +144,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
             </View>
           </GlassSurface>
         </View>
+        <TourAnchor id="hero">
         <ThemedText
           variant="displayLarge"
           weight={500}
@@ -170,8 +172,10 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
             </View>
           ))}
         </View>
+        </TourAnchor>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 18 }}>
+        <TourAnchor id="launch" style={{ marginTop: 18 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Pressable
             onPress={onLaunch}
             accessibilityRole="button"
@@ -212,6 +216,7 @@ export function TonightHero({ hero, banner, onLaunch, onOpenCard, onMore }: Prop
             </GlassSurface>
           </Pressable>
         </View>
+        </TourAnchor>
       </View>
     </View>
   );
