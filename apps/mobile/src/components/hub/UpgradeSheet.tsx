@@ -6,6 +6,8 @@ import { Sheet } from '../../design';
 import { AccentButton, GhostButton, WText } from '../../design/web';
 import { useSelectedChild } from '../../stores/child.store';
 import { useSubscriptionStore } from '../../stores/subscription.store';
+import { useAuthStore } from '../../stores/auth.store';
+import { buildUpgradeSupportMessage, parentNameFrom, supportThreadDraft } from '../../services/supportMessage';
 import { ProgramCards, openPricing } from './ProgramCards';
 
 /**
@@ -17,6 +19,8 @@ import { ProgramCards, openPricing } from './ProgramCards';
  */
 
 export const SUPPORT_EMAIL = 'support@thrivesportpositive.com';
+
+const PACK_LABEL = { ESSENTIEL: 'Groupe', AVANCE: 'Individuel', PERFORMANCE: 'Complet' } as const;
 
 type Ctx = { openUpgrade: () => void };
 const UpgradeCtx = createContext<Ctx>({ openUpgrade: () => {} });
@@ -31,20 +35,27 @@ export function useContactTeam() {
   const child = useSelectedChild();
   const level = useSubscriptionStore((s) => s.access?.detailLevel);
   const hasPack = useSubscriptionStore((s) => Boolean(s.access?.bilan || s.access?.seances));
+  const user = useAuthStore((s) => s.user);
   const target = hasPack && level === 'AVANCE' ? 'Complet' : hasPack && level === 'PERFORMANCE' ? null : 'Individuel ou Complet';
-  const who = child?.first_name ? ` pour ${child.first_name}` : '';
-  const request = target
-    ? `Bonjour, j’aimerais passer au forfait ${target}${who}. Pouvez-vous me rappeler ?`
-    : `Bonjour, j’ai une question sur mon forfait${who}.`;
-  const subject = target ? `Forfait ${target}` : 'Mon forfait';
+  const currentPack = hasPack ? PACK_LABEL[level ?? 'ESSENTIEL'] : 'Maison';
+  const msg = buildUpgradeSupportMessage({
+    currentPack,
+    targetPack: target,
+    childName: child?.first_name ?? null,
+    parentName: parentNameFrom(user),
+    parentEmail: user?.email ?? null,
+  });
+
+  const { subject, body } = msg;
+  const draft = supportThreadDraft(msg);
 
   const mail = useCallback(
     () =>
-      Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(request)}`).then(
+      Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`).then(
         () => undefined,
         () => undefined,
       ),
-    [subject, request],
+    [subject, body],
   );
 
   const message = useCallback(async () => {
@@ -53,9 +64,9 @@ export function useContactTeam() {
       () => ({ data: null }),
     );
     const id = (data as string | null) ?? null;
-    if (id) router.push({ pathname: '/(parent)/chat/[conversationId]', params: { conversationId: id, name: 'Support THRIVE', draft: request } });
+    if (id) router.push({ pathname: '/(parent)/chat/[conversationId]', params: { conversationId: id, name: 'Support THRIVE', draft } });
     else await mail();
-  }, [router, request, mail]);
+  }, [router, draft, mail]);
 
   return { message, mail };
 }
