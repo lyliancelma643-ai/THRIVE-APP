@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Platform } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import type { PurchasesOffering } from 'react-native-purchases';
@@ -25,7 +25,8 @@ import { buildPaywallContent } from './paywallModel';
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; onClose?: () => void }) {
-  const setCustomerInfo = useSubscriptionStore((s) => s.setCustomerInfo);
+  const confirmAccess = useSubscriptionStore((s) => s.confirmAccessAfterPurchase);
+  const inFlight = useRef(false); // double appui : un seul achat / restauration à la fois
   const [offering, setOffering] = useState<PurchasesOffering | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -65,35 +66,50 @@ export function Paywall({ onSubscribed, onClose }: { onSubscribed?: () => void; 
   const trial = selected && eligible.has(selected.product.identifier) ? freeTrialPeriod(selected) : null;
 
   const onBuy = async () => {
-    if (!selected) return;
+    if (!selected || inFlight.current) return;
+    inFlight.current = true;
     setBusy('buy');
-    const result = await purchase(selected);
-    setBusy(null);
-    if (result.status === 'success') {
-      setCustomerInfo(result.customerInfo);
-      if (activeEntitlement(result.customerInfo)) onSubscribed?.();
-      else Alert.alert('Achat enregistré', 'Votre achat est bien reçu ; l’accès s’ouvrira dans quelques instants. Sinon, touchez « Restaurer les achats ».');
-    } else if (result.status === 'pending') {
-      Alert.alert('Paiement en attente', 'Votre paiement est en cours de validation. L’accès s’ouvrira dès sa confirmation.');
-    } else if (result.status === 'error') {
-      Alert.alert('Achat impossible', result.message);
+    try {
+      const result = await purchase(selected);
+      if (result.status === 'success') {
+        const open = await confirmAccess(result.customerInfo);
+        if (open) onSubscribed?.();
+        else if (activeEntitlement(result.customerInfo)) {
+          Alert.alert('Achat enregistré', 'Votre achat est bien reçu ; l’accès s’ouvrira dans quelques instants. Sinon, touchez « Restaurer ».');
+        } else {
+          // Achat Apple réussi mais droit pas encore visible (Ask to Buy / synchronisation) : pas d'erreur.
+          Alert.alert('Achat en cours de traitement', 'L’accès s’ouvrira automatiquement dès la confirmation.');
+        }
+      } else if (result.status === 'pending') {
+        Alert.alert('Paiement en attente', 'Votre paiement attend une approbation (par exemple « Autoriser l’achat »). L’accès s’ouvrira automatiquement dès sa confirmation.');
+      } else if (result.status === 'error') {
+        Alert.alert('Achat impossible', result.message);
+      }
+      // 'cancelled' : l'utilisateur a fermé la feuille Apple, aucun message.
+    } finally {
+      inFlight.current = false;
+      setBusy(null);
     }
   };
 
   const onRestore = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy('restore');
     try {
       const info = await restorePurchases();
-      setCustomerInfo(info);
       if (activeEntitlement(info)) {
+        await confirmAccess(info);
         Alert.alert('Achats restaurés', 'Votre abonnement est actif.');
         onSubscribed?.();
       } else {
+        useSubscriptionStore.getState().setCustomerInfo(info);
         Alert.alert('Aucun achat trouvé', 'Aucun abonnement actif n’est associé à ce compte de store.');
       }
     } catch {
       Alert.alert('Restauration impossible', 'Vérifiez votre connexion et réessayez.');
     } finally {
+      inFlight.current = false;
       setBusy(null);
     }
   };

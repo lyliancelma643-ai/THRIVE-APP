@@ -37,6 +37,12 @@ type SubscriptionStore = {
   access: ParentAccess | null;
   loadServerAccess: () => Promise<void>;
   refresh: () => Promise<void>;
+  /**
+   * Après un achat / une restauration réussi : enregistre le CustomerInfo, resynchronise le serveur
+   * (billing-sync) puis relit access_state() jusqu'à ouverture (webhook en retard ⇒ quelques relectures).
+   * Renvoie true si l'accès Maison est ouvert côté serveur. Aucune validation manuelle.
+   */
+  confirmAccessAfterPurchase: (info: CustomerInfo | null) => Promise<boolean>;
   reset: () => void;
 };
 
@@ -113,6 +119,22 @@ export const useSubscriptionStore = create<SubscriptionStore>((set, get) => ({
       // Réseau indisponible : on garde le dernier état connu (cache SDK).
       set((s) => ({ status: s.customerInfo ? 'ready' : 'unavailable' }));
     }
+  },
+
+  confirmAccessAfterPurchase: async (info) => {
+    set({ customerInfo: info, status: isPurchasesAvailable() ? 'ready' : 'unavailable' });
+    if (!selectIsActive({ customerInfo: info })) return false;
+    try {
+      await supabase.functions.invoke('billing-sync', { body: {} });
+    } catch {
+      // le webhook RevenueCat finira le travail ; on relit quand même
+    }
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (attempt) await new Promise((r) => setTimeout(r, 1500));
+      await get().loadServerAccess();
+      if (get().serverAccess === true) return true;
+    }
+    return false;
   },
 
   reset: () => set({ status: 'loading', customerInfo: null, serverAccess: null, access: null }),

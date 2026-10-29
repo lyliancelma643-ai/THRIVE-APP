@@ -114,6 +114,23 @@ export type PurchaseOutcome =
   | { status: 'pending' }
   | { status: 'error'; message: string };
 
+/** Message français (jamais le texte anglais du SDK) selon le code d'erreur RevenueCat. */
+export function purchaseErrorMessageFr(code: string | null | undefined): string {
+  switch (code) {
+    case PURCHASES_ERROR_CODE.NETWORK_ERROR:
+      return 'Connexion indisponible. Vérifiez votre réseau et réessayez.';
+    case PURCHASES_ERROR_CODE.PURCHASE_NOT_ALLOWED_ERROR:
+      return 'Les achats sont désactivés sur cet appareil (Temps d’écran ou restrictions).';
+    case PURCHASES_ERROR_CODE.PURCHASE_INVALID_ERROR:
+    case PURCHASES_ERROR_CODE.PRODUCT_NOT_AVAILABLE_FOR_PURCHASE_ERROR:
+      return 'Cet abonnement n’est pas disponible pour le moment. Réessayez plus tard.';
+    case PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR:
+      return 'Vous avez déjà cet abonnement. Touchez « Restaurer » pour le retrouver.';
+    default:
+      return 'L’achat n’a pas abouti. Vous n’avez pas été débité. Réessayez dans un instant.';
+  }
+}
+
 export async function purchase(pkg: PurchasesPackage): Promise<PurchaseOutcome> {
   try {
     const { customerInfo } = await Purchases.purchasePackage(pkg);
@@ -124,7 +141,7 @@ export async function purchase(pkg: PurchasesPackage): Promise<PurchaseOutcome> 
       return { status: 'cancelled' };
     }
     if (err.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) return { status: 'pending' };
-    return { status: 'error', message: err.message ?? 'Achat impossible pour le moment.' };
+    return { status: 'error', message: purchaseErrorMessageFr(err.code) };
   }
 }
 

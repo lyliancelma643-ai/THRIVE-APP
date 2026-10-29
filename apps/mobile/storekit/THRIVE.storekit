@@ -1,0 +1,60 @@
+{
+  "identifier" : "A7C1E0D2",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : { "_failTransactionsEnabled" : false, "_locale" : "fr_CA", "_storefront" : "CAN", "_askToBuyEnabled" : false },
+  "subscriptionGroups" : [
+    {
+      "id" : "21500001",
+      "localizations" : [],
+      "name" : "THRIVE Maison",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "32.50",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000001",
+          "introductoryOffer" : {
+            "internalID" : "6740000011",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1M"
+          },
+          "localizations" : [
+            { "description" : "Le moment qui compte, 10 min par soir", "displayName" : "THRIVE Maison - Mensuel", "locale" : "fr_CA" }
+          ],
+          "productID" : "thrive_moments_mensuel",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Maison mensuel",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "299.00",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "6740000002",
+          "introductoryOffer" : {
+            "internalID" : "6740000012",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1M"
+          },
+          "localizations" : [
+            { "description" : "Le moment qui compte, 10 min par soir", "displayName" : "THRIVE Maison - Annuel", "locale" : "fr_CA" }
+          ],
+          "productID" : "thrive_moments_annuel",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Maison annuel",
+          "subscriptionGroupID" : "21500001",
+          "type" : "RecurringSubscription",
+          "winbackOffers" : []
+        }
+      ]
+    }
+  ],
+  "version" : { "major" : 4, "minor" : 0 }
+}

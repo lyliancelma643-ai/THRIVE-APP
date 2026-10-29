@@ -48,11 +48,13 @@ export function SubscriptionSettings({ embedded = false }: { embedded?: boolean 
   };
 
   const restore = async () => {
+    if (restoring) return;
     setRestoring(true);
     try {
       const info = await restorePurchases();
-      setCustomerInfo(info);
       const active = Boolean(info?.entitlements.active[ENTITLEMENT_ID]);
+      if (active) await useSubscriptionStore.getState().confirmAccessAfterPurchase(info);
+      else setCustomerInfo(info);
       Alert.alert(
         active ? 'Achats restaurés' : 'Aucun achat trouvé',
         active ? 'Votre abonnement est actif.' : 'Aucun abonnement actif n’est associé à ce compte de store.',
