@@ -61,16 +61,26 @@ export const useAuthStore = create<AuthStore>((set) => ({
     set({ isLoading: true });
     const { data, error } = await supabase.auth.signUp({
       email, password,
-      // Le lien de confirmation ouvre la page web (universal link si l'app est installée).
-      options: { data: metadata ?? {}, emailRedirectTo: 'https://app.thrivesportpositive.com/auth/confirm' },
+      options: { data: metadata ?? {} },
     });
     if (error) { set({ isLoading: false }); throw error; }
-    if (data.session) {
-      const mapped = mapSession(data.session);
-      set({ ...mapped, isAuthenticated: true, isLoading: false });
-    } else {
-      set({ isLoading: false });
+    // Pas de confirmation par e-mail : on connecte tout de suite. Si le projet exige encore la
+    // confirmation (réglage « Confirm email » ON en prod), signUp ne renvoie pas de session.
+    let session = data.session;
+    if (!session) {
+      const retry = await supabase.auth.signInWithPassword({ email, password });
+      if (retry.error) {
+        set({ isLoading: false });
+        const notConfirmed = retry.error.code === 'email_not_confirmed' || /email not confirmed/i.test(retry.error.message);
+        throw notConfirmed
+          ? new Error('Ton compte est créé. Le serveur exige encore la confirmation par e-mail : l’administrateur doit désactiver « Confirm email » dans les réglages d’authentification. Réessaie ensuite de te connecter.')
+          : retry.error;
+      }
+      session = retry.data.session;
     }
+    if (!session) { set({ isLoading: false }); throw new Error('Connexion impossible après la création du compte.'); }
+    const mapped = mapSession(session);
+    set({ ...mapped, isAuthenticated: true, isLoading: false });
   },
 
   signOut: async () => {

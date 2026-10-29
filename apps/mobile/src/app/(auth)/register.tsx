@@ -1,24 +1,19 @@
 import React, { useState } from 'react';
-import { ScrollView, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 import { LEGAL, LEGAL_VERSION } from '../../services/legal';
-import { Button, ThemedText, useNavBarHeight, useTheme } from '../../design';
 import { RegisterView } from '../../components/account/RegisterView';
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const { colors } = useTheme();
-  const navH = useNavBarHeight();
   const { signUp, isLoading } = useAuthStore();
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
   const [accepted, setAccepted] = useState(false);
   // « Recevoir les nouveautés » : préférence locale, NON envoyée (aucune donnée correspondante côté serveur).
   const [newsletter, setNewsletter] = useState(false);
@@ -42,6 +37,7 @@ export default function RegisterScreen() {
     }
     try {
       setError('');
+      // Session ouverte immédiatement : le routeur racine envoie le parent dans l'app.
       await signUp(email, password, {
         firstName,
         lastName,
@@ -50,23 +46,10 @@ export default function RegisterScreen() {
         legal_accepted_at: new Date().toISOString(),
         adult_guardian_confirmed: true,
       });
-      setSuccess(true);
     } catch (err: any) {
       setError(err.message ?? 'Inscription impossible');
     }
   };
-
-  if (success) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.bgGrouped }}>
-        <ScrollView contentContainerStyle={{ paddingTop: navH + 40, paddingHorizontal: 16, gap: 8 }}>
-          <ThemedText variant="title1" accessibilityRole="header">Compte créé !</ThemedText>
-          <ThemedText variant="body" color="label2" style={{ marginBottom: 24 }}>Vérifie ton email pour confirmer ton compte.</ThemedText>
-          <Button label="Se connecter" onPress={() => router.push('/(auth)/login')} />
-        </ScrollView>
-      </View>
-    );
-  }
 
   const pwdErr = password.length >= PASSWORD_MIN_LENGTH ? passwordError(password) : null;
   return (
