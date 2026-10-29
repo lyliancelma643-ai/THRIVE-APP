@@ -28,3 +28,5 @@ export default function MaisonScreen() {
     </TabGate>
   );
 }
+
+export { ErrorBoundary } from '../../components/ErrorBoundary';

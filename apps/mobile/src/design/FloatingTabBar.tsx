@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, PanResponder, Pressable, View, type LayoutChangeEvent } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createTabDragNav } from '@thrive/shared';
 import { GlassSurface } from './GlassSurface';
 import { Icon, type IconName } from './icons';
 import { Felt } from './Materials';
@@ -46,8 +47,9 @@ const clamp = (v: number, min: number, max: number) => Math.min(max, Math.max(mi
  * Repère « verre liquide » (LiquidTabBar.tsx du web) :
  *   • Toucher : l'onglet s'ouvre, le repère glisse avec un léger rebond.
  *   • Maintenir (≈ 170 ms) : le repère se soulève sous le doigt — plus grand, plus clair, comme une goutte de verre.
- *   • Glisser : la goutte suit le doigt et s'étire selon la vitesse ; dès qu'elle passe sur un autre onglet, la page
- *     change (petit retour haptique).
+ *   • Glisser : la goutte suit le doigt et s'étire selon la vitesse ; chaque onglet survolé s'allume (petit retour
+ *     haptique) et la page ne change que si la goutte s'y attarde (~220 ms) ou au lâcher — jamais une rafale de
+ *     changements d'onglet pendant le glissé (cf. createTabDragNav : c'était la cause des pages blanches).
  *   • Lâcher : la goutte se pose sur l'onglet le plus proche, avec un rebond.
  * « Réduire les animations » coupe l'étirement et le rebond.
  */
@@ -55,7 +57,9 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
   const { colors, styleKey } = useTheme();
   const insets = useSafeAreaInsets();
   const n = tabs.length;
-  const activeIdx = Math.max(0, tabs.findIndex((t) => t.key === activeKey));
+  // -1 : la route ouverte n'est pas dans la barre (Messages…) — la goutte reste sur le premier onglet.
+  const openIdx = tabs.findIndex((t) => t.key === activeKey);
+  const activeIdx = Math.max(0, openIdx);
   const [shown, setShown] = useState(activeIdx);
   const [held, setHeld] = useState(false);
   const [tabW, setTabW] = useState(0);
@@ -66,6 +70,17 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
   const glass = useRef(new Animated.Value(0)).current;
   const g = useRef({ left: 0, w: 0, offset: 0, x: 0, hover: 0, live: false, panning: false, reduce: false, timer: 0 as ReturnType<typeof setTimeout> | 0 });
   g.current.w = tabW;
+  // Navigation du glissé : survol prolongé ou lâcher, dédoublonnée (une seule instance, lit `latest`).
+  const nav = useRef(
+    createTabDragNav({
+      onNavigate: (i) => {
+        const t = latest.current.tabs[i];
+        if (t) latest.current.onSelect(t.key);
+      },
+    }),
+  ).current;
+  useEffect(() => () => nav.dispose(), [nav]);
+  useEffect(() => nav.sync(openIdx), [nav, openIdx]);
 
   useEffect(() => {
     AccessibilityInfo.isReduceMotionEnabled().then((r) => (g.current.reduce = r), () => undefined);
@@ -118,8 +133,9 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
 
   const lift = (pageX: number) => {
     const st = g.current;
-    if (st.live || !st.w) return;
+    if (st.live || !st.w || n === 0) return;
     st.live = true;
+    nav.begin(openIdx);
     const inTrack = pageX - st.left - PAD;
     // On attrape la goutte là où on l'a prise ; ailleurs, elle vient se centrer sous le doigt.
     const inPill = inTrack - activeIdx * st.w;
@@ -146,10 +162,15 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
     if (!st.live) return;
     st.live = false;
     setHeld(false);
+    if (!st.w || n === 0) {
+      nav.dispose();
+      return;
+    }
     const idx = clamp(Math.round(st.x / st.w), 0, n - 1);
+    st.hover = idx;
     setShown(idx);
     settle(idx);
-    if (idx !== st.hover) onSelect(tabs[idx].key);
+    nav.release(idx);
   };
 
   // Les rappels du PanResponder (créé une fois) lisent l'état courant via cette référence.
@@ -169,16 +190,16 @@ export function FloatingTabBar({ tabs, activeKey, onSelect, prominent }: Floatin
       },
       onPanResponderMove: (_e, gs) => {
         const st = g.current;
-        if (!st.live || !st.w) return;
+        if (!st.live || !st.w || n === 0) return;
         const px = clamp(gs.moveX - st.left - PAD - st.offset, 0, (n - 1) * st.w);
         st.x = px;
         latest.current.place(px, gs.vx);
-        // La goutte passe sur un autre onglet : la page change en conséquence.
+        // La goutte passe sur un autre onglet : il s'allume ; la page ne suit que si la goutte s'y attarde.
         const idx = clamp(Math.round(px / st.w), 0, n - 1);
         if (idx !== st.hover) {
           st.hover = idx;
           setShown(idx);
-          latest.current.onSelect(latest.current.tabs[idx].key);
+          nav.hover(idx);
           Haptics.selectionAsync().catch(() => undefined);
         }
       },

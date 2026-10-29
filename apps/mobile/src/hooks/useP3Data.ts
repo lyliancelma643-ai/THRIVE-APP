@@ -87,10 +87,15 @@ export function useP3Data(childId: string | null, dateOfBirth: string | null, fi
 
   useEffect(() => {
     if (!childId) {
+      // Plus d'enfant (déconnexion, changement de famille) : le prochain enfant repart d'un état propre.
+      loadedFor.current = null;
       setState({ ...EMPTY, loading: false });
       return;
     }
+    // Réponse périmée ignorée (enfant changé, relecture plus récente, écran démonté) et requêtes annulées.
     let alive = true;
+    const ctrl = typeof AbortController === 'function' ? new AbortController() : null;
+    const sig = <Q extends { abortSignal: (s: AbortSignal) => Q }>(q: Q): Q => (ctrl ? q.abortSignal(ctrl.signal) : q);
     // Un rechargement garde l'écran affiché (pas de squelette) : seul un changement d'enfant le remontre.
     if (loadedFor.current !== childId) setState(P3_CACHE.get(childId) ?? EMPTY);
     loadedFor.current = childId;
@@ -118,14 +123,16 @@ export function useP3Data(childId: string | null, dateOfBirth: string | null, fi
       }
       try {
         const [m, r, s, k] = await Promise.all([
-          supabase
-            .from('p3_moments')
-            .select('activity_id, created_at, duration_chosen, rating, kept_phrase, capture, week, place, outcome')
-            .eq('child_id', childId)
-            .order('created_at', { ascending: false }),
-          supabase.from('p3_rewards').select('reward_id, payload, earned_at').eq('child_id', childId),
-          supabase.from('p3_saved').select('activity_id, kind').eq('child_id', childId),
-          supabase.from('p3_skips').select('activity_id, reason, created_at').eq('child_id', childId).gte('created_at', since),
+          sig(
+            supabase
+              .from('p3_moments')
+              .select('activity_id, created_at, duration_chosen, rating, kept_phrase, capture, week, place, outcome')
+              .eq('child_id', childId)
+              .order('created_at', { ascending: false }),
+          ),
+          sig(supabase.from('p3_rewards').select('reward_id, payload, earned_at').eq('child_id', childId)),
+          sig(supabase.from('p3_saved').select('activity_id, kind').eq('child_id', childId)),
+          sig(supabase.from('p3_skips').select('activity_id, reason, created_at').eq('child_id', childId).gte('created_at', since)),
         ]);
         if (!alive) return;
         if (m.error) throw m.error;
@@ -147,6 +154,11 @@ export function useP3Data(childId: string | null, dateOfBirth: string | null, fi
     })();
     return () => {
       alive = false;
+      try {
+        ctrl?.abort();
+      } catch {
+        // rien à annuler
+      }
     };
   }, [childId, tick]);
 

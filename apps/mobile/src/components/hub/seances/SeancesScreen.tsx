@@ -8,7 +8,7 @@ import { LayoutAnimation, Platform, RefreshControl, UIManager, View } from 'reac
 import { useFocusEffect, useRouter } from 'expo-router';
 import Svg, { Circle } from 'react-native-svg';
 import { BlurView } from 'expo-blur';
-import { supabaseClient as supabase } from '@thrive/shared';
+import { createRequestGate, supabaseClient as supabase, type RequestTicket } from '@thrive/shared';
 import { DelayedSkeleton, WaveSkeleton } from '../../motion/WaveSkeleton';
 import { AccentButton, Eyebrow, FadeUp, GhostButton, NcCard, NcRow, Tap, Track, WIcon, WText, useWeb } from '../../../design/web';
 import { THRIVE_SESSIONS } from '../../../../../web/src/lib/coach';
@@ -306,6 +306,9 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
   const inFlight = useRef<string | null>(null);
   const lastLoad = useRef(0);
   const hasLoaded = useRef(false);
+  // Écran démonté (changement d'enfant, déconnexion) : la lecture en cours est annulée et sa réponse ignorée.
+  const gate = useRef(createRequestGate()).current;
+  useEffect(() => () => gate.dispose(), [gate]);
   const load = useCallback(async () => {
     if (!child?.id || !view || view === 'locked') {
       setLoading(false);
@@ -316,10 +319,12 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     inFlight.current = child.id;
     lastLoad.current = Date.now();
     if (hasLoaded.current) useRevalidateStore.getState().ping();
+    const ticket = gate.begin();
     try {
-      await loadNow();
+      await loadNow(ticket);
     } catch {
       // Lecture ratée : on sort du squelette (relecture au retour sur l'onglet / « Réessayer »).
+      if (ticket.stale) return;
       setLoading(false);
       setFailed(true);
     } finally {
@@ -327,7 +332,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
     }
   }, [child?.id, view]);
 
-  const loadNow = async () => {
+  const loadNow = async (ticket: RequestTicket) => {
     if (!child?.id) return;
     const fixture = __DEV__ ? DEV_SEANCES_FIXTURES.get(child.id) : undefined;
     if (fixture) {
@@ -337,14 +342,18 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
       setLoading(false);
       return;
     }
+    const sig = <Q extends { abortSignal: (s: AbortSignal) => Q }>(q: Q): Q => (ticket.signal ? q.abortSignal(ticket.signal) : q);
     const [sessionsRes, assignmentRes] = await Promise.all([
-      supabase
-        .from('sessions')
-        .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes, duration_minutes')
-        .eq('child_id', child.id)
-        .order('session_number', { ascending: true, nullsFirst: false }),
-      supabase.from('coach_assignments').select('coach_id, profiles:coach_id (first_name, last_name)').eq('child_id', child.id).eq('is_active', true).limit(1),
+      sig(
+        supabase
+          .from('sessions')
+          .select('id, session_number, title, status, scheduled_at, completed_at, coach_notes, duration_minutes')
+          .eq('child_id', child.id)
+          .order('session_number', { ascending: true, nullsFirst: false }),
+      ),
+      sig(supabase.from('coach_assignments').select('coach_id, profiles:coach_id (first_name, last_name)').eq('child_id', child.id).eq('is_active', true).limit(1)),
     ]);
+    if (ticket.stale) return;
     const loaded = (sessionsRes.data ?? []) as OneToOneSession[];
     setSessions(loaded);
     const entries = await Promise.all(
@@ -355,6 +364,7 @@ function SeancesInner({ refreshTick, onRefreshed }: { refreshTick: number; onRef
           return [s.id, (data as SessionBilan | null) ?? null] as const;
         }),
     );
+    if (ticket.stale) return;
     setBilans(Object.fromEntries(entries.filter(([, b]) => b !== null)) as Record<string, SessionBilan>);
     const a = (assignmentRes.data ?? [])[0] as { profiles?: CoachInfo | CoachInfo[] } | undefined;
     setCoach((Array.isArray(a?.profiles) ? a?.profiles[0] : a?.profiles) ?? null);

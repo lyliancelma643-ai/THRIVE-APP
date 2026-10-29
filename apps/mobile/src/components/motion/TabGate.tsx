@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Component, useCallback, useEffect, useMemo, useRef, useState, type ErrorInfo, type ReactNode } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import { usePageReadyStore, type TabKey } from '../../stores/pageReady.store';
 import { DUR } from './anim';
 import { MicroTip } from './MicroTip';
 import { StairLoader } from './StairLoader';
+import { LoadRetry } from '../hub/LoadRetry';
 
 /** Durée minimale de la page de chargement d'un onglet, au premier accès. */
 export const TAB_GATE_MIN_MS = 2000;
@@ -57,20 +58,29 @@ function GateOverlay({ tab, onGone }: { tab: TabKey; onGone: () => void }) {
   const [stages] = useState(() => spec.stages(name));
   const fade = useRef(new Animated.Value(1)).current;
   const gone = useRef(false);
+  const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  // Une seule sortie, quelle que soit la voie (fin du fondu, filet de sécurité, « Réessayer »).
+  const leave = useCallback(() => {
+    if (gone.current) return;
+    gone.current = true;
+    onGone();
+  }, [onGone]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
 
   const s = useLoadStages(stages, {
     showAfter: 0,
     minTotal: TAB_GATE_MIN_MS,
     onDone: () => {
       // Un instant pour voir le fanion planté, puis le voile s'efface sur la page déjà prête.
-      setTimeout(() => {
-        Animated.timing(fade, { toValue: 0, duration: w.reduceMotion ? DUR.fast : DUR.slow, useNativeDriver: true }).start(() => {
-          if (!gone.current) {
-            gone.current = true;
-            onGone();
-          }
-        });
-      }, 350);
+      const dur = w.reduceMotion ? DUR.fast : DUR.slow;
+      timers.current.push(
+        setTimeout(() => {
+          Animated.timing(fade, { toValue: 0, duration: dur, useNativeDriver: true }).start(leave);
+        }, 350),
+        // Filet de sécurité : le rappel de fin d'une animation native peut ne jamais arriver (onglet détaché par
+        // react-native-screens pendant le fondu, app passée en arrière-plan). Le voile part quand même.
+        setTimeout(leave, 350 + dur + 250),
+      );
     },
     onRetry: () => {
       const uid = useAuthStore.getState().user?.id;
@@ -95,11 +105,8 @@ function GateOverlay({ tab, onGone }: { tab: TabKey; onGone: () => void }) {
   // Bloqué au-delà de 20 s : « Réessayer » relance les lectures et laisse la page afficher son propre état.
   const retry = useCallback(() => {
     s.retry();
-    if (!gone.current) {
-      gone.current = true;
-      onGone();
-    }
-  }, [s, onGone]);
+    leave();
+  }, [s, leave]);
 
   return (
     <Animated.View
@@ -124,6 +131,34 @@ function GateOverlay({ tab, onGone }: { tab: TabKey; onGone: () => void }) {
   );
 }
 
+/**
+ * Garde d'erreur propre à l'onglet : une erreur d'affichage dans Maison, Bilan ou Mes séances ne laisse ni page
+ * blanche ni voile de chargement figé — l'onglet affiche « Réessayer », les deux autres continuent de vivre.
+ */
+class TabErrorBoundary extends Component<{ tab: TabKey; children: ReactNode }, { error: Error | null; round: number }> {
+  state = { error: null as Error | null, round: 0 };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    // Le voile ne doit pas cacher l'erreur : l'onglet est considéré comme montré.
+    usePageReadyStore.getState().reveal(this.props.tab);
+    if (__DEV__) console.warn(`[TabGate:${this.props.tab}]`, error, info.componentStack);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <LoadRetry
+          label="Cette page n’a pas pu s’afficher. Vérifie ta connexion, puis réessaie."
+          onRetry={() => this.setState((st) => ({ error: null, round: st.round + 1 }))}
+        />
+      );
+    }
+    // `round` remonte entièrement l'arbre de l'onglet : aucun état cassé n'est conservé.
+    return <View key={this.state.round} style={{ flex: 1 }}>{this.props.children}</View>;
+  }
+}
+
 function Cover() {
   const w = useWeb();
   return <View style={[StyleSheet.absoluteFill, { backgroundColor: w.bg, zIndex: 50 }]} />;
@@ -146,7 +181,7 @@ export function TabGate({ tab, children }: { tab: TabKey; children: ReactNode })
   const onGone = useMemo(() => () => usePageReadyStore.getState().reveal(tab), [tab]);
   return (
     <View style={{ flex: 1, backgroundColor: w.bg }}>
-      {children}
+      <TabErrorBoundary tab={tab}>{children}</TabErrorBoundary>
       {revealed ? null : (
         <WebSurfaceProvider surface={tab === 'maison' ? 'maison' : 'base'}>
           {focused ? <GateOverlay tab={tab} onGone={onGone} /> : <Cover />}

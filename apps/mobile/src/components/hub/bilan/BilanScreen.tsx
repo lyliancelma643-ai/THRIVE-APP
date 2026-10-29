@@ -88,10 +88,27 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   const [domShown, setDomShown] = useState(false);
   // La carte (webview) n'est montée qu'au premier passage sur l'onglet : montée cachée en arrière-plan, iOS pouvait
   // la mesurer à 0 px et elle restait vide.
+  // Un passage éclair (onglet traversé pendant un glissé, puis aussitôt quitté et détaché) ne compte pas : la carte
+  // n'est montée qu'une fois l'onglet resté au premier plan un court instant. Au retour sur l'onglet, une carte
+  // qui ne s'est jamais annoncée (montée pendant que l'écran était détaché → 0 px, page blanche) est remontée.
   const [seen, setSeen] = useState(false);
+  const seenRef = useRef(false);
+  const hasDataRef = useRef(false);
   useFocusEffect(
     useCallback(() => {
-      setSeen(true);
+      if (seenRef.current) {
+        if (hasDataRef.current && !domReady.current) {
+          domTries.current = 0;
+          setDomFailed(false);
+          setDomKey((k) => k + 1);
+        }
+        return;
+      }
+      const t = setTimeout(() => {
+        seenRef.current = true;
+        setSeen(true);
+      }, 250);
+      return () => clearTimeout(t);
     }, []),
   );
 
@@ -115,6 +132,7 @@ function BilanInner({ scrollRef, refreshTick, onRefreshed }: { scrollRef: React.
   // La carte d'identité (webview) est remontée si elle ne s'annonce pas dans les 8 s (une fois automatiquement,
   // puis « Réessayer »), et au retour de l'arrière-plan après une longue pause (iOS peut vider une webview endormie).
   const hasData = !!data;
+  hasDataRef.current = hasData;
   useEffect(() => {
     if (!hasData || !seen || domFailed) return;
     domReady.current = false;
