@@ -15,6 +15,11 @@ import { SourcesSheet } from '../../components/maison/SourcesSheet';
 import { recommendTonight } from '../../components/maison/logic';
 import { bannerFor, buildHomeVM, phaseOfWeek, showOffersInvite } from '../../components/maison/models';
 import type { HomeActions } from '../../components/maison/viewModels';
+import { MaisonTour } from '../../components/maison/tour/MaisonTour';
+import { TourProvider, useTourRegistry } from '../../components/maison/tour/anchors';
+import { tourSteps } from '../../components/maison/tour/steps';
+import { useMaisonTour } from '../../hooks/useMaisonTour';
+import { useAuthStore } from '../../stores/auth.store';
 
 // « Soir de famille » : le moment recommandé ce soir, puis les portes, le compteur, la semaine, les rangées,
 // le carnet. Logique inchangée : semaine N+1 ouverte quand les 3 fiches de la semaine N sont vécues,
@@ -34,6 +39,10 @@ function MaisonContent() {
   const [sourcesSheet, setSourcesSheet] = useState(false);
   const [momentChip, setMomentChip] = useState('rien');
   const [phaseChip, setPhaseChip] = useState<string | null>(null);
+  const userId = useAuthStore((s) => s.user?.id);
+  const tourRegistry = useTourRegistry();
+  // Première arrivée : la visite guidée s'ouvre quand Maison est prête et qu'aucun moment n'est encore vécu.
+  const tour = useMaisonTour(userId, !ctx.childrenLoading && !!child && !!band && !isLoading && momentsCount(moments) === 0);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -135,12 +144,19 @@ function MaisonContent() {
   };
 
   return (
-    <>
+    <TourProvider value={tourRegistry}>
       <HomeView
         vm={vm}
         actions={actions}
         footer={<View style={{ marginTop: SPACING.space3 }}><HealthNotice /></View>}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={reload} />}
+      />
+
+      <MaisonTour
+        visible={tour.visible}
+        steps={tourSteps({ childName: child.first_name, weekTarget: progress.target })}
+        onClose={tour.finish}
+        onLaunch={launch}
       />
 
       <Sheet visible={childSheet} onClose={() => setChildSheet(false)} title="Pour quel enfant ?">
@@ -181,7 +197,7 @@ function MaisonContent() {
       </Sheet>
 
       <SourcesSheet visible={sourcesSheet} onClose={() => setSourcesSheet(false)} pool={pool} />
-    </>
+    </TourProvider>
   );
 }
 
