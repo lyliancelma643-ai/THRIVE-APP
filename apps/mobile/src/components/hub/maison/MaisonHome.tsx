@@ -26,6 +26,11 @@ import { Split } from '../Split';
 import { useLayout } from '../../../design/layout';
 import { ActivityArch, Door, HeroMenu, LinkRow, PosterRow, ShelfPicker, TonightSettings, WeekCard } from './parts';
 import { useWindowDimensions } from '../../../design/layout';
+import { MaisonTour } from '../../maison/tour/MaisonTour';
+import { TourAnchor } from '../../maison/tour/anchors';
+import { tourSteps } from '../../maison/tour/steps';
+import { useMaisonTour } from '../../../hooks/useMaisonTour';
+import { useAuthStore } from '../../../stores/auth.store';
 
 type PlaceChoice = (typeof PLACE_CHOICES)[number]['id'];
 
@@ -191,6 +196,7 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
   const [evening, setEvening] = useState<Evening>(() => readEvening(child.id));
   const [menu, setMenu] = useState(false);
   const [weekDone, setWeekDone] = useState<number | null>(null);
+  const userId = useAuthStore((s) => s.user?.id);
 
   useEffect(() => {
     setEvening(readEvening(child.id));
@@ -262,6 +268,8 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
   const openFiche = (x: P3Activity) => nav.fiche(x.id, { duree: duration, lieu: place });
   const isDone = (x: P3Activity) => data.doneIds.has(x.id);
   const archW = Math.min(312, Math.round(screen * 0.82));
+  // Première arrivée : la visite guidée s'ouvre quand l'affiche du soir est prête et qu'aucun moment n'est encore vécu.
+  const tour = useMaisonTour(userId, !!a && data.count === 0);
 
   return (
     <View>
@@ -289,7 +297,9 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
               accessibilityLabel={`${a.title}. Recommandé pour ${firstName}. Ouvrir la fiche`}
               style={{ alignItems: 'center', width: '100%' }}
             >
-              <ActivityArch activityId={a.id} width={archW} style={{ marginTop: 36 }} />
+              <TourAnchor id="hero" style={{ marginTop: 36 }}>
+                <ActivityArch activityId={a.id} width={archW} />
+              </TourAnchor>
               <View style={{ marginTop: 28, alignItems: 'center', width: '100%' }}>
                 <WText size={12} weight={700} upper tracking={0.16} tone="sage" center>
                   {`Recommandé pour ${firstName} · ${ROLE_LABELS[a.role]}`}
@@ -310,10 +320,10 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
                 </WText>
               </View>
             </Pressable>
-            <View style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', maxWidth: 440 }}>
+            <TourAnchor id="launch" style={{ marginTop: 20, flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', maxWidth: 440 }}>
               <LaunchButton label="Lancer" onPress={() => nav.launch(a.id, effectiveDuration(a, duration) ?? a.base_duration, place)} style={{ flex: 1.5 }} />
               <GhostButton label="Voir la fiche" onPress={() => openFiche(a)} style={{ flex: 1 }} />
-            </View>
+            </TourAnchor>
             <HeroMenu
               open={menu}
               onToggle={() => setMenu((m) => !m)}
@@ -347,6 +357,7 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
 
       {/* Ce soir : temps et lieu — une seule puce, règle l'affiche et les liens de toutes les rangées */}
       <View style={{ marginTop: 24, alignItems: 'center' }}>
+        <TourAnchor id="duration">
         <TonightSettings
           duration={duration}
           durations={DURATIONS}
@@ -355,6 +366,7 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
           places={PLACE_CHOICES.map((p) => ({ value: p.id, label: p.label }))}
           onPlace={(p) => setPlace(p as PlaceChoice)}
         />
+        </TourAnchor>
       </View>
       {place === 'voiture' ? (
         <WText size={14} tone="soft" center style={{ marginTop: 8 }}>
@@ -371,15 +383,21 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
       {/* Les quatre portes — la liberté totale à un tap — et les séances vidéo de 20 min (bientôt). */}
       <View accessibilityLabel="Parcourir" style={{ marginTop: wide ? 8 : 32, flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: 10 }}>
         <Door strong icon="grid" label="Toutes les activités" onPress={nav.toutes} />
-        <Door icon="compass" label="Le programme" onPress={nav.programme} />
-        <Door icon="book" label="Le carnet" onPress={nav.carnet} />
+        <TourAnchor id="programme" style={{ width: '48.5%' }}>
+          <Door wide icon="compass" label="Le programme" onPress={nav.programme} />
+        </TourAnchor>
+        <TourAnchor id="carnet" style={{ width: '48.5%' }}>
+          <Door wide icon="book" label="Le carnet" onPress={nav.carnet} />
+        </TourAnchor>
         <Door icon="message" label={PAGE_NON.title} onPress={nav.non} />
         <Door wide icon="star" label="Mes favoris" onPress={nav.favoris} />
         <Door wide icon="video" label="Les séances vidéo de 20 min" tag="Bientôt" onPress={nav.videos} />
       </View>
 
       {/* Progression — le compteur cumulatif d'abord, jamais de « 0 » ; la semaine = trois étoiles */}
-      <WeekCard countPhrase={data.countPhrase} done={data.week.done} streak={data.weeklyStreak} />
+      <TourAnchor id="counter">
+        <WeekCard countPhrase={data.countPhrase} done={data.week.done} streak={data.weeklyStreak} />
+      </TourAnchor>
 
       {/* Les rangées de la semaine et de l'enfant, puis deux sélecteurs compacts (situation, étape). */}
       {shelves
@@ -454,6 +472,15 @@ function Home({ ctx }: { ctx: MaisonCtx }) {
           </WText>
         </Pressable>
       </View>
+
+      {a ? (
+        <MaisonTour
+          visible={tour.visible}
+          steps={tourSteps({ childName: firstName, weekTarget: 3 })}
+          onClose={tour.finish}
+          onLaunch={() => nav.launch(a.id, effectiveDuration(a, duration) ?? a.base_duration, place)}
+        />
+      ) : null}
     </View>
   );
 }

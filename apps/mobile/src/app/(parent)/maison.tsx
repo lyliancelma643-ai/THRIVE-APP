@@ -6,6 +6,7 @@ import { MaisonWelcome } from '../../components/hub/maison/MaisonHome';
 import { Paywall } from '../../components/subscription/Paywall';
 import { TabGate } from '../../components/motion/TabGate';
 import { usePageStage } from '../../stores/pageReady.store';
+import { TourProvider, useTourRegistry } from '../../components/maison/tour/anchors';
 
 /** Sans accès Maison, la page affichée est l'offre : la page de chargement peut s'effacer. */
 function MaisonPaywall() {
@@ -18,12 +19,16 @@ function MaisonPaywall() {
 // de l'app (abonnement App Store ou programme, PremiumGate).
 
 export default function MaisonScreen() {
+  // Visite guidée : les repères de Maison s'enregistrent ici, la visite fait défiler la page jusqu'à eux.
+  const tourRegistry = useTourRegistry();
   return (
     <TabGate tab="maison">
       <PremiumGate fallback={<MaisonPaywall />}>
-        <HubScreen surface="maison">
-          <MaisonFrame>{(ctx) => <MaisonWelcome ctx={ctx} />}</MaisonFrame>
-        </HubScreen>
+        <TourProvider value={tourRegistry}>
+          <HubScreen surface="maison" ref={tourRegistry.scrollRef} onScroll={tourRegistry.onScroll}>
+            <MaisonFrame>{(ctx) => <MaisonWelcome ctx={ctx} />}</MaisonFrame>
+          </HubScreen>
+        </TourProvider>
       </PremiumGate>
     </TabGate>
   );
