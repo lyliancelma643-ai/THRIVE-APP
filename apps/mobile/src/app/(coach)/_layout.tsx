@@ -6,7 +6,7 @@ const HIDDEN = ['programs', 'notifications', 'chat/[conversationId]'];
 
 export default function CoachLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false, tabBarActiveTintColor: '#000' }}>
+    <Tabs backBehavior="history" screenOptions={{ headerShown: false, tabBarActiveTintColor: '#000' }}>
       <Tabs.Screen
         name="dashboard"
         options={{

@@ -83,6 +83,8 @@ export default function ParentLayout() {
     <HubProvider>
     <UpgradeProvider>
     <Tabs
+      // Retour = historique réel (défaut « firstRoute » renvoyait toujours à Maison).
+      backBehavior="history"
       // « shift » : la page glisse à l'horizontale vers l'onglet choisi (TabPager du web).
       screenOptions={{ headerShown: false, animation: 'shift' }}
       tabBar={(props) => <ParentTabBar {...(props as unknown as BarProps)} />}

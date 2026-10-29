@@ -7,6 +7,7 @@ import { useMaisonContext } from '../../hooks/useMaison';
 import { ParcoursView } from '../../components/maison/ParcoursView';
 import { buildParcours } from '../../components/maison/logic';
 import { buildParcoursVM, filterForParcours, PARCOURS_FILTERS } from '../../components/maison/models';
+import { goBack } from '../../lib/goBack';
 
 // K2 « Tout le parcours » : les 13 semaines et toutes leurs activités. Verrou neutre pour les semaines pas encore
 // ouvertes (jamais « en retard »). Le filtre `filtre` (accueil : « Quand il dit non », « Rien à préparer »…) liste
@@ -42,7 +43,7 @@ function ParcoursContent() {
     router.push({ pathname: '/(parent)/activite/[activityId]', params: { activityId: id, childId: child.id, band } });
   };
 
-  return <ParcoursView vm={vm} onBack={() => router.back()} onOpen={open} />;
+  return <ParcoursView vm={vm} onBack={() => goBack(router, '/(parent)/maison')} onOpen={open} />;
 }
 
 export default function ParcoursScreen() {

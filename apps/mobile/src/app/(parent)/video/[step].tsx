@@ -4,6 +4,7 @@ import { useChildren, useFamily } from '@thrive/shared';
 import { useAuthStore } from '../../../stores/auth.store';
 import { VideoDoneView } from '../../../components/video/VideoDoneView';
 import { VideoReadyView } from '../../../components/video/VideoReadyView';
+import { goBack } from '../../../lib/goBack';
 import { VIDEO_SESSIONS_ENABLED } from '../../../lib/featureFlags';
 
 /**
@@ -27,7 +28,8 @@ function Step() {
   const [effort, setEffort] = useState(5);
   const child = children[0];
   const name = child?.first_name ?? '';
-  const leave = () => router.replace('/(parent)/maison');
+  const done = () => router.replace('/(parent)/maison');
+  const leave = () => goBack(router, '/(parent)/maison');
 
   if (step === 'pret') {
     return (
@@ -44,7 +46,7 @@ function Step() {
     );
   }
   if (step === 'fin') {
-    return <VideoDoneView sessionNumber={0} childName={name} durationMinutes={20} effort={effort} onEffortChange={setEffort} onFinish={leave} />;
+    return <VideoDoneView sessionNumber={0} childName={name} durationMinutes={20} effort={effort} onEffortChange={setEffort} onFinish={done} />;
   }
   return <Redirect href="/(parent)/videos" />;
 }

@@ -29,6 +29,7 @@ import {
 } from '../../../components/activite/flow';
 import { vignetteIdFor } from '../../../lib/vignettes';
 import { pushWeekDone } from '../../../components/hub/session';
+import { goBack } from '../../../lib/goBack';
 import {
   PILLAR_PLAIN, PRIDE_LINES, REWARDS, activitiesOfWeek, fill, formatFullDate, getActivity, getWeek, p3Pool, recallLine, renderCaptureLabel,
   resolveActivity, type AgeBand, type Duration, type Moment, type P3Activity, type StepTimer, type VisualId,
@@ -415,7 +416,7 @@ function MomentContent() {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: SPACING.space6, backgroundColor: colors.bgGrouped }} accessibilityRole="alert">
         <ThemedText variant="body" color="label2" style={{ textAlign: 'center' }}>Cette activité n’est pas disponible.</ThemedText>
-        <Button variant="gray" size="md" label="Retour" onPress={() => router.back()} style={{ marginTop: SPACING.space4 }} />
+        <Button variant="gray" size="md" label="Retour" onPress={() => goBack(router, '/(parent)/maison')} style={{ marginTop: SPACING.space4 }} />
       </View>
     );
   }

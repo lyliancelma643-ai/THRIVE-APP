@@ -5,6 +5,7 @@ import {
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMessages, supabaseClient as supabase } from '@thrive/shared';
+import { goBack } from '../../../lib/goBack';
 
 export default function ChatScreen() {
   // Le destinataire n'est plus passé par l'URL : il se déduit de la
@@ -203,7 +204,7 @@ export default function ChatScreen() {
     >
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+        <TouchableOpacity onPress={() => goBack(router, '/(coach)/messages')} style={styles.backBtn}>
           <Text style={styles.backArrow}>←</Text>
         </TouchableOpacity>
         <View style={styles.headerInfo}>
