@@ -132,7 +132,8 @@
           "calendarPermission": "THRIVE ajoute la séance de ton enfant à ton calendrier quand tu le demandes. Rien d’autre n’est lu ni modifié.",
           "remindersPermission": "THRIVE n’utilise pas tes rappels. Cette autorisation n’est jamais demandée."
         }
-      ]
+      ],
+      "./plugins/withPodsDeploymentTarget"
     ],
     "experiments": {
       "typedRoutes": false,
