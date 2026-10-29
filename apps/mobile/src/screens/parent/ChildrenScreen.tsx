@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, BackHandler, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { supabaseClient as supabase, useChildren, useFamily } from '@thrive/shared';
 import { useAuthStore } from '../../stores/auth.store';
@@ -8,6 +8,7 @@ import { OfflineState } from '../../components/OfflineState';
 import { ChildrenListView } from '../../components/account/ChildrenListView';
 import { AGE_MAX, AGE_MIN, ChildrenSetupView, type ChildDraft } from '../../components/account/ChildrenSetupView';
 import { useTheme } from '../../design';
+import { childSaveErrorMessage } from '../../lib/onboarding';
 
 function calculateAge(dob: string): number {
   const diff = Date.now() - new Date(dob).getTime();
@@ -42,32 +43,54 @@ export default function ChildrenScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
+  const savingRef = useRef(false);
+  // Insertion déjà réussie (seule la relecture a échoué) : un nouvel essai ne doit pas recréer les enfants.
+  const insertedRef = useRef(false);
+  // Création obligatoire (aucun enfant) : pas de retour possible, y compris le bouton retour Android.
+  const onboarding = children.length === 0 && !adding;
+  useEffect(() => {
+    if (!onboarding) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true);
+    return () => sub.remove();
+  }, [onboarding]);
+
   const goBack = () => (router.canGoBack() ? router.back() : router.replace('/(parent)/profile'));
 
   const save = async () => {
-    if (saving) return;
+    if (savingRef.current) return;
+    savingRef.current = true;
+    const wasOnboarding = onboarding;
     setSaving(true);
     setError('');
     try {
-      // `createChild` du hook lit l'identifiant de famille du rendu précédent : on insère donc avec l'identifiant frais.
-      const familyId = family?.id ?? (await createFamily(`Famille ${user?.lastName ?? ''}`.trim())).id;
-      const rows = drafts.map((d) => ({
-        family_id: familyId,
-        first_name: d.firstName.trim(),
-        last_name: user?.lastName ?? '',
-        date_of_birth: dobFromAge(d.age),
-        sport: d.sport || null,
-      }));
-      const { error: insertError } = await supabase.from('children').insert(rows);
-      if (insertError) throw new Error(insertError.message);
+      if (!insertedRef.current) {
+        // `createChild` du hook lit l'identifiant de famille du rendu précédent : on insère donc avec l'identifiant frais.
+        const familyId = family?.id ?? (await createFamily(`Famille ${user?.lastName ?? ''}`.trim())).id;
+        const rows = drafts.map((d) => ({
+          family_id: familyId,
+          first_name: d.firstName.trim(),
+          last_name: user?.lastName ?? '',
+          date_of_birth: dobFromAge(d.age),
+          sport: d.sport || null,
+        }));
+        const { error: insertError } = await supabase.from('children').insert(rows);
+        if (insertError) throw insertError;
+        insertedRef.current = true;
+      }
       await refetchChildren();
       if (user?.id) await useChildStore.getState().loadChildren(user.id);
+      if (wasOnboarding && useChildStore.getState().children.length === 0) {
+        // Enfant enregistré mais relecture échouée : on le dit au lieu de laisser la garde renvoyer ici sans explication.
+        throw new Error('network: relecture impossible');
+      }
+      insertedRef.current = false;
       setDrafts([newDraft()]);
-      if (children.length === 0 && !adding) router.replace('/(parent)/maison');
+      if (wasOnboarding) router.replace('/(parent)/maison');
       else setAdding(false);
     } catch (e) {
-      setError((e as Error)?.message ?? 'Enregistrement impossible. Réessaie.');
+      setError(childSaveErrorMessage(e));
     }
+    savingRef.current = false;
     setSaving(false);
   };
 
@@ -105,7 +128,6 @@ export default function ChildrenScreen() {
     );
   }
 
-  const onboarding = children.length === 0;
   return (
     <ChildrenSetupView
       drafts={drafts}
@@ -113,9 +135,10 @@ export default function ChildrenScreen() {
       onAdd={() => setDrafts((all) => [...all, newDraft()])}
       onRemove={(key) => setDrafts((all) => (all.length > 1 ? all.filter((d) => d.key !== key) : all))}
       onContinue={save}
-      onBack={onboarding ? goBack : () => setAdding(false)}
+      onBack={onboarding ? undefined : () => setAdding(false)}
       step={onboarding ? { index: 2, total: 2 } : undefined}
       canContinue={drafts.length > 0 && drafts.every((d) => d.firstName.trim().length > 0)}
+      mandatory={onboarding}
       loading={saving}
       error={error}
     />

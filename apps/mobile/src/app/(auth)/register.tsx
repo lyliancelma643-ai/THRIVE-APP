@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../stores/auth.store';
 import { passwordError, PASSWORD_MIN_LENGTH } from '@thrive/shared/validation/password';
 import { LEGAL, LEGAL_VERSION } from '../../services/legal';
+import { authErrorMessage } from '../../lib/onboarding';
 import { RegisterView } from '../../components/account/RegisterView';
 
 export default function RegisterScreen() {
@@ -18,9 +19,11 @@ export default function RegisterScreen() {
   // « Recevoir les nouveautés » : préférence locale, NON envoyée (aucune donnée correspondante côté serveur).
   const [newsletter, setNewsletter] = useState(false);
 
+  const submitting = useRef(false);
+
   const handleRegister = async () => {
-    if (isLoading) return;
-    if (!firstName || !lastName || !email || !password) {
+    if (isLoading || submitting.current) return;
+    if (!firstName.trim() || !lastName.trim() || !email.trim() || !password) {
       setError('Tous les champs sont requis');
       return;
     }
@@ -35,19 +38,22 @@ export default function RegisterScreen() {
       setError('Veuillez confirmer votre âge et accepter les conditions pour continuer.');
       return;
     }
+    submitting.current = true;
     try {
       setError('');
       // Session ouverte immédiatement : le routeur racine envoie le parent dans l'app.
-      await signUp(email, password, {
-        firstName,
-        lastName,
+      await signUp(email.trim(), password, {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
         role: 'PARENT',
         legal_version: LEGAL_VERSION,
         legal_accepted_at: new Date().toISOString(),
         adult_guardian_confirmed: true,
       });
     } catch (err: any) {
-      setError(err.message ?? 'Inscription impossible');
+      setError(authErrorMessage(err));
+    } finally {
+      submitting.current = false;
     }
   };
 

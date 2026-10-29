@@ -1,11 +1,14 @@
 import { Sentry, setSentryUser } from '../lib/sentry';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import type React from 'react';
-import { Alert, AppState, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, AppState, Pressable, Text, View } from 'react-native';
 import { supabaseClient as supabase } from '@thrive/shared';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useAuthStore } from '../stores/auth.store';
+import { useChildStore } from '../stores/child.store';
+import { decideRoute } from '../lib/onboarding';
 import { usePushNotifications } from '../hooks/usePushNotifications';
 import { useRevenueCatIdentity } from '../hooks/useRevenueCatIdentity';
 import { useFonts } from 'expo-font';
@@ -13,10 +16,6 @@ import { FONT_ASSETS, FORM_COLUMN, ThemeProvider, useTheme } from '../design';
 
 // Racine unique de l'app mobile. Expo Router prend `src/app/` dès que ce
 // dossier existe : tout écran doit vivre ici (l'ancien `app/` n'est pas embarqué).
-
-function homeFor(role: string | undefined) {
-  return role === 'COACH' ? '/(coach)/dashboard' : '/(parent)/maison';
-}
 
 // Écrans de contenu : pleine largeur sur iPad (en-tête, onglets et fond d'un bord à l'autre) ; le centrage du contenu
 // est fait par HubScreen. Tous les autres (compte, enfants, connexion…) restent en colonne de 720 pt, sur le MÊME fond.
@@ -46,6 +45,31 @@ function RootLayout() {
   const { user, isAuthenticated, isLoading, hydrate, signOut } = useAuthStore();
   const router = useRouter();
   const segments = useSegments();
+  const childrenLoaded = useChildStore((s) => s.loaded);
+  const childCount = useChildStore((s) => s.children.length);
+  const [childLoadFailed, setChildLoadFailed] = useState(false);
+  const isParent = isAuthenticated && user?.role === 'PARENT';
+
+  // Un parent doit avoir au moins un enfant : on le lit (Supabase) dès la connexion. Changement de compte → état remis à zéro.
+  const loadedFor = useRef<string | null>(null);
+  const loadParentChildren = useCallback(() => {
+    if (!user?.id) return;
+    setChildLoadFailed(false);
+    void useChildStore.getState().loadChildren(user.id).then(() => {
+      if (!useChildStore.getState().loaded) setChildLoadFailed(true);
+    });
+  }, [user?.id]);
+  useEffect(() => {
+    if (!isParent || !user?.id) {
+      if (!isAuthenticated) { loadedFor.current = null; useChildStore.getState().reset(); }
+      return;
+    }
+    if (loadedFor.current !== user.id) {
+      if (loadedFor.current) useChildStore.getState().reset();
+      loadedFor.current = user.id;
+    }
+    if (!useChildStore.getState().loaded) loadParentChildren();
+  }, [isParent, isAuthenticated, user?.id, loadParentChildren]);
 
   // RevenueCat : App User ID = id Supabase (logIn / logOut suivent la session).
   useRevenueCatIdentity();
@@ -76,12 +100,10 @@ function RootLayout() {
     if (isLoading) return;
     // Galerie de contrôle des primitives (dev uniquement) : accessible sans session.
     if (__DEV__ && (segments[0] === '__design' || segments[0] === '__ecran')) return;
-    const inAuthGroup = segments[0] === '(auth)';
-    const inWelcome = segments[0] === 'welcome';
-
     if (!isAuthenticated) {
       // Arrivée non connectée : écran Bienvenue (slogans), puis connexion / inscription.
-      if (!inAuthGroup && !inWelcome) router.replace('/welcome');
+      const d = decideRoute({ isLoading, isAuthenticated, role: undefined, group: segments[0] as string | undefined, childrenLoaded: false, childCount: 0 });
+      if (d.kind === 'redirect') router.replace(d.to as never);
       return;
     }
 
@@ -105,15 +127,17 @@ function RootLayout() {
       return;
     }
 
-    const inCoachGroup = segments[0] === '(coach)';
-    const inParentGroup = segments[0] === '(parent)';
-    const isCoach = user?.role === 'COACH';
-    if (inAuthGroup || inWelcome || (isCoach && inParentGroup) || (!isCoach && inCoachGroup) || !segments[0]) {
+    const decision = decideRoute({
+      isLoading, isAuthenticated, role: user?.role,
+      group: segments[0] as string | undefined, screen: (segments as string[])[1],
+      childrenLoaded, childCount,
+    });
+    if (decision.kind === 'redirect') {
       // Bienvenue / connexion retirées de la pile : un glissement depuis le bord de l'écran ne peut plus y revenir.
       if (router.canDismiss()) router.dismissAll();
-      router.replace(homeFor(user?.role));
+      router.replace(decision.to as never);
     }
-  }, [isAuthenticated, isLoading, segments, user?.role]);
+  }, [isAuthenticated, isLoading, segments, user?.role, childrenLoaded, childCount]);
 
   // Ouverture d'une notification → écran concerné, dans l'espace du rôle.
   useEffect(() => {
@@ -141,6 +165,24 @@ function RootLayout() {
         <Stack.Screen name="(parent)" options={{ gestureEnabled: false, animation: 'fade' }} />
         <Stack.Screen name="(coach)" options={{ gestureEnabled: false, animation: 'fade' }} />
       </Stack>
+      {/* Parent : tant qu'on ne sait pas s'il a un enfant, rien d'autre qu'un loader (jamais de flash de Maison). */}
+      {isParent && !childrenLoaded ? (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', backgroundColor: '#022539' }}>
+          {childLoadFailed ? (
+            <View style={{ alignItems: 'center', paddingHorizontal: 32 }}>
+              <Text style={{ color: '#fff', fontSize: 16, textAlign: 'center' }}>Connexion impossible. Vérifie ton réseau.</Text>
+              <Pressable accessibilityRole="button" onPress={loadParentChildren} style={{ marginTop: 16, paddingVertical: 12, paddingHorizontal: 24, borderRadius: 24, backgroundColor: '#F9EB50' }}>
+                <Text style={{ color: '#022539', fontWeight: '600' }}>Réessayer</Text>
+              </Pressable>
+              <Pressable accessibilityRole="button" onPress={() => { void signOut(); }} style={{ marginTop: 12, padding: 8 }}>
+                <Text style={{ color: '#fff', opacity: 0.7 }}>Se déconnecter</Text>
+              </Pressable>
+            </View>
+          ) : (
+            <ActivityIndicator size="large" color="#fff" />
+          )}
+        </View>
+      ) : null}
       </Column>
     </ThemeProvider>
   );

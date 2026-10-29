@@ -21,7 +21,10 @@ export type ChildrenSetupViewProps = {
   onAdd: () => void;
   onRemove: (key: string) => void;
   onContinue: () => void;
-  onBack: () => void;
+  /** Absent : pas de bouton retour (création obligatoire). */
+  onBack?: () => void;
+  /** Création obligatoire du premier enfant (message d'accompagnement). */
+  mandatory?: boolean;
   /** Étape d'inscription « 2 sur 2 » (barre de progression). Absent : ajout depuis « Mes enfants ». */
   step?: { index: number; total: number };
   canContinue: boolean;
@@ -92,7 +95,7 @@ export function ChildrenSetupView(p: ChildrenSetupViewProps) {
         <View style={{ marginTop: p.step ? 22 : 4, paddingHorizontal: 16 }}>
           <ThemedText variant="title2" accessibilityRole="header">Tes enfants</ThemedText>
           <ThemedText variant="sub" color="label2" style={{ marginTop: 4 }}>
-            De 8 à 17 ans. Le parcours s’adapte à sa tranche d’âge.
+            {p.mandatory ? 'Dernière étape : ajoute ton enfant pour accéder à THRIVE. De 8 à 17 ans, le parcours s’adapte à sa tranche d’âge.' : 'De 8 à 17 ans. Le parcours s’adapte à sa tranche d’âge.'}
           </ThemedText>
         </View>
 
@@ -151,7 +154,7 @@ export function ChildrenSetupView(p: ChildrenSetupViewProps) {
 
       <NavBar
         title={p.step ? 'Créer le compte' : 'Ajouter un enfant'}
-        left={<GlassButton glyph="chevronLeft" accessibilityLabel="Retour" onPress={p.onBack} />}
+        left={p.onBack ? <GlassButton glyph="chevronLeft" accessibilityLabel="Retour" onPress={p.onBack} /> : undefined}
         right={p.step ? <ThemedText variant="sub" color="label2">{`${p.step.index} sur ${p.step.total}`}</ThemedText> : undefined}
       />
 
