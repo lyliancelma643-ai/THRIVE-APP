@@ -2,9 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const { withDangerousMod } = require('expo/config-plugins');
 
-// Xcode 27 refuse les pods dont la cible iOS est < 15 (SDWebImage, RevenueCat, Sentry…).
-// On remonte leur IPHONEOS_DEPLOYMENT_TARGET au minimum de l'app dans le post_install du Podfile.
-const MIN = '15.1';
+// Le SDK iOS 27 refuse les pods ciblant une version trop ancienne (SDWebImage, Sentry…) et
+// expo-router utilise des API iOS 16 : on aligne tous les pods sur la cible de l'app (16.0,
+// cf. expo-build-properties dans app.json) dans le post_install du Podfile.
+const MIN = '16.0';
 const MARK = '# thrive: pods deployment target';
 
 module.exports = function withPodsDeploymentTarget(config) {

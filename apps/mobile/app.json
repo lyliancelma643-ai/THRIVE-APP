@@ -133,6 +133,14 @@
           "remindersPermission": "THRIVE n’utilise pas tes rappels. Cette autorisation n’est jamais demandée."
         }
       ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "16.0"
+          }
+        }
+      ],
       "./plugins/withPodsDeploymentTarget"
     ],
     "experiments": {
